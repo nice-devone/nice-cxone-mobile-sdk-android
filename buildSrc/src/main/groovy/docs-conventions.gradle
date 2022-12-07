@@ -1,0 +1,17 @@
+plugins {
+    id "org.jetbrains.dokka"
+}
+
+dokkaHtml {
+    configure {
+        dokkaSourceSets {
+            named("main") {
+                noAndroidSdkLink.set(false)
+            }
+        }
+    }
+}
+
+dependencies {
+    dokkaHtmlPlugin "org.jetbrains.dokka:kotlin-as-java-plugin:1.6.10"
+}

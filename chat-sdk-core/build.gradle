@@ -1,0 +1,36 @@
+plugins {
+    id "android-conventions"
+    id "kotlin-conventions"
+    id "docs-conventions"
+    id "test-conventions"
+    id "style-conventions"
+    id "publish-conventions"
+}
+
+android {
+    namespace 'com.nice.cxonechat'
+
+    defaultConfig {
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+        }
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+}
+
+dependencies {
+    implementation "androidx.core:core-ktx:1.9.0"
+    implementation 'com.neovisionaries:nv-websocket-client:2.14'
+    implementation 'com.google.code.gson:gson:2.8.8'
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.10.0'
+}

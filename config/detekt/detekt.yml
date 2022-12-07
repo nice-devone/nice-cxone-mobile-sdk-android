@@ -1,0 +1,101 @@
+output-reports:
+  active: true
+  exclude:
+    - 'TxtOutputReport'
+    - 'XmlOutputReport'
+    - 'MdOutputReport'
+
+comments:
+  KDocReferencesNonPublicProperty:
+    active: true
+  OutdatedDocumentation:
+    active: true
+  UndocumentedPublicClass:
+    active: true
+  UndocumentedPublicFunction:
+    active: true
+  UndocumentedPublicProperty:
+    active: true
+
+complexity:
+  ComplexInterface:
+    active: true
+  ComplexMethod:
+    active: true
+  LargeClass:
+    active: true
+    threshold: 300
+  LongMethod:
+    active: true
+  LongParameterList:
+    active: true
+  NamedArguments:
+    active: true
+  StringLiteralDuplication:
+    active: true
+
+exceptions:
+  ObjectExtendsThrowable:
+    active: true
+
+formatting:
+  AnnotationOnSeparateLine:
+    active: true
+    autoCorrect: true
+  AnnotationSpacing:
+    active: true
+    autoCorrect: true
+  EnumEntryNameCase:
+    active: true
+
+naming:
+  BooleanPropertyNaming:
+    active: true
+    allowedPattern: "^(is|has|are|can)"
+  FunctionMaxLength:
+    active: true
+  VariableMaxLength:
+    active: true
+    maximumVariableNameLength: 32
+
+performance:
+  CouldBeSequence:
+    active: true
+
+potential-bugs:
+  DontDowncastCollectionTypes:
+    active: true
+  ElseCaseInsteadOfExhaustiveWhen:
+    active: true
+  NullCheckOnMutableProperty:
+    active: true
+
+style:
+  CascadingCallWrapping:
+    active: true
+  ClassOrdering:
+    active: true
+  DataClassShouldBeImmutable:
+    active: true
+  EqualsOnSignatureLine:
+    active: true
+  MagicNumber:
+    active: false
+  MaxLineLength:
+    active: true
+    maxLineLength: 250  # Default is 120
+    excludePackageStatements: true
+    excludeImportStatements: true
+    excludeCommentStatements: false
+  NullableBooleanCheck:
+    active: true
+  OptionalWhenBraces:
+    active: true
+  SpacingBetweenPackageAndImports:
+    active: true
+  UnnecessaryInnerClass:
+    active: true
+  UntilInsteadOfRangeTo:
+    active: true
+  UnusedImports:
+    active: true
