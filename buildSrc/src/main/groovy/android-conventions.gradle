@@ -1,0 +1,21 @@
+plugins {
+    id "com.android.library"
+}
+
+android {
+
+    compileSdk 33
+
+    defaultConfig {
+        minSdk 23
+        targetSdk 31
+    }
+
+    buildFeatures {
+        aidl false
+        buildConfig false
+        renderScript false
+        shaders false
+    }
+
+}
