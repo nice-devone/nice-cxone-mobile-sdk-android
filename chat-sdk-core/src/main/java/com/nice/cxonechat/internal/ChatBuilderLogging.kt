@@ -30,9 +30,9 @@ internal class ChatBuilderLogging(
     override fun build(callback: OnChatBuiltCallback): Cancellable {
         return try {
             origin.build(callback)
-        } catch (e: Throwable) {
-            if (developmentMode) severe("Failed to initialize", e)
-            throw e
+        } catch (expected: Throwable) {
+            if (developmentMode) severe("Failed to initialize", expected)
+            throw expected
         }
     }
 

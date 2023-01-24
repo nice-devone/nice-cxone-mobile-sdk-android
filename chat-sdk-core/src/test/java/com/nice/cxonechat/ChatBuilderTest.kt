@@ -14,6 +14,7 @@ import com.nice.cxonechat.tool.SocketFactoryMock
 import com.nice.cxonechat.tool.awaitResult
 import com.nice.cxonechat.tool.nextString
 import okhttp3.ResponseBody.Companion.toResponseBody
+import org.junit.After
 import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.kotlin.any
@@ -29,7 +30,19 @@ import kotlin.test.assertEquals
 
 internal class ChatBuilderTest : AbstractChatTestSubstrate() {
 
+    private var isAuthorizationEnabled = true
+
+    override val config: ChannelConfiguration?
+        get() = super.config?.copy(
+            isAuthorizationEnabled = isAuthorizationEnabled
+        )
+
     override fun prepare() = Unit
+
+    @After
+    fun reset() {
+        isAuthorizationEnabled = true
+    }
 
     @Test
     fun build_recoversIOException() {
@@ -193,6 +206,29 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
         val connection = chat.connection
         assertEquals(SocketFactoryMock.firstName, connection.firstName)
         assertEquals(SocketFactoryMock.lastName, connection.lastName)
+    }
+
+    @Test
+    fun build_authorization_keeps_local_username_for_config_without_enabled_authorization() {
+        isAuthorizationEnabled = false
+        val firstName = nextString()
+        val lastName = nextString()
+        val uuid = UUID.randomUUID()
+        val empty = ""
+        val (connection, builder) = prepareBuilder()
+        val chat = build(builder) {
+            setUserName(firstName, lastName)
+        } as ChatWithParameters
+
+        // updates connection
+        this serverResponds ServerResponse.ConsumerAuthorized(uuid, empty, empty)
+
+        val thread = makeChatThread()
+        val expected = connection.asCopyable().copy(consumerId = uuid, firstName = firstName, lastName = lastName)
+        // tests that data has been updated
+        assertSendText(ServerRequest.ArchiveThread(expected, thread), uuid.toString(), thread.id.toString()) {
+            chat.threads().thread(thread).events().trigger(ArchiveThreadEvent)
+        }
     }
 
     // ---

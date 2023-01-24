@@ -19,9 +19,14 @@ internal class ChatThreadsHandlerReplayLastEmpty(
     }
 
     override fun threads(listener: OnThreadsUpdatedListener): Cancellable {
-        return origin.threads {
-            listener.onThreadsUpdated(listOfNotNull(latestThread?.invoke()) + it)
+        val latest = latestThread?.invoke() ?: return origin.threads(listener)
+        return origin.threads { threads ->
+            if (threads.any { thread -> thread.id == latest.id }) {
+                latestThread = null
+                listener.onThreadsUpdated(threads)
+            } else {
+                listener.onThreadsUpdated(listOfNotNull(latest) + threads)
+            }
         }
     }
-
 }

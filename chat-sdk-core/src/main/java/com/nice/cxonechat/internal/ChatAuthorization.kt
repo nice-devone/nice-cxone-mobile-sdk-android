@@ -17,9 +17,18 @@ internal class ChatAuthorization(
 ) : ChatWithParameters by origin {
 
     private val customerAuthorized = socket.addCallback<EventCustomerAuthorized>(CustomerAuthorized) { model ->
+        val authorizationEnabled = origin.configuration.isAuthorizationEnabled
         connection = connection.asCopyable().copy(
-            firstName = model.firstName ?: connection.firstName,
-            lastName = model.lastName ?: connection.lastName,
+            firstName = if (authorizationEnabled) {
+                model.firstName ?: connection.firstName
+            } else {
+                connection.firstName
+            },
+            lastName = if (authorizationEnabled) {
+                model.lastName ?: connection.lastName
+            } else {
+                connection.lastName
+            },
             consumerId = model.id
         )
         storage.authToken = model.token
@@ -47,5 +56,4 @@ internal class ChatAuthorization(
         tokenRefresh.cancel()
         origin.close()
     }
-
 }

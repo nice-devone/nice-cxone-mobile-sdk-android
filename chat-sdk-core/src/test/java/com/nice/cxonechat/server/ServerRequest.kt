@@ -28,6 +28,7 @@ import com.nice.cxonechat.internal.model.network.Conversion
 import com.nice.cxonechat.internal.model.network.PageViewData
 import com.nice.cxonechat.internal.model.network.ProactiveActionInfo
 import com.nice.cxonechat.internal.model.network.VisitorEvent
+import com.nice.cxonechat.message.MessageDirection.ToClient
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyArchiveThread
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyAuthorizeConsumer
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyExecuteTrigger
@@ -143,9 +144,8 @@ internal object ServerRequest {
         thread: ChatThread,
         storage: ValueStorage,
         message: String,
-        fields: Map<String, String>,
     ): String {
-        return ActionMessage(connection, thread, TestUUIDValue, message, emptyList(), fields.map(::CustomFieldModel), storage.authToken).copy(eventId = TestUUIDValue).serialize().verifySendOutbound()
+        return ActionMessage(connection, thread, TestUUIDValue, message, emptyList(), emptyList(), storage.authToken, ToClient).copy(eventId = TestUUIDValue).serialize().verifySendOutbound()
     }
 
     object StoreVisitorEvents {
@@ -210,7 +210,5 @@ internal object ServerRequest {
         fun PageView(title: String, uri: String, date: Date = Date(0)): VisitorEvent {
             return VisitorEvent(VisitorEventType.PageView, id = TestUUIDValue, createdAt = date, data = PageViewData(title, uri))
         }
-
     }
-
 }

@@ -14,12 +14,15 @@ internal class VariableMessageParserTest {
     @Test
     fun parse_message_without_variables() {
         val expected = "Welcome, how was your day?"
-        assertEquals(expected, VariableMessageParser.parse(
-            message = expected,
-            parameters = nextStringMap(),
-            customerFields = nextStringMap(),
-            contactFields = nextStringMap(),
-        ))
+        assertEquals(
+            expected,
+            VariableMessageParser.parse(
+                message = expected,
+                parameters = nextStringMap(),
+                customerFields = nextStringMap(),
+                contactFields = nextStringMap(),
+            )
+        )
     }
 
     @Test
@@ -27,12 +30,15 @@ internal class VariableMessageParserTest {
         val parameters = mapOf("firstName" to nextString())
         val message = "Welcome {{customer.firstName}}, how was your day?"
         val expected = "Welcome ${parameters["firstName"]}, how was your day?"
-        assertEquals(expected, VariableMessageParser.parse(
-            message = message,
-            parameters = parameters,
-            customerFields = nextStringMap(),
-            contactFields = nextStringMap()
-        ))
+        assertEquals(
+            expected,
+            VariableMessageParser.parse(
+                message = message,
+                parameters = parameters,
+                customerFields = nextStringMap(),
+                contactFields = nextStringMap()
+            )
+        )
     }
 
     @Test
@@ -41,12 +47,15 @@ internal class VariableMessageParserTest {
         val parameters = mapOf("firstName" to nextString())
         val message = "Welcome {{customer.newVariable|$fallback}}, how was your day?"
         val expected = "Welcome $fallback, how was your day?"
-        assertEquals(expected, VariableMessageParser.parse(
-            message = message,
-            parameters = parameters,
-            customerFields = nextStringMap(),
-            contactFields = nextStringMap()
-        ))
+        assertEquals(
+            expected,
+            VariableMessageParser.parse(
+                message = message,
+                parameters = parameters,
+                customerFields = nextStringMap(),
+                contactFields = nextStringMap()
+            )
+        )
     }
 
     @Test
@@ -54,12 +63,15 @@ internal class VariableMessageParserTest {
         val parameters = mapOf("firstName" to nextString())
         val message = "Welcome{{customer.newValue|}} how was your day?"
         val expected = "Welcome how was your day?"
-        assertEquals(expected, VariableMessageParser.parse(
-            message = message,
-            parameters = parameters,
-            customerFields = nextStringMap(),
-            contactFields = nextStringMap()
-        ))
+        assertEquals(
+            expected,
+            VariableMessageParser.parse(
+                message = message,
+                parameters = parameters,
+                customerFields = nextStringMap(),
+                contactFields = nextStringMap()
+            )
+        )
     }
 
     @Test
@@ -67,12 +79,15 @@ internal class VariableMessageParserTest {
         val pair = nextStringPair()
         val message = "Welcome {{customer.customFields.${pair.first}}}, how was your day?"
         val expected = "Welcome ${pair.second}, how was your day?"
-        assertEquals(expected, VariableMessageParser.parse(
-            message = message,
-            parameters = nextStringMap(),
-            customerFields = mapOf(pair),
-            contactFields = nextStringMap()
-        ))
+        assertEquals(
+            expected,
+            VariableMessageParser.parse(
+                message = message,
+                parameters = nextStringMap(),
+                customerFields = mapOf(pair),
+                contactFields = nextStringMap()
+            )
+        )
     }
 
     @Test
@@ -81,12 +96,15 @@ internal class VariableMessageParserTest {
         val pair = nextStringPair()
         val message = "Welcome {{customer.customFields.newVariable|$fallback}}, how was your day?"
         val expected = "Welcome $fallback, how was your day?"
-        assertEquals(expected, VariableMessageParser.parse(
-            message = message,
-            parameters = nextStringMap(),
-            customerFields = mapOf(pair),
-            contactFields = nextStringMap()
-        ))
+        assertEquals(
+            expected,
+            VariableMessageParser.parse(
+                message = message,
+                parameters = nextStringMap(),
+                customerFields = mapOf(pair),
+                contactFields = nextStringMap()
+            )
+        )
     }
 
     @Test
@@ -94,12 +112,15 @@ internal class VariableMessageParserTest {
         val pair = nextStringPair()
         val message = "Welcome {{contact.customFields.${pair.first}}}, how was your day?"
         val expected = "Welcome ${pair.second}, how was your day?"
-        assertEquals(expected, VariableMessageParser.parse(
-            message = message,
-            parameters = nextStringMap(),
-            customerFields = nextStringMap(),
-            contactFields = mapOf(pair)
-        ))
+        assertEquals(
+            expected,
+            VariableMessageParser.parse(
+                message = message,
+                parameters = nextStringMap(),
+                customerFields = nextStringMap(),
+                contactFields = mapOf(pair)
+            )
+        )
     }
 
     @Test
@@ -108,36 +129,45 @@ internal class VariableMessageParserTest {
         val pair = nextStringPair()
         val message = "Welcome {{contact.customFields.newField|$fallback}}, how was your day?"
         val expected = "Welcome $fallback, how was your day?"
-        assertEquals(expected, VariableMessageParser.parse(
-            message = message,
-            parameters = nextStringMap(),
-            customerFields = nextStringMap(),
-            contactFields = mapOf(pair)
-        ))
+        assertEquals(
+            expected,
+            VariableMessageParser.parse(
+                message = message,
+                parameters = nextStringMap(),
+                customerFields = nextStringMap(),
+                contactFields = mapOf(pair)
+            )
+        )
     }
 
     @Test
     fun parse_message_without_valid_variable() {
         val message = "Welcome {{unknown}}, how was your day?"
         val expected = "Welcome {{unknown}}, how was your day?"
-        assertEquals(expected, VariableMessageParser.parse(
-            message = message,
-            parameters = nextStringMap(),
-            customerFields = nextStringMap(),
-            contactFields = nextStringMap(),
-        ))
+        assertEquals(
+            expected,
+            VariableMessageParser.parse(
+                message = message,
+                parameters = nextStringMap(),
+                customerFields = nextStringMap(),
+                contactFields = nextStringMap(),
+            )
+        )
     }
 
     @Test
     fun parse_message_without_valid_variable_andEmptyFallback() {
         val message = "Welcome{{unknown|}} how was your day?"
         val expected = "Welcome how was your day?"
-        assertEquals(expected, VariableMessageParser.parse(
-            message = message,
-            parameters = nextStringMap(),
-            customerFields = nextStringMap(),
-            contactFields = nextStringMap(),
-        ))
+        assertEquals(
+            expected,
+            VariableMessageParser.parse(
+                message = message,
+                parameters = nextStringMap(),
+                customerFields = nextStringMap(),
+                contactFields = nextStringMap(),
+            )
+        )
     }
 
     @Test
@@ -145,36 +175,60 @@ internal class VariableMessageParserTest {
         val fallback = nextString()
         val message = "Welcome {{unknown|$fallback}}, how was your day?"
         val expected = "Welcome $fallback, how was your day?"
-        assertEquals(expected, VariableMessageParser.parse(
-            message = message,
-            parameters = nextStringMap(),
-            customerFields = nextStringMap(),
-            contactFields = nextStringMap(),
-        ))
+        assertEquals(
+            expected,
+            VariableMessageParser.parse(
+                message = message,
+                parameters = nextStringMap(),
+                customerFields = nextStringMap(),
+                contactFields = nextStringMap(),
+            )
+        )
+    }
+
+    @Test
+    fun parse_message_without_valid_variableWithGeneralFallback() {
+        val fallback = nextString()
+        val message = "Welcome {{unknown}}, how was your day?{{fallbackMessage|$fallback}}"
+        assertEquals(
+            fallback,
+            VariableMessageParser.parse(
+                message = message,
+                parameters = nextStringMap(),
+                customerFields = nextStringMap(),
+                contactFields = nextStringMap(),
+            )
+        )
     }
 
     @Test
     fun parse_message_with_missing_leading_bracket() {
         val message = "Welcome unknown}}, how was your day?"
         val expected = "Welcome unknown}}, how was your day?"
-        assertEquals(expected, VariableMessageParser.parse(
-            message = message,
-            parameters = nextStringMap(),
-            customerFields = nextStringMap(),
-            contactFields = nextStringMap(),
-        ))
+        assertEquals(
+            expected,
+            VariableMessageParser.parse(
+                message = message,
+                parameters = nextStringMap(),
+                customerFields = nextStringMap(),
+                contactFields = nextStringMap(),
+            )
+        )
     }
 
     @Test
     fun parse_message_with_missing_closing_bracket() {
         val message = "Welcome {{unknown, how was your day?"
         val expected = "Welcome {{unknown, how was your day?"
-        assertEquals(expected, VariableMessageParser.parse(
-            message = message,
-            parameters = nextStringMap(),
-            customerFields = nextStringMap(),
-            contactFields = nextStringMap(),
-        ))
+        assertEquals(
+            expected,
+            VariableMessageParser.parse(
+                message = message,
+                parameters = nextStringMap(),
+                customerFields = nextStringMap(),
+                contactFields = nextStringMap(),
+            )
+        )
     }
 
     @Test
@@ -183,13 +237,22 @@ internal class VariableMessageParserTest {
         val parameters = mapOf("firstName" to name)
         val customer = nextStringPair()
         val contact = nextStringPair()
-        val message = "Welcome {{customer.firstName}}, this is {{unknown|fallback}} personalized message with {{contact.customFields.${contact.first}}} and {{customer.customFields.${customer.first}}}"
-        val expected = "Welcome $name, this is fallback personalized message with ${contact.second} and ${customer.second}"
-        assertEquals(expected, VariableMessageParser.parse(
-            message = message,
-            parameters = parameters,
-            customerFields = mapOf(customer),
-            contactFields = mapOf(contact),
-        ))
+        val message = "Welcome {{customer.firstName}}, " +
+            "this is {{unknown|fallback}} personalized message " +
+            "with {{contact.customFields.${contact.first}}} " +
+            "and {{customer.customFields.${customer.first}}}"
+        val expected = "Welcome $name, " +
+            "this is fallback personalized message " +
+            "with ${contact.second} " +
+            "and ${customer.second}"
+        assertEquals(
+            expected,
+            VariableMessageParser.parse(
+                message = message,
+                parameters = parameters,
+                customerFields = mapOf(customer),
+                contactFields = mapOf(contact),
+            )
+        )
     }
 }

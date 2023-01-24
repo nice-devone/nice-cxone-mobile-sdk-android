@@ -16,5 +16,5 @@ internal fun nextStringMap(
     length: () -> Int = { 10 },
     pool: List<Char> = Default,
 ): Map<String, String> = buildMap(capacity = capacity) {
-    nextStringPair(length, pool)
+    put(nextString(length(), pool), nextString(length(), pool))
 }

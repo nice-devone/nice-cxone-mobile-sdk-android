@@ -28,12 +28,14 @@ internal object SocketDefaults {
         .registerSubtype(MessagePolyElement.Title::class.java, "TITLE")
         .registerSubtype(MessagePolyElement.Subtitle::class.java, "SUBTITLE")
         .registerSubtype(MessagePolyElement.Text::class.java, "TEXT")
-        .registerSubtype(MessagePolyElement.Button::class.java, "BUTTON")
+        .registerSubtype(MessagePolyElement.DeeplinkButton::class.java, "BUTTON")
+        .registerSubtype(MessagePolyElement.IFrameButton::class.java, "IFRAME_BUTTON")
         .registerSubtype(MessagePolyElement.TextAndButtons::class.java, "TEXT_AND_BUTTONS")
         .registerSubtype(MessagePolyElement.QuickReplies::class.java, "QUICK_REPLIES")
         .registerSubtype(MessagePolyElement.InactivityPopup::class.java, "INACTIVITY_POPUP")
         .registerSubtype(MessagePolyElement.Countdown::class.java, "COUNTDOWN")
         .registerSubtype(MessagePolyElement.Custom::class.java, "CUSTOM")
+        .registerSubtype(MessagePolyElement.SatisfactionSurvey::class.java, "SATISFACTION_SURVEY")
         .registerDefault(MessagePolyElement.Noop)
 
     val serializer: Gson = GsonBuilder()
@@ -67,12 +69,9 @@ internal object SocketDefaults {
         }
 
         companion object {
-
             // this will make the program malfunction on Sat Nov 20 2286 17:46:40 UTC (:
             private const val epochLimitSeconds = 10_000_000_000L
-
         }
-
     }
 
     private class DateTimeTypeAdapter : TypeAdapter<DateTime>() {
@@ -90,7 +89,5 @@ internal object SocketDefaults {
         override fun read(reader: JsonReader): DateTime? {
             return fallback.read(reader)?.let(::DateTime)
         }
-
     }
-
 }

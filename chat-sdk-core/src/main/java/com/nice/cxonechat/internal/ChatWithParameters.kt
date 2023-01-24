@@ -10,7 +10,7 @@ internal interface ChatWithParameters : Chat {
     val entrails: ChatEntrails
     val socket: WebSocket
     var connection: Connection
-    var fields: List<CustomField>
+    override var fields: List<CustomField>
 
     val storage get() = entrails.storage
     val service get() = entrails.service

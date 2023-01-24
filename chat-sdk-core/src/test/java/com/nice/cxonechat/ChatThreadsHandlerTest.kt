@@ -72,7 +72,10 @@ internal class ChatThreadsHandlerTest : AbstractChatTest() {
 
     @Test
     fun create_withCustomParameters_sendsComplexWelcomeMessage_toThread() {
-        val message = "Welcome {{customer.firstName|stranger}}, how was your {{customer.customFields.testField|day}} {{contact.customFields.testField2|dear customer}}?"
+        val message = "Welcome {{customer.firstName|stranger}}, " +
+            "how was your {{customer.customFields.testField|day}} " +
+            "{{contact.customFields.testField2|dear customer}}?" +
+            "{{fallbackMessage|This unit test has failed.}}"
         val expected = "Welcome ${SocketFactoryMock.firstName}, how was your testValue testValue2?"
         val contactCustomFields = mapOf("testField2" to "testValue2")
         assertSendsWelcomeMessageToThread(message, expected, contactCustomFields.map(::CustomFieldInternal)) {
@@ -95,7 +98,7 @@ internal class ChatThreadsHandlerTest : AbstractChatTest() {
         val customerCustomFields = mapOf("testField" to "testValue")
         this serverResponds ServerResponse.WelcomeMessage(message, customerCustomFields)
         val thread = makeChatThread(id = TestUUIDValue, fields = contactCustomFields)
-        assertSendText(ServerRequest.SendOutbound(connection, thread, storage, expected, customerCustomFields)) {
+        assertSendText(ServerRequest.SendOutbound(connection, thread, storage, expected)) {
             create()
         }
     }

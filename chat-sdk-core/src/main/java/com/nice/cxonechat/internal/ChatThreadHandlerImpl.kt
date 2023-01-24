@@ -12,6 +12,7 @@ import com.nice.cxonechat.event.thread.UpdateThreadEvent
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.model.ChatThreadMutable
 import com.nice.cxonechat.internal.model.network.EventThreadRecovered
+import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.socket.EventCallback.Companion.addCallback
 import com.nice.cxonechat.thread.ChatThread
 
@@ -24,9 +25,10 @@ internal class ChatThreadHandlerImpl(
 
     override fun get(listener: OnThreadUpdatedListener): Cancellable {
         return chat.socket.addCallback<EventThreadRecovered>(ThreadRecovered) { event ->
-            if (!event.inThread(thread))
+            if (!event.inThread(thread)) {
                 return@addCallback
-            val messages = event.messages.sortedBy { it.createdAt }
+            }
+            val messages = event.messages.sortedBy(Message::createdAt)
             thread += thread.asCopyable().copy(
                 threadName = event.thread.threadName,
                 messages = messages + thread.messages,

@@ -30,10 +30,12 @@ interface ChatBuilder {
     fun setDevelopmentMode(enabled: Boolean): ChatBuilder
 
     /**
-     * Sets a default user name. If the user name changes reinvoke this method and
-     * build the new chat to apply changes. Usually this should be done with app's
-     * lifecycle events automatically. Name is updated with every eligible event,
-     * likely will be updated during the authorization step when running [build].
+     * Sets a default username.
+     * If the username changes invoke this method again and build the new chat to apply
+     * the changes.
+     * Usually, this should be done with app's lifecycle events automatically.
+     * Name is updated with every eligible event, likely will be updated during
+     * the authorization step when running [build].
      *
      * Defaults to empty values.
      * */
@@ -102,7 +104,5 @@ interface ChatBuilder {
             builder = ChatBuilderRepeating(builder, entrails)
             return builder
         }
-
     }
-
 }

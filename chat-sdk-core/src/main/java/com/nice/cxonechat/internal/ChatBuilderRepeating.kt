@@ -68,13 +68,12 @@ internal class ChatBuilderRepeating(
                 chat = it
                 latch.countDown()
             }
-        } catch (e: RuntimeException) {
-            throw IllegalStateException(e)
+        } catch (expected: RuntimeException) {
+            throw IllegalStateException(expected)
         } catch (e: IOException) {
             throw IllegalStateException(e)
         }
         latch.await()
         return checkNotNull(chat)
     }
-
 }

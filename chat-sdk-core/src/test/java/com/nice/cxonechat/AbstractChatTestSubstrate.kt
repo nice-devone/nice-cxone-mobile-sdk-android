@@ -74,9 +74,9 @@ internal abstract class AbstractChatTestSubstrate {
         val call = mock<Call<ChannelConfiguration?>>()
         whenever(getChannel(any(), any())).thenReturn(call)
         whenever(call.execute()).then { Response.success(config) }
-        whenever(call.enqueue(any())).then {
-            val callback = it.getArgument<Callback<ChannelConfiguration?>>(0)
-            kotlin.runCatching { config }
+        whenever(call.enqueue(any())).then { mock ->
+            val callback = mock.getArgument<Callback<ChannelConfiguration?>>(0)
+            runCatching { config }
                 .onSuccess { callback.onResponse(call, Response.success(it)) }
                 .onFailure { callback.onFailure(call, it) }
             Unit
@@ -152,10 +152,7 @@ internal abstract class AbstractChatTestSubstrate {
     }
 
     companion object {
-
         const val TestUUID = "00000000-0000-0000-0000-000000000000"
         val TestUUIDValue: UUID get() = UUID.fromString(TestUUID)
-
     }
-
 }

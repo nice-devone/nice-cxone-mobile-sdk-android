@@ -88,7 +88,6 @@ sealed class Message {
          * libraries to display them, if applicable.
          * */
         abstract val text: String
-
     }
 
     /**
@@ -109,14 +108,12 @@ sealed class Message {
         abstract val postback: String?
 
         /**
-         * Elements provided with this message. If the elements **are empty**,
-         * then you received a message with an element that's not supported by
+         * Element provided with this message. If the element **is null**,
+         * then you have received a message with an element that's not supported by
          * this version. Kindly update the SDK in order to gain support.
          *
          * @see PluginElement
          * */
-        abstract val elements: Iterable<PluginElement>
-
+        abstract val element: PluginElement?
     }
-
 }

@@ -14,5 +14,6 @@ internal fun PluginElement(element: MessagePolyElement) = when (element) {
     is MessagePolyElement.Text -> PluginElementText(element)
     is MessagePolyElement.TextAndButtons -> PluginElementTextAndButtons(element)
     is MessagePolyElement.Title -> PluginElementTitle(element)
+    is MessagePolyElement.SatisfactionSurvey -> PluginElementSatisfactionSurvey.createVerifiedInstance(element)
     MessagePolyElement.Noop -> null
 }

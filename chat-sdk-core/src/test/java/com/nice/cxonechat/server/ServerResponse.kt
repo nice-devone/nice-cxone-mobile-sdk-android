@@ -1,4 +1,4 @@
-@file:Suppress("MaxLineLength", "TestFunctionName", "StringLiteralDuplication")
+@file:Suppress("MaxLineLength", "TestFunctionName", "StringLiteralDuplication", "LongMethod")
 
 package com.nice.cxonechat.server
 
@@ -461,18 +461,236 @@ internal object ServerResponse {
                         val text = "See this page"
                         val variables = object {
                             val color = "green"
-                            val buttons = listOf(object {
-                                val id = "0edc9bf6-4922-4695-a6ad-1bdb248dd42f"
-                                val name = "Confirm"
-                            }, object {
-                                val id = "0b4ad5a5-5f6b-477d-8013-d6dcf7b87704"
-                                val name = "Decline"
-                            })
+                            val buttons = listOf(
+                                object {
+                                    val id = "0edc9bf6-4922-4695-a6ad-1bdb248dd42f"
+                                    val name = "Confirm"
+                                },
+                                object {
+                                    val id = "0b4ad5a5-5f6b-477d-8013-d6dcf7b87704"
+                                    val name = "Decline"
+                                }
+                            )
                             val size = object {
                                 val ios = "big"
                                 val android = "middle"
                             }
                         }
+                    })
+                }
+            }
+        )
+
+        fun Gallery(threadId: UUID) = Message(
+            threadId = threadId,
+            content = @Suppress("unused") object {
+                val type = "PLUGIN"
+                val payload = object {
+                    val postback = ""
+                    val elements = listOf(
+                        object {
+                            val id = "Ek4tPy1h41"
+                            val type = "MENU"
+                            val elements = listOf(
+                                object {
+                                    val id = "Uk4tPy1h21"
+                                    val type = "FILE"
+                                    val url = "https://picsum.photos/300/150"
+                                    val filename = "photo1.jpeg"
+                                    val mimeType = "image/jpeg"
+                                },
+                                object {
+                                    val id = "Ck4tPy1h31"
+                                    val type = "TITLE"
+                                    val text = "Hello!"
+                                },
+                                object {
+                                    val id = "Ek4tPy1h11"
+                                    val type = "TEXT"
+                                    val text = "Lorem Impsum..."
+                                },
+                                object {
+                                    val id = "Nkm0hRAiE1"
+                                    val type = "BUTTON"
+                                    val text = "Click me!"
+                                    val postback = "click-on-button-1"
+                                },
+                                object {
+                                    val id = "NkGJ6CAiN1"
+                                    val type = "BUTTON"
+                                    val text = "No click me!"
+                                    val postback = "click-on-button-2"
+                                },
+                                object {
+                                    val id = "EyCyTRCi41"
+                                    val type = "BUTTON"
+                                    val text = "Aww don`t click on me"
+                                    val postback = "click-on-button-3"
+                                }
+                            )
+                        },
+                        object {
+                            val id = "Ek4tPy1h52"
+                            val type = "MENU"
+                            val elements = listOf(
+                                object {
+                                    val id = "Uk4tPy1h22"
+                                    val type = "FILE"
+                                    val url = "https://picsum.photos/300/150"
+                                    val filename = "photo1.jpeg"
+                                    val mimeType = "image/jpeg"
+                                },
+                                object {
+                                    val id = "Ck4tPy1h32"
+                                    val type = "TITLE"
+                                    val text = "Hello!"
+                                },
+                                object {
+                                    val id = "Ek4tPy1h12"
+                                    val type = "TEXT"
+                                    val text = "Lorem Impsum..."
+                                },
+                                object {
+                                    val id = "Nkm0hRAiE2"
+                                    val type = "BUTTON"
+                                    val text = "Click me!"
+                                    val postback = "click-on-button-1"
+                                },
+                                object {
+                                    val id = "NkGJ6CAiN2"
+                                    val type = "BUTTON"
+                                    val text = "No click me!"
+                                    val postback = "click-on-button-2"
+                                },
+                                object {
+                                    val id = "EyCyTRCi42"
+                                    val type = "BUTTON"
+                                    val text = "Aww don`t click on me"
+                                    val postback = "click-on-button-3"
+                                }
+                            )
+                        },
+                        object {
+                            val id = "Ek4tPy1h63"
+                            val type = "MENU"
+                            val elements = listOf(
+                                object {
+                                    val id = "Uk4tPy1h23"
+                                    val type = "FILE"
+                                    val url = "https://picsum.photos/300/150"
+                                    val filename = "photo1.jpeg"
+                                    val mimeType = "image/jpeg"
+                                },
+                                object {
+                                    val id = "Ck4tPy1h33"
+                                    val type = "TITLE"
+                                    val text = "Hello!"
+                                },
+                                object {
+                                    val id = "Ek4tPy1h13"
+                                    val type = "TEXT"
+                                    val text = "Lorem Impsum..."
+                                },
+                                object {
+                                    val id = "Nkm0hRAiE3"
+                                    val type = "BUTTON"
+                                    val text = "Click me!"
+                                    val postback = "click-on-button-1"
+                                },
+                                object {
+                                    val id = "NkGJ6CAiN3"
+                                    val type = "BUTTON"
+                                    val text = "No click me!"
+                                    val postback = "click-on-button-2"
+                                },
+                                object {
+                                    val id = "EyCyTRCi43"
+                                    val type = "BUTTON"
+                                    val text = "Aww don`t click on me"
+                                    val postback = "click-on-button-3"
+                                }
+                            )
+                        }
+                    )
+                }
+            }
+        )
+
+        fun SatisfactionSurveyInternal(threadId: UUID) = Message(
+            threadId = threadId,
+            content = @Suppress("unused") object {
+                val type = "PLUGIN"
+                val payload = object {
+                    val text = ""
+                    val postback = ""
+                    val elements = listOf(object {
+                        val id = "0ddf0614-8d82-4117-bfbe-5f42ffe46948"
+                        val type = "SATISFACTION_SURVEY"
+                        val elements = listOf(
+                            object {
+                                val type = "TEXT"
+                                val id = "b4d315be-725d-44bc-8b92-6bd42fe6aeb2"
+                                val text = "Satisfaction survey message"
+                                val mimeType = "text/plain"
+                            },
+                            object {
+                                val id = "7e8bb08a-5f4e-4e65-8b11-7f6e5d258fa9"
+                                val type = "IFRAME_BUTTON"
+                                val text = "Satisfaction survey button"
+                                val url = "https://my-satisfaction-survey.com/will-smith"
+                            }
+                        )
+                    })
+                }
+            }
+        )
+
+        fun SatisfactionSurveyExternal(threadId: UUID) = Message(
+            threadId = threadId,
+            content = @Suppress("unused") object {
+                val type = "PLUGIN"
+                val payload = object {
+                    val text = ""
+                    val postback = ""
+                    val elements = listOf(object {
+                        val id = "0ddf0614-8d82-4117-bfbe-5f42ffe46948"
+                        val type = "SATISFACTION_SURVEY"
+                        val elements = listOf(
+                            object {
+                                val type = "TEXT"
+                                val id = "b4d315be-725d-44bc-8b92-6bd42fe6aeb2"
+                                val text = "Satisfaction survey message"
+                                val mimeType = "text/plain"
+                            },
+                            object {
+                                val id = "7e8bb08a-5f4e-4e65-8b11-7f6e5d258fa9"
+                                val type = "BUTTON"
+                                val text = "Satisfaction survey button"
+                                val url = "https://my-satisfaction-survey.com/will-smith"
+                            }
+                        )
+                    })
+                }
+            }
+        )
+
+        fun InvalidSatisfactionSurvey(threadId: UUID) = Message(
+            threadId = threadId,
+            content = @Suppress("unused") object {
+                val type = "PLUGIN"
+                val payload = object {
+                    val text = ""
+                    val postback = ""
+                    val elements = listOf(object {
+                        val id = "0ddf0614-8d82-4117-bfbe-5f42ffe46948"
+                        val type = "SATISFACTION_SURVEY"
+                        val elements = listOf(
+                            object {
+                                val id = "Ck4tPy1h32"
+                                val type = "TITLE"
+                                val text = "Hello!"
+                            }
+                        )
                     })
                 }
             }
@@ -498,7 +716,5 @@ internal object ServerResponse {
                 }
             }
         )
-
     }
-
 }
