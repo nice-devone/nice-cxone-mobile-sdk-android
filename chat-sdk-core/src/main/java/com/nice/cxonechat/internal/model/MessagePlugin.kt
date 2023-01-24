@@ -34,9 +34,14 @@ internal data class MessagePlugin(
         get() = model.attachments.map(AttachmentModel::toAttachment)
     override val postback: String?
         get() = content.payload.postback
-    override val elements: Iterable<PluginElement>
-        get() = content.payload.elements
-            .mapNotNull(::PluginElement)
+    override val element: PluginElement?
+        get() = with(content.payload.elements) {
+            if (size > 1) {
+                PluginElementGallery(mapNotNull(::PluginElement))
+            } else {
+                firstOrNull()?.let(::PluginElement)
+            }
+        }
 
     override fun toString() = buildString {
         append("Message.Plugin(id=")
@@ -55,9 +60,8 @@ internal data class MessagePlugin(
         append(attachments)
         append(", postback=")
         append(postback)
-        append(", elements=")
-        append(elements)
+        append(", element=")
+        append(element)
         append(")")
     }
-
 }

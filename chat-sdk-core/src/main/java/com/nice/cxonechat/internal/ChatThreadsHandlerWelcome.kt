@@ -3,7 +3,6 @@ package com.nice.cxonechat.internal
 import com.nice.cxonechat.ChatThreadHandler
 import com.nice.cxonechat.ChatThreadsHandler
 import com.nice.cxonechat.event.thread.SendOutboundEvent
-import com.nice.cxonechat.internal.model.CustomFieldModel
 import com.nice.cxonechat.thread.CustomField
 
 internal class ChatThreadsHandlerWelcome(
@@ -34,10 +33,11 @@ internal class ChatThreadsHandlerWelcome(
             contactFieldMap
         )
         val token = chat.storage.authToken
-        val fields = customerFieldMap.map(::CustomFieldModel)
-        handler.events().trigger(SendOutboundEvent(message, token, fields))
+        handler.events().trigger(SendOutboundEvent(message, token))
     }
 
-    private fun CustomField.toPair(): Pair<String, String> = id to value
-    private fun List<CustomField>.toMap() = associate { it.toPair() }
+    private companion object {
+        private fun customFieldAsPair(customField: CustomField): Pair<String, String> = customField.id to customField.value
+        private fun List<CustomField>.toMap() = associate(::customFieldAsPair)
+    }
 }

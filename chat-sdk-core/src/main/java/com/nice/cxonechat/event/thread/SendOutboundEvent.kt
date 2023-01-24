@@ -1,7 +1,7 @@
 package com.nice.cxonechat.event.thread
 
-import com.nice.cxonechat.internal.model.CustomFieldModel
 import com.nice.cxonechat.internal.model.network.ActionMessage
+import com.nice.cxonechat.message.MessageDirection.ToClient
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.thread.ChatThread
 import java.util.UUID
@@ -9,7 +9,6 @@ import java.util.UUID
 internal class SendOutboundEvent(
     private val message: String,
     private val authToken: String?,
-    private val customerFields: List<CustomFieldModel>,
 ) : ChatThreadEvent() {
 
     override fun getModel(
@@ -21,8 +20,8 @@ internal class SendOutboundEvent(
         id = UUID.randomUUID(),
         message = message,
         attachments = emptyList(),
-        fields = customerFields,
-        token = authToken
+        fields = emptyList(), // SendOutboundEvent can't have customer data (for now).
+        token = authToken,
+        direction = ToClient,
     )
-
 }

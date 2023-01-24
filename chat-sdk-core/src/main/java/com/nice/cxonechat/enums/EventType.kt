@@ -112,7 +112,7 @@ internal enum class EventType(val value: String) {
     ContactInboxAssigneeChanged("CaseInboxAssigneeChanged"),
 
     @SerializedName("CaseCreated")
-    CaseCreated("CaseCreated"),
+    CaseCreated("CaseCreated"), // TODO: Remove?
 
     // Custom Fields
 

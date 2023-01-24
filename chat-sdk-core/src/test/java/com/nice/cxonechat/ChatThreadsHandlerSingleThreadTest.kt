@@ -2,6 +2,8 @@
 
 package com.nice.cxonechat
 
+import com.nice.cxonechat.exceptions.MissingThreadListFetchException
+import com.nice.cxonechat.exceptions.UnsupportedChannelConfigException
 import com.nice.cxonechat.internal.model.ChannelConfiguration
 import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.server.ServerResponse
@@ -25,8 +27,7 @@ internal class ChatThreadsHandlerSingleThreadTest : AbstractChatTest() {
 
     // ---
 
-    // fixme should throw wrapped exception
-    @Test(expected = Exception::class)
+    @Test(expected = UnsupportedChannelConfigException::class)
     fun create_throws_whenCannotCreateMultipleThreads() {
         with(chat.threads()) {
             threads {}
@@ -35,8 +36,7 @@ internal class ChatThreadsHandlerSingleThreadTest : AbstractChatTest() {
         }
     }
 
-    // fixme should throw wrapped exception
-    @Test(expected = Exception::class)
+    @Test(expected = UnsupportedChannelConfigException::class)
     fun create_withCustomFields_throws_whenCannotCreateMultipleThreads() {
         with(chat.threads()) {
             threads {}
@@ -45,8 +45,7 @@ internal class ChatThreadsHandlerSingleThreadTest : AbstractChatTest() {
         }
     }
 
-    // fixme should throw wrapped exception
-    @Test(expected = IllegalStateException::class)
+    @Test(expected = MissingThreadListFetchException::class)
     fun create_throws_whenThreadsList_isRegisteredButNotLoaded() {
         with(chat.threads()) {
             threads {}
@@ -54,8 +53,7 @@ internal class ChatThreadsHandlerSingleThreadTest : AbstractChatTest() {
         }
     }
 
-    // fixme should throw wrapped exception
-    @Test(expected = IllegalStateException::class)
+    @Test(expected = MissingThreadListFetchException::class)
     fun create_withCustomFields_throws_whenThreadsList_isRegisteredButNotLoaded() {
         with(chat.threads()) {
             threads {}
@@ -63,14 +61,12 @@ internal class ChatThreadsHandlerSingleThreadTest : AbstractChatTest() {
         }
     }
 
-    // fixme should throw wrapped exception
-    @Test(expected = IllegalStateException::class)
+    @Test(expected = MissingThreadListFetchException::class)
     fun create_throws_whenThreadsList_isNotRegistered() {
         chat.threads().create()
     }
 
-    // fixme should throw wrapped exception
-    @Test(expected = IllegalStateException::class)
+    @Test(expected = MissingThreadListFetchException::class)
     fun create__withCustomFields_throws_whenThreadsList_isNotRegistered() {
         chat.threads().create(nextStringMap())
     }

@@ -4,10 +4,15 @@ internal object VariableMessageParser {
 
     private const val OPENING_PARAM = "{{"
     private const val CLOSING_PARAM = "}}"
-    private const val CUSTOMER_SEGMENT = "customer."
-    private const val CONTACT_FIELD_SEGMENT = "contact.customFields."
-    private const val CUSTOMER_FIELD_SEGMENT = "customer.customFields."
-    private val VARIABLE_REGEX = """\{\{([^|]+?)(\|(.*?))?}}""".toRegex()
+    private const val CUSTOMER_SEGMENT = "customer"
+    private const val CONTACT_FIELD_SEGMENT = "contact.customFields"
+    private const val CUSTOMER_FIELD_SEGMENT = "customer.customFields"
+    private const val FALLBACK_MESSAGE = "fallbackMessage"
+    @Suppress(
+        "RegExpRedundantEscape" // Required on Android, otherwise it will cause runtime crash
+    )
+    private val VARIABLE_REGEX = """\{\{([^|]+?)(\|(.*?))?\}\}""".toRegex()
+    private val INNER_KEY_REGEX = """(contact\.customFields|customer\.customFields|customer|)\.(\w*)""".toRegex()
 
     internal fun parse(
         message: String,
@@ -18,15 +23,59 @@ internal object VariableMessageParser {
         if (!(message.contains(OPENING_PARAM) && message.contains(CLOSING_PARAM))) {
             return message
         }
-        return message.replace(VARIABLE_REGEX) { result ->
-            val (key, fallbackGroup, rawFallback) = result.destructured
-            val fallback = rawFallback.takeUnless { fallbackGroup.isEmpty() } ?: result.value
-            when {
-                key.startsWith(CUSTOMER_FIELD_SEGMENT) -> customerFields[key.removePrefix(CUSTOMER_FIELD_SEGMENT)] ?: fallback
-                key.startsWith(CONTACT_FIELD_SEGMENT) -> contactFields[key.removePrefix(CONTACT_FIELD_SEGMENT)] ?: fallback
-                key.startsWith(CUSTOMER_SEGMENT) -> parameters[key.removePrefix(CUSTOMER_SEGMENT)] ?: fallback
-                else -> fallback
+        var useFallbackMessage = false
+        var fallbackMessage: String? = null
+        val messageWithFallback = message.replace(VARIABLE_REGEX) { result ->
+            val (key, _, fallback) = result.destructured
+            if (key == FALLBACK_MESSAGE) {
+                fallbackMessage = fallback
+                ""
+            } else {
+                val (replacement, needFallback) = replaceVariable(result, parameters, customerFields, contactFields)
+                useFallbackMessage = useFallbackMessage || needFallback
+                replacement
             }
+        }
+        val generalFallbackMessage = fallbackMessage
+        return if (useFallbackMessage && generalFallbackMessage != null) {
+            generalFallbackMessage
+        } else {
+            messageWithFallback
+        }
+    }
+
+    private fun replaceVariable(
+        result: MatchResult,
+        parameters: Map<String, String>,
+        customerFields: Map<String, String>,
+        contactFields: Map<String, String>,
+    ): Pair<String, Boolean> {
+        val (key, fallbackGroup, rawFallback) = result.destructured
+        val original = result.value
+        val fallback = rawFallback.takeUnless { fallbackGroup.isEmpty() }.orOriginal(original)
+        val keyResult = INNER_KEY_REGEX.find(key) ?: return fallback
+        val (keyPrefix, innerKey) = keyResult.destructured
+        return when (keyPrefix) {
+            CUSTOMER_FIELD_SEGMENT -> customerFields[innerKey].orFallback(fallback)
+            CONTACT_FIELD_SEGMENT -> contactFields[innerKey].orFallback(fallback)
+            CUSTOMER_SEGMENT -> parameters[innerKey].orFallback(fallback)
+            else -> fallback
+        }
+    }
+
+    private fun String?.orFallback(fallback: Pair<String, Boolean>): Pair<String, Boolean> {
+        return if (this != null) {
+            this to false
+        } else {
+            fallback
+        }
+    }
+
+    private fun String?.orOriginal(original: String): Pair<String, Boolean> {
+        return if (this != null) {
+            this to false
+        } else {
+            original to true
         }
     }
 }

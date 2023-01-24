@@ -1,5 +1,6 @@
 package com.nice.cxonechat.server
 
+import com.nice.cxonechat.enums.EventType
 import strucut.StructScope
 import strucut.verifyStructureOf
 
@@ -200,7 +201,7 @@ internal object ServerRequestAssertions {
     fun String.verifySendOutbound() = apply {
         verifyStructureOf(this) {
             eventBaseline(action = ChatWindowEvent)
-            payload(type = "SendMessage") {
+            payload(type = EventType.SendOutbound.value) {
                 message()
             }
         }
@@ -299,5 +300,4 @@ internal object ServerRequestAssertions {
             prop("token")
         }
     }
-
 }

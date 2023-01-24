@@ -4,8 +4,15 @@ import com.nice.cxonechat.Cancellable
 import com.nice.cxonechat.ChatThreadHandler
 import com.nice.cxonechat.ChatThreadsHandler
 import com.nice.cxonechat.ChatThreadsHandler.OnThreadsUpdatedListener
-import com.nice.cxonechat.enums.CXOneChatError
+import com.nice.cxonechat.exceptions.MissingThreadListFetchException
+import com.nice.cxonechat.exceptions.UnsupportedChannelConfigException
 
+/**
+ * Class responsible for checking that SDK usage adheres to the chat configuration.
+ *
+ * Current sole responsibility is to enforce the requirement that single thread channel creates
+ * at most one thread.
+ */
 internal class ChatThreadsHandlerConfigProxy(
     private val origin: ChatThreadsHandler,
     private val chat: ChatWithParameters,
@@ -18,17 +25,14 @@ internal class ChatThreadsHandlerConfigProxy(
     }
 
     private fun checkAndRun(block: () -> ChatThreadHandler): ChatThreadHandler {
-        if (chat.configuration.hasMultipleThreadsPerEndUser)
-            return block()
+        if (chat.configuration.hasMultipleThreadsPerEndUser) return block()
 
-        check(threadCount >= 0) {
-            "First you need to call threads {} method to fetch list of threads"
+        val count = threadCount
+        return when {
+            count < 0 -> throw MissingThreadListFetchException()
+            count == 0 -> block()
+            else -> throw UnsupportedChannelConfigException()
         }
-
-        if (threadCount == 0)
-            return block()
-
-        throw CXOneChatError.UnsupportedChannelConfig.value
     }
 
     override fun threads(listener: OnThreadsUpdatedListener): Cancellable {
@@ -37,5 +41,4 @@ internal class ChatThreadsHandlerConfigProxy(
             listener.onThreadsUpdated(it)
         }
     }
-
 }

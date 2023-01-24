@@ -1,7 +1,7 @@
 package com.nice.cxonechat.internal.model.network
 
 import com.google.gson.annotations.SerializedName
-import java.util.Date
+import java.util.*
 
 internal sealed class MessagePolyElement {
 
@@ -38,25 +38,41 @@ internal sealed class MessagePolyElement {
         val mimeType: String?,
     ) : MessagePolyElement()
 
-    data class Button(
+    sealed class Button : MessagePolyElement() {
+        abstract val text: String
+        abstract val postback: String?
+    }
+
+    data class DeeplinkButton(
         @SerializedName("text")
-        val text: String,
+        override val text: String,
         // postback represents something like an action identifier
-        // should be probably reported with some analytic action
+        // it probably should be reported with some analytic action
         @SerializedName("postback")
-        val postback: String,
-    ) : MessagePolyElement() {
+        override val postback: String?,
+        /**
+         * URL can be present as an alternative source of deeplink.
+         */
+        @SerializedName("url")
+        val url: String?,
+    ) : Button() {
 
         val deepLink
-            get() = deepLinkRegex.find(postback)?.groups?.get(1)?.value
+            get() = if (postback != null) deepLinkRegex.find(postback)?.groups?.get(1)?.value else null
 
-        companion object {
-
-            private val deepLinkRegex = Regex("deepLink[\'\":\\\\ ]+([a-z]+:\\/\\/[a-zA-Z\\-_\\/0-9%]+)")
-
+        private companion object {
+            private val deepLinkRegex = Regex("""deepLink['":\\ ]+([a-z]+:\/\/[a-zA-Z\-_\/0-9%]+)""")
         }
-
     }
+
+    data class IFrameButton(
+        @SerializedName("text")
+        override val text: String,
+        @SerializedName("postback")
+        override val postback: String?,
+        @SerializedName("url")
+        val url: String?
+    ) : Button()
 
     // contains TEXT and BUTTON
     data class TextAndButtons(
@@ -87,7 +103,6 @@ internal sealed class MessagePolyElement {
             @SerializedName("numberOfSeconds")
             val seconds: Long,
         )
-
     }
 
     data class Custom(
@@ -99,4 +114,10 @@ internal sealed class MessagePolyElement {
 
     object Noop : MessagePolyElement()
 
+    data class SatisfactionSurvey(
+        @SerializedName("elements")
+        val elements: List<MessagePolyElement>,
+        @SerializedName("postback")
+        val postback: String?,
+    ) : MessagePolyElement()
 }

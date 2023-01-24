@@ -20,7 +20,9 @@ internal class SocketFactoryDefault(
             append(config.environment.socketUrl)
             append("?brandId=${config.brandId}")
             append("&channelId=${config.channelId}")
-            append("&v=${config.version}")
+            append("&applicationType=native")
+            append("&os=Android")
+            append("&clientVersion=${config.version}")
         }
         return WebSocketFactory()
             .setConnectionTimeout(timeout)
@@ -38,5 +40,4 @@ internal class SocketFactoryDefault(
         consumerId = storage.consumerId,
         environment = config.environment
     )
-
 }

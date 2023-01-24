@@ -3,6 +3,7 @@ package com.nice.cxonechat
 import com.nice.cxonechat.state.Configuration
 import com.nice.cxonechat.state.Environment
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.thread.CustomField
 
 /**
  * Current chat instance. Client is not limited to a single instance of any given chat.
@@ -22,6 +23,9 @@ import com.nice.cxonechat.thread.ChatThread
  * client side. The time it takes to reach the device is undefined.
  * */
 @Public
+@Suppress(
+    "ComplexInterface"
+)
 interface Chat : AutoCloseable {
 
     /**
@@ -35,6 +39,14 @@ interface Chat : AutoCloseable {
      * It will remain unchanged while this [Chat] instance exists.
      */
     val configuration: Configuration
+
+    /**
+     * Current collection of global customer [CustomField]s set in SDK.
+     * Instance provided by the method won't be updated if the [CustomField]s collection is updated in the [Chat], it should
+     * be considered as a snapshot of current state.
+     * Values can be updated from backend, after [ChatThreadsHandler.refresh] call.
+     */
+    val fields: Collection<CustomField>
 
     /**
      * Sets device token (notification push token) to this instance and transmits it
@@ -85,5 +97,4 @@ interface Chat : AutoCloseable {
      * untested and further unwanted behavior.
      * */
     override fun close()
-
 }

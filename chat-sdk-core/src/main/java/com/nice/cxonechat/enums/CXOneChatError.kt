@@ -9,9 +9,6 @@ internal enum class CXOneChatError(val value: Exception) {
     /** An attempt was made to use a method without connecting first. Make sure you call the `connect` method first. */
     NotConnected(Exception("You are trying to call a method without connecting first. Make sure you call connect first.")),
 
-    /** The method being called is not supported with the current channel configuration. */
-    UnsupportedChannelConfig(Exception("The method you are trying to call is not supported with your current channel configuration. For example, archiving a thread is only supported on a channel configured for multiple threads.")),
-
     /** The conversion from object instance to data failed. */
     InvalidData(Exception("Data could not be converted.")),
 
@@ -37,9 +34,6 @@ internal enum class CXOneChatError(val value: Exception) {
 
     /** The WebSocket refused to connect. */
     WebSocketConnectionFailure(Exception("Something went wrong and the WebSocket refused to connect. If you are providing your own chatURL or socketURL, double check that these URLs are correct.")),
-
-    /** The channel configuration could not be retrieved. */
-    ChannelConfigFailure(Exception("Something went wrong and the channel configuration could not be retrieved.")),
 
     /** The customer could not be authorized anonymously. */
     AnonymousAuthorizationFailure(Exception("Something went wrong and the customer could not be authorized.")),

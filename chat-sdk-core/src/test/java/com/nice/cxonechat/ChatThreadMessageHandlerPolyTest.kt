@@ -6,12 +6,16 @@ import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.server.ServerResponse
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.tool.MockServer
+import com.nice.cxonechat.tool.nextString
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
+@Suppress(
+    "FunctionMaxLength",
+)
 internal class ChatThreadMessageHandlerPolyTest : AbstractChatTest() {
 
     private lateinit var handler: ChatThreadHandler
@@ -34,7 +38,7 @@ internal class ChatThreadMessageHandlerPolyTest : AbstractChatTest() {
     fun parses_typeMenu_elements() {
         val message = awaitMessage(ServerResponse.Message.Menu(thread.id))
         assertIs<Message.Plugin>(message)
-        val element = message.elements.first()
+        val element = message.element
         assertIs<PluginElement.Menu>(element)
         assertEquals(3, element.buttons.count())
         assertEquals(1, element.texts.count())
@@ -45,15 +49,17 @@ internal class ChatThreadMessageHandlerPolyTest : AbstractChatTest() {
 
     @Test
     fun parses_typeText() {
-        val message = awaitMessage(ServerResponse.Message.Text(thread.id))
+        val text = nextString()
+        val message = awaitMessage(ServerResponse.Message.Text(thread.id, text))
         assertIs<Message.Text>(message)
+        assertEquals(text, message.text)
     }
 
     @Test
     fun parses_typeTextAndButtons() {
         val message = awaitMessage(ServerResponse.Message.TextAndButtons(thread.id))
         assertIs<Message.Plugin>(message)
-        val element = message.elements.first()
+        val element = message.element
         assertIs<PluginElement.TextAndButtons>(element)
         assertEquals(3, element.buttons.count())
         assertNotNull(element.text)
@@ -63,7 +69,7 @@ internal class ChatThreadMessageHandlerPolyTest : AbstractChatTest() {
     fun parses_typeQuickReplies() {
         val message = awaitMessage(ServerResponse.Message.QuickReplies(thread.id))
         assertIs<Message.Plugin>(message)
-        val element = message.elements.first()
+        val element = message.element
         assertIs<PluginElement.QuickReplies>(element)
         assertEquals(3, element.buttons.count())
         assertNotNull(element.text)
@@ -73,7 +79,7 @@ internal class ChatThreadMessageHandlerPolyTest : AbstractChatTest() {
     fun parses_typeInactivityPopup() {
         val message = awaitMessage(ServerResponse.Message.InactivityPopup(thread.id))
         assertIs<Message.Plugin>(message)
-        val element = message.elements.first()
+        val element = message.element
         assertIs<PluginElement.InactivityPopup>(element)
         assertNotNull(element.title)
         assertNotNull(element.subtitle)
@@ -86,7 +92,7 @@ internal class ChatThreadMessageHandlerPolyTest : AbstractChatTest() {
     fun parses_typeCustom() {
         val message = awaitMessage(ServerResponse.Message.Custom(thread.id))
         assertIs<Message.Plugin>(message)
-        val element = message.elements.first()
+        val element = message.element
         assertIs<PluginElement.Custom>(element)
         assertEquals("See this page", element.fallbackText)
         assertEquals(
@@ -106,8 +112,52 @@ internal class ChatThreadMessageHandlerPolyTest : AbstractChatTest() {
                     "ios" to "big",
                     "android" to "middle"
                 )
-            ), element.variables
+            ),
+            element.variables
         )
+    }
+
+    @Test
+    fun parses_typeGallery() {
+        val message = awaitMessage(ServerResponse.Message.Gallery(thread.id))
+        assertIs<Message.Plugin>(message)
+        val element = message.element
+        assertIs<PluginElement.Gallery>(element)
+        assertEquals(3, element.elements.count())
+        for (galleryElement in element.elements) {
+            assertIs<PluginElement.Menu>(galleryElement)
+            assertEquals(1, galleryElement.files.count())
+        }
+    }
+
+    @Test
+    fun parses_typeSatisfactionSurveyInternal() {
+        val message = awaitMessage(ServerResponse.Message.SatisfactionSurveyInternal(thread.id))
+        assertIs<Message.Plugin>(message)
+        val element = message.element
+        assertIs<PluginElement.SatisfactionSurvey>(element)
+        assertNotNull(element.text)
+        assertNotNull(element.button)
+        assertNotNull(element.button.deepLink)
+    }
+
+    @Test
+    fun parses_typeSatisfactionSurveyExternal() {
+        val message = awaitMessage(ServerResponse.Message.SatisfactionSurveyExternal(thread.id))
+        assertIs<Message.Plugin>(message)
+        val element = message.element
+        assertIs<PluginElement.SatisfactionSurvey>(element)
+        assertNotNull(element.text)
+        assertNotNull(element.button)
+        assertNotNull(element.button.deepLink)
+    }
+
+    @Test
+    fun ignores_typeInvalidSatisfactionSurvey() {
+        val message = awaitMessage(ServerResponse.Message.InvalidSatisfactionSurvey(thread.id))
+        assertIs<Message.Plugin>(message)
+        val element = message.element
+        assertNull(element)
     }
 
     @Test
@@ -123,13 +173,13 @@ internal class ChatThreadMessageHandlerPolyTest : AbstractChatTest() {
     fun ignores_unknownPluginType() {
         val message = awaitMessage(ServerResponse.Message.InvalidPlugin(thread.id))
         assertIs<Message.Plugin>(message)
-        assertEquals(0, message.elements.count())
+        assertNull(message.element)
     }
 
     // ---
 
     private inline fun <reified T> assertElementIs(message: Message.Plugin) {
-        assertIs<T>(message.elements.first())
+        assertIs<T>(message.element)
     }
 
     private fun awaitMessage(message: Any, sender: MockServer.() -> Unit = {}): Message {
@@ -142,5 +192,4 @@ internal class ChatThreadMessageHandlerPolyTest : AbstractChatTest() {
     private fun thread(function: (ChatThread) -> Unit): Cancellable {
         return handler.get { function(it) }
     }
-
 }

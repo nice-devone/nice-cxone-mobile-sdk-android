@@ -4,9 +4,13 @@ import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.EventAction
 import com.nice.cxonechat.enums.EventAction.ChatWindowEvent
 import com.nice.cxonechat.enums.EventType.SendMessage
+import com.nice.cxonechat.enums.EventType.SendOutbound
 import com.nice.cxonechat.internal.model.AttachmentModel
 import com.nice.cxonechat.internal.model.CustomFieldModel
 import com.nice.cxonechat.internal.model.Thread
+import com.nice.cxonechat.message.MessageDirection
+import com.nice.cxonechat.message.MessageDirection.ToAgent
+import com.nice.cxonechat.message.MessageDirection.ToClient
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.thread.ChatThread
 import java.util.UUID
@@ -28,9 +32,13 @@ internal data class ActionMessage constructor(
         attachments: Iterable<AttachmentModel>,
         fields: List<CustomFieldModel>,
         token: String?,
+        direction: MessageDirection = ToAgent,
     ) : this(
         payload = Payload(
-            eventType = SendMessage,
+            eventType = when (direction) {
+                ToAgent -> SendMessage
+                ToClient -> SendOutbound
+            },
             connection = connection,
             data = Data(
                 id = id,
@@ -80,7 +88,5 @@ internal data class ActionMessage constructor(
             attachments = attachments.toList(),
             accessToken = token?.takeUnless { it.isBlank() }?.let(::AccessTokenPayload)
         )
-
     }
-
 }

@@ -6,7 +6,7 @@ import com.nice.cxonechat.internal.model.AgentModel
 import com.nice.cxonechat.internal.model.AttachmentModel
 import com.nice.cxonechat.internal.model.CustomerIdentityModel
 import com.nice.cxonechat.internal.model.MessageDirectionModel
-import com.nice.cxonechat.internal.model.MessageDirectionModel.FromApp
+import com.nice.cxonechat.internal.model.MessageDirectionModel.ToAgent
 import com.nice.cxonechat.internal.model.MessageModel
 import com.nice.cxonechat.internal.model.network.MessagePolyContent
 import com.nice.cxonechat.internal.model.network.UserStatistics
@@ -19,7 +19,7 @@ internal fun makeMessageModel(
     messageContent: MessagePolyContent = makeMessageContent(),
     createdAt: Date = Date(),
     attachments: List<AttachmentModel> = emptyList(),
-    direction: MessageDirectionModel = FromApp,
+    direction: MessageDirectionModel = ToAgent,
     userStatistics: UserStatistics = makeUserStatistics(),
     authorUser: AgentModel? = makeAgent(),
     authorEndUserIdentity: CustomerIdentityModel? = makeCustomerIdentity(),

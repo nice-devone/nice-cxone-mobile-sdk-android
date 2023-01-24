@@ -6,6 +6,8 @@ import com.nice.cxonechat.internal.model.CustomFieldInternal
 import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.server.ServerRequest
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.tool.nextString
+import com.nice.cxonechat.tool.nextStringMap
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -22,7 +24,7 @@ internal class ChatFieldHandlerTest : AbstractChatTest() {
 
     @Test
     fun setCustomer_sendsExpectedMessage() {
-        val fields = mapOf("my-field" to "my-value")
+        val fields = nextStringMap()
         assertSendText(ServerRequest.SetConsumerCustomFields(connection, fields)) {
             chat.customFields().add(fields)
         }
@@ -30,7 +32,7 @@ internal class ChatFieldHandlerTest : AbstractChatTest() {
 
     @Test
     fun setContact_sendsExpectedMessage() {
-        val fields = mapOf("my-field!" to "my-value?")
+        val fields = nextStringMap()
         assertSendText(ServerRequest.SetConsumerContactCustomFields(connection, thread, fields), thread.id.toString()) {
             chat.threads().thread(thread).customFields().add(fields)
         }
@@ -40,10 +42,30 @@ internal class ChatFieldHandlerTest : AbstractChatTest() {
     fun addFields_appendsToThread() {
         val handler = chat.threads().thread(thread)
         val fields = handler.customFields()
-        val newFields = mapOf("my-field?" to "my-value!")
+        val newFields = nextStringMap()
         testSendTextFeedback()
         fields.add(newFields)
-        assertEquals(newFields.map { CustomFieldInternal(it.key, it.value) }, handler.get().fields)
+        assertEquals(newFields.map(::CustomFieldInternal), handler.get().fields)
+    }
+
+    @Test
+    fun addFields_appendsToChat() {
+        val fields = chat.customFields()
+        val newFields = nextStringMap()
+        fields.add(newFields)
+        assertEquals(newFields.map(::CustomFieldInternal), chat.fields)
+    }
+
+    @Test
+    fun addFields_toChat_replacesCurrentValue() {
+        val fields = chat.customFields()
+        val firstField = nextStringMap()
+        fields.add(firstField)
+        val newFields = firstField.map {
+            it.key to nextString()
+        }.toMap()
+        fields.add(newFields)
+        assertEquals(newFields.map(::CustomFieldInternal), chat.fields)
     }
 
 }

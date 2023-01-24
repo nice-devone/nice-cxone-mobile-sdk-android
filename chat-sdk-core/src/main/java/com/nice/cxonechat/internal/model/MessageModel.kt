@@ -1,8 +1,8 @@
 package com.nice.cxonechat.internal.model
 
 import com.google.gson.annotations.SerializedName
-import com.nice.cxonechat.internal.model.MessageDirectionModel.FromApp
-import com.nice.cxonechat.internal.model.MessageDirectionModel.ToApp
+import com.nice.cxonechat.internal.model.MessageDirectionModel.ToAgent
+import com.nice.cxonechat.internal.model.MessageDirectionModel.ToClient
 import com.nice.cxonechat.internal.model.network.MessagePolyContent
 import com.nice.cxonechat.internal.model.network.MessagePolyContent.Noop
 import com.nice.cxonechat.internal.model.network.MessagePolyContent.Plugin
@@ -50,8 +50,8 @@ internal data class MessageModel(
 
         val MessageModel.author
             get() = when (direction) {
-                FromApp -> authorUser?.toMessageAuthor() ?: MessageAuthorDefaults.User
-                ToApp -> authorEndUserIdentity?.toMessageAuthor() ?: MessageAuthorDefaults.Agent
+                ToAgent -> authorUser?.toMessageAuthor() ?: MessageAuthorDefaults.User
+                ToClient -> authorEndUserIdentity?.toMessageAuthor() ?: MessageAuthorDefaults.Agent
             }
 
     }

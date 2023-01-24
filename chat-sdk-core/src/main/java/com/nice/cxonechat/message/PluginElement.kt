@@ -159,9 +159,10 @@ sealed class PluginElement {
     }
 
     /**
-     * Regular text component. Contextually can be of a different form, such
-     * as html or markdown. It's up to the integrator to format or strip the
-     * text's format if they do not wish to use formatted text.
+     * Regular text component.
+     * Contextually can be of a different form, such as html or markdown.
+     * It's up to the integrator to format or strip the text's format
+     * if they do not wish to use formatted text.
      * */
     @Public
     abstract class Text : PluginElement() {
@@ -169,6 +170,9 @@ sealed class PluginElement {
          * Text with formatting. This is determined by additional properties
          * [isMarkdown] or [isHtml].
          * */
+        @Suppress(
+            "MemberNameEqualsClassName" // Part of shared API.
+        )
         abstract val text: String
 
         /**
@@ -192,25 +196,33 @@ sealed class PluginElement {
     @Public
     abstract class Button : PluginElement() {
         /**
-         * Text to display in place of the button. Text is unformatted and
-         * localized according as per agent console settings.
+         * Text to display in place of the button.
+         * Text is unformatted and localized, according as per agent console settings.
          * */
         abstract val text: String
 
         /**
-         * Metadata associated with a button to return back to the server
-         * once the button is pressed. Use a [CustomVisitorEvent] to report
-         * the click.
+         * Metadata associated with the button which should be returned to the server
+         * once the button is pressed.
+         * Use a [CustomVisitorEvent] to report the click, if the value is present.
          * */
-        abstract val postback: String
+        abstract val postback: String?
 
         /**
-         * Deeplink extracted from postback if applicable. Not all buttons
-         * have deepLinks. DeepLink is associated with a specific app, for
-         * example you might want to use it to redirect the user directly
-         * to a Facebook profile or perform other similar action.
+         * Deeplink extracted from postback if applicable.
+         * Not all buttons have deepLinks.
+         * DeepLink is associated with a specific app.
+         * For an example, you might want to use it to redirect the user directly
+         * to a Facebook profile or perform another similar action.
+         * Or it can be just a plain URL.
          * */
         abstract val deepLink: String?
+
+        /**
+         * Flag indicating that deeplink contents should be displayed in the context of application.
+         * This will be true only for URL deeplink.
+         */
+        abstract val displayInApp: Boolean
     }
 
     /**
@@ -373,4 +385,45 @@ sealed class PluginElement {
         abstract val variables: Map<String, Any?>
     }
 
+    /**
+     * Gallery component which bundles together other components, which should be displayed together in one context.
+     * Gallery is the only component which can contain a collection of all other [PluginElement]s.
+     */
+    @Public
+    abstract class Gallery : PluginElement() {
+
+        /**
+         * Collection of other [PluginElement]s. If the elements **are empty**,
+         * then you have received a message with an element that's not supported by
+         * this version. Kindly update the SDK in order to gain support.
+         */
+        abstract val elements: Iterable<PluginElement>
+    }
+
+    /**
+     * Satisfaction survey component which can be presented to user
+     * as a call to action to fill out a survey (via deeplink in the [button]).
+     *
+     * @see Text
+     * @see Button
+     */
+    @Public
+    abstract class SatisfactionSurvey : PluginElement() {
+
+        /**
+         * Optional [Text] with a message to the user, which should ask user to fill out the survey.
+         */
+        abstract val text: Text?
+
+        /**
+         * [Button] with deeplink leading to the survey.
+         */
+        abstract val button: Button
+
+        /**
+         * Optional metadata associated with the survey, which should be reported to backend for analytics tracking.
+         * Use a [CustomVisitorEvent] to report that component was displayed if the value is present.
+         */
+        abstract val postback: String?
+    }
 }

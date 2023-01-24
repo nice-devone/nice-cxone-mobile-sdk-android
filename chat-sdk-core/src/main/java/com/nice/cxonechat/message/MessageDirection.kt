@@ -14,7 +14,7 @@ enum class MessageDirection {
      * **Agent**
      * - Is receiving a message.
      * */
-    FromApp,
+    ToAgent,
 
     /**
      * **Client**
@@ -23,5 +23,5 @@ enum class MessageDirection {
      * **Agent**
      * - Is sending a message.
      * */
-    ToApp
+    ToClient
 }
