@@ -3,7 +3,7 @@ package com.nice.cxonechat.internal.model.network
 import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.EventAction
 import com.nice.cxonechat.enums.EventAction.ChatWindowEvent
-import com.nice.cxonechat.enums.EventType.FetchThreadList
+import com.nice.cxonechat.enums.EventType.LoadThreadMetadata
 import com.nice.cxonechat.internal.model.Thread
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.thread.ChatThread
@@ -23,12 +23,11 @@ internal data class ActionLoadThreadMetadata(
         thread: ChatThread,
     ) : this(
         payload = Payload(
-            eventType = FetchThreadList,
+            eventType = LoadThreadMetadata,
             connection = connection,
             data = ThreadEventData(
                 thread = Thread(thread)
             )
         )
     )
-
 }

@@ -2,6 +2,7 @@
 
 package com.nice.cxonechat
 
+import com.nice.cxonechat.internal.socket.WebSocketSpec
 import com.nice.cxonechat.server.ServerRequest
 import com.nice.cxonechat.server.ServerResponse
 import com.nice.cxonechat.tool.nextString
@@ -30,16 +31,14 @@ internal class ChatTest : AbstractChatTest() {
     @Test
     fun signOut_closesConnection() {
         chat.signOut()
-        verify(socket).sendClose()
+        verify(socket).close(WebSocketSpec.CLOSE_NORMAL_CODE, null)
     }
 
     @Test
     fun close_performsActions() {
         chat.close()
         socket.inOrder {
-            verify().sendClose()
-            verify().clearListeners()
-            verify().disconnect()
+            verify().close(WebSocketSpec.CLOSE_NORMAL_CODE, null)
             Unit
         }
     }
@@ -57,5 +56,4 @@ internal class ChatTest : AbstractChatTest() {
         this serverResponds ServerResponse.TokenRefreshed()
         verify(storage).authTokenExpDate = captor.capture()
     }
-
 }

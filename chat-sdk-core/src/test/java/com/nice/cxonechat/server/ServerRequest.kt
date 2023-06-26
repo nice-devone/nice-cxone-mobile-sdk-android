@@ -14,8 +14,10 @@ import com.nice.cxonechat.internal.model.network.ActionCustomerTyping
 import com.nice.cxonechat.internal.model.network.ActionExecuteTrigger
 import com.nice.cxonechat.internal.model.network.ActionFetchThread
 import com.nice.cxonechat.internal.model.network.ActionLoadMoreMessages
+import com.nice.cxonechat.internal.model.network.ActionLoadThreadMetadata
 import com.nice.cxonechat.internal.model.network.ActionMessage
 import com.nice.cxonechat.internal.model.network.ActionMessageSeenByCustomer
+import com.nice.cxonechat.internal.model.network.ActionOutboundMessage
 import com.nice.cxonechat.internal.model.network.ActionReconnectCustomer
 import com.nice.cxonechat.internal.model.network.ActionRecoverThread
 import com.nice.cxonechat.internal.model.network.ActionRefreshToken
@@ -28,12 +30,12 @@ import com.nice.cxonechat.internal.model.network.Conversion
 import com.nice.cxonechat.internal.model.network.PageViewData
 import com.nice.cxonechat.internal.model.network.ProactiveActionInfo
 import com.nice.cxonechat.internal.model.network.VisitorEvent
-import com.nice.cxonechat.message.MessageDirection.ToClient
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyArchiveThread
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyAuthorizeConsumer
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyExecuteTrigger
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyFetchThreadList
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyLoadMore
+import com.nice.cxonechat.server.ServerRequestAssertions.verifyLoadThreadMetadata
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyMarkThreadRead
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyReconnectConsumer
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyRecoverThread
@@ -42,8 +44,8 @@ import com.nice.cxonechat.server.ServerRequestAssertions.verifySendMessage
 import com.nice.cxonechat.server.ServerRequestAssertions.verifySendOutbound
 import com.nice.cxonechat.server.ServerRequestAssertions.verifySenderTypingEnded
 import com.nice.cxonechat.server.ServerRequestAssertions.verifySenderTypingStarted
-import com.nice.cxonechat.server.ServerRequestAssertions.verifySetConsumerContactCustomFields
-import com.nice.cxonechat.server.ServerRequestAssertions.verifySetConsumerCustomFields
+import com.nice.cxonechat.server.ServerRequestAssertions.verifySetContactCustomFields
+import com.nice.cxonechat.server.ServerRequestAssertions.verifySetCustomerCustomFields
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyStoreVisitor
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyStoreVisitorEvent
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyUpdateThread
@@ -56,29 +58,55 @@ import java.util.UUID
 
 internal object ServerRequest {
 
-    fun LoadMore(connection: Connection, thread: ChatThread): String {
-        return ActionLoadMoreMessages(connection, thread).copy(eventId = TestUUIDValue).serialize().verifyLoadMore()
-    }
+    fun LoadMore(connection: Connection, thread: ChatThread): String = ActionLoadMoreMessages(
+        connection = connection,
+        thread = thread
+    ).copy(eventId = TestUUIDValue)
+        .serialize()
+        .verifyLoadMore()
 
-    fun ArchiveThread(connection: Connection, thread: ChatThread): String {
-        return ActionArchiveThread(connection, thread).copy(eventId = TestUUIDValue).serialize().verifyArchiveThread()
-    }
+    fun LoadThreadMetadata(connection: Connection, thread: ChatThread): String = ActionLoadThreadMetadata(
+        connection = connection,
+        thread = thread
+    ).copy(eventId = TestUUIDValue)
+        .serialize()
+        .verifyLoadThreadMetadata()
 
-    fun MarkThreadRead(connection: Connection, thread: ChatThread): String {
-        return ActionMessageSeenByCustomer(connection, thread).copy(eventId = TestUUIDValue).serialize().verifyMarkThreadRead()
-    }
+    fun ArchiveThread(connection: Connection, thread: ChatThread): String = ActionArchiveThread(
+        connection = connection,
+        thread = thread
+    ).copy(eventId = TestUUIDValue)
+        .serialize()
+        .verifyArchiveThread()
 
-    fun SenderTypingStarted(connection: Connection, thread: ChatThread): String {
-        return ActionCustomerTyping.started(connection, thread).copy(eventId = TestUUIDValue).serialize().verifySenderTypingStarted()
-    }
+    fun MarkThreadRead(connection: Connection, thread: ChatThread): String = ActionMessageSeenByCustomer(
+        connection = connection,
+        thread = thread
+    ).copy(eventId = TestUUIDValue)
+        .serialize()
+        .verifyMarkThreadRead()
 
-    fun SenderTypingEnded(connection: Connection, thread: ChatThread): String {
-        return ActionCustomerTyping.ended(connection, thread).copy(eventId = TestUUIDValue).serialize().verifySenderTypingEnded()
-    }
+    fun SenderTypingStarted(connection: Connection, thread: ChatThread): String = ActionCustomerTyping.started(
+        connection = connection,
+        thread = thread
+    ).copy(eventId = TestUUIDValue)
+        .serialize()
+        .verifySenderTypingStarted()
 
-    fun AuthorizeConsumer(connection: Connection, code: String, verifier: String): String {
-        return ActionAuthorizeCustomer(connection, code, verifier).copy(eventId = TestUUIDValue).serialize().verifyAuthorizeConsumer()
-    }
+    fun SenderTypingEnded(connection: Connection, thread: ChatThread): String = ActionCustomerTyping.ended(
+        connection = connection,
+        thread = thread
+    ).copy(eventId = TestUUIDValue)
+        .serialize()
+        .verifySenderTypingEnded()
+
+    fun AuthorizeConsumer(connection: Connection, code: String, verifier: String): String = ActionAuthorizeCustomer(
+        connection = connection,
+        code = code,
+        verifier = verifier
+    ).copy(eventId = TestUUIDValue)
+        .serialize()
+        .verifyAuthorizeConsumer()
 
     fun ReconnectConsumer(connection: Connection, token: String = "token"): String {
         return ActionReconnectCustomer(connection, TestUUIDValue, token).copy(eventId = TestUUIDValue).serialize().verifyReconnectConsumer()
@@ -108,45 +136,77 @@ internal object ServerRequest {
         message: String,
         fields: Map<String, String> = emptyMap(),
         attachments: List<AttachmentModel> = emptyList(),
-    ): String {
-        return ActionMessage(connection, thread, TestUUIDValue, message, attachments, fields.map(::CustomFieldModel), storage.authToken).copy(eventId = TestUUIDValue).serialize().verifySendMessage()
-    }
+        postback: String? = null,
+    ): String = ActionMessage(
+        connection = connection,
+        thread = thread,
+        id = TestUUIDValue,
+        message = message,
+        attachments = attachments,
+        fields = fields.map(::CustomFieldModel),
+        token = storage.authToken,
+        postback = postback,
+    ).copy(eventId = TestUUIDValue)
+        .serialize()
+        .verifySendMessage()
 
-    fun SetConsumerCustomFields(
+    fun SetCustomerCustomFields(
         connection: Connection,
         fields: Map<String, String> = emptyMap(),
-    ): String {
-        return ActionSetCustomerCustomFields(connection, fields.map(::CustomFieldModel)).copy(eventId = TestUUIDValue).serialize().verifySetConsumerCustomFields()
-    }
+    ): String = ActionSetCustomerCustomFields(
+        connection = connection,
+        fields = fields.map(::CustomFieldModel)
+    ).copy(eventId = TestUUIDValue)
+        .serialize()
+        .verifySetCustomerCustomFields()
 
-    fun SetConsumerContactCustomFields(
+    fun SetContactCustomFields(
         connection: Connection,
         thread: ChatThread,
         fields: Map<String, String> = emptyMap(),
-    ): String {
-        return ActionSetContactCustomFields(connection, thread, fields.map(::CustomFieldModel)).copy(eventId = TestUUIDValue).serialize().verifySetConsumerContactCustomFields()
-    }
+    ): String = ActionSetContactCustomFields(
+        connection = connection,
+        thread = thread,
+        fields = fields.map(::CustomFieldModel)
+    ).copy(eventId = TestUUIDValue)
+        .serialize()
+        .verifySetContactCustomFields()
 
-    fun UpdateThread(connection: Connection, thread: ChatThread): String {
-        return ActionUpdateThread(connection, thread).copy(eventId = TestUUIDValue).serialize().verifyUpdateThread()
-    }
+    fun UpdateThread(connection: Connection, thread: ChatThread): String = ActionUpdateThread(
+        connection = connection,
+        thread = thread
+    ).copy(eventId = TestUUIDValue)
+        .serialize()
+        .verifyUpdateThread()
 
-    fun FetchThreadList(connection: Connection): String {
-        return ActionFetchThread(connection).copy(eventId = TestUUIDValue).serialize().verifyFetchThreadList()
-    }
+    fun FetchThreadList(connection: Connection): String = ActionFetchThread(connection = connection)
+        .copy(eventId = TestUUIDValue)
+        .serialize()
+        .verifyFetchThreadList()
 
-    fun RecoverThread(connection: Connection, thread: ChatThread): String {
-        return ActionRecoverThread(connection, thread).copy(eventId = TestUUIDValue).serialize().verifyRecoverThread()
-    }
+    fun RecoverThread(connection: Connection, thread: ChatThread): String = ActionRecoverThread(
+        connection = connection,
+        thread = thread
+    ).copy(eventId = TestUUIDValue)
+        .serialize()
+        .verifyRecoverThread()
 
     fun SendOutbound(
         connection: Connection,
         thread: ChatThread,
         storage: ValueStorage,
         message: String,
-    ): String {
-        return ActionMessage(connection, thread, TestUUIDValue, message, emptyList(), emptyList(), storage.authToken, ToClient).copy(eventId = TestUUIDValue).serialize().verifySendOutbound()
-    }
+    ): String = ActionOutboundMessage(
+        connection = connection,
+        thread = thread,
+        id = TestUUIDValue,
+        message = message,
+        attachments = emptyList(),
+        fields = emptyList(),
+        token = storage.authToken
+    ).copy(eventId = TestUUIDValue)
+        .serialize()
+        .verifySendOutbound()
 
     object StoreVisitorEvents {
 

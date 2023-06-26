@@ -1,4 +1,4 @@
-# CXOne Chat SDK
+# CXone Chat SDK
 
 Visit [documentation][docs] for more information about SDK API.
 

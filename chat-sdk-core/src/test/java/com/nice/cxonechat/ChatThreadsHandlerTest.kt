@@ -2,7 +2,9 @@
 
 package com.nice.cxonechat
 
+import com.nice.cxonechat.internal.model.ChannelConfiguration
 import com.nice.cxonechat.internal.model.CustomFieldInternal
+import com.nice.cxonechat.internal.model.CustomFieldPolyType.Text
 import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.server.ServerRequest
 import com.nice.cxonechat.server.ServerResponse
@@ -19,6 +21,16 @@ import kotlin.test.assertNotNull
 internal class ChatThreadsHandlerTest : AbstractChatTest() {
 
     private lateinit var threads: ChatThreadsHandler
+
+    override val config: ChannelConfiguration
+        get() {
+            return requireNotNull(super.config).copy(
+                contactCustomFields = listOf(
+                    Text("testField", "first field"),
+                    Text("testField2", "first field")
+                )
+            )
+        }
 
     override fun prepare() {
         super.prepare()
@@ -98,7 +110,10 @@ internal class ChatThreadsHandlerTest : AbstractChatTest() {
         val customerCustomFields = mapOf("testField" to "testValue")
         this serverResponds ServerResponse.WelcomeMessage(message, customerCustomFields)
         val thread = makeChatThread(id = TestUUIDValue, fields = contactCustomFields)
-        assertSendText(ServerRequest.SendOutbound(connection, thread, storage, expected)) {
+        assertSendText(
+            expected = ServerRequest.SendOutbound(connection, thread, storage, expected),
+            replaceDate = true,
+        ) {
             create()
         }
     }

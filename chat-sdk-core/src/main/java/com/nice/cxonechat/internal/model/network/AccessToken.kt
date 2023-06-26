@@ -22,5 +22,4 @@ internal data class AccessToken(
     /** Whether the token has expired or not. */
     val isExpired
         get() = Date().after(expiresAt)
-
 }

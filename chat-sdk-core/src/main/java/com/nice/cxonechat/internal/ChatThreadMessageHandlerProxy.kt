@@ -12,5 +12,4 @@ internal class ChatThreadMessageHandlerProxy(
         if (thread.messages.isEmpty()) return
         origin.loadMore()
     }
-
 }

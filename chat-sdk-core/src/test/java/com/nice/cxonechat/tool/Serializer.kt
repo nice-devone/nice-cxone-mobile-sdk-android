@@ -1,5 +1,5 @@
 package com.nice.cxonechat.tool
 
-import com.nice.cxonechat.socket.SocketDefaults
+import com.nice.cxonechat.internal.serializer.Default
 
-internal fun Any.serialize(): String = SocketDefaults.serializer.toJson(this)
+internal fun Any.serialize(): String = Default.serializer.toJson(this)

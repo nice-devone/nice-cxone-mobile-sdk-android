@@ -53,7 +53,9 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
             if (!thrownException) {
                 thrownException = true
                 throw IOException()
-            } else Response.success(config)
+            } else {
+                Response.success(config)
+            }
         }
         build()
     }
@@ -64,10 +66,13 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
         var thrownException = false
         whenever(service.getChannel(any(), any())).thenReturn(call)
         whenever(call.execute()).then {
+            @Suppress("TooGenericExceptionThrown")
             if (!thrownException) {
                 thrownException = true
                 throw RuntimeException()
-            } else Response.success(config)
+            } else {
+                Response.success(config)
+            }
         }
         build()
     }
@@ -81,7 +86,9 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
             if (!returnedFailure) {
                 returnedFailure = true
                 Response.error(500, "".toResponseBody())
-            } else Response.success(config)
+            } else {
+                Response.success(config)
+            }
         }
         build()
     }
@@ -95,7 +102,9 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
             if (!returnedFailure) {
                 returnedFailure = true
                 Response.success(null)
-            } else Response.success(config)
+            } else {
+                Response.success(config)
+            }
         }
         build()
     }
@@ -105,10 +114,13 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
         val code = "code"
         val verifier = "verifier"
         val (connection, builder) = prepareBuilder()
-        assertSendText(ServerRequest.AuthorizeConsumer(connection, code = code, verifier = verifier)) {
+        assertSendTexts(
+            ServerRequest.AuthorizeConsumer(connection, code = code, verifier = verifier),
+            ServerRequest.StoreVisitor(connection, null)
+        ) {
             build(builder) {
                 whenever(storage.authToken).thenReturn(null)
-                whenever(storage.consumerId).thenReturn(null)
+                whenever(storage.customerId).thenReturn(null)
                 setAuthorization(Authorization(code, verifier))
             }
         }
@@ -126,7 +138,7 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
         this serverResponds ServerResponse.ConsumerAuthorized(uuid, firstName, lastName)
 
         val thread = makeChatThread()
-        val expected = connection.asCopyable().copy(consumerId = uuid, firstName = firstName, lastName = lastName)
+        val expected = connection.asCopyable().copy(customerId = uuid, firstName = firstName, lastName = lastName)
         // tests that data has been updated
         assertSendText(ServerRequest.ArchiveThread(expected, thread), uuid.toString(), thread.id.toString()) {
             chat.threads().thread(thread).events().trigger(ArchiveThreadEvent)
@@ -138,7 +150,7 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
         val uuid = UUID.randomUUID()
         build()
         this serverResponds ServerResponse.ConsumerAuthorized(uuid)
-        verify(storage).consumerId = uuid
+        verify(storage).customerId = uuid
     }
 
     @Test
@@ -160,7 +172,7 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
     @Test
     fun build_sets_consumerId_fromStorage() {
         val expected = UUID.randomUUID()
-        whenever(storage.consumerId).thenReturn(expected)
+        whenever(storage.customerId).thenReturn(expected)
         val (connection, builder) = prepareBuilder()
         val chat = build(builder)
         val thread = makeChatThread()
@@ -172,7 +184,10 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
     @Test
     fun build_reconnectsConsumer() {
         val (connection, builder) = prepareBuilder()
-        assertSendText(ServerRequest.ReconnectConsumer(connection)) {
+        assertSendTexts(
+            ServerRequest.ReconnectConsumer(connection),
+            ServerRequest.StoreVisitor(connection, null)
+        ) {
             build(builder) {
                 whenever(storage.authToken).thenReturn("token")
                 this
@@ -224,7 +239,7 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
         this serverResponds ServerResponse.ConsumerAuthorized(uuid, empty, empty)
 
         val thread = makeChatThread()
-        val expected = connection.asCopyable().copy(consumerId = uuid, firstName = firstName, lastName = lastName)
+        val expected = connection.asCopyable().copy(customerId = uuid, firstName = firstName, lastName = lastName)
         // tests that data has been updated
         assertSendText(ServerRequest.ArchiveThread(expected, thread), uuid.toString(), thread.id.toString()) {
             chat.threads().thread(thread).events().trigger(ArchiveThreadEvent)
@@ -234,7 +249,7 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
     // ---
 
     private fun prepareBuilder(): Pair<Connection, ChatBuilder> {
-        val factory = SocketFactoryMock(socket)
+        val factory = SocketFactoryMock(socket, proxyListener)
         val connection = factory.getConfiguration(storage)
         return connection to ChatBuilder(entrails, factory)
     }

@@ -2,16 +2,22 @@
 
 package com.nice.cxonechat
 
+import android.util.Base64
 import com.nice.cxonechat.ChatThreadMessageHandler.OnMessageTransferListener
 import com.nice.cxonechat.api.model.AttachmentUploadResponse
 import com.nice.cxonechat.internal.model.AttachmentModel
 import com.nice.cxonechat.internal.model.AttachmentUploadModel
 import com.nice.cxonechat.message.ContentDescriptor
+import com.nice.cxonechat.message.OutboundMessage
 import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.model.makeMessage
 import com.nice.cxonechat.server.ServerRequest
 import com.nice.cxonechat.server.ServerResponse
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.tool.nextString
+import io.mockk.every
+import io.mockk.mockkStatic
+import io.mockk.verify
 import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
@@ -56,7 +62,7 @@ internal class ChatThreadMessageHandlerTest : AbstractChatTest() {
     fun send_text_sendsExpectedMessage() {
         val expected = "hello!"
         assertSendText(ServerRequest.SendMessage(connection, thread, storage, expected)) {
-            messages.send(expected)
+            messages.send(OutboundMessage(expected))
         }
     }
 
@@ -65,8 +71,11 @@ internal class ChatThreadMessageHandlerTest : AbstractChatTest() {
         val fields = mapOf("my-field!" to "my-value?")
         this serverResponds ServerResponse.WelcomeMessage("", fields)
         val expected = "Welcome defined fields!!!"
-        assertSendText(ServerRequest.SendMessage(connection, thread, storage, expected, fields = fields)) {
-            messages.send(expected)
+        assertSendText(
+            expected = ServerRequest.SendMessage(connection, thread, storage, expected, fields = fields),
+            replaceDate = true,
+        ) {
+            messages.send(OutboundMessage(expected))
         }
     }
 
@@ -77,8 +86,11 @@ internal class ChatThreadMessageHandlerTest : AbstractChatTest() {
         this serverResponds ServerResponse.WelcomeMessage("", fields1)
         this serverResponds ServerResponse.WelcomeMessage("", fields2)
         val expected = "Welcome merged fields!!!"
-        assertSendText(ServerRequest.SendMessage(connection, thread, storage, expected, fields = fields2 + fields1)) {
-            messages.send(expected)
+        assertSendText(
+            expected = ServerRequest.SendMessage(connection, thread, storage, expected, fields2 + fields1),
+            replaceDate = true,
+        ) {
+            messages.send(OutboundMessage(expected))
         }
     }
 
@@ -89,8 +101,11 @@ internal class ChatThreadMessageHandlerTest : AbstractChatTest() {
         this serverResponds ServerResponse.WelcomeMessage("", fields1)
         this serverResponds ServerResponse.WelcomeMessage("", fields2)
         val expected = "Welcome distinct fields!!!"
-        assertSendText(ServerRequest.SendMessage(connection, thread, storage, expected, fields = fields2)) {
-            messages.send(expected)
+        assertSendText(
+            expected = ServerRequest.SendMessage(connection, thread, storage, expected, fields = fields2),
+            replaceDate = true,
+        ) {
+            messages.send(OutboundMessage(expected))
         }
     }
 
@@ -99,20 +114,57 @@ internal class ChatThreadMessageHandlerTest : AbstractChatTest() {
         val fields = mapOf("my-new-field" to "my-value?")
         this serverResponds ServerResponse.WelcomeMessage("", fields)
         val expected = "I seek your presence…"
-        assertSendText(ServerRequest.SendMessage(connection, thread, storage, expected, fields = fields)) {
-            messages.send(expected)
+        assertSendText(
+            expected = ServerRequest.SendMessage(connection, thread, storage, expected, fields = fields),
+            replaceDate = true,
+        ) {
+            messages.send(OutboundMessage(expected))
         }
         assertSendText(ServerRequest.SendMessage(connection, thread, storage, expected)) {
-            messages.send(expected)
+            messages.send(OutboundMessage(expected))
+        }
+    }
+
+    @Test
+    fun send_text_with_postback_sendExpectedMessage() {
+        val expected = nextString()
+        val postback = nextString()
+        assertSendText(
+            ServerRequest.SendMessage(
+                connection = connection,
+                thread = thread,
+                storage = storage,
+                message = expected,
+                postback = postback
+            )
+        ) {
+            messages.send(OutboundMessage(expected, postback))
         }
     }
 
     @Test
     fun send_attachments_sendsExpectedMessage() {
-        val expected = "my message!"
-        val attachments = listOf(AttachmentModel("url", "friendlyname", "application/wtf"))
-        assertSendText(ServerRequest.SendMessage(connection, thread, storage, expected, attachments = attachments)) {
-            val upload = ContentDescriptor("content", "application/wtf", "friendlyname")
+        val expected = "content"
+        val postback = nextString()
+        val bytes = expected.toByteArray()
+
+        // since android.* classes aren't implemented for unit tests, mock out Base64 conversion
+        // to just return a fixed string
+        mockkStatic(Base64::class)
+        every { Base64.encodeToString(any(), any()) } returns expected
+
+        val attachments = listOf(AttachmentModel("url", "friendlyName", "application/wtf"))
+        assertSendText(
+            ServerRequest.SendMessage(
+                connection = connection,
+                thread = thread,
+                storage = storage,
+                message = expected,
+                attachments = attachments,
+                postback = postback
+            )
+        ) {
+            val upload = ContentDescriptor(bytes, "application/wtf", "fileName", "friendlyName")
             val call: Call<AttachmentUploadResponse?> = mock()
             whenever(call.execute()).thenReturn(Response.success(AttachmentUploadResponse("url")))
             whenever(service.uploadFile(eq(AttachmentUploadModel(upload)), any(), any())).then {
@@ -120,7 +172,11 @@ internal class ChatThreadMessageHandlerTest : AbstractChatTest() {
                 assertEquals(connection.channelId, it.getArgument(2))
                 call
             }
-            messages.send(listOf(upload), expected)
+            messages.send(OutboundMessage(listOf(upload), expected, postback))
+        }
+
+        verify {
+            Base64.encodeToString(eq(bytes), eq(0))
         }
     }
 
@@ -128,7 +184,7 @@ internal class ChatThreadMessageHandlerTest : AbstractChatTest() {
     fun send_text_respondsWithCallback() {
         val result = testCallback<UUID> { trigger ->
             testSendTextFeedback()
-            messages.send("message1", OnMessageTransferListener(onSent = trigger))
+            messages.send(OutboundMessage("message1"), OnMessageTransferListener(onSent = trigger))
         }
         assertNotNull(result)
     }
@@ -136,7 +192,7 @@ internal class ChatThreadMessageHandlerTest : AbstractChatTest() {
     @Test
     fun send_text_respondsProcessed_withoutServerInterference() {
         val result = testCallback<UUID> { trigger ->
-            messages.send("message2", OnMessageTransferListener(onProcessed = trigger))
+            messages.send(OutboundMessage("message2"), OnMessageTransferListener(onProcessed = trigger))
         }
         assertNotNull(result)
     }
@@ -150,9 +206,8 @@ internal class ChatThreadMessageHandlerTest : AbstractChatTest() {
                 onProcessed = { processedId = it },
                 onSent = trigger
             )
-            messages.send(message = "message3", listener = listener)
+            messages.send(message = OutboundMessage("message3"), listener = listener)
         }
         assertSame(processedId, result)
     }
-
 }

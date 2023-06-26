@@ -1,0 +1,455 @@
+{
+    "name": "android chat",
+    "channelIdOnExternalPlatform": "e11131fa-f3a2-4728-9e22-bee2936ea855",
+    "availability": {
+        "status": "online"
+    },
+    "isLiveChat": false,
+    "settings": {
+        "features": {
+            "liveChatLogoHidden": false,
+            "isCreditCardMaskingEnabled": false,
+            "isCoBrowsingEnabled": true,
+            "isProactiveChatEnabled": true,
+            "areMembersNotificationsEnabled": true,
+            "isFeatureGroupChatEnabled": false,
+            "isEngagementMapperEnabled": false,
+            "isFeatureDefaultTranslationsEnabled": true,
+            "isFeatureImproveVisitorInactivityTrackingEnabled": true,
+            "displayChatWindowInCoBrowsing": false,
+            "useWebSdkInChatWindow": true,
+            "sendLargeEventsThroughS3": false,
+            "useWebSdkSession": false,
+            "useWebSdkMessage": false,
+            "useWebSdkCustomer": false
+        },
+        "pushNotifications": {
+            "pinpointProjectId": "cdd1c177628345dcadcdfb2f29a4fc8c",
+            "title": "New message",
+            "body": "New agent response is waiting for you",
+            "isActive": true,
+            "deeplink": ""
+        },
+        "liveChatLogoHidden": false,
+        "isCreditCardMaskingEnabled": false,
+        "isCoBrowsingEnabled": true,
+        "isProactiveChatEnabled": true,
+        "areMembersNotificationsEnabled": true,
+        "isFeatureGroupChatEnabled": false,
+        "isEngagementMapperEnabled": false,
+        "isFeatureDefaultTranslationsEnabled": true,
+        "isFeatureImproveVisitorInactivityTrackingEnabled": true,
+        "displayChatWindowInCoBrowsing": false,
+        "useWebSdkInChatWindow": true,
+        "sendLargeEventsThroughS3": false,
+        "useWebSdkSession": false,
+        "useWebSdkMessage": false,
+        "useWebSdkCustomer": false,
+        "liveChatShowOfflineForm": false,
+        "liveChatOfflineForm": {
+            "isEnabled": false,
+            "isCustom": false,
+            "html": ""
+        },
+        "liveChatHiddenOnOffline": false,
+        "liveChatAllowTranscript": false,
+        "liveChatTranscriptChannelId": "",
+        "hasPageViews": true,
+        "hasMultipleThreadsPerEndUser": true,
+        "liveChatAllowAudioNotification": true,
+        "isGroupChatAllowed": false,
+        "canCustomerInviteToGroupChat": false,
+        "canAgentInviteToGroupChat": false,
+        "platformChannelIdToSendInvitationCode": "",
+        "emailInvitationContent": "",
+        "emailInvitationLink": "",
+        "enableChatTypingPreview": false
+    },
+    "translations": {
+        "onlineFormText": "Welcome to our support chat! Tell us, how we should call you and let’s start solving your issues!",
+        "weAreOffline": "We're offline",
+        "weAreOnline": "We're online",
+        "endChat": "End chat",
+        "beginButton": "Begin Conversation",
+        "ending": "Ending ...",
+        "replyBoxPlaceholder": "Write here, press<enter> to send",
+        "chattedWith": "You chatted with {name}",
+        "startNewChat": "Start a new chat",
+        "yourNameLabel": "Your name",
+        "offlineFormDesc": "We are not available at the moment, but you can leave us a message. We will respond as soon as possible.",
+        "EmailLabel": "E-mail",
+        "messageLabel": "Message",
+        "sendMessageButton": "Send Message",
+        "offlineFormSuccessMsgHead": "Your email has been successfully sent!",
+        "offlineFormSuccessMsgSub": "We'll get back to you soon.",
+        "networkErrorText": "There was a network error. Please try again.",
+        "validationMandatory": "This field is mandatory",
+        "validationShorterName": "Please use shorter name",
+        "validationInvalidEmail": "E-mail address is not valid",
+        "validationShortMessage": "Your message is too short",
+        "getTranscriptDescription": "Send transcript of this conversation to the following email address:",
+        "transcriptSuccessfullySent": "Transcript successfully sent!",
+        "sendTranscript": "Send transcript",
+        "startChatInPopup": "Start chat",
+        "ipAddressBlocked": "IP address is blocked",
+        "waitingDescription": "One of our agents will talk to you shortly.",
+        "endChatTitle": "Are you sure you want to end this conversation?",
+        "cancel": "Cancel",
+        "topic": "Topic",
+        "pleaseSelect": "Please select...",
+        "change": "Change",
+        "tryAgainButton": "Try Again",
+        "allAgentsForQueueAreBusy": "All our agents dedicated to your queue are currently busy. There {queue, plural,one {is} other {are}} <strong>{queue, number}</strong> {queue, plural, one {person} other {people} ahead of you in the queue.",
+        "caseNumber": "Case #{caseNumber}",
+        "done": "Done",
+        "dragAndDropDropzone": "Drag & drop files here, to send them",
+        "endGame": "End game",
+        "fileSendingFailed": "File sending failed",
+        "loading": "Loading ...",
+        "loadPreviousButton": "Load previous conversations",
+        "newCase": "New case",
+        "noAgentOnlineForQueue": "No agent is available for your queue at the moment.",
+        "online": "Online",
+        "poweredBy": "Powered by",
+        "preparingSession": "Preparing session...",
+        "retry": "Retry",
+        "sendFileTextSize": "Please upload files smaller than {filesize} MB and of following file types:",
+        "sendNewEmail": "Send new email",
+        "snakeWaiting": "You are {queue} in queue.",
+        "statusReconnecting": "Trying to connect…",
+        "transcriptSentFailed": "Send failed.",
+        "unexpectedError": "Unexpected error.",
+        "messageSendingFailed": "Message sending failed",
+        "noRunningConversations": "No running conversations",
+        "chattedWithAgent": "You chatted with",
+        "agent": "Agent",
+        "backToConversations": "Back to the conversation",
+        "archive": "Archive",
+        "archiveMsg": "This conversation was archived",
+        "lastMessage": "Last message...",
+        "fileAttachment": "File attachment",
+        "active": "Active",
+        "pluginMessage": "Plugin",
+        "conversationLabelPlaceholder": "Conversation name",
+        "openSurvey": "Take satisfaction survey",
+        "uploadFailed": "Upload failed",
+        "uploadMessage": "Your file is either too large or has incompatible file type. For further information, please contact our agent.",
+        "turnOffAudioNotification": "Audio notification off",
+        "turnOnAudioNotification": "Audio notification on",
+        "weAreConnectingYouWithAnAgent": "Please wait, we are connecting you with an agent.",
+        "authorizationFailedPleaseRefreshTheWebpage": "Authorization failed. Please refresh the webpage.",
+        "close": "Close",
+        "customerLeftTheSession": "You left the chat session",
+        "chatEndedDueToInactivity": "Chat has ended due to inactivity",
+        "customerClosedTheSession": "You closed the chat session",
+        "chatSessionExpiredDueToInactivity": "Chat session expired due to inactivity",
+        "sessionRefresh": "Session refreshed",
+        "sessionExpiredCaseClosed": "Session expired. Case closed",
+        "invite": "Invite",
+        "join": "Join",
+        "participants": "Participants",
+        "sendInvitation": "Send invitation",
+        "copyCode": "Copy code",
+        "submit": "Submit",
+        "inviteToGroupChat": "Invite to group chat",
+        "viaEmail": "Via email",
+        "shareCode": "Share a code",
+        "joinGroupChat": "Join group chat",
+        "pasteCode": "Paste a code",
+        "groupChatSendInviteFailed": "Group chat invitation failed",
+        "groupChatInviteSuccessfullySent": "Group chat invite successfully sent!",
+        "joinGroupChatNote": "Note: You will lose current chat details after joining the other conversation",
+        "inviteCodeErrorMessage": "Invite code failed",
+        "joiningGroupChatFailed": "Invalid join code",
+        "leaveChat": "Leave chat",
+        "leaveChatTitle": "Are you sure you want to leave this conversation?",
+        "agentHasJoinedTheChat": "{agentName} has joined the chat.",
+        "agentHasLeftTheChat": "{agentName} has left the chat.",
+        "yourCaseHasBeenReassignedTo": "Your case has been reassigned to {agentName}.",
+        "leaveConversation": "Leave conversation",
+        "youAreBeingTransferred": "You are being transferred. Please stand by.",
+        "textIsTranslated": "Text is translated",
+        "enlarge": "Enlarge",
+        "download": "Download",
+        "groupChatLabel": "Group Chat",
+        "minimizeLabel": "Minimize",
+        "moreLabel": "More",
+        "sessionWillExpireLabel": "Session will Expire",
+        "uploadAttachment": "Upload attachment",
+        "send": "Send",
+        "chatWindowOpen": "Chat window has opened",
+        "customerChat": "Customer Chat"
+    },
+    "colors": {
+        "buttonColor": "#faac4b",
+        "headerBgColor": "#faac4b",
+        "headerFontColor": "#000000",
+        "themeColor": "#faac4b",
+        "textColor": "#000000",
+        "widgetBgColor": "#faac4b",
+        "widgetFontColor": "#000000"
+    },
+    "widget": {
+        "appearance": "bar",
+        "position": "right"
+    },
+    "popups": [],
+    "endUserCustomFields": [
+        {
+            "ident": "email",
+            "label": "E-Mail",
+            "type": "text",
+            "required": false,
+            "values": [],
+            "liveChatVisibility": "hidden",
+            "postDetailVisibility": "visible",
+            "isEditable": true
+        },
+        {
+            "ident": "request_type",
+            "label": "Request",
+            "type": "text",
+            "required": false,
+            "values": [],
+            "liveChatVisibility": "hidden",
+            "postDetailVisibility": "visible",
+            "isEditable": true
+        },
+        {
+            "ident": "firstname",
+            "label": "Firstname",
+            "type": "text",
+            "required": true,
+            "values": [],
+            "liveChatVisibility": "hidden",
+            "postDetailVisibility": "visible",
+            "isEditable": true
+        },
+        {
+            "ident": "lastname",
+            "label": "Lastname",
+            "type": "text",
+            "required": true,
+            "values": [],
+            "liveChatVisibility": "hidden",
+            "postDetailVisibility": "visible",
+            "isEditable": true
+        }
+    ],
+    "caseCustomFields": [
+        {
+            "ident": "location",
+            "label": "Location",
+            "type": "text",
+            "required": false,
+            "values": [],
+            "liveChatVisibility": "hidden",
+            "postDetailVisibility": "visible",
+            "isEditable": true
+        },
+        {
+            "ident": "department",
+            "label": "Department",
+            "type": "text",
+            "required": false,
+            "values": [],
+            "liveChatVisibility": "hidden",
+            "postDetailVisibility": "visible",
+            "isEditable": true
+        },
+        {
+            "ident": "hie2",
+            "label": "Hierchy test 1",
+            "type": "tree",
+            "required": false,
+            "values": [
+                {
+                    "name": "c7007a44-bd9a-4bd6-a5b5-8967d664eca8",
+                    "value": "0"
+                },
+                {
+                    "name": "37d6457c-fe25-43a9-81b4-66cf87a5e6a3",
+                    "value": "0-0",
+                    "parentId": "c7007a44-bd9a-4bd6-a5b5-8967d664eca8"
+                },
+                {
+                    "name": "9c37c10a-27da-48c6-8563-3f2fb1f4144b",
+                    "value": "0-0-0",
+                    "parentId": "37d6457c-fe25-43a9-81b4-66cf87a5e6a3"
+                },
+                {
+                    "name": "9d17a4e6-f77e-4d16-b565-780a997bd59b",
+                    "value": "0-0-0-0",
+                    "parentId": "9c37c10a-27da-48c6-8563-3f2fb1f4144b"
+                },
+                {
+                    "name": "ba15fd4d-462d-48b0-b127-9ebf000efe08",
+                    "value": "0-0-0-1",
+                    "parentId": "9c37c10a-27da-48c6-8563-3f2fb1f4144b"
+                },
+                {
+                    "name": "429c0c2e-e84a-489e-ac5e-cb8c6d00bfee",
+                    "value": "0-0-1",
+                    "parentId": "37d6457c-fe25-43a9-81b4-66cf87a5e6a3"
+                },
+                {
+                    "name": "c95d0b93-1e3d-4c29-81e3-ad92743a2831",
+                    "value": "1"
+                }
+            ],
+            "liveChatVisibility": "hidden",
+            "postDetailVisibility": "visible",
+            "isEditable": true
+        },
+        {
+            "ident": "e-mail",
+            "label": "E-Mail Ω",
+            "type": "email",
+            "required": false,
+            "values": [],
+            "liveChatVisibility": "hidden",
+            "postDetailVisibility": "visible",
+            "isEditable": true
+        },
+        {
+            "ident": "list",
+            "label": "List √",
+            "type": "list",
+            "required": false,
+            "values": [
+                {
+                    "name": "list-value1",
+                    "value": "😎"
+                },
+                {
+                    "name": "list-value2",
+                    "value": "🐺"
+                }
+            ],
+            "liveChatVisibility": "hidden",
+            "postDetailVisibility": "visible",
+            "isEditable": true
+        }
+    ],
+    "isAuthorizationEnabled": false,
+    "customCss": "",
+    "customJs": "",
+    "customJsFiles": "",
+    "preContactForm": {
+        "id": "b7429b39-2e54-43ee-a990-d137692b06be",
+        "name": "Precontact Survey test",
+        "channels": [
+            {
+                "id": "chat_c8b06b11-1f1e-437f-ae57-ac1bdf58c55d"
+            },
+            {
+                "id": "chat_e11131fa-f3a2-4728-9e22-bee2936ea855"
+            }
+        ],
+        "customFields": [
+            {
+                "isRequired": true,
+                "definition": {
+                    "ident": "hie2",
+                    "label": "Hierchy test 1",
+                    "type": "tree",
+                    "required": false,
+                    "visibleInPostDetail": true,
+                    "visibleInLiveChat": false,
+                    "liveChatVisibility": "hidden",
+                    "postDetailVisibility": "visible",
+                    "isEditable": true,
+                    "values": [
+                        {
+                            "name": "c7007a44-bd9a-4bd6-a5b5-8967d664eca8",
+                            "value": "0"
+                        },
+                        {
+                            "name": "37d6457c-fe25-43a9-81b4-66cf87a5e6a3",
+                            "value": "0-0",
+                            "parentId": "c7007a44-bd9a-4bd6-a5b5-8967d664eca8"
+                        },
+                        {
+                            "name": "9c37c10a-27da-48c6-8563-3f2fb1f4144b",
+                            "value": "0-0-0",
+                            "parentId": "37d6457c-fe25-43a9-81b4-66cf87a5e6a3"
+                        },
+                        {
+                            "name": "9d17a4e6-f77e-4d16-b565-780a997bd59b",
+                            "value": "0-0-0-0",
+                            "parentId": "9c37c10a-27da-48c6-8563-3f2fb1f4144b"
+                        },
+                        {
+                            "name": "ba15fd4d-462d-48b0-b127-9ebf000efe08",
+                            "value": "0-0-0-1",
+                            "parentId": "9c37c10a-27da-48c6-8563-3f2fb1f4144b"
+                        },
+                        {
+                            "name": "429c0c2e-e84a-489e-ac5e-cb8c6d00bfee",
+                            "value": "0-0-1",
+                            "parentId": "37d6457c-fe25-43a9-81b4-66cf87a5e6a3"
+                        },
+                        {
+                            "name": "c95d0b93-1e3d-4c29-81e3-ad92743a2831",
+                            "value": "1"
+                        }
+                    ]
+                }
+            },
+            {
+                "isRequired": false,
+                "definition": {
+                    "ident": "location",
+                    "label": "Location",
+                    "type": "text",
+                    "required": false,
+                    "visibleInPostDetail": true,
+                    "visibleInLiveChat": false,
+                    "liveChatVisibility": "hidden",
+                    "postDetailVisibility": "visible",
+                    "isEditable": true,
+                    "values": []
+                }
+            },
+            {
+                "isRequired": false,
+                "definition": {
+                    "ident": "e-mail",
+                    "label": "E-Mail Ω",
+                    "type": "email",
+                    "required": false,
+                    "visibleInPostDetail": true,
+                    "visibleInLiveChat": false,
+                    "liveChatVisibility": "hidden",
+                    "postDetailVisibility": "visible",
+                    "isEditable": true,
+                    "values": []
+                }
+            },
+            {
+                "isRequired": false,
+                "definition": {
+                    "ident": "list",
+                    "label": "List √",
+                    "type": "list",
+                    "required": false,
+                    "visibleInPostDetail": true,
+                    "visibleInLiveChat": false,
+                    "liveChatVisibility": "hidden",
+                    "postDetailVisibility": "visible",
+                    "isEditable": true,
+                    "values": [
+                        {
+                            "name": "list-value1",
+                            "value": "😎"
+                        },
+                        {
+                            "name": "list-value2",
+                            "value": "🐺"
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}

@@ -37,5 +37,4 @@ class ConversionEvent(
             createdAt = Date()
         )
     }
-
 }

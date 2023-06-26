@@ -28,5 +28,4 @@ internal interface RemoteService {
         @Path("channelId")
         channelId: String,
     ): Call<ChannelConfiguration?>
-
 }

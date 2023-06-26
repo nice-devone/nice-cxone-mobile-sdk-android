@@ -9,12 +9,7 @@ internal class ThreadingExecutor(
     private val foreground: ExecutorService,
 ) : Threading {
 
-    override fun foreground(runnable: Runnable): Cancellable {
-        return foreground.submit(runnable).asCancellable()
-    }
+    override fun foreground(runnable: Runnable): Cancellable = foreground.submit(runnable).asCancellable()
 
-    override fun background(runnable: Runnable): Cancellable {
-        return background.submit(runnable).asCancellable()
-    }
-
+    override fun background(runnable: Runnable): Cancellable = background.submit(runnable).asCancellable()
 }

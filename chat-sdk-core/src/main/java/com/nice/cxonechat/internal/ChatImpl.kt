@@ -1,27 +1,37 @@
 package com.nice.cxonechat.internal
 
-import com.neovisionaries.ws.client.WebSocket
+import com.nice.cxonechat.Cancellable
 import com.nice.cxonechat.ChatActionHandler
 import com.nice.cxonechat.ChatEventHandler
 import com.nice.cxonechat.ChatFieldHandler
 import com.nice.cxonechat.ChatThreadsHandler
+import com.nice.cxonechat.internal.model.ConfigurationInternal
 import com.nice.cxonechat.internal.model.network.ActionStoreVisitor
-import com.nice.cxonechat.socket.SendSelfRemovingCallback.Companion.send
-import com.nice.cxonechat.state.Configuration
+import com.nice.cxonechat.internal.socket.ProxyWebSocketListener
+import com.nice.cxonechat.internal.socket.SocketFactory
+import com.nice.cxonechat.internal.socket.WebSocketSpec
+import com.nice.cxonechat.internal.socket.send
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.thread.CustomField
+import okhttp3.WebSocket
 
 internal class ChatImpl(
     override var connection: Connection,
     override val entrails: ChatEntrails,
-    override val socket: WebSocket,
-    override val configuration: Configuration,
+    private val socketFactory: SocketFactory,
+    override val configuration: ConfigurationInternal,
 ) : ChatWithParameters {
+
+    override val socketListener: ProxyWebSocketListener = socketFactory.createProxyListener()
+    override val socket: WebSocket
+        get() = socketSession
 
     override var fields = listOf<CustomField>()
     override val environment get() = entrails.environment
 
     private val actions = ChatActionHandlerImpl(this)
+
+    private var socketSession: WebSocket = socketFactory.create(socketListener)
 
     override fun setDeviceToken(token: String?) {
         val event = ActionStoreVisitor(
@@ -30,12 +40,12 @@ internal class ChatImpl(
             deviceToken = token
         )
 
-        socket.send(event)
+        socketSession.send(event)
     }
 
     override fun threads(): ChatThreadsHandler {
         var handler: ChatThreadsHandler
-        handler = ChatThreadsHandlerImpl(this)
+        handler = ChatThreadsHandlerImpl(this, configuration.preContactSurvey)
         handler = ChatThreadsHandlerReplayLastEmpty(handler)
         handler = ChatThreadsHandlerConfigProxy(handler, this)
         handler = ChatThreadsHandlerWelcome(handler, this)
@@ -50,13 +60,9 @@ internal class ChatImpl(
         return handler
     }
 
-    override fun customFields(): ChatFieldHandler {
-        return ChatFieldHandlerGlobal(this)
-    }
+    override fun customFields(): ChatFieldHandler = ChatFieldHandlerGlobal(this)
 
-    override fun actions(): ChatActionHandler {
-        return actions
-    }
+    override fun actions(): ChatActionHandler = actions
 
     override fun signOut() {
         storage.clearStorage()
@@ -64,9 +70,11 @@ internal class ChatImpl(
     }
 
     override fun close() {
-        socket.sendClose()
-        socket.clearListeners()
-        socket.disconnect()
+        socketSession.close(WebSocketSpec.CLOSE_NORMAL_CODE, null)
     }
 
+    override fun reconnect(): Cancellable {
+        socketSession = socketFactory.create(socketListener)
+        return Cancellable.noop
+    }
 }

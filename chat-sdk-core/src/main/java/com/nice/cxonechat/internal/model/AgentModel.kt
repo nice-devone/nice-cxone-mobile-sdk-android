@@ -44,7 +44,7 @@ internal data class AgentModel(
         isBotUser = isBotUser,
         isSurveyUser = isSurveyUser,
         imageUrl = imageUrl,
-        isTyping = false
+        isTyping = false,
     )
 
     fun toMessageAuthor(): MessageAuthor = MessageAuthorInternal(
@@ -52,5 +52,4 @@ internal data class AgentModel(
         firstName = firstName,
         lastName = surname
     )
-
 }

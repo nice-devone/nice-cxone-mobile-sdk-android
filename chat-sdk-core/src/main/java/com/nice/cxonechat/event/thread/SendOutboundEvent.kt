@@ -1,7 +1,6 @@
 package com.nice.cxonechat.event.thread
 
-import com.nice.cxonechat.internal.model.network.ActionMessage
-import com.nice.cxonechat.message.MessageDirection.ToClient
+import com.nice.cxonechat.internal.model.network.ActionOutboundMessage
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.thread.ChatThread
 import java.util.UUID
@@ -14,7 +13,7 @@ internal class SendOutboundEvent(
     override fun getModel(
         thread: ChatThread,
         connection: Connection,
-    ) = ActionMessage(
+    ) = ActionOutboundMessage(
         connection = connection,
         thread = thread,
         id = UUID.randomUUID(),
@@ -22,6 +21,5 @@ internal class SendOutboundEvent(
         attachments = emptyList(),
         fields = emptyList(), // SendOutboundEvent can't have customer data (for now).
         token = authToken,
-        direction = ToClient,
     )
 }

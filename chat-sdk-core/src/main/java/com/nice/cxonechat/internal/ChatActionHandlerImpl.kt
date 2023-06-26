@@ -6,7 +6,7 @@ import com.nice.cxonechat.analytics.ActionMetadata
 import com.nice.cxonechat.enums.ActionType.CustomPopupBox
 import com.nice.cxonechat.enums.EventType.FireProactiveAction
 import com.nice.cxonechat.internal.model.network.EventProactiveAction
-import com.nice.cxonechat.socket.EventCallback.Companion.addCallback
+import com.nice.cxonechat.internal.socket.EventCallback.Companion.addCallback
 
 internal class ChatActionHandlerImpl(
     chat: ChatWithParameters,
@@ -14,20 +14,19 @@ internal class ChatActionHandlerImpl(
 
     private var latestParams: ParamsWithMetadata? = null
     private var popupListener: OnPopupActionListener? = null
-    private val popupCancellable = chat.socket.addCallback<EventProactiveAction>(FireProactiveAction) { model ->
-        val listener = popupListener
-        val metadata = model.metadata
-        if (model.type != CustomPopupBox)
-            return@addCallback
-        val variables = model.variables
-        if (listener == null) {
-            latestParams = ParamsWithMetadata(variables.orEmpty(), metadata)
-            return@addCallback
+    private val popupCancellable = chat.socketListener
+        .addCallback<EventProactiveAction>(FireProactiveAction) { model ->
+            val listener = popupListener
+            val metadata = model.metadata
+            if (model.type != CustomPopupBox) return@addCallback
+            val variables = model.variables
+            if (listener == null) {
+                latestParams = ParamsWithMetadata(variables.orEmpty(), metadata)
+                return@addCallback
+            }
+            if (variables != null) listener.onShowPopup(variables, metadata)
+            latestParams = null
         }
-        if (variables != null)
-            listener.onShowPopup(variables, metadata)
-        latestParams = null
-    }
 
     override fun onPopup(listener: OnPopupActionListener) {
         this.popupListener = listener
@@ -45,5 +44,4 @@ internal class ChatActionHandlerImpl(
         val params: Map<String, Any?>,
         val metadata: ActionMetadata,
     )
-
 }

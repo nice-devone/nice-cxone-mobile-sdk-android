@@ -3,6 +3,7 @@
 package com.nice.cxonechat
 
 import com.nice.cxonechat.ChatThreadEventHandlerActions.archiveThread
+import com.nice.cxonechat.ChatThreadEventHandlerActions.loadMetadata
 import com.nice.cxonechat.ChatThreadEventHandlerActions.markThreadRead
 import com.nice.cxonechat.ChatThreadEventHandlerActions.typingEnd
 import com.nice.cxonechat.ChatThreadEventHandlerActions.typingStart
@@ -56,4 +57,11 @@ internal class ChatThreadEventTest : AbstractChatTest() {
         }
     }
 
+    @Test
+    fun trigger_LoadThreadMetadata_sendsExpectedMessage() {
+        val id = thread.id
+        assertSendText(ServerRequest.LoadThreadMetadata(connection, thread), id.toString()) {
+            events.loadMetadata()
+        }
+    }
 }

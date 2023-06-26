@@ -19,5 +19,4 @@ internal data class PluginElementCustom(
         append(variables)
         append(")")
     }
-
 }

@@ -18,5 +18,4 @@ internal class ChatFieldHandlerLogging(
             origin.add(fields)
         }
     }
-
 }

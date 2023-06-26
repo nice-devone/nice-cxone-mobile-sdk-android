@@ -13,5 +13,4 @@ abstract class MessageMetadata {
      * Defaults to null if the message is freshly sent or delivered.
      * */
     abstract val readAt: Date?
-
 }

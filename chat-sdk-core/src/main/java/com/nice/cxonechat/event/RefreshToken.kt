@@ -19,5 +19,4 @@ internal object RefreshToken : ChatEvent() {
         connection = connection,
         token = storage.authToken.let(::requireNotNull)
     )
-
 }

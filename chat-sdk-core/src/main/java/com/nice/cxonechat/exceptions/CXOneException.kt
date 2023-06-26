@@ -24,7 +24,7 @@ sealed class CXOneException : Exception {
         @Suppress(
             "UndocumentedPublicProperty"
         )
-        const val serialVersionUID = -7049214473807003049L
+        const val serialVersionUID = -7_049_214_473_807_003_049L
     }
 }
 
@@ -33,13 +33,62 @@ sealed class CXOneException : Exception {
  */
 @Public
 class UnsupportedChannelConfigException internal constructor() : CXOneException(
-    "The method you are trying to call is not supported with your current channel configuration. For example, archiving a thread is only supported on a channel configured for multiple threads."
+    "The method you are trying to call is not supported with your current channel configuration." +
+    " For example, archiving a thread is only supported on a channel configured for multiple threads."
 )
 
 /**
- * Thread creation requires a current list of threads to be fetched in order to perform check that only one thread is created for a single-thread configuration.
+ * Thread creation requires a current list of threads to be fetched in order to perform check that only one thread is created for
+ * a single-thread configuration.
  */
 @Public
 class MissingThreadListFetchException internal constructor() : CXOneException(
     "Your current channel configuration requires that, you need to call threads {} method first to fetch list of threads."
+)
+
+/**
+ * The channel configuration requires that, before creation of a chat thread,
+ * user fills out pre-chat survey and their answers have to be supplied as custom field parameters during thread creation.
+ *
+ * @property missing The required field labels that are missing.
+ */
+@Public
+class MissingPreChatCustomFieldsException internal constructor(
+    val missing: Iterable<String>,
+) : CXOneException(
+    "The method you are trying to call requires that you supply all mandatory custom fields from pre-chat survey." +
+            " Missing custom fields:\n ${missing.joinToString()}"
+)
+
+/**
+ * A custom value passed to [com.nice.cxonechat.ChatFieldHandler.add] or
+ * [com.nice.cxonechat.ChatThreadsHandler.create] has an invalid format.
+ */
+@Public
+class InvalidCustomFieldValue internal constructor(
+    label: String,
+    error: String
+) : CXOneException(
+    "An invalid value was specified for a custom field '$label': $error"
+)
+
+/**
+ * A custom value passed to [ChatFieldHandler.add] or [ChatThreadsHandler.create] for an invalid (ie., missing) field.
+ */
+@Public
+class UndefinedCustomField internal constructor(
+    fieldId: String
+) : CXOneException(
+    "A custom value was passed for an undefined custom field: '$fieldId'"
+)
+
+/**
+ * Backend has returned invalid `customerId` value causing invalid internal SDK state.
+ *
+ * Troubleshooting: (Assuming development mode)
+ * Gather application logs with tag `CXOneChat` and contact CXone support representative.
+ */
+@Public
+class MissingCustomerId internal constructor() : CXOneException(
+    "The customer was successfully authorized, but an invalid customerId was returned."
 )

@@ -15,7 +15,7 @@ internal data class ActionStoreVisitorEvent(
     @SerializedName("eventId")
     val eventId: UUID = UUID.randomUUID(),
     @SerializedName("payload")
-    val payload: Payload<Data>,
+    val payload: LegacyPayload<Data>,
 ) {
 
     constructor(
@@ -24,7 +24,7 @@ internal data class ActionStoreVisitorEvent(
         destination: UUID,
         vararg events: VisitorEvent,
     ) : this(
-        payload = Payload(
+        payload = LegacyPayload(
             eventType = StoreVisitorEvents,
             connection = connection,
             data = Data(events.toList()),
@@ -40,7 +40,7 @@ internal data class ActionStoreVisitorEvent(
         vararg events: Pair<VisitorEventType, Any?>,
         createdAt: Date = Date(),
     ) : this(
-        payload = Payload(
+        payload = LegacyPayload(
             eventType = StoreVisitorEvents,
             connection = connection,
             data = events
@@ -62,5 +62,4 @@ internal data class ActionStoreVisitorEvent(
         @SerializedName("visitorEvents")
         val visitorEvents: List<VisitorEvent>,
     )
-
 }

@@ -10,7 +10,8 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 
 /**
- * This test class aims to cover if the [PreferencesValueStorage] implementation is fulfilling requirements defined in the [ValueStorage] interface.
+ * This test class aims to cover if the [PreferencesValueStorage] implementation is fulfilling requirements defined in
+ * the [ValueStorage] interface.
  */
 internal class PreferencesValueStorageContractTest {
 
@@ -33,7 +34,7 @@ internal class PreferencesValueStorageContractTest {
 
     @Test
     fun consumerIdDefaultValueIsEmpty() {
-        assertEquals(null, storage.consumerId)
+        assertNull(storage.customerId)
     }
 
     @Test
@@ -68,5 +69,4 @@ internal class PreferencesValueStorageContractTest {
             else -> null // unimplemented
         }
     }.toMap()
-
 }

@@ -16,5 +16,4 @@ internal class SetCustomerCustomFieldEvent(
         connection = connection,
         fields = fields.map(::CustomFieldModel)
     )
-
 }

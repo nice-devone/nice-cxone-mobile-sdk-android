@@ -7,8 +7,8 @@ import com.google.gson.annotations.SerializedName
  */
 internal enum class EventType(val value: String) {
     /** An event sent to authorize a customer. */
-    @SerializedName("AuthorizeConsumer")
-    AuthorizeCustomer("AuthorizeConsumer"),
+    @SerializedName("AuthorizeCustomer")
+    AuthorizeCustomer("AuthorizeCustomer"),
 
     /** An event received when the customer has been successfully authorized. */
     @SerializedName("ConsumerAuthorized")
@@ -52,8 +52,8 @@ internal enum class EventType(val value: String) {
     MoreMessagesLoaded("MoreMessagesLoaded"),
 
     /** An event to send to mark a chat message as seen by the customer. */
-    @SerializedName("MessageSeenByConsumer")
-    MessageSeenByCustomer("MessageSeenByConsumer"),
+    @SerializedName("MessageSeenByCustomer")
+    MessageSeenByCustomer("MessageSeenByCustomer"),
 
     /** An event received when a message has been seen by an agent. */
     @SerializedName("MessageSeenByUser")
@@ -97,7 +97,7 @@ internal enum class EventType(val value: String) {
     @SerializedName("ThreadMetadataLoaded")
     ThreadMetadataLoaded("ThreadMetadataLoaded"),
 
-    /** An event to sent to update the thread name and other info. */
+    /** An event sent to update the thread name and other info. */
     @SerializedName("UpdateThread")
     UpdateThread("UpdateThread"),
 
@@ -121,8 +121,8 @@ internal enum class EventType(val value: String) {
     SetContactCustomFields("SetContactCustomFields"),
 
     /** An event to send to set custom field values for a customer. */
-    @SerializedName("SetConsumerCustomFields")
-    SetCustomerCustomFields("SetConsumerCustomFields"),
+    @SerializedName("SetCustomerCustomFields")
+    SetCustomerCustomFields("SetCustomerCustomFields"),
 
     // Typing
     /** An event received when an agent or customer starts typing in a chat thread. */

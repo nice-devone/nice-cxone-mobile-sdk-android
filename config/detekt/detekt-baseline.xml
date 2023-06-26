@@ -2,42 +2,15 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>UndocumentedPublicClass:CXOneEnvironment.kt$CXOneEnvironment</ID>
-    <ID>UndocumentedPublicClass:Cancellable.kt$Cancellable</ID>
-    <ID>UndocumentedPublicClass:ChatBuilder.kt$ChatBuilder</ID>
-    <ID>UndocumentedPublicClass:ChatEvent.kt$ChatEvent</ID>
-    <ID>UndocumentedPublicClass:Connection.kt$Connection</ID>
-    <ID>UndocumentedPublicClass:Environment.kt$Environment</ID>
-    <ID>UndocumentedPublicClass:MessageContent.kt$MessageContent</ID>
-    <ID>UndocumentedPublicClass:MessagePayload.kt$MessagePayload</ID>
-    <ID>UndocumentedPublicClass:ProactiveActionInfo.kt$ProactiveActionInfo</ID>
-    <ID>UndocumentedPublicClass:UserStatistics.kt$UserStatistics</ID>
-    <ID>UndocumentedPublicFunction:Cancellable.kt$Cancellable$fun cancel()</ID>
-    <ID>UndocumentedPublicProperty:CXOneEnvironment.kt$CXOneEnvironment$val value: Environment</ID>
-    <ID>UndocumentedPublicProperty:CustomField.kt$CustomField$@SerializedName("ident") val ident: String</ID>
-    <ID>UndocumentedPublicProperty:CustomField.kt$CustomField$@SerializedName("value") val value: String</ID>
-    <ID>UndocumentedPublicProperty:Environment.kt$Environment$val baseUrl: String</ID>
-    <ID>UndocumentedPublicProperty:Environment.kt$Environment$val chatUrl: String</ID>
-    <ID>UndocumentedPublicProperty:Environment.kt$Environment$val location: String</ID>
-    <ID>UndocumentedPublicProperty:Environment.kt$Environment$val name: String</ID>
-    <ID>UndocumentedPublicProperty:Environment.kt$Environment$val originHeader: String</ID>
-    <ID>UndocumentedPublicProperty:Environment.kt$Environment$val socketUrl: String</ID>
-    <ID>UndocumentedPublicProperty:ErrorCode.kt$ErrorCode$val value: String</ID>
-    <ID>UndocumentedPublicProperty:MessageContentType.kt$MessageContentType$val value: String</ID>
-    <ID>UndocumentedPublicProperty:MessageDirection.kt$MessageDirection$val value: String</ID>
-    <ID>UndocumentedPublicProperty:MessageElement.kt$MessageElement$@SerializedName("elements") val elements: List&lt;MessageElement>?</ID>
-    <ID>UndocumentedPublicProperty:MessageElement.kt$MessageElement$@SerializedName("fileName") val fileName: String?</ID>
-    <ID>UndocumentedPublicProperty:MessageElement.kt$MessageElement$@SerializedName("id") val id: String</ID>
-    <ID>UndocumentedPublicProperty:MessageElement.kt$MessageElement$@SerializedName("mimeType") val mimeType: String?</ID>
-    <ID>UndocumentedPublicProperty:MessageElement.kt$MessageElement$@SerializedName("postback") val postback: String?</ID>
-    <ID>UndocumentedPublicProperty:MessageElement.kt$MessageElement$@SerializedName("text") val text: String</ID>
-    <ID>UndocumentedPublicProperty:MessageElement.kt$MessageElement$@SerializedName("type") val type: ElementType</ID>
-    <ID>UndocumentedPublicProperty:MessageElement.kt$MessageElement$@SerializedName("url") val url: String?</ID>
-    <ID>UndocumentedPublicProperty:MessageElement.kt$MessageElement$@SerializedName("variables") val variables: Any</ID>
-    <ID>UndocumentedPublicProperty:MessagePayload.kt$MessagePayload$@SerializedName("elements") val elements: List&lt;MessageElement> = emptyList()</ID>
-    <ID>UndocumentedPublicProperty:MessagePayload.kt$MessagePayload$@SerializedName("text") val text: String</ID>
-    <ID>UndocumentedPublicProperty:ProactiveActionInfo.kt$ProactiveActionInfo$@SerializedName("actionId") val actionId: UUID</ID>
-    <ID>UndocumentedPublicProperty:ProactiveActionInfo.kt$ProactiveActionInfo$@SerializedName("actionName") val actionName: String</ID>
-    <ID>UndocumentedPublicProperty:ProactiveActionInfo.kt$ProactiveActionInfo$@SerializedName("actionType") val actionType: String</ID>
+    <ID>ForbiddenPublicDataClass:Authorization.kt$Authorization</ID>
+    <ID>FunctionNaming:PluginElementExt.kt$internal fun PluginElement(element: MessagePolyElement)</ID>
+    <ID>UnnecessaryAbstractClass:Attachment.kt$Attachment$Attachment</ID>
+    <ID>UnnecessaryAbstractClass:Configuration.kt$Configuration$Configuration</ID>
+    <ID>UnnecessaryAbstractClass:Connection.kt$Connection$Connection</ID>
+    <ID>UnnecessaryAbstractClass:ContentDescriptor.kt$ContentDescriptor$ContentDescriptor</ID>
+    <ID>UnnecessaryAbstractClass:CustomField.kt$CustomField$CustomField</ID>
+    <ID>UnnecessaryAbstractClass:Environment.kt$Environment$Environment</ID>
+    <ID>UnnecessaryAbstractClass:MessageMetadata.kt$MessageMetadata$MessageMetadata</ID>
+    <ID>UnusedPrivateMember:ElementType.kt$ElementType$value: String</ID>
   </CurrentIssues>
 </SmellBaseline>

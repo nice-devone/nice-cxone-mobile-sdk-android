@@ -18,8 +18,11 @@ internal class PreferencesValueStorage(private val sharedPreferences: SharedPref
             .takeUnless { it == -1L }
             ?.let(::Date)
         set(value) = sharedPreferences.edit {
-            if (value != null) putLong(PREF_AUTH_TOKEN_EXP_DATE, value.time)
-            else remove(PREF_AUTH_TOKEN_EXP_DATE)
+            if (value != null) {
+                putLong(PREF_AUTH_TOKEN_EXP_DATE, value.time)
+            } else {
+                remove(PREF_AUTH_TOKEN_EXP_DATE)
+            }
         }
     override var visitorId: UUID
         get() = sharedPreferences.getUUID(PREF_VISITOR_ID) ?: UUID.randomUUID().also {
@@ -28,10 +31,10 @@ internal class PreferencesValueStorage(private val sharedPreferences: SharedPref
         set(value) = sharedPreferences.edit {
             putString(PREF_VISITOR_ID, value.toString())
         }
-    override var consumerId: UUID?
-        get() = sharedPreferences.getUUID(PREF_CONSUMER_ID, null)
+    override var customerId: UUID?
+        get() = sharedPreferences.getUUID(PREF_CUSTOMER_ID, null)
         set(value) = sharedPreferences.edit {
-            putString(PREF_CONSUMER_ID, value.toString())
+            putString(PREF_CUSTOMER_ID, value.toString())
         }
     override val destinationId: UUID = UUID.randomUUID()
     override var welcomeMessage: String
@@ -46,16 +49,21 @@ internal class PreferencesValueStorage(private val sharedPreferences: SharedPref
         sharedPreferences.edit()?.clear()?.apply()
     }
 
-    private fun SharedPreferences.getStringOrEmpty(key: String, defValue: String? = null): String = getString(key, defValue).orEmpty()
-    private fun SharedPreferences.getUUID(key: String, defValue: String? = null): UUID? = getString(key, defValue)?.let(UUID::fromString)
+    private fun SharedPreferences.getStringOrEmpty(
+        key: String,
+        defValue: String? = null,
+    ): String = getString(key, defValue).orEmpty()
+    private fun SharedPreferences.getUUID(
+        key: String,
+        defValue: String? = null,
+    ): UUID? = getString(key, defValue)?.let(UUID::fromString)
 
     private companion object {
         private const val PREFIX = "com.nice.cxonechat"
         private const val PREF_AUTH_TOKEN: String = "$PREFIX.share_sdk_auth_token"
         private const val PREF_AUTH_TOKEN_EXP_DATE: String = "$PREFIX.share_sdk_auth_token_exp_date"
         private const val PREF_VISITOR_ID: String = "$PREFIX.share_visitor_id"
-        private const val PREF_CONSUMER_ID: String = "$PREFIX.share_consumer_id"
+        private const val PREF_CUSTOMER_ID: String = "$PREFIX.share_customer_id"
         private const val PREF_WELCOME_MESSAGE: String = "$PREFIX.share_welcome_message"
     }
-
 }

@@ -58,7 +58,5 @@ internal data class ActionCustomerTyping(
             thread = thread,
             type = SenderTypingEnded
         )
-
     }
-
 }

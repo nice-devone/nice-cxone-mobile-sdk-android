@@ -1,12 +1,12 @@
 package com.nice.cxonechat.internal
 
 import com.nice.cxonechat.Chat
+import com.nice.cxonechat.internal.socket.EventLogger
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerScope
 import com.nice.cxonechat.log.duration
 import com.nice.cxonechat.log.finest
 import com.nice.cxonechat.log.scope
-import com.nice.cxonechat.socket.EventLogger
 
 internal class ChatLogging(
     private val origin: ChatWithParameters,
@@ -15,7 +15,7 @@ internal class ChatLogging(
 
     init {
         finest("Initialized (config=$configuration,environment=$environment)")
-        origin.socket.addListener(EventLogger(origin.entrails.logger))
+        origin.socketListener.addListener(EventLogger(origin.entrails.logger))
     }
 
     override fun setDeviceToken(token: String?) = scope("setDeviceToken") {
@@ -67,5 +67,4 @@ internal class ChatLogging(
             origin.close()
         }
     }
-
 }

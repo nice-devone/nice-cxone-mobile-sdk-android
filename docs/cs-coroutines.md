@@ -1,7 +1,7 @@
 # Case Study: Coroutines
 
 Coroutines are widely accepted framework in the Android space, therefore we would like to show you
-how to implement some extensions atop of CXOne Chat SDK.
+how to implement some extensions atop of CXone Chat SDK.
 
 ## Libraries
 

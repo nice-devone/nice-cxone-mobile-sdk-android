@@ -20,5 +20,4 @@ internal class ChatThreadEventHandlerTokenGuard(
         }
         origin.trigger(event, listener)
     }
-
 }

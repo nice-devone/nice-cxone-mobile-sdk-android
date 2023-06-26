@@ -1,5 +1,5 @@
 plugins {
-    id "com.vanniktech.maven.publish"
+    id "com.vanniktech.maven.publish.base" // Using base which allows to setup multivariant publishing
 }
 
 publishing {
@@ -14,3 +14,54 @@ publishing {
         }
     }
 }
+
+static String getGitCurrentBranch() {
+    def branch = ""
+    def proc = "git rev-parse --abbrev-ref HEAD".execute()
+    proc.in.eachLine { line -> branch = line }
+    proc.err.eachLine { line -> println line }
+    proc.waitFor()
+    return branch
+}
+
+/**
+ * Combines base version with branch.
+ * If the branch starts with "sdk/" then prefix "sdk/" is removed otherwise the default branch name "main" is used.
+ * Then branch name is escaped by replacing chars '/', '_'  with '-'.
+ * Final string is created by combining `${versionBase}
+ * @param versionBase base which will be used for combining with branch.
+ * @return
+ */
+static String branchVersion(String versionBase) {
+    if (versionBase == null) {
+        return null
+    }
+    final def featureBranch = "feature/"
+    final def defaultBranch = "main"
+    String branch = getGitCurrentBranch()
+    if (!branch.startsWith(featureBranch)) {
+        branch = defaultBranch
+    }
+    return versionBase + "-" + branch.replaceAll("[/_]", "-") + "-SNAPSHOT"
+}
+
+/**
+ * This task will set project version to use version + branch name
+ */
+tasks.register("publishToMavenLocalAsBranchVersion") {
+    doFirst {
+        project.version = branchVersion(project.findProperty("VERSION_NAME") ?: project.version)
+        println("Publishing local version:" + project.version)
+    }
+
+    configure {
+        group = "Publishing"
+        description = "Publishes artifact to MavenLocal using current version + branch as artifact name"
+    }
+}
+
+/**
+ * Final part of setup for publishToMavenLocalAsBranchVersion - orders tasks
+ * First setup is performed and then publishing itself.
+ */
+tasks.getByName("publishToMavenLocalAsBranchVersion") finalizedBy tasks.getByName("publishToMavenLocal")

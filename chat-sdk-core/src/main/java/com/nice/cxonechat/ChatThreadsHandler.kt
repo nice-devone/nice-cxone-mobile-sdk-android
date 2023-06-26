@@ -2,8 +2,14 @@ package com.nice.cxonechat
 
 import androidx.annotation.CheckResult
 import com.nice.cxonechat.exceptions.CXOneException
+import com.nice.cxonechat.exceptions.InvalidCustomFieldValue
+import com.nice.cxonechat.exceptions.MissingPreChatCustomFieldsException
 import com.nice.cxonechat.exceptions.MissingThreadListFetchException
+import com.nice.cxonechat.exceptions.UndefinedCustomField
 import com.nice.cxonechat.exceptions.UnsupportedChannelConfigException
+import com.nice.cxonechat.prechat.PreChatSurvey
+import com.nice.cxonechat.prechat.PreChatSurveyResponse
+import com.nice.cxonechat.state.FieldDefinition
 import com.nice.cxonechat.thread.ChatThread
 
 /**
@@ -18,6 +24,12 @@ import com.nice.cxonechat.thread.ChatThread
  */
 @Public
 interface ChatThreadsHandler {
+
+    /**
+     * A pre-chat form which should be answered by the user before [create] is called.
+     * Answers have to be supplied as custom fields in the [create] call.
+     */
+    val preChatSurvey: PreChatSurvey?
 
     /**
      * Sends a request to refresh the thread-list. It's important that you register
@@ -51,14 +63,23 @@ interface ChatThreadsHandler {
      * thread and [threads] method wasn't called before call of this method, or the thread list
      * fetch didn't yet complete.
      * This exception is never thrown for multi thread configurations.
+     * @throws MissingPreChatCustomFieldsException when the configuration requires answers
+     * for items in [preChatSurvey].
+     * @throws InvalidCustomFieldValue in case of internal SDK error.
+     * @throws UndefinedCustomField in case of internal SDK error.
      *
+     * @return A new instance of [ChatThreadsHandler].
      * @see [threads]
+     * @see [preChatSurvey]
      */
     @Throws(
         UnsupportedChannelConfigException::class,
         MissingThreadListFetchException::class,
+        MissingPreChatCustomFieldsException::class,
+        InvalidCustomFieldValue::class,
+        UndefinedCustomField::class,
     )
-    fun create(): ChatThreadHandler = create(emptyMap())
+    fun create(): ChatThreadHandler = create(customFields = emptyMap(), preChatSurveyResponse = emptySequence())
 
     /**
      * Creates a new thread -if permitted by configuration- and returns a handler for it.
@@ -79,7 +100,7 @@ interface ChatThreadsHandler {
      * @param customFields An initial map of custom-field key-values specific to this new thread.
      * These custom-fields can be used for personalization during thread creation
      * (e.g.: for a welcome message) and will be sent with a first outbound message.
-     * Possible source is from a pre-chat survey.
+     * Possible source is from a pre-chat static survey.
      *
      * @throws UnsupportedChannelConfigException when configuration doesn't permit creation
      * of additional threads.
@@ -88,15 +109,133 @@ interface ChatThreadsHandler {
      * thread and [threads] method wasn't called before call of this method, or the thread list
      * fetch didn't yet complete.
      * This exception is never thrown for multi thread configurations.
+     * @throws MissingPreChatCustomFieldsException when the configuration requires answers
+     * for items in [preChatSurvey].
+     * @throws InvalidCustomFieldValue if a value in [customFields] is invalid for any reason.
+     * @throws UndefinedCustomField if a key in [customFields] is not defined by the
+     * channel configuration.
      *
      * @return A new instance of [ChatThreadsHandler].
      * @see [threads]
+     * @see [preChatSurvey]
      */
     @Throws(
         UnsupportedChannelConfigException::class,
         MissingThreadListFetchException::class,
+        MissingPreChatCustomFieldsException::class,
+        InvalidCustomFieldValue::class,
+        UndefinedCustomField::class,
     )
-    fun create(customFields: Map<String, String>): ChatThreadHandler
+    fun create(customFields: Map<String, String>): ChatThreadHandler = create(
+        customFields = customFields,
+        preChatSurveyResponse = emptySequence(),
+    )
+
+    /**
+     * Creates a new thread -if permitted by configuration- and returns a handler for it.
+     * [threads] should return this new instance even if it's not created on the server
+     * yet.
+     *
+     * Whenever configuration doesn't permit creating new threads, this method throws
+     * [CXOneException] in response.
+     * In cases where configuration permits only singular thread, the method
+     * requires the client to first call [threads] with a listener.
+     * This is to ensure proper validation of creating threads.
+     * _Please note that you have to perform this action on every new [ChatThreadsHandler]
+     * as it exclusively remembers its own state._
+     *
+     * The [ChatThreadsHandler] instance remembers at most one thread that contains no
+     * messages (i.e. is not created on the server).
+     *
+     * @param preChatSurveyResponse Iterable sequence of responses to items in [preChatSurvey].
+     * The sequence has to contain responses to all items in [PreChatSurvey] which have the flag
+     * [FieldDefinition.isRequired] set to `true`.
+     *
+     * @throws UnsupportedChannelConfigException when configuration doesn't permit creation
+     * of additional threads.
+     * This exception is never thrown for multi thread configurations.
+     * @throws MissingThreadListFetchException when the configuration permits only singular
+     * thread and [threads] method wasn't called before call of this method, or the thread list
+     * fetch didn't yet complete.
+     * This exception is never thrown for multi thread configurations.
+     * @throws MissingPreChatCustomFieldsException when the configuration requires answers
+     * for items in [preChatSurvey] and those were not supplied, or supplied answer is not valid
+     * (non-leaf [com.nice.cxonechat.state.HierarchyNode] for [FieldDefinition.Hierarchy]).
+     * @throws InvalidCustomFieldValue in case of internal SDK error.
+     * @throws UndefinedCustomField in case of internal SDK error.
+     *
+     * @return A new instance of [ChatThreadsHandler].
+     * @see [threads]
+     * @see [preChatSurvey]
+     */
+    @Throws(
+        UnsupportedChannelConfigException::class,
+        MissingThreadListFetchException::class,
+        MissingPreChatCustomFieldsException::class,
+        InvalidCustomFieldValue::class,
+        UndefinedCustomField::class
+    )
+    fun create(
+        preChatSurveyResponse: Sequence<PreChatSurveyResponse<out FieldDefinition, out Any>>,
+    ): ChatThreadHandler = create(
+        customFields = emptyMap(),
+        preChatSurveyResponse = preChatSurveyResponse,
+    )
+
+    /**
+     * Creates a new thread -if permitted by configuration- and returns a handler for it.
+     * [threads] should return this new instance even if it's not created on the server
+     * yet.
+     *
+     * Whenever configuration doesn't permit creating new threads, this method throws
+     * [CXOneException] in response.
+     * In cases where configuration permits only singular thread, the method
+     * requires the client to first call [threads] with a listener.
+     * This is to ensure proper validation of creating threads.
+     * _Please note that you have to perform this action on every new [ChatThreadsHandler]
+     * as it exclusively remembers its own state._
+     *
+     * The [ChatThreadsHandler] instance remembers at most one thread that contains no
+     * messages (i.e. is not created on the server).
+     *
+     * @param customFields An initial map of custom-field key-values specific to this new thread.
+     * These custom-fields can be used for personalization during thread creation
+     * (e.g.: for a welcome message) and will be sent with a first outbound message.
+     * Possible source is from a pre-chat static survey.
+     * @param preChatSurveyResponse Iterable sequence of responses to items in [preChatSurvey].
+     * The sequence has to contain responses to all items in [PreChatSurvey] which have the flag
+     * [FieldDefinition.isRequired] set to `true`.
+     *
+     * @throws UnsupportedChannelConfigException when configuration doesn't permit creation
+     * of additional threads.
+     * This exception is never thrown for multi thread configurations.
+     * @throws MissingThreadListFetchException when the configuration permits only singular
+     * thread and [threads] method wasn't called before call of this method, or the thread list
+     * fetch didn't yet complete.
+     * This exception is never thrown for multi thread configurations.
+     * @throws MissingPreChatCustomFieldsException when the configuration requires answers
+     * for items in [preChatSurvey] and those were not supplied, or supplied answer is not valid.
+     * (non-leaf [com.nice.cxonechat.state.HierarchyNode] for [FieldDefinition.Hierarchy]).
+     * @throws InvalidCustomFieldValue if a value in [customFields] or [preChatSurveyResponse]
+     * is invalid for any reason.
+     * @throws UndefinedCustomField if a key in [customFields] is not defined by the
+     * channel configuration.
+     *
+     * @return A new instance of [ChatThreadsHandler].
+     * @see [threads]
+     * @see [preChatSurvey]
+     */
+    @Throws(
+        UnsupportedChannelConfigException::class,
+        MissingThreadListFetchException::class,
+        MissingPreChatCustomFieldsException::class,
+        InvalidCustomFieldValue::class,
+        UndefinedCustomField::class,
+    )
+    fun create(
+        customFields: Map<String, String>,
+        preChatSurveyResponse: Sequence<PreChatSurveyResponse<out FieldDefinition, out Any>>,
+    ): ChatThreadHandler
 
     /**
      * Registers a listeners on this instance that returns new value every time client

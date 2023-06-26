@@ -30,11 +30,26 @@ internal data class MessageContent(
      * */
     @SerializedName("fallbackText")
     val fallbackText: String? = null,
+
+    /**
+     * Postback string value.
+     * Supplied by the integrating application, for messages which signifies reaction
+     * to an [com.nice.cxonechat.message.Action] by the customer.
+     *
+     * For an example, when user clicks a reply button from a rich message, the application
+     * should then send a message containing original [com.nice.cxonechat.message.Action.ReplyButton.postback],
+     * so an automatic backend process can react to that selection.
+     */
+    @SerializedName("postback")
+    val postback: String? = null
 ) {
 
-    constructor(message: String) : this(
+    constructor(
+        message: String,
+        postback: String? = null,
+    ) : this(
         type = Text,
-        payload = MessagePayload(text = message)
+        payload = MessagePayload(text = message),
+        postback = postback
     )
-
 }

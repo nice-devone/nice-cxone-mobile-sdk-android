@@ -35,9 +35,7 @@ internal class ChatThreadMutable private constructor(
 
     fun snapshot() = thread
 
-    override fun toString(): String {
-        return thread.toString()
-    }
+    override fun toString(): String = thread.toString()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -46,9 +44,7 @@ internal class ChatThreadMutable private constructor(
         return true
     }
 
-    override fun hashCode(): Int {
-        return thread.hashCode()
-    }
+    override fun hashCode(): Int = thread.hashCode()
 
     companion object {
 
@@ -56,7 +52,5 @@ internal class ChatThreadMutable private constructor(
             is ChatThreadMutable -> thread
             else -> ChatThreadMutable(thread)
         }
-
     }
-
 }

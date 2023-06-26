@@ -5,6 +5,7 @@ import com.nice.cxonechat.Cancellable
 import com.nice.cxonechat.Chat
 import com.nice.cxonechat.ChatBuilder
 import com.nice.cxonechat.ChatBuilder.OnChatBuiltCallback
+import com.nice.cxonechat.ChatStateListener
 import java.io.IOException
 import java.util.concurrent.CountDownLatch
 import kotlin.math.pow
@@ -34,6 +35,10 @@ internal class ChatBuilderRepeating(
         origin.setUserName(first, last)
     }
 
+    override fun setChatStateListener(listener: ChatStateListener): ChatBuilder = apply {
+        origin.setChatStateListener(listener)
+    }
+
     override fun build(callback: OnChatBuiltCallback): Cancellable {
         val threading = entrails.threading
         return threading.background {
@@ -48,6 +53,7 @@ internal class ChatBuilderRepeating(
 
     private fun awaitBuild(): Chat {
         var exponent = 0
+        @Suppress("UnconditionalJumpStatementInLoop") // We need to retry, since we don't have return value
         while (true) {
             return try {
                 buildSynchronous()

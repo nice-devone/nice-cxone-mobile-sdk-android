@@ -23,5 +23,4 @@ internal data class PluginElementFile(
         append(mimeType)
         append("')")
     }
-
 }

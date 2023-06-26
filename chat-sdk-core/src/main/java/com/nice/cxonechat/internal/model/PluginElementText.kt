@@ -25,5 +25,4 @@ internal data class PluginElementText(
         append(isHtml)
         append(")")
     }
-
 }

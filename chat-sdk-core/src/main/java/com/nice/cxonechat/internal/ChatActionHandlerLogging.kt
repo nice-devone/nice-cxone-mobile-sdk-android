@@ -30,5 +30,4 @@ internal class ChatActionHandlerLogging(
     override fun close() = scope("close") {
         duration { origin.close() }
     }
-
 }

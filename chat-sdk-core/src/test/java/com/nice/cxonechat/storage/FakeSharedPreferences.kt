@@ -20,26 +20,27 @@ internal open class FakeSharedPreferences : SharedPreferences {
     override fun getAll(): MutableMap<String?, *> = map
         .toMutableMap()
 
-    override fun getString(key: String?, defValue: String?): String? = map[key] as String? ?: defValue
+    override fun getString(key: String?, defValue: String?): String? = map[key] as? String? ?: defValue
 
     override fun getStringSet(key: String?, defValues: MutableSet<String>?): MutableSet<String>? = map[key]?.let {
         @Suppress("UNCHECKED_CAST")
-        it as MutableSet<String>?
+        it as? MutableSet<String>?
     } ?: defValues
 
-    override fun getInt(key: String?, defValue: Int): Int = map[key] as Int? ?: defValue
+    override fun getInt(key: String?, defValue: Int): Int = map[key] as? Int? ?: defValue
 
-    override fun getLong(key: String?, defValue: Long): Long = map[key] as Long? ?: defValue
+    override fun getLong(key: String?, defValue: Long): Long = map[key] as? Long? ?: defValue
 
-    override fun getFloat(key: String?, defValue: Float): Float = map[key] as Float? ?: defValue
+    override fun getFloat(key: String?, defValue: Float): Float = map[key] as? Float? ?: defValue
 
-    override fun getBoolean(key: String?, defValue: Boolean): Boolean = map[key] as Boolean? ?: defValue
+    override fun getBoolean(key: String?, defValue: Boolean): Boolean = map[key] as? Boolean? ?: defValue
 
     override fun contains(key: String?): Boolean = map.contains(key)
 
     override fun edit(): Editor {
         /*
-        Note: This editor implementation doesn't implement ordering of actions which should be applied to the stored preferences and also ignores commit/apply calls.
+        Note: This editor implementation doesn't implement ordering of actions which should be applied to the stored preferences and also
+        ignores commit/apply calls.
         In case used business logic will ever relly on those, they will have to be added to this implementation as well.
          */
         return object : Editor {

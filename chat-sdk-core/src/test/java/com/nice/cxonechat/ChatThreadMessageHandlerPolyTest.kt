@@ -1,5 +1,6 @@
 package com.nice.cxonechat
 
+import com.nice.cxonechat.message.Action
 import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.message.PluginElement
 import com.nice.cxonechat.model.makeChatThread
@@ -66,13 +67,61 @@ internal class ChatThreadMessageHandlerPolyTest : AbstractChatTest() {
     }
 
     @Test
-    fun parses_typeQuickReplies() {
-        val message = awaitMessage(ServerResponse.Message.QuickReplies(thread.id))
+    fun parses_typePluginQuickReplies() {
+        val message = awaitMessage(ServerResponse.Message.PluginQuickReplies(thread.id))
         assertIs<Message.Plugin>(message)
         val element = message.element
         assertIs<PluginElement.QuickReplies>(element)
         assertEquals(3, element.buttons.count())
         assertNotNull(element.text)
+    }
+
+    @Test
+    fun parses_typeQuickReplies() {
+        val message = awaitMessage(ServerResponse.Message.QuickReplies(thread.id))
+        assertIs<Message.QuickReplies>(message)
+        assertNotNull(message.title)
+        assertNotNull(message.fallbackText)
+        assertEquals(3, message.actions.count())
+    }
+
+    fun parses_typeRichLink() {
+        val message = awaitMessage(ServerResponse.Message.RichLink(thread.id))
+        assertIs<Message.RichLink>(message)
+        assertNotNull(message.fallbackText)
+        assertNotNull(message.title)
+        assertNotNull(message.url)
+        assertNotNull(message.media)
+    }
+
+    @Test
+    fun parses_typeListPicker() {
+        val message = awaitMessage(ServerResponse.Message.ListPicker(thread.id))
+        assertIs<Message.ListPicker>(message)
+        assertNotNull(message.title)
+        assertNotNull(message.text)
+        assertNotNull(message.fallbackText)
+        assertNotNull(message.actions)
+
+        with(message.actions.toList()) {
+            assertEquals(2, size)
+
+            with(this[0]) {
+                assertIs<Action.ReplyButton>(this)
+                assertNotNull(text)
+                assertNotNull(description)
+                assertNotNull(media)
+                assertNotNull(postback)
+            }
+
+            with(this[1]) {
+                assertIs<Action.ReplyButton>(this)
+                assertNotNull(text)
+                assertNull(description)
+                assertNull(media)
+                assertNull(postback)
+            }
+        }
     }
 
     @Test

@@ -16,5 +16,4 @@ internal object MessageAuthorDefaults {
         firstName = "Automated",
         lastName = "Agent"
     )
-
 }

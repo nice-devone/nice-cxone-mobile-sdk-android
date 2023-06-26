@@ -20,9 +20,7 @@ internal data class EventMessageCreated(
 
     val message get() = data.message.toMessage()
 
-    fun inThread(thread: ChatThread): Boolean {
-        return thread.id == threadId
-    }
+    fun inThread(thread: ChatThread): Boolean = thread.id == threadId
 
     data class Data(
         @SerializedName("case")
@@ -32,5 +30,4 @@ internal data class EventMessageCreated(
         @SerializedName("message")
         val message: MessageModel,
     )
-
 }

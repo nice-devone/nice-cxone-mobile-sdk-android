@@ -13,5 +13,4 @@ internal object LoadMoreMessagesEvent : ChatThreadEvent() {
         connection = connection,
         thread = thread
     )
-
 }

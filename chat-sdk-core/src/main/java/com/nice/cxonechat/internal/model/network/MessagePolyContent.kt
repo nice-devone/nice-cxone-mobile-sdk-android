@@ -13,7 +13,6 @@ internal sealed class MessagePolyContent {
             @SerializedName("text")
             val text: String,
         )
-
     }
 
     data class Plugin(
@@ -27,9 +26,53 @@ internal sealed class MessagePolyContent {
             @SerializedName("elements")
             val elements: List<MessagePolyElement>,
         )
+    }
 
+    data class QuickReplies(
+        @SerializedName("fallbackText")
+        val fallbackText: String,
+        @SerializedName("payload")
+        val payload: Payload
+    ) : MessagePolyContent() {
+        data class Payload(
+            @SerializedName("text")
+            val text: WrappedText,
+            @SerializedName("actions")
+            val actions: List<PolyAction>
+        )
+    }
+
+    data class ListPicker(
+        @SerializedName("fallbackText")
+        val fallbackText: String?,
+        @SerializedName("payload")
+        val payload: Payload
+    ) : MessagePolyContent() {
+        data class Payload(
+            @SerializedName("title")
+            val title: WrappedText,
+            @SerializedName("text")
+            val text: WrappedText,
+            @SerializedName("actions")
+            val actions: List<PolyAction>
+        )
+    }
+
+    data class RichLink(
+        @SerializedName("fallbackText")
+        val fallbackText: String,
+        @SerializedName("payload")
+        val payload: Payload
+    ) : MessagePolyContent() {
+        data class Payload(
+            @SerializedName("media")
+            val media: MediaModel,
+            @SerializedName("title")
+            val title: WrappedText,
+            @SerializedName("url")
+            val url: String
+        )
     }
 
     object Noop : MessagePolyContent()
-
 }

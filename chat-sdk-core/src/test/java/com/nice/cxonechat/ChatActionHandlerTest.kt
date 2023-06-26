@@ -75,5 +75,4 @@ internal class ChatActionHandlerTest : AbstractChatTest() {
     private fun onPopup(callback: (Pair<Map<String, Any?>, ActionMetadata>) -> Unit) {
         actions.onPopup { params, meta -> callback(params to meta) }
     }
-
 }

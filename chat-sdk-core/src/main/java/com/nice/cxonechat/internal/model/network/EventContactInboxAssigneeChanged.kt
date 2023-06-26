@@ -5,6 +5,7 @@ import com.nice.cxonechat.internal.model.AgentModel
 import com.nice.cxonechat.internal.model.Brand
 import com.nice.cxonechat.internal.model.ChannelIdentifier
 import com.nice.cxonechat.internal.model.Contact
+import com.nice.cxonechat.thread.ChatThread
 
 internal data class EventContactInboxAssigneeChanged(
     @SerializedName("data")
@@ -13,6 +14,9 @@ internal data class EventContactInboxAssigneeChanged(
 
     val agent get() = data.inboxAssignee.toAgent()
     val formerAgent get() = data.previousInboxAssignee?.toAgent()
+    val case get() = data.case
+
+    fun inThread(thread: ChatThread) = case.threadIdOnExternalPlatform == thread.id
 
     data class Data(
         @SerializedName("brand")
@@ -26,5 +30,4 @@ internal data class EventContactInboxAssigneeChanged(
         @SerializedName("previousInboxAssignee")
         val previousInboxAssignee: AgentModel?,
     )
-
 }

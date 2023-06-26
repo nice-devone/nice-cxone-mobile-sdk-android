@@ -1,6 +1,7 @@
 package com.nice.cxonechat.thread
 
 import com.nice.cxonechat.Public
+import java.util.Date
 
 /**
  * Represents all data about a single custom field. Please note that the
@@ -25,4 +26,8 @@ abstract class CustomField {
      * */
     abstract val value: String
 
+    /**
+     * Timestamp when the instance was created (for locally created) or submitted to the backend.
+     */
+    abstract val updatedAt: Date
 }

@@ -28,5 +28,4 @@ class CustomVisitorEvent(
         ProactiveActionDisplayed to data,
         createdAt = Date()
     )
-
 }

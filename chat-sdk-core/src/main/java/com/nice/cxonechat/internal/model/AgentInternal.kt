@@ -39,5 +39,4 @@ internal data class AgentInternal(
         append(isTyping)
         append(")")
     }
-
 }

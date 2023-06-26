@@ -190,9 +190,7 @@ sealed class PluginElement {
      * Button component. Buttons should report [postback]s when clicking the
      * button. Postback might contain a [deepLink] which is extracted for
      * convenience.
-     *
-     * @see CustomVisitorEvent
-     * */
+     */
     @Public
     abstract class Button : PluginElement() {
         /**
@@ -204,8 +202,8 @@ sealed class PluginElement {
         /**
          * Metadata associated with the button which should be returned to the server
          * once the button is pressed.
-         * Use a [CustomVisitorEvent] to report the click, if the value is present.
-         * */
+         * Send an [OutboundMessage] message with button [text] and the [postback] values.
+         */
         abstract val postback: String?
 
         /**

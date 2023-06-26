@@ -38,5 +38,4 @@ internal class ChatEventHandlerTest : AbstractChatTest() {
     data class TestValue(
         val field: Int = 104,
     )
-
 }

@@ -87,5 +87,4 @@ interface ChatThreadHandler {
          */
         fun onUpdated(thread: ChatThread)
     }
-
 }

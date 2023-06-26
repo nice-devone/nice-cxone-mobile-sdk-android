@@ -1,17 +1,15 @@
 package com.nice.cxonechat.log
 
 /**
- * Logging level
- * */
+ * Logging level.
+ */
 sealed class Level {
 
-    /** Integer representation of a given level */
+    /** Integer representation of a given level. */
     abstract val intValue: Int
 
     /** Compares itself to [other] level for convenience. */
-    operator fun compareTo(other: Level): Int {
-        return intValue.compareTo(other.intValue)
-    }
+    operator fun compareTo(other: Level): Int = intValue.compareTo(other.intValue)
 
     /** Severe level corresponds to integer value of 1000. */
     object Severe : Level() {
@@ -72,5 +70,4 @@ sealed class Level {
     class Custom(
         override val intValue: Int,
     ) : Level()
-
 }

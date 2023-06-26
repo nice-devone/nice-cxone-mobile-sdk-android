@@ -141,5 +141,4 @@ object ChatEventHandlerActions {
     fun ChatEventHandler.visit(
         listener: OnEventSentListener? = null,
     ) = trigger(VisitEvent, listener)
-
 }

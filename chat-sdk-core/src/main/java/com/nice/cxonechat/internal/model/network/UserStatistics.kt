@@ -16,5 +16,4 @@ internal data class UserStatistics(
     fun toMessageMetadata(): MessageMetadata = MessageMetadataInternal(
         readAt = readAt
     )
-
 }

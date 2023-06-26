@@ -14,5 +14,4 @@ internal object ReconnectCustomerEvent : ChatEvent() {
         token = storage.authToken.let(::requireNotNull),
         visitor = storage.visitorId
     )
-
 }

@@ -16,7 +16,7 @@ internal abstract class AbstractChatTest : AbstractChatTestSubstrate() {
 
     override fun prepare() {
         chat = awaitResult(100.milliseconds) {
-            val factory = SocketFactoryMock(socket)
+            val factory = SocketFactoryMock(socket, proxyListener)
             ChatBuilder(entrails, factory)
                 .setAuthorization(authorization)
                 .setDevelopmentMode(true)
@@ -24,5 +24,4 @@ internal abstract class AbstractChatTest : AbstractChatTestSubstrate() {
         }
         connection = (chat as ChatWithParameters).connection
     }
-
 }

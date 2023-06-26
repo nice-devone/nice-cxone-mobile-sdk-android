@@ -26,5 +26,4 @@ object VisitEvent : ChatEvent() {
         VisitorVisit to null,
         createdAt = Date()
     )
-
 }

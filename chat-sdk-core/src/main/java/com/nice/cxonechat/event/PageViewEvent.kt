@@ -34,5 +34,4 @@ class PageViewEvent(
             createdAt = Date()
         )
     }
-
 }

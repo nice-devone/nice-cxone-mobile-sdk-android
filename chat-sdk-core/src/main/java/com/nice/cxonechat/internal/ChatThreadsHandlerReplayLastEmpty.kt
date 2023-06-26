@@ -4,6 +4,8 @@ import com.nice.cxonechat.Cancellable
 import com.nice.cxonechat.ChatThreadHandler
 import com.nice.cxonechat.ChatThreadsHandler
 import com.nice.cxonechat.ChatThreadsHandler.OnThreadsUpdatedListener
+import com.nice.cxonechat.prechat.PreChatSurveyResponse
+import com.nice.cxonechat.state.FieldDefinition
 import com.nice.cxonechat.thread.ChatThread
 
 internal class ChatThreadsHandlerReplayLastEmpty(
@@ -12,8 +14,11 @@ internal class ChatThreadsHandlerReplayLastEmpty(
 
     private var latestThread: (() -> ChatThread)? = null
 
-    override fun create(customFields: Map<String, String>): ChatThreadHandler {
-        return origin.create(customFields).also {
+    override fun create(
+        customFields: Map<String, String>,
+        preChatSurveyResponse: Sequence<PreChatSurveyResponse<out FieldDefinition, out Any>>,
+    ): ChatThreadHandler {
+        return origin.create(customFields, preChatSurveyResponse).also {
             latestThread = it::get
         }
     }

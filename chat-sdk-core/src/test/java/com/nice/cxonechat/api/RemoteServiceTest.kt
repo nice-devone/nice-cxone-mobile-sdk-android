@@ -62,7 +62,5 @@ internal class RemoteServiceTest {
                     .build()
             }
         }
-
     }
-
 }

@@ -20,5 +20,4 @@ internal data class EventMoreMessagesLoaded(
         @SerializedName("scrollToken")
         val scrollToken: String,
     )
-
 }

@@ -6,6 +6,8 @@ import com.nice.cxonechat.ChatThreadsHandler
 import com.nice.cxonechat.ChatThreadsHandler.OnThreadsUpdatedListener
 import com.nice.cxonechat.exceptions.MissingThreadListFetchException
 import com.nice.cxonechat.exceptions.UnsupportedChannelConfigException
+import com.nice.cxonechat.prechat.PreChatSurveyResponse
+import com.nice.cxonechat.state.FieldDefinition
 
 /**
  * Class responsible for checking that SDK usage adheres to the chat configuration.
@@ -20,9 +22,10 @@ internal class ChatThreadsHandlerConfigProxy(
 
     private var threadCount: Int = -1
 
-    override fun create(customFields: Map<String, String>): ChatThreadHandler {
-        return checkAndRun { origin.create(customFields) }
-    }
+    override fun create(
+        customFields: Map<String, String>,
+        preChatSurveyResponse: Sequence<PreChatSurveyResponse<out FieldDefinition, out Any>>,
+    ): ChatThreadHandler = checkAndRun { origin.create(customFields, preChatSurveyResponse) }
 
     private fun checkAndRun(block: () -> ChatThreadHandler): ChatThreadHandler {
         if (chat.configuration.hasMultipleThreadsPerEndUser) return block()

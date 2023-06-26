@@ -42,5 +42,4 @@ internal data class ActionSetContactCustomFields(
         @SerializedName("contact")
         val contact: Identifier,
     )
-
 }

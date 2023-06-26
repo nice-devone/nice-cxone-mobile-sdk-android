@@ -33,5 +33,4 @@ internal data class ActionMessageSeenByCustomer(
         @SerializedName("thread")
         val thread: Thread,
     )
-
 }

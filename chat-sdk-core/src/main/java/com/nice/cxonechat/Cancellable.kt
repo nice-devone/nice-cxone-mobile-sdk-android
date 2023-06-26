@@ -3,9 +3,15 @@ package com.nice.cxonechat
 import androidx.annotation.CheckResult
 import java.util.concurrent.Future
 
+/**
+ * Interface used to provide applications a way how to cancel long-running background tasks.
+ */
 @Public
 fun interface Cancellable {
 
+    /**
+     * Cancels the running operation, represented by the instance of this object.
+     */
     fun cancel()
 
     companion object {
@@ -19,8 +25,9 @@ fun interface Cancellable {
 
         @CheckResult
         internal operator fun invoke(vararg cancellables: Cancellable) = Cancellable {
-            for (cancellable in cancellables)
+            for (cancellable in cancellables) {
                 cancellable.cancel()
+            }
         }
     }
 }

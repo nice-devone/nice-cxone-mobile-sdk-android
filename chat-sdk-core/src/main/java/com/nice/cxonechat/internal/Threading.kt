@@ -18,7 +18,5 @@ internal interface Threading {
                 foreground = foreground
             )
         }
-
     }
-
 }

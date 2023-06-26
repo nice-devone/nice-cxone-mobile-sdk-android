@@ -29,5 +29,4 @@ class ProactiveActionClickEvent(
         ProactiveActionClicked to data,
         createdAt = Date()
     )
-
 }

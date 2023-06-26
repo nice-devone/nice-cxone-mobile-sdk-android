@@ -45,5 +45,4 @@ internal data class PluginElementMenu(
         append(buttons.toList())
         append(")")
     }
-
 }

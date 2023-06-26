@@ -26,5 +26,4 @@ internal data class EnvironmentInternal(
         append(chatUrl)
         append("')")
     }
-
 }

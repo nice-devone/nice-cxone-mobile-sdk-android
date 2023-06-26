@@ -27,5 +27,4 @@ internal class LoggerNoopTest {
         LoggerNoop.log(Level.Info, "")
         verifyZeroInteractions(out)
     }
-
 }

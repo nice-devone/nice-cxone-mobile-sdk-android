@@ -33,5 +33,4 @@ abstract class ChatThread {
     /** Whether there are more messages to load in the thread. */
     val hasMoreMessagesToLoad: Boolean
         get() = scrollToken.isNotEmpty()
-
 }

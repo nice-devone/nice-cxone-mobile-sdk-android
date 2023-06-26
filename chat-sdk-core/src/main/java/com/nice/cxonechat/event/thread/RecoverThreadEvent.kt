@@ -13,5 +13,4 @@ internal object RecoverThreadEvent : ChatThreadEvent() {
         connection = connection,
         thread = thread
     )
-
 }

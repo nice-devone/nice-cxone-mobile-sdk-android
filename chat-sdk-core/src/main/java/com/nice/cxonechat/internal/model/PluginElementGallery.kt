@@ -6,7 +6,5 @@ import com.nice.cxonechat.message.PluginElement.Gallery
 internal data class PluginElementGallery(
     override val elements: Iterable<PluginElement>,
 ) : Gallery() {
-    override fun toString(): String {
-        return "PluginElement.Gallery(elements=$elements)"
-    }
+    override fun toString(): String = "PluginElement.Gallery(elements=$elements)"
 }

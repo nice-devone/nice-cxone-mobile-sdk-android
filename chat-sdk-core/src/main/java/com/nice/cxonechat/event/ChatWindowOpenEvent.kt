@@ -23,5 +23,4 @@ object ChatWindowOpenEvent : ChatEvent() {
         ChatWindowOpened to null,
         createdAt = Date(),
     )
-
 }

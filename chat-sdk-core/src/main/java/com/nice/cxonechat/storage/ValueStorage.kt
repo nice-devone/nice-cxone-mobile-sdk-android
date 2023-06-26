@@ -30,7 +30,7 @@ internal interface ValueStorage {
      * Authorized user id.
      * Default value is null.
      */
-    var consumerId: UUID?
+    var customerId: UUID?
 
     /**
      * Connection session id.

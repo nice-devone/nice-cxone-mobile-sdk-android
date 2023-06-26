@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName
 /**
  * The different types of messages that can be sent to the WebSocket.
  */
-enum class MessageContentType(val value: String) {
+internal enum class MessageContentType(val value: String) {
     /** The message is only sending text. */
     @SerializedName("TEXT")
     Text("TEXT"),

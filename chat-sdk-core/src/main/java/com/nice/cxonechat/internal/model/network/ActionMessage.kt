@@ -4,13 +4,9 @@ import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.EventAction
 import com.nice.cxonechat.enums.EventAction.ChatWindowEvent
 import com.nice.cxonechat.enums.EventType.SendMessage
-import com.nice.cxonechat.enums.EventType.SendOutbound
 import com.nice.cxonechat.internal.model.AttachmentModel
 import com.nice.cxonechat.internal.model.CustomFieldModel
 import com.nice.cxonechat.internal.model.Thread
-import com.nice.cxonechat.message.MessageDirection
-import com.nice.cxonechat.message.MessageDirection.ToAgent
-import com.nice.cxonechat.message.MessageDirection.ToClient
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.thread.ChatThread
 import java.util.UUID
@@ -32,13 +28,10 @@ internal data class ActionMessage constructor(
         attachments: Iterable<AttachmentModel>,
         fields: List<CustomFieldModel>,
         token: String?,
-        direction: MessageDirection = ToAgent,
+        postback: String? = null,
     ) : this(
         payload = Payload(
-            eventType = when (direction) {
-                ToAgent -> SendMessage
-                ToClient -> SendOutbound
-            },
+            eventType = SendMessage,
             connection = connection,
             data = Data(
                 id = id,
@@ -46,7 +39,8 @@ internal data class ActionMessage constructor(
                 message = message,
                 attachments = attachments,
                 fields = fields,
-                token = token
+                token = token,
+                postback,
             )
         )
     )
@@ -58,14 +52,14 @@ internal data class ActionMessage constructor(
         val messageContent: MessageContent,
         @SerializedName("idOnExternalPlatform")
         val id: UUID,
-        @SerializedName("consumer")
-        val consumer: CustomFieldsData? = null,
-        @SerializedName("consumerContact")
-        val consumerContact: CustomFieldsData?,
+        @SerializedName(value = "customer", alternate = ["consumer"])
+        val customer: CustomFieldsData? = null,
+        @SerializedName(value = "contact", alternate = ["consumerContact"])
+        val customerContact: CustomFieldsData?,
         @SerializedName("attachments")
         val attachments: List<AttachmentModel> = emptyList(),
-        @SerializedName("browserFingerprint")
-        val browserFingerprint: BrowserFingerprint = BrowserFingerprint(),
+        @SerializedName("deviceFingerprint")
+        val deviceFingerprint: DeviceFingerprint = DeviceFingerprint(),
         @SerializedName("accessToken")
         val accessToken: AccessTokenPayload? = null,
     ) {
@@ -77,12 +71,13 @@ internal data class ActionMessage constructor(
             attachments: Iterable<AttachmentModel>,
             fields: List<CustomFieldModel>,
             token: String?,
+            postback: String?,
         ) : this(
             thread = Thread(thread),
-            messageContent = MessageContent(message),
+            messageContent = MessageContent(message, postback),
             id = id,
-            consumer = fields.takeUnless { it.isEmpty() }?.let(::CustomFieldsData),
-            consumerContact = thread.fields.takeUnless { it.isEmpty() }
+            customer = fields.takeUnless { it.isEmpty() }?.let(::CustomFieldsData),
+            customerContact = thread.fields.takeUnless { it.isEmpty() }
                 ?.map(::CustomFieldModel)
                 ?.let(::CustomFieldsData),
             attachments = attachments.toList(),

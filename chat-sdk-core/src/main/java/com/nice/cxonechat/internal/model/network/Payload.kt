@@ -18,8 +18,8 @@ internal data class Payload<Data>(
     val channel: ChannelIdentifier,
     @SerializedName("data")
     val data: Data,
-    @SerializedName("consumerIdentity")
-    val consumerIdentity: CustomerIdentityModel,
+    @SerializedName(value = "customerIdentity", alternate = ["consumerIdentity"])
+    val customerIdentity: CustomerIdentityModel,
     @SerializedName("visitor")
     val visitor: Identifier?,
     @SerializedName("destination")
@@ -32,16 +32,14 @@ internal data class Payload<Data>(
         eventType: EventType,
         connection: Connection,
         data: Data,
-        visitor: UUID? = null,
         destination: UUID? = null,
     ) : this(
         eventType = eventType,
         brand = connection.asBrand(),
         channel = connection.asChannelId(),
-        consumerIdentity = connection.asCustomerIdentity(),
-        visitor = visitor?.let(::Identifier),
+        customerIdentity = connection.asCustomerIdentity(),
+        visitor = connection.visitorId.let(::Identifier),
         destination = destination?.let(::Identifier),
         data = data
     )
-
 }

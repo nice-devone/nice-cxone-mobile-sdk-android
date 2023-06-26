@@ -20,5 +20,4 @@ internal data class CustomerIdentityModel(
         firstName = firstName.orEmpty(),
         lastName = lastName.orEmpty()
     )
-
 }

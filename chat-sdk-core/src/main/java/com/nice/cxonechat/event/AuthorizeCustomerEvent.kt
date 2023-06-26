@@ -17,5 +17,4 @@ internal class AuthorizeCustomerEvent(
         code = code,
         verifier = verifier
     )
-
 }

@@ -65,5 +65,4 @@ internal class LevelTest {
             "compareTo returned invalid value for comparison. It's expected that 0 < 400"
         }
     }
-
 }

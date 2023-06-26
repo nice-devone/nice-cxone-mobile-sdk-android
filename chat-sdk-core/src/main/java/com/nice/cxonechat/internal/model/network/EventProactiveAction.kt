@@ -48,7 +48,6 @@ internal data class EventProactiveAction(
             name = actionName,
             type = actionType
         )
-
     }
 
     data class ActionData(
@@ -77,5 +76,4 @@ internal data class EventProactiveAction(
         @SerializedName("customFields")
         val customFields: List<CustomFieldModel>? = null,
     )
-
 }

@@ -15,22 +15,22 @@ internal class ConnectionCopyable(
         channelId: String = connection.channelId,
         firstName: String = connection.firstName,
         lastName: String = connection.lastName,
-        consumerId: UUID? = connection.consumerId,
+        customerId: UUID? = connection.customerId,
         environment: Environment = connection.environment,
+        visitorId: UUID = connection.visitorId,
     ) = ConnectionInternal(
         brandId = brandId,
         channelId = channelId,
         firstName = firstName,
         lastName = lastName,
-        consumerId = consumerId,
-        environment = environment
+        customerId = customerId,
+        environment = environment,
+        visitorId = visitorId,
     )
 
     companion object {
 
         fun Connection.asCopyable() =
             ConnectionCopyable(this)
-
     }
-
 }

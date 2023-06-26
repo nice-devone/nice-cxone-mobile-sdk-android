@@ -1,18 +1,18 @@
 package com.nice.cxonechat
 
 import androidx.annotation.CallSuper
-import com.neovisionaries.ws.client.WebSocket
-import com.neovisionaries.ws.client.WebSocketFrame
 import com.nice.cxonechat.api.RemoteService
 import com.nice.cxonechat.enums.CXOneEnvironment
 import com.nice.cxonechat.internal.ChatEntrails
 import com.nice.cxonechat.internal.model.ChannelConfiguration
+import com.nice.cxonechat.internal.socket.ProxyWebSocketListener
 import com.nice.cxonechat.log.Level
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.storage.ValueStorage
 import com.nice.cxonechat.tool.ChatEntrailsMock
 import com.nice.cxonechat.tool.MockServer
 import com.nice.cxonechat.tool.awaitResult
+import okhttp3.WebSocket
 import org.junit.Before
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
@@ -31,6 +31,7 @@ internal abstract class AbstractChatTestSubstrate {
     protected lateinit var service: RemoteService
     protected lateinit var storage: ValueStorage
     protected lateinit var socket: WebSocket
+    protected lateinit var proxyListener: ProxyWebSocketListener
     protected lateinit var socketServer: MockServer
 
     protected open val config: ChannelConfiguration?
@@ -39,13 +40,17 @@ internal abstract class AbstractChatTestSubstrate {
                 hasMultipleThreadsPerEndUser = true,
                 isProactiveChatEnabled = true
             ),
-            isAuthorizationEnabled = true
+            isAuthorizationEnabled = true,
+            preContactForm = null,
+            customerCustomFields = listOf(),
+            contactCustomFields = listOf()
         )
 
     @Before
     fun prepareInternal() {
         socketServer = MockServer()
         socket = socketServer.socket
+        proxyListener = socketServer.proxyListener
         storage = mockStorage()
         service = mockService()
         entrails = ChatEntrailsMock(storage, service, mockLogger(), CXOneEnvironment.EU1.value)
@@ -57,6 +62,7 @@ internal abstract class AbstractChatTestSubstrate {
 
     private fun mockLogger() = object : Logger {
         override fun log(level: Level, message: String, throwable: Throwable?) {
+            @Suppress("ProhibitedCall")
             println(message)
             throwable?.printStackTrace()
         }
@@ -64,7 +70,7 @@ internal abstract class AbstractChatTestSubstrate {
 
     private fun mockStorage(): ValueStorage = mock<ValueStorage>().apply {
         whenever(visitorId).thenReturn(UUID.fromString(TestUUID))
-        whenever(consumerId).thenReturn(UUID.fromString(TestUUID))
+        whenever(customerId).thenReturn(UUID.fromString(TestUUID))
         whenever(destinationId).thenReturn(UUID.fromString(TestUUID))
         whenever(welcomeMessage).thenReturn("welcome")
         whenever(authToken).thenReturn("token")
@@ -116,29 +122,25 @@ internal abstract class AbstractChatTestSubstrate {
         body: () -> Unit,
     ) {
         val arguments = mutableListOf<String>()
-        whenever(socket.sendText(any())).then {
+        whenever(socket.send(text = any())).then {
             arguments += it.getArgument<String>(0)
-            socketServer.sendAcknowledgement(WebSocketFrame.createTextFrame(arguments.last()))
-            socket
+            true
         }
         body()
         assert(arguments.isNotEmpty()) {
             "Nothing was sent to the socket"
         }
+        val expectedArray = expected.map { if (replaceDate) replaceDate(it, emptyArray()) else it }
         arguments
             .map { replaceUUID(it, except) }
             .map { if (replaceDate) replaceDate(it, except) else it }
             .forEachIndexed { index, argument ->
-                assertEquals(expected[index], argument)
+                assertEquals(expectedArray[index], argument)
             }
     }
 
     protected fun testSendTextFeedback() {
-        whenever(socket.sendText(any())).then {
-            val text = it.getArgument<String>(0)
-            socketServer.sendAcknowledgement(WebSocketFrame.createTextFrame(text))
-            socket
-        }
+        whenever(socket.send(text = any())).thenReturn(true)
     }
 
     private fun replaceUUID(text: String, except: Array<out String>): String {

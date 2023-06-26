@@ -32,5 +32,4 @@ internal data class ActionSetCustomerCustomFields(
         @SerializedName("customFields")
         val customFields: List<CustomFieldModel>,
     )
-
 }

@@ -15,5 +15,4 @@ internal data class PluginElementSubtitle(
         append(text)
         append("')")
     }
-
 }

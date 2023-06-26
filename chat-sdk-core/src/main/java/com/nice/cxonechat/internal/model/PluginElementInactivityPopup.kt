@@ -43,5 +43,4 @@ internal data class PluginElementInactivityPopup(
         append(countdown)
         append(")")
     }
-
 }

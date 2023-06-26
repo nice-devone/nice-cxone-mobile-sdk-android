@@ -14,13 +14,12 @@ import com.nice.cxonechat.thread.CustomField
  * After creating an instance via [build][ChatBuilder.build], the customer is automatically
  * authorized if the authorization is enabled and the customer was not previously authorized,
  * otherwise reconnects the customer.
+ * The created chat instance also starts listening for the authorization and updates customer details
+ * after customer authorization. The time it takes to reach the device is undefined.
  *
- * It also starts listening for the authorization and updates customer details after
- * customer authorization. The time it takes to reach the device is undefined.
- *
- * Moreover it starts listening to events that modify welcome messages. Therefore welcome
+ * Moreover, it starts listening to events that modify welcome messages. Therefore, a welcome
  * message is only available after we receive the given event and requires no actions from
- * client side. The time it takes to reach the device is undefined.
+ * the client side. The time it takes to reach the device is undefined.
  * */
 @Public
 @Suppress(
@@ -30,7 +29,7 @@ interface Chat : AutoCloseable {
 
     /**
      * Current environment provided by the [SocketFactoryConfiguration]. It will remain
-     * unchanged for the duration of existence of this object.
+     * unchanged for the duration while this object exists.
      * */
     val environment: Environment
 
@@ -51,8 +50,8 @@ interface Chat : AutoCloseable {
     /**
      * Sets device token (notification push token) to this instance and transmits it
      * to the server. It's not guaranteed that the token is delivered to the server
-     * though. Therefore clients are strongly advised to call this method every time
-     * they receive new token and reconnect to this instance.
+     * though. Therefore, clients are strongly advised to call this method every time
+     * they receive new tokens and reconnect to this instance.
      * */
     fun setDeviceToken(token: String?)
 
@@ -60,8 +59,8 @@ interface Chat : AutoCloseable {
      * Signs out the user, clears all stored values and closes the connection. Client
      * doesn't need to call [close] explicitly.
      *
-     * This instance is considered _dead_ after calling this method
-     * */
+     * This instance is considered _dead_ after calling this method.
+     */
     fun signOut()
 
     /**
@@ -83,7 +82,7 @@ interface Chat : AutoCloseable {
     fun customFields(): ChatFieldHandler
 
     /**
-     * Returns new instance of actions handler for this [Chat].
+     * Returns new instance of an action handler for this [Chat].
      * @see ChatActionHandler
      * */
     fun actions(): ChatActionHandler
@@ -94,7 +93,21 @@ interface Chat : AutoCloseable {
      * this method.
      *
      * Interacting with any handlers or methods in this class can lead to unspecified,
-     * untested and further unwanted behavior.
-     * */
+     * untested and further unwanted behavior, this includes [reconnect] method.
+     */
     override fun close()
+
+    /**
+     * Attempts to restart the chat session using existing configuration, the attempt will be made on background thread.
+     * Successful connection will be announced to the [ChatStateListener.onConnected] which was
+     * supplied in [ChatBuilder].
+     * If there is an issue during/after reconnection the [ChatStateListener.onUnexpectedDisconnect] will be called,
+     * it is responsibility of application to perform a repeated reconnection attempt, if it is desirable.
+     * Reconnect attempts should be performed only if the device is connected to the internet.
+     * If the repeated reconnection attempts are made, they should be called with exponential backoff,
+     * in order to prevent backend overload.
+     *
+     * @return An instance of [Cancellable] which can be used to interrupt background operation.
+     */
+    fun reconnect(): Cancellable
 }

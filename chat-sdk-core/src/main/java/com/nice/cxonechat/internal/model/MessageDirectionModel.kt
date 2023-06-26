@@ -24,5 +24,4 @@ internal enum class MessageDirectionModel(val value: String) {
         ToAgent -> MessageDirection.ToAgent
         ToClient -> MessageDirection.ToClient
     }
-
 }

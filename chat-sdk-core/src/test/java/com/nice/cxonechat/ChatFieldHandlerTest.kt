@@ -2,7 +2,8 @@
 
 package com.nice.cxonechat
 
-import com.nice.cxonechat.internal.model.CustomFieldInternal
+import com.nice.cxonechat.internal.model.ChannelConfiguration
+import com.nice.cxonechat.internal.model.CustomFieldPolyType.Text
 import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.server.ServerRequest
 import com.nice.cxonechat.thread.ChatThread
@@ -15,6 +16,22 @@ internal class ChatFieldHandlerTest : AbstractChatTest() {
 
     private lateinit var thread: ChatThread
 
+    private val questionId = nextString()
+
+    private val fields = nextStringMap()
+
+    override val config: ChannelConfiguration
+        get() {
+            val config = super.config.let(::requireNotNull)
+            return config.copy(
+                contactCustomFields = listOf(
+                    Text(questionId, "first field")
+                ) + fields.entries.map {
+                    Text(it.key, it.value)
+                }
+            )
+        }
+
     override fun prepare() {
         super.prepare()
         thread = makeChatThread()
@@ -24,48 +41,47 @@ internal class ChatFieldHandlerTest : AbstractChatTest() {
 
     @Test
     fun setCustomer_sendsExpectedMessage() {
-        val fields = nextStringMap()
-        assertSendText(ServerRequest.SetConsumerCustomFields(connection, fields)) {
+        assertSendText(ServerRequest.SetCustomerCustomFields(connection, fields), replaceDate = true) {
             chat.customFields().add(fields)
         }
     }
 
     @Test
     fun setContact_sendsExpectedMessage() {
-        val fields = nextStringMap()
-        assertSendText(ServerRequest.SetConsumerContactCustomFields(connection, thread, fields), thread.id.toString()) {
+        assertSendText(ServerRequest.SetContactCustomFields(connection, thread, fields), thread.id.toString(), replaceDate = true) {
             chat.threads().thread(thread).customFields().add(fields)
         }
     }
 
     @Test
     fun addFields_appendsToThread() {
+        val newFields = mapOf(
+            questionId to "oldValue"
+        )
         val handler = chat.threads().thread(thread)
         val fields = handler.customFields()
-        val newFields = nextStringMap()
         testSendTextFeedback()
         fields.add(newFields)
-        assertEquals(newFields.map(::CustomFieldInternal), handler.get().fields)
+        assertEquals(newFields, handler.get().fields.associate { it.id to it.value })
     }
 
     @Test
     fun addFields_appendsToChat() {
         val fields = chat.customFields()
-        val newFields = nextStringMap()
+        val newFields = mapOf(questionId to nextString())
         fields.add(newFields)
-        assertEquals(newFields.map(::CustomFieldInternal), chat.fields)
+        assertEquals(newFields, chat.fields.associate { it.id to it.value })
     }
 
     @Test
     fun addFields_toChat_replacesCurrentValue() {
         val fields = chat.customFields()
-        val firstField = nextStringMap()
+        val firstField = mapOf(questionId to "answer")
         fields.add(firstField)
         val newFields = firstField.map {
             it.key to nextString()
         }.toMap()
         fields.add(newFields)
-        assertEquals(newFields.map(::CustomFieldInternal), chat.fields)
+        assertEquals(newFields, chat.fields.associate { it.id to it.value })
     }
-
 }

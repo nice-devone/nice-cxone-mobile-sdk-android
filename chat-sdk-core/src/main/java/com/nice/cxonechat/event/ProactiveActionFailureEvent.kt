@@ -30,5 +30,4 @@ class ProactiveActionFailureEvent(
         ProactiveActionFailed to data,
         createdAt = Date()
     )
-
 }

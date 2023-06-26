@@ -33,5 +33,4 @@ internal data class ChatThreadInternal(
         append(fields)
         append(")")
     }
-
 }

@@ -12,5 +12,4 @@ internal interface ChatEntrails {
     val threading: Threading
     val environment: Environment
     val logger: Logger
-
 }

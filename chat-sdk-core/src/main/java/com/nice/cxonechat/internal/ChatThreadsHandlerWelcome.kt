@@ -3,6 +3,8 @@ package com.nice.cxonechat.internal
 import com.nice.cxonechat.ChatThreadHandler
 import com.nice.cxonechat.ChatThreadsHandler
 import com.nice.cxonechat.event.thread.SendOutboundEvent
+import com.nice.cxonechat.prechat.PreChatSurveyResponse
+import com.nice.cxonechat.state.FieldDefinition
 import com.nice.cxonechat.thread.CustomField
 
 internal class ChatThreadsHandlerWelcome(
@@ -10,8 +12,11 @@ internal class ChatThreadsHandlerWelcome(
     private val chat: ChatWithParameters,
 ) : ChatThreadsHandler by origin {
 
-    override fun create(customFields: Map<String, String>): ChatThreadHandler {
-        return origin.create(customFields)
+    override fun create(
+        customFields: Map<String, String>,
+        preChatSurveyResponse: Sequence<PreChatSurveyResponse<out FieldDefinition, out Any>>,
+    ): ChatThreadHandler {
+        return origin.create(customFields, preChatSurveyResponse)
             .also(::addWelcomeMessageToThread)
     }
 

@@ -8,6 +8,7 @@ internal object VariableMessageParser {
     private const val CONTACT_FIELD_SEGMENT = "contact.customFields"
     private const val CUSTOMER_FIELD_SEGMENT = "customer.customFields"
     private const val FALLBACK_MESSAGE = "fallbackMessage"
+
     @Suppress(
         "RegExpRedundantEscape" // Required on Android, otherwise it will cause runtime crash
     )

@@ -9,5 +9,4 @@ internal data class Identifier(
 ) {
 
     constructor(id: UUID) : this(id.toString())
-
 }

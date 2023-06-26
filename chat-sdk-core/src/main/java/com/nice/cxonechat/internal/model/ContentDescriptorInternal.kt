@@ -1,22 +1,13 @@
 package com.nice.cxonechat.internal.model
 
 import com.nice.cxonechat.message.ContentDescriptor
-import okio.utf8Size
 
 internal data class ContentDescriptorInternal(
-    override val content: String,
+    override val content: DataSource,
     override val mimeType: String?,
     override val fileName: String?,
+    override val friendlyName: String?
 ) : ContentDescriptor() {
-
-    override fun toString() = buildString {
-        append("ContentDescriptor(content.utf8Size()='")
-        append(content.utf8Size())
-        append("', mimeType=")
-        append(mimeType)
-        append(", fileName=")
-        append(fileName)
-        append(")")
-    }
-
+    override fun toString(): String =
+        "ContentDescriptor(content=$content, mimeType=$mimeType, fileName=$fileName, friendlyName=$friendlyName)"
 }

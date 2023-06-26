@@ -152,5 +152,4 @@ internal class ChatEventTest : AbstractChatTest() {
             events.trigger(ReconnectCustomerEvent)
         }
     }
-
 }

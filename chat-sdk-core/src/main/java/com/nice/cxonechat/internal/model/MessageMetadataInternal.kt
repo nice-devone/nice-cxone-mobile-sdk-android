@@ -12,5 +12,4 @@ internal data class MessageMetadataInternal(
         append(readAt)
         append(")")
     }
-
 }

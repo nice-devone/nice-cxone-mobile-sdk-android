@@ -7,12 +7,21 @@ import com.nice.cxonechat.log.LoggerScope
 import com.nice.cxonechat.log.duration
 import com.nice.cxonechat.log.finest
 import com.nice.cxonechat.log.scope
+import com.nice.cxonechat.prechat.PreChatSurvey
+import com.nice.cxonechat.prechat.PreChatSurveyResponse
+import com.nice.cxonechat.state.FieldDefinition
 import com.nice.cxonechat.thread.ChatThread
 
 internal class ChatThreadsHandlerLogging(
     private val origin: ChatThreadsHandler,
     logger: Logger,
 ) : ChatThreadsHandler, LoggerScope by LoggerScope<ChatThreadsHandler>(logger) {
+    override val preChatSurvey: PreChatSurvey?
+        get() = scope("preChatSurvey") {
+            duration {
+                origin.preChatSurvey
+            }
+        }
 
     override fun refresh() = scope("refresh") {
         duration {
@@ -20,9 +29,12 @@ internal class ChatThreadsHandlerLogging(
         }
     }
 
-    override fun create(customFields: Map<String, String>) = scope("create") {
+    override fun create(
+        customFields: Map<String, String>,
+        preChatSurveyResponse: Sequence<PreChatSurveyResponse<out FieldDefinition, out Any>>,
+    ) = scope("create") {
         duration {
-            var handler = origin.create(customFields)
+            var handler = origin.create(customFields, preChatSurveyResponse)
             handler = ChatThreadHandlerLogging(handler, identity)
             handler
         }
@@ -46,5 +58,4 @@ internal class ChatThreadsHandlerLogging(
             handler
         }
     }
-
 }

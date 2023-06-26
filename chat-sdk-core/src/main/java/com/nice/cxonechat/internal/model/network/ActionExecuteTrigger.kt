@@ -12,7 +12,7 @@ internal data class ActionExecuteTrigger(
     @SerializedName("eventId")
     val eventId: UUID = UUID.randomUUID(),
     @SerializedName("payload")
-    val payload: Payload<Data>,
+    val payload: LegacyPayload<Data>,
 ) {
 
     constructor(
@@ -21,7 +21,7 @@ internal data class ActionExecuteTrigger(
         visitor: UUID,
         id: UUID,
     ) : this(
-        payload = Payload(
+        payload = LegacyPayload(
             eventType = ExecuteTrigger,
             connection = connection,
             data = Data(trigger = Identifier(id = id)),
@@ -34,5 +34,4 @@ internal data class ActionExecuteTrigger(
         @SerializedName("trigger")
         val trigger: Identifier,
     )
-
 }

@@ -12,5 +12,4 @@ internal object FetchThreadEvent : ChatEvent() {
     ) = ActionFetchThread(
         connection = connection
     )
-
 }

@@ -34,13 +34,13 @@ internal class LoggerAndroid(
     override fun log(level: Level, message: String, throwable: Throwable?) {
         val priority = level.priority
 
-        for (part in message.chunked(4000))
+        for (part in message.chunked(4000)) {
             Log.println(priority, tag, part)
+        }
 
         if (throwable != null) {
             val trace = Log.getStackTraceString(throwable)
             Log.println(priority, tag, trace)
         }
     }
-
 }

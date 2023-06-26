@@ -45,8 +45,10 @@ internal class ChatThreadsHandlerMessages(
             primaries += cancellable
             return Cancellable {
                 primaries -= cancellable
-                if (primaries.isEmpty()) for ((_, effect) in effects) {
-                    effect.cancel()
+                if (primaries.isEmpty()) {
+                    for ((_, effect) in effects) {
+                        effect.cancel()
+                    }
                 }
             }
         }
@@ -55,7 +57,5 @@ internal class ChatThreadsHandlerMessages(
             effects[id]?.cancel()
             effects[id] = cancellable
         }
-
     }
-
 }

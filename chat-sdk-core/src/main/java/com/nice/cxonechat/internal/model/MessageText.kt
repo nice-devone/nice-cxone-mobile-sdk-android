@@ -53,5 +53,4 @@ internal data class MessageText(
         append(text)
         append("')")
     }
-
 }

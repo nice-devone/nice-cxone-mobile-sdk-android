@@ -7,7 +7,9 @@ import com.nice.cxonechat.thread.ChatThread
 
 /**
  * Event that archives the thread it was invoked upon.
- * */
+ *
+ * Successful thread archivation will trigger thread list refresh.
+ */
 @Public
 object ArchiveThreadEvent : ChatThreadEvent() {
 
@@ -18,5 +20,4 @@ object ArchiveThreadEvent : ChatThreadEvent() {
         connection = connection,
         thread = thread
     )
-
 }

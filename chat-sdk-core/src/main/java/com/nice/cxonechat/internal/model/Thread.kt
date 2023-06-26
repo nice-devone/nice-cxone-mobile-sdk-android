@@ -23,5 +23,4 @@ internal data class Thread(
         idOnExternalPlatform = thread.id,
         threadName = thread.threadName
     )
-
 }

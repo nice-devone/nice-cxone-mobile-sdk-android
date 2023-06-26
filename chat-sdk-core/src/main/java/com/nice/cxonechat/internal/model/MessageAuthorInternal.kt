@@ -17,5 +17,4 @@ internal data class MessageAuthorInternal(
         append(lastName)
         append("')")
     }
-
 }

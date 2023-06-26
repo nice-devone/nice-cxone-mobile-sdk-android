@@ -6,8 +6,8 @@ import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.thread.ChatThread
 
 /**
- * Event notifying the user that user has stopped typing.
- * */
+ * Event notifying agent that the user has stopped typing.
+ */
 @Public
 object TypingEndEvent : ChatThreadEvent() {
 
@@ -18,5 +18,4 @@ object TypingEndEvent : ChatThreadEvent() {
         connection = connection,
         thread = thread
     )
-
 }

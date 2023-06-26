@@ -37,7 +37,5 @@ internal class AgentCopyable(
 
         fun Agent.asCopyable() =
             AgentCopyable(this)
-
     }
-
 }

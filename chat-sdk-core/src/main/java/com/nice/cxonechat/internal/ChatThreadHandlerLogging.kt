@@ -63,5 +63,4 @@ internal class ChatThreadHandlerLogging(
             handler
         }
     }
-
 }

@@ -7,9 +7,16 @@ import com.nice.cxonechat.internal.ChatBuilderLogging
 import com.nice.cxonechat.internal.ChatBuilderRepeating
 import com.nice.cxonechat.internal.ChatEntrails
 import com.nice.cxonechat.internal.ChatEntrailsAndroid
-import com.nice.cxonechat.internal.SocketFactory
-import com.nice.cxonechat.internal.SocketFactoryDefault
+import com.nice.cxonechat.internal.socket.SocketFactory
+import com.nice.cxonechat.internal.socket.SocketFactoryDefault
+import okhttp3.OkHttpClient
 
+/**
+ * Definition of builder used to create [Chat] instance.
+ *
+ * All options in the builder are now optional, but it is recommended to set either
+ * authorization (to the non-default value) or username.
+ */
 @Public
 interface ChatBuilder {
 
@@ -42,14 +49,21 @@ interface ChatBuilder {
     fun setUserName(first: String, last: String): ChatBuilder
 
     /**
+     * Sets optional [ChatStateListener] which will be notified about changes to
+     * availability of chat functionality.
+     * It is highly recommended to supply this listener.
+     */
+    fun setChatStateListener(listener: ChatStateListener): ChatBuilder
+
+    /**
      * Builds an instance of chat asynchronously. It's guaranteed to retrieve an
      * instance of the chat. The method continuously polls the server when failure
-     * occurs with exponential backoff where base equals to 2 seconds. All
+     * occurs with exponential backoff where the base is equal to 2 seconds. All
      * failures are logged if [setDevelopmentMode] is set.
      *
-     * If the instance is not retrieved within reasonable amount of time, the
-     * device is not connected to the internet or the chat provider experiences
-     * outage or your instance is misconfigured. In all of these cases consult
+     * If the instance is not retrieved within a reasonable amount of time, the
+     * device is not connected to the internet, or the chat provider experiences
+     * outage or your instance is misconfigured. In all of these cases, consult
      * a representative.
      *
      * Can be called from any thread, but will change to non-main thread immediately.
@@ -86,8 +100,9 @@ interface ChatBuilder {
             context: Context,
             config: SocketFactoryConfiguration,
         ): ChatBuilder {
-            val factory = SocketFactoryDefault(config)
-            val entrails = ChatEntrailsAndroid(context.applicationContext, factory, config)
+            val sharedClient = OkHttpClient()
+            val factory = SocketFactoryDefault(config, sharedClient)
+            val entrails = ChatEntrailsAndroid(context.applicationContext, factory, config, sharedClient)
             return invoke(
                 entrails = entrails,
                 factory = factory

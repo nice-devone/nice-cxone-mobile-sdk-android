@@ -17,5 +17,4 @@ internal class SetContactCustomFieldEvent(
         thread = thread,
         fields = fields
     )
-
 }

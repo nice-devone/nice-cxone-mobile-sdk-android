@@ -18,5 +18,4 @@ interface Logger {
      * information
      * */
     fun log(level: Level, message: String, throwable: Throwable? = null)
-
 }

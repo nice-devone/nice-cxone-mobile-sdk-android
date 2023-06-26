@@ -20,5 +20,4 @@ internal data class EventMessageReadByAgent(
         @SerializedName("message")
         val message: MessageModel,
     )
-
 }

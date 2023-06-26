@@ -7,7 +7,7 @@ import java.util.UUID
 
 /**
  * Represents all information about a message in chat. Messages can be either
- * systemic or user generated. There shouldn't be a distinction on client
+ * systemic or user generated. There shouldn't be a distinction on the client
  * side about those messages, though you should know they are created in
  * different ways.
  *
@@ -21,8 +21,8 @@ import java.util.UUID
 @Public
 sealed class Message {
     /**
-     * Id that was assigned to this message. If other message matches this
-     * id it's the same message with possibly different content.
+     * The id that was assigned to this message.
+     * If another message has matching id, it's the same message with possibly different content.
      * */
     abstract val id: UUID
 
@@ -81,6 +81,9 @@ sealed class Message {
     @Public
     abstract class Text : Message() {
 
+        @Suppress(
+            "MemberNameEqualsClassName" // Naming required by the domain
+        )
         /**
          * Text string provided while creating a message. Note it may contain
          * characters out of scope for your current device (typically emojis
@@ -115,5 +118,68 @@ sealed class Message {
          * @see PluginElement
          * */
         abstract val element: PluginElement?
+    }
+
+    /**
+     * Quick Reply messages have a [title] to present to the user along with
+     * a selection of quick response [Action.ReplyButton].
+     * The buttons should also be presented to the user, and if the user taps a button, the associated
+     * postback should be sent together with the text of the button as a reply message (on behalf of the user).
+     * The action can be invoked only once, and the integrating applications have to prevent multiple uses.
+     */
+    @Public
+    abstract class QuickReplies : Message() {
+        /** title message to display. */
+        abstract val title: String
+
+        /** message to display if QuickReplies messages are not supportable. */
+        abstract val fallbackText: String
+
+        /** list of actions to display along with [title]. */
+        abstract val actions: Iterable<Action>
+    }
+
+    /**
+     * A list picker displays a list of items, and information about the items,
+     * such as product name, description, and image, in the Messages app on the
+     * customer's device.
+     * The customer can interact multiple times with one or more items from the list.
+     * Each interaction should send a reply (on behalf of the user) together with the postback value.
+     */
+    @Public
+    abstract class ListPicker : Message() {
+        /** Title of the List Picker in the conversation. */
+        abstract val title: String
+
+        /** Additional text to be displayed after clicking on the picker list. */
+        abstract val text: String
+
+        /** Optional text to be displayed if ListPicker is not implemented. */
+        abstract val fallbackText: String?
+
+        /** List of options to be displayed to the user. */
+        abstract val actions: Iterable<Action>
+    }
+
+    /**
+     * A RichLink message to display.
+     *
+     * Each RichLink message has a title and media image to display in conjunction
+     * with an associated URL.  If the message is touched, then the URL should be
+     * opened.
+     */
+    @Public
+    abstract class RichLink : Message() {
+        /** fallback text message to display if RichLinks are not to be supported. */
+        abstract val fallbackText: String
+
+        /** image media information to display in RichLink. */
+        abstract val media: Media
+
+        /** title to display. */
+        abstract val title: String
+
+        /** URL to open if the item is selected. */
+        abstract val url: String
     }
 }

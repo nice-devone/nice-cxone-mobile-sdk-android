@@ -22,5 +22,4 @@ internal data class EventCustomerAuthorized(
         @SerializedName("accessToken")
         val accessToken: AccessToken?,
     )
-
 }

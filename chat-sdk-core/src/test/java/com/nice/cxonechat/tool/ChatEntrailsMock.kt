@@ -15,5 +15,4 @@ internal class ChatEntrailsMock(
 ) : ChatEntrails {
 
     override val threading: Threading = Threading.Identity
-
 }

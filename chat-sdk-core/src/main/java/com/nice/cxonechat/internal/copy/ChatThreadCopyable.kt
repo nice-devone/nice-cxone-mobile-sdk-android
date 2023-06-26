@@ -37,7 +37,5 @@ internal class ChatThreadCopyable(
             is ChatThreadMutable -> ChatThreadCopyable(snapshot())
             else -> ChatThreadCopyable(this)
         }
-
     }
-
 }

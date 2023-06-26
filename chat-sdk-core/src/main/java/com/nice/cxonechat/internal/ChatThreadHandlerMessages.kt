@@ -9,7 +9,7 @@ import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.model.ChatThreadMutable
 import com.nice.cxonechat.internal.model.network.EventMessageCreated
 import com.nice.cxonechat.internal.model.network.EventMoreMessagesLoaded
-import com.nice.cxonechat.socket.EventCallback.Companion.addCallback
+import com.nice.cxonechat.internal.socket.EventCallback.Companion.addCallback
 
 internal class ChatThreadHandlerMessages(
     private val origin: ChatThreadHandler,
@@ -18,18 +18,17 @@ internal class ChatThreadHandlerMessages(
 ) : ChatThreadHandler by origin {
 
     override fun get(listener: OnThreadUpdatedListener): Cancellable {
-        val moreMessagesListener = chat.socket.addCallback<EventMoreMessagesLoaded>(MoreMessagesLoaded) { event ->
-            if (!event.inThread(thread))
-                return@addCallback
-            thread += thread.asCopyable().copy(
-                messages = event.messages + thread.messages,
-                scrollToken = event.scrollToken
-            )
-            listener.onUpdated(thread)
-        }
-        val messageCreated = chat.socket.addCallback<EventMessageCreated>(MessageCreated) { event ->
-            if (!event.inThread(thread))
-                return@addCallback
+        val moreMessagesListener = chat.socketListener
+            .addCallback<EventMoreMessagesLoaded>(MoreMessagesLoaded) { event ->
+                if (!event.inThread(thread)) return@addCallback
+                thread += thread.asCopyable().copy(
+                    messages = event.messages + thread.messages,
+                    scrollToken = event.scrollToken
+                )
+                listener.onUpdated(thread)
+            }
+        val messageCreated = chat.socketListener.addCallback<EventMessageCreated>(MessageCreated) { event ->
+            if (!event.inThread(thread)) return@addCallback
             thread += thread.asCopyable().copy(
                 messages = listOfNotNull(event.message) + thread.messages
             )
@@ -41,5 +40,4 @@ internal class ChatThreadHandlerMessages(
             origin.get(listener)
         )
     }
-
 }

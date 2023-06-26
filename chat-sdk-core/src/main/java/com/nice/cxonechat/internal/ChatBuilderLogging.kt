@@ -4,6 +4,7 @@ import com.nice.cxonechat.Authorization
 import com.nice.cxonechat.Cancellable
 import com.nice.cxonechat.ChatBuilder
 import com.nice.cxonechat.ChatBuilder.OnChatBuiltCallback
+import com.nice.cxonechat.ChatStateListener
 import com.nice.cxonechat.log.LoggerScope
 import com.nice.cxonechat.log.severe
 
@@ -27,6 +28,10 @@ internal class ChatBuilderLogging(
         origin.setUserName(first, last)
     }
 
+    override fun setChatStateListener(listener: ChatStateListener): ChatBuilder = apply {
+        origin.setChatStateListener(listener)
+    }
+
     override fun build(callback: OnChatBuiltCallback): Cancellable {
         return try {
             origin.build(callback)
@@ -35,5 +40,4 @@ internal class ChatBuilderLogging(
             throw expected
         }
     }
-
 }

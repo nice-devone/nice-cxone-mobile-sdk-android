@@ -35,11 +35,10 @@ abstract class Agent {
     /** The URL for the profile photo of the agent. */
     abstract val imageUrl: String
 
-    /** Indicates that agent is currently typing */
+    /** Indicates that agent is currently typing. */
     abstract val isTyping: Boolean
 
     /** The full name of the agent (readonly). */
     val fullName: String
         get() = "$firstName $lastName".trim()
-
 }

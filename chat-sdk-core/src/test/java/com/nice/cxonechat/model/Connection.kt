@@ -13,13 +13,15 @@ internal fun makeConnection(
     channelId: String = nextString(),
     firstName: String = nextString(),
     lastName: String = nextString(),
-    consumerId: UUID = UUID.randomUUID(),
+    customerId: UUID = UUID.randomUUID(),
     environment: Environment = CXOneEnvironment.values().random().value,
+    visitorId: UUID = UUID.randomUUID(),
 ) = ConnectionInternal(
     brandId = brandId,
     channelId = channelId,
     firstName = firstName,
     lastName = lastName,
-    consumerId = consumerId,
-    environment = environment
+    customerId = customerId,
+    environment = environment,
+    visitorId = visitorId,
 )

@@ -17,5 +17,4 @@ internal data class AttachmentInternal(
         append(mimeType)
         append(")")
     }
-
 }

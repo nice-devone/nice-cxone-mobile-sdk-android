@@ -9,8 +9,9 @@ internal data class ConnectionInternal(
     override val channelId: String,
     override val firstName: String,
     override val lastName: String,
-    override val consumerId: UUID?,
+    override val customerId: UUID?,
     override val environment: Environment,
+    override val visitorId: UUID,
 ) : Connection() {
 
     override fun toString() = buildString {
@@ -22,11 +23,12 @@ internal data class ConnectionInternal(
         append(firstName)
         append("', lastName='")
         append(lastName)
-        append("', consumerId=")
-        append(consumerId)
+        append("', customerId=")
+        append(customerId)
         append(", environment=")
         append(environment)
+        append("', visitorId=")
+        append(visitorId)
         append(")")
     }
-
 }

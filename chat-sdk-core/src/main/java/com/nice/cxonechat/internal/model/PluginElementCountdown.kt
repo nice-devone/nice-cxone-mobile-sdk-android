@@ -23,5 +23,4 @@ internal data class PluginElementCountdown(
         append(isExpired)
         append(")")
     }
-
 }

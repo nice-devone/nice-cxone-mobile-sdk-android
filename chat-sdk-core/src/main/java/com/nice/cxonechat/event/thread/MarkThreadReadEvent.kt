@@ -19,5 +19,4 @@ object MarkThreadReadEvent : ChatThreadEvent() {
         connection = connection,
         thread = thread
     )
-
 }

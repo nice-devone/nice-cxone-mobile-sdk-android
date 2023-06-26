@@ -41,7 +41,6 @@ internal data class ActionAuthorizeCustomer(
                 verifier = verifier.ifBlank { null }
             )
         )
-
     }
 
     data class OAuth(
@@ -50,5 +49,4 @@ internal data class ActionAuthorizeCustomer(
         @SerializedName("codeVerifier")
         val verifier: String?,
     )
-
 }

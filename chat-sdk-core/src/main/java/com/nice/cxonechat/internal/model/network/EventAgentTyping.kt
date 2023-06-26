@@ -22,5 +22,4 @@ internal data class EventAgentTyping(
         @SerializedName("user")
         val user: AgentModel?,
     )
-
 }

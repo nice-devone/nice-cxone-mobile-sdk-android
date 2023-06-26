@@ -42,5 +42,4 @@ internal data class ActionLoadMoreMessages(
         @SerializedName("oldestMessageDatetime")
         val oldestMessageDatetime: DateTime,
     )
-
 }

@@ -10,15 +10,11 @@ internal interface LoggerScope : Logger {
 
     companion object {
 
-        operator fun invoke(name: String, identity: Logger): LoggerScope {
-            return NamedScope(scope = name, identity = identity)
-        }
+        operator fun invoke(name: String, identity: Logger): LoggerScope = NamedScope(scope = name, identity = identity)
 
         inline operator fun <reified T> invoke(identity: Logger) =
             LoggerScope(T::class.java.simpleName, identity)
-
     }
-
 }
 
 private class NamedScope(
@@ -29,7 +25,6 @@ private class NamedScope(
     override fun log(level: Level, message: String, throwable: Throwable?) {
         identity.log(level, "[$scope] $message", throwable)
     }
-
 }
 
 internal infix fun String.took(duration: Duration) =

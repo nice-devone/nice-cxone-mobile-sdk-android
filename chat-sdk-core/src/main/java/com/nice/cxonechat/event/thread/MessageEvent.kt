@@ -12,6 +12,7 @@ internal class MessageEvent(
     private val attachments: Iterable<AttachmentModel>,
     private val fields: List<CustomFieldModel>,
     private val authToken: String?,
+    private val postback: String?,
 ) : ChatThreadEvent() {
 
     val messageId: UUID = UUID.randomUUID()
@@ -26,7 +27,7 @@ internal class MessageEvent(
         message = message,
         attachments = attachments,
         fields = fields,
-        token = authToken
+        token = authToken,
+        postback = postback
     )
-
 }

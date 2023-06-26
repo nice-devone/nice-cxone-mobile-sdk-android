@@ -13,7 +13,7 @@ internal data class ActionReconnectCustomer(
     @SerializedName("eventId")
     val eventId: UUID = UUID.randomUUID(),
     @SerializedName("payload")
-    val payload: Payload<Data>,
+    val payload: LegacyPayload<Data>,
 ) {
 
     constructor(
@@ -21,12 +21,11 @@ internal data class ActionReconnectCustomer(
         visitor: UUID,
         token: String,
     ) : this(
-        payload = Payload(
+        payload = LegacyPayload(
             eventType = ReconnectCustomer,
             connection = connection,
             data = Data(token),
             visitor = visitor
         )
     )
-
 }

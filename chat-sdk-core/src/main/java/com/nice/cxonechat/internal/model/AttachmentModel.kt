@@ -19,5 +19,4 @@ internal data class AttachmentModel(
         friendlyName = friendlyName,
         mimeType = mimeType
     )
-
 }

@@ -29,5 +29,4 @@ class ProactiveActionDisplayEvent(
         ProactiveActionDisplayed to data,
         createdAt = Date()
     )
-
 }

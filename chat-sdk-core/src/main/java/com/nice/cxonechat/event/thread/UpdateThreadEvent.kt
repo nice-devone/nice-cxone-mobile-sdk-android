@@ -16,5 +16,4 @@ internal class UpdateThreadEvent(
         connection = connection,
         thread = thread.asCopyable().copy(threadName = name)
     )
-
 }

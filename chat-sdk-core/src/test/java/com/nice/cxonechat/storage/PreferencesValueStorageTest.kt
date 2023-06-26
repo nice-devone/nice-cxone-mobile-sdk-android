@@ -22,7 +22,8 @@ import kotlin.test.assertTrue
 
 /**
  * This test objective is to ensure that the [SharedPreferences] are used correctly.
- * Namely each stored property should use different key for storage and also that the values returned by the implementation are not modified.
+ * Namely, each stored property should use different key for storage and also that the values returned by the implementation are not
+ * modified.
  *
  * For now only [String] properties access from [ValueStorage] is tested.
  */
@@ -41,7 +42,8 @@ internal class PreferencesValueStorageTest {
     }
 
     /**
-     * Test that all supported property types from [ValueStorage] interface a properly stored to [SharedPreferences] using unique key for each property.
+     * Test that all supported property types from [ValueStorage] interface a properly stored to [SharedPreferences] using unique key for
+     * each property.
      */
     @Test
     fun storageIsStoringValues() {
@@ -56,7 +58,7 @@ internal class PreferencesValueStorageTest {
                 assertTrue(uniqueUsedKeys.add(usedKeys.value), "Key ${usedKeys.value} was already used to store different property")
             }
         val testedProperties = filledProperties.size
-        verify(sharedPreferences, times( testedProperties)).edit()
+        verify(sharedPreferences, times(testedProperties)).edit()
         verify(editor, times(testedProperties)).apply()
         verifyNoMoreInteractions(editor)
         verifyNoMoreInteractions(sharedPreferences)

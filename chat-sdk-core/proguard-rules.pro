@@ -17,7 +17,11 @@
 -keep class **$DefaultImpls,**$**$DefaultImpls,**$**$**$DefaultImpls,**$**$**$**$DefaultImpls {
     *;
 }
--keepclassmembers,allowobfuscation,allowoptimization class **, **$**, **$**$**, **$**$**, **$**$**$** {
+-keepclasseswithmembers,allowoptimization class **, **$**, **$**$**, **$**$**, **$**$**$** {
+    @com.nice.cxonechat.Public public <methods>;
+}
+-keep,allowobfuscation,allowoptimization class **, **$**, **$**$**, **$**$**, **$**$**$** {
+    <init>(...);
     @com.google.gson.annotations.SerializedName <fields>;
     @com.google.gson.annotations.SerializedName <methods>;
 }

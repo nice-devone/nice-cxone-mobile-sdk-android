@@ -15,5 +15,4 @@ internal data class EventTokenRefreshed(
         @SerializedName("accessToken")
         val accessToken: AccessToken,
     )
-
 }

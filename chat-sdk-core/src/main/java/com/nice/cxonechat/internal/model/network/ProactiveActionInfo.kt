@@ -27,7 +27,5 @@ internal data class ProactiveActionInfo constructor(
         operator fun invoke(metadata: ActionMetadata) = when (metadata) {
             is ActionMetadataInternal -> ProactiveActionInfo(metadata)
         }
-
     }
-
 }

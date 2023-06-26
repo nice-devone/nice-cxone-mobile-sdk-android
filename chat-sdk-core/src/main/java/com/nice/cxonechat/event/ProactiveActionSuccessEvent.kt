@@ -29,5 +29,4 @@ class ProactiveActionSuccessEvent(
         ProactiveActionSuccess to data,
         createdAt = Date()
     )
-
 }

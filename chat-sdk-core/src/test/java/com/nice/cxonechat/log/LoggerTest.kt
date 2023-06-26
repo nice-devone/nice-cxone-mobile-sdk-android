@@ -104,5 +104,4 @@ internal class LoggerTest {
         logger.severe(message, throwable)
         verify(logger).log(Level.Severe, message, throwable)
     }
-
 }

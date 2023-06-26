@@ -13,14 +13,14 @@ internal data class ActionRefreshToken(
     @SerializedName("eventId")
     val eventId: UUID = UUID.randomUUID(),
     @SerializedName("payload")
-    val payload: Payload<Data>,
+    val payload: LegacyPayload<Data>,
 ) {
 
     constructor(
         connection: Connection,
         token: String,
     ) : this(
-        payload = Payload(
+        payload = LegacyPayload(
             eventType = RefreshToken,
             connection = connection,
             data = Data(token)
@@ -33,7 +33,5 @@ internal data class ActionRefreshToken(
     ) {
 
         constructor(token: String) : this(AccessTokenPayload(token))
-
     }
-
 }

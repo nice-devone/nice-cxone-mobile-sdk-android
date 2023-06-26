@@ -40,12 +40,18 @@ class ChatAllConversationsViewModel(
         FirebaseMessaging.getInstance().token.addOnSuccessListener {
             chat.setDeviceToken(it)
         }
-        val deviceInfo = mapOf(
-            "device-oem" to Build.MANUFACTURER,
-            "device-model" to Build.MODEL,
-            "device-os" to "Android",
-            "device-version" to Build.VERSION.SDK_INT.toString()
-        )
+        val configuration = chat.configuration
+        val deviceInfo = configuration.customerCustomFields
+            .filterIsInstance(FieldDefinition.Text::class.java)
+            .mapNotNull {
+                when (val id: String = it.fieldId) {
+                    "device-oem" -> id to Build.MANUFACTURER
+                    "device-model" -> id to Build.MODEL
+                    "device-os" -> id to "Android"
+                    "device-version" -> id to Build.VERSION.SDK_INT.toString()
+                    else -> null
+                }
+            }.toMap()
         handlerFields.add(deviceInfo)
     }
 
@@ -99,10 +105,15 @@ class ChatAllConversationViewModel(
     val messagesSent = mutableSetOf<UUID>()
 
     init {
-        val customFields = mapOf(
-            "last-contact" to "2005-08-25T11:45:89.187Z",
-            "flag-disrespectful" to "true"
-        )
+        val customFields = chat.configuration.contactCustomFields
+            .filterIsInstance(FieldDefinition.Text::class.java)
+            .mapNotNull {
+                when (val id: String = it.fieldId) {
+                    "last-contact" -> id to "2005-08-25T11:45:89.187Z"
+                    "flag-disrespectful" -> id to "true"
+                    else -> null
+                }
+            }.toMap()
         handlerFields.add(customFields)
     }
 
@@ -131,14 +142,17 @@ class ChatAllConversationViewModel(
     }
 
     fun send(text: String) {
-        handlerMessage.send(text, sentListener)
+        handlerMessage.send(OutboundMessage(text), sentListener)
+    }
+    
+    fun send(text: String, postback: String) {
+        handlerMessage.send(OutboundMessage(text, postback), sentListener)
     }
 
     fun send(file: File) {
-        val content = Base64.encode(file.readBytes(), Base64.URL_SAFE).decodeToString()
         val descriptor =
-            ContentDescriptor(content = content, mimeType = "application/pdf", fileName = file.name)
-        handlerMessage.send(listOf(descriptor), listener = sentListener)
+            ContentDescriptor(uri = Uri.fromFile(file), context = appli, mimeType = "application/pdf", fileName = file.name)
+        handlerMessage.send(OutboundMessage(listOf(descriptor)), listener = sentListener)
     }
 
     override fun onCleared() {

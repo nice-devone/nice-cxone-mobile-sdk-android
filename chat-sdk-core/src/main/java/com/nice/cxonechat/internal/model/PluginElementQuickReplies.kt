@@ -27,5 +27,4 @@ internal data class PluginElementQuickReplies(
         append(buttons.toList())
         append(")")
     }
-
 }

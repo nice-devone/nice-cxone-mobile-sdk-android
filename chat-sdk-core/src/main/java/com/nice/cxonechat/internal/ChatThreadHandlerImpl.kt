@@ -11,9 +11,10 @@ import com.nice.cxonechat.event.thread.RecoverThreadEvent
 import com.nice.cxonechat.event.thread.UpdateThreadEvent
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.model.ChatThreadMutable
+import com.nice.cxonechat.internal.model.CustomFieldInternal.Companion.updateWith
 import com.nice.cxonechat.internal.model.network.EventThreadRecovered
+import com.nice.cxonechat.internal.socket.EventCallback.Companion.addCallback
 import com.nice.cxonechat.message.Message
-import com.nice.cxonechat.socket.EventCallback.Companion.addCallback
 import com.nice.cxonechat.thread.ChatThread
 
 internal class ChatThreadHandlerImpl(
@@ -24,7 +25,7 @@ internal class ChatThreadHandlerImpl(
     override fun get(): ChatThread = thread.snapshot()
 
     override fun get(listener: OnThreadUpdatedListener): Cancellable {
-        return chat.socket.addCallback<EventThreadRecovered>(ThreadRecovered) { event ->
+        return chat.socketListener.addCallback<EventThreadRecovered>(ThreadRecovered) { event ->
             if (!event.inThread(thread)) {
                 return@addCallback
             }
@@ -35,7 +36,15 @@ internal class ChatThreadHandlerImpl(
                 scrollToken = event.scrollToken
                     .takeUnless { event.messages.isEmpty() }
                     ?: thread.scrollToken,
-                threadAgent = event.agent
+                threadAgent = event.agent,
+                fields = thread.fields.updateWith(
+                    // drop any fields not in the configuration
+                    event.thread.fields.filter { chat.configuration.allowsFieldId(it.id) }
+                )
+            )
+            chat.fields = chat.fields.updateWith(
+                // drop any fields not in the configuration
+                event.customerCustomFields.filter { chat.configuration.allowsFieldId(it.id) }
             )
             listener.onUpdated(thread)
         }
@@ -66,8 +75,5 @@ internal class ChatThreadHandlerImpl(
         return handler
     }
 
-    override fun customFields(): ChatFieldHandler {
-        return ChatFieldHandlerThread(this, thread)
-    }
-
+    override fun customFields(): ChatFieldHandler = ChatFieldHandlerThread(chat, this, thread)
 }

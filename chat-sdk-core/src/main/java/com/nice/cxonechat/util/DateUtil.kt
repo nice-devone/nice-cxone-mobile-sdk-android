@@ -23,13 +23,9 @@ internal fun String.timestampToDate(): Date {
     }.let(::requireNotNull)
 }
 
-internal fun Date.toTimestamp(): String {
-    return timestampFormat.format(this)
-}
+internal fun Date.toTimestamp(): String = timestampFormat.format(this)
 
-internal fun DateTime.toTimestamp(): String {
-    return timestampFormatWithoutMillis.format(date)
-}
+internal fun DateTime.toTimestamp(): String = timestampFormatWithoutMillis.format(date)
 
 internal operator fun Date.plus(millis: Long) = Date(time + millis)
 

@@ -43,5 +43,4 @@ internal class ChatThreadEventHandlerTest : AbstractChatTest() {
     data class TestModel(
         val field: Int = 10,
     )
-
 }

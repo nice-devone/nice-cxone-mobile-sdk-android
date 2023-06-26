@@ -13,5 +13,4 @@ internal data class EventThreadListFetched(
         @SerializedName("threads")
         val threads: List<ReceivedThreadData>,
     )
-
 }

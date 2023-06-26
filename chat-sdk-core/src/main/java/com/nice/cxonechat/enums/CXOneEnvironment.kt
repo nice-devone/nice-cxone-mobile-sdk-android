@@ -4,8 +4,16 @@ import com.nice.cxonechat.Public
 import com.nice.cxonechat.internal.model.EnvironmentInternal
 import com.nice.cxonechat.state.Environment
 
+/**
+ * Enumeration of standard production environments, based on the data-center locations.
+ *
+ * @property value [Environment] instance preset to corresponding location.
+ */
 @Public
 enum class CXOneEnvironment(val value: Environment) {
+    /**
+     * Location North America - USA.
+     */
     NA1(
         EnvironmentInternal(
             name = "NA1",
@@ -16,6 +24,10 @@ enum class CXOneEnvironment(val value: Environment) {
             chatUrl = "https://channels-de-na1.niceincontact.com/chat/"
         )
     ),
+
+    /**
+     * Location Europe.
+     */
     EU1(
         EnvironmentInternal(
             name = "EU1",
@@ -26,6 +38,10 @@ enum class CXOneEnvironment(val value: Environment) {
             chatUrl = "https://channels-de-eu1.niceincontact.com/chat/"
         )
     ),
+
+    /**
+     * Location Australia.
+     */
     AU1(
         EnvironmentInternal(
             name = "AU1",
@@ -36,6 +52,10 @@ enum class CXOneEnvironment(val value: Environment) {
             chatUrl = "https://channels-de-au1.niceincontact.com/chat/"
         )
     ),
+
+    /**
+     * Location Canada.
+     */
     CA1(
         EnvironmentInternal(
             name = "CA1",
@@ -46,6 +66,10 @@ enum class CXOneEnvironment(val value: Environment) {
             chatUrl = "https://channels-de-ca1.niceincontact.com/chat/"
         )
     ),
+
+    /**
+     * Location United Kingdom.
+     */
     UK1(
         EnvironmentInternal(
             name = "UK1",
@@ -56,6 +80,10 @@ enum class CXOneEnvironment(val value: Environment) {
             chatUrl = "https://channels-de-uk1.niceincontact.com/chat/"
         )
     ),
+
+    /**
+     * Location Japan.
+     */
     JP1(
         EnvironmentInternal(
             name = "JP1",

@@ -25,8 +25,9 @@ internal class RemoteServiceCaching(
     ): UploadCall {
         val destination = DestinationIdentifier(body.hashCode(), brandId, channelId)
         val cached = queue[destination]
-        if (cached != null)
+        if (cached != null) {
             return CachedCall(cached)
+        }
 
         @Suppress("JoinDeclarationAndAssignment")
         var call: UploadCall
@@ -45,38 +46,25 @@ internal class RemoteServiceCaching(
         private val response: AttachmentUploadResponse,
     ) : UploadCall {
 
-        override fun clone(): UploadCall {
-            return this
-        }
+        override fun clone(): UploadCall = this
 
-        override fun execute(): UploadResponse {
-            return Response.success(response)
-        }
+        override fun execute(): UploadResponse = Response.success(response)
 
         override fun enqueue(callback: UploadCallback) {
             callback.onResponse(this, execute())
         }
 
-        override fun isExecuted(): Boolean {
-            return true
-        }
+        override fun isExecuted(): Boolean = true
 
         override fun cancel() {
             /* no-op */
         }
 
-        override fun isCanceled(): Boolean {
-            return false
-        }
+        override fun isCanceled(): Boolean = false
 
-        override fun request(): Request {
-            return Request.Builder().build()
-        }
+        override fun request(): Request = Request.Builder().build()
 
-        override fun timeout(): Timeout {
-            return Timeout.NONE
-        }
-
+        override fun timeout(): Timeout = Timeout.NONE
     }
 
     inner class CachingCall(
@@ -84,13 +72,9 @@ internal class RemoteServiceCaching(
         private val origin: UploadCall,
     ) : UploadCall by origin {
 
-        override fun clone(): UploadCall {
-            return CachingCall(destination, origin.clone())
-        }
+        override fun clone(): UploadCall = CachingCall(destination, origin.clone())
 
-        override fun execute(): UploadResponse {
-            return origin.execute().cache()
-        }
+        override fun execute(): UploadResponse = origin.execute().cache()
 
         override fun enqueue(callback: UploadCallback) {
             origin.enqueue(object : UploadCallback by callback {
@@ -105,11 +89,11 @@ internal class RemoteServiceCaching(
 
         private fun UploadResponse.cache() = apply {
             val body = body()
-            if (body != null) synchronized(queue) {
-                queue[destination] = body
+            if (body != null) {
+                synchronized(queue) {
+                    queue[destination] = body
+                }
             }
         }
-
     }
-
 }

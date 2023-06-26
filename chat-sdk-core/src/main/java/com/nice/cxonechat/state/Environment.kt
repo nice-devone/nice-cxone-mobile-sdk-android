@@ -10,13 +10,13 @@ import com.nice.cxonechat.Public
 @Public
 abstract class Environment {
     /**
-     * Name of the environment. It's defined only for semantic reasons
-     * */
+     * Name of the environment. It's defined only for semantic reasons.
+     */
     abstract val name: String
 
     /**
-     * Physical location of the environment that we'll connect to
-     * */
+     * Physical location of the environment that we'll connect to.
+     */
     abstract val location: String
 
     /**

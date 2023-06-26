@@ -25,9 +25,6 @@ sealed class ChatThreadEvent {
     internal class Custom(
         private val factory: (thread: ChatThread) -> Any,
     ) : ChatThreadEvent() {
-        override fun getModel(thread: ChatThread, connection: Connection): Any {
-            return factory(thread)
-        }
+        override fun getModel(thread: ChatThread, connection: Connection): Any = factory(thread)
     }
-
 }

@@ -3,12 +3,27 @@ import io.gitlab.arturbosch.detekt.DetektPlugin
 import io.gitlab.arturbosch.detekt.report.ReportMergeTask
 
 plugins {
-    id "org.jetbrains.kotlin.android" version "1.6.10" apply false
-    id "com.android.library" version "7.3.0" apply false
-    id "org.jetbrains.dokka" version "1.6.10" apply true
-    id "com.vanniktech.maven.publish" version "0.22.0" apply false
-    id "io.gitlab.arturbosch.detekt" version "1.21.0"
+    id "org.jetbrains.kotlin.android" version "1.8.10" apply false
+    id "org.jetbrains.kotlin.jvm" version "1.8.10" apply false
+    id "com.android.library" version "7.4.2" apply false
+    id "org.jetbrains.dokka" version "1.8.10" apply true
+    id "com.vanniktech.maven.publish" version "0.25.2" apply false
+    id "io.gitlab.arturbosch.detekt" version "1.22.0"
     id "nl.neotech.plugin.rootcoverage" version "1.6.0"
+    id "com.dipien.semantic-version" version "1.4.1" apply false
+}
+
+group = GROUP
+version = "1.1.0" // Fallback version
+
+allprojects {
+    group = rootProject.group
+    // Setup project version to override from gradle.properties or fallback version
+    version = (rootProject.properties["VERSION_NAME"] ?: rootProject.version)
+}
+
+if (!rootProject.hasProperty("VERSION_NAME")) { // Disable this plugin if override is present, otherwise it will suppress it
+    apply plugin: "com.dipien.semantic-version" // Plugin can be applied after version is defined
 }
 
 tasks.dokkaHtmlMultiModule.configure {

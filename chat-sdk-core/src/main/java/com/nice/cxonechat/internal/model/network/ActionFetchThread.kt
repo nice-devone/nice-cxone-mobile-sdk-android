@@ -25,5 +25,4 @@ internal data class ActionFetchThread(
             data = Unit
         )
     )
-
 }

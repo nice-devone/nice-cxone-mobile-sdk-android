@@ -29,6 +29,15 @@ internal object ServerRequestAssertions {
         }
     }
 
+    fun String.verifyLoadThreadMetadata() = apply {
+        verifyStructureOf(this) {
+            eventBaseline(action = ChatWindowEvent)
+            payload(type = "LoadThreadMetadata") {
+                thread()
+            }
+        }
+    }
+
     fun String.verifyArchiveThread() = apply {
         verifyStructureOf(this) {
             eventBaseline(action = ChatWindowEvent)
@@ -41,7 +50,7 @@ internal object ServerRequestAssertions {
     fun String.verifyMarkThreadRead() = apply {
         verifyStructureOf(this) {
             eventBaseline(action = ChatWindowEvent)
-            payload(type = "MessageSeenByConsumer") {
+            payload(type = "MessageSeenByCustomer") {
                 thread()
             }
         }
@@ -68,7 +77,7 @@ internal object ServerRequestAssertions {
     fun String.verifyAuthorizeConsumer() = apply {
         verifyStructureOf(this) {
             eventBaseline(action = Register)
-            payload(type = "AuthorizeConsumer") {
+            payload(type = "AuthorizeCustomer") {
                 prop("authorization") {
                     prop("authorizationCode")
                     prop("codeVerifier")
@@ -80,7 +89,7 @@ internal object ServerRequestAssertions {
     fun String.verifyReconnectConsumer() = apply {
         verifyStructureOf(this) {
             eventBaseline(action = ChatWindowEvent)
-            payload(type = "ReconnectConsumer") {
+            legacyPayload(type = "ReconnectConsumer") {
                 accessToken()
             }
         }
@@ -89,7 +98,7 @@ internal object ServerRequestAssertions {
     fun String.verifyStoreVisitorEvent() = apply {
         verifyStructureOf(this) {
             eventBaseline(action = ChatWindowEvent)
-            payload(
+            legacyPayload(
                 type = "StoreVisitorEvents"
             ) {
                 prop("visitorEvents") {
@@ -104,20 +113,8 @@ internal object ServerRequestAssertions {
     fun String.verifyStoreVisitor() = apply {
         verifyStructureOf(this) {
             eventBaseline(action = ChatWindowEvent)
-            payload(type = "StoreVisitor") {
-                prop("browserFingerprint") {
-                    prop("deviceToken")
-                    prop("browser")
-                    prop("browserVersion")
-                    prop("country")
-                    prop("ip")
-                    prop("language")
-                    prop("location")
-                    prop("applicationType")
-                    prop("os")
-                    prop("osVersion")
-                    prop("deviceType")
-                }
+            legacyPayload(type = "StoreVisitor") {
+                fingerprint("browserFingerprint")
             }
         }
     }
@@ -125,7 +122,7 @@ internal object ServerRequestAssertions {
     fun String.verifyExecuteTrigger() = apply {
         verifyStructureOf(this) {
             eventBaseline(action = ChatWindowEvent)
-            payload(type = "ExecuteTrigger") {
+            legacyPayload(type = "ExecuteTrigger") {
                 prop("trigger") {
                     prop("id")
                 }
@@ -136,7 +133,7 @@ internal object ServerRequestAssertions {
     fun String.verifyRefreshToken() = apply {
         verifyStructureOf(this) {
             eventBaseline(action = ChatWindowEvent)
-            payload(type = "RefreshToken") {
+            legacyPayload(type = "RefreshToken") {
                 accessToken()
             }
         }
@@ -151,16 +148,16 @@ internal object ServerRequestAssertions {
         }
     }
 
-    fun String.verifySetConsumerCustomFields() = apply {
+    fun String.verifySetCustomerCustomFields() = apply {
         verifyStructureOf(this) {
             eventBaseline(action = ChatWindowEvent)
-            payload(type = "SetConsumerCustomFields") {
+            payload(type = "SetCustomerCustomFields") {
                 customFields()
             }
         }
     }
 
-    fun String.verifySetConsumerContactCustomFields() = apply {
+    fun String.verifySetContactCustomFields() = apply {
         verifyStructureOf(this) {
             eventBaseline(action = ChatWindowEvent)
             payload(type = "SetContactCustomFields") {
@@ -201,8 +198,10 @@ internal object ServerRequestAssertions {
     fun String.verifySendOutbound() = apply {
         verifyStructureOf(this) {
             eventBaseline(action = ChatWindowEvent)
-            payload(type = EventType.SendOutbound.value) {
-                message()
+            legacyPayload(type = EventType.SendOutbound.value) {
+                message {
+                    fingerprint("browserFingerprint")
+                }
             }
         }
     }
@@ -213,9 +212,9 @@ internal object ServerRequestAssertions {
         prop("action", action)
         prop("eventId")
     }
-
     private fun StructScope.payload(
         type: String,
+        identityStruct: StructScope.() -> Unit = { identity() },
         data: StructScope.() -> Unit,
     ) {
         prop("payload") {
@@ -225,11 +224,7 @@ internal object ServerRequestAssertions {
             prop("channel") {
                 prop("id")
             }
-            prop("consumerIdentity") {
-                prop("idOnExternalPlatform")
-                prop("firstName")
-                prop("lastName")
-            }
+            identityStruct()
             prop("eventType", type)
             prop("data", data)
             propOpt("destination") {
@@ -241,7 +236,28 @@ internal object ServerRequestAssertions {
         }
     }
 
-    private fun StructScope.message() {
+    private fun StructScope.legacyPayload(
+        type: String,
+        data: StructScope.() -> Unit,
+    ) = payload(
+        type = type,
+        identityStruct = { identity("consumerIdentity") },
+        data = data,
+    )
+
+    private fun StructScope.identity(
+        type: String = "customerIdentity",
+    ) {
+        prop(type) {
+            prop("idOnExternalPlatform")
+            prop("firstName")
+            prop("lastName")
+        }
+    }
+
+    private fun StructScope.message(
+        fingerprintStruct: StructScope.() -> Unit = { fingerprint() },
+    ) {
         thread()
         prop("messageContent") {
             prop("type")
@@ -266,7 +282,14 @@ internal object ServerRequestAssertions {
             prop("friendlyName")
             prop("mimeType")
         }
-        prop("browserFingerprint") {
+        fingerprintStruct()
+        accessToken()
+    }
+
+    private fun StructScope.fingerprint(
+        type: String = "deviceFingerprint"
+    ) {
+        prop(type) {
             prop("deviceToken")
             prop("browser")
             prop("browserVersion")
@@ -279,7 +302,6 @@ internal object ServerRequestAssertions {
             prop("osVersion")
             prop("deviceType")
         }
-        accessToken()
     }
 
     private fun StructScope.customFields() {

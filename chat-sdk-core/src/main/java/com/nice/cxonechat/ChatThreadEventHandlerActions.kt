@@ -2,6 +2,7 @@ package com.nice.cxonechat
 
 import com.nice.cxonechat.ChatThreadEventHandler.OnEventSentListener
 import com.nice.cxonechat.event.thread.ArchiveThreadEvent
+import com.nice.cxonechat.event.thread.LoadThreadMetadataEvent
 import com.nice.cxonechat.event.thread.MarkThreadReadEvent
 import com.nice.cxonechat.event.thread.TypingEndEvent
 import com.nice.cxonechat.event.thread.TypingStartEvent
@@ -53,4 +54,15 @@ object ChatThreadEventHandlerActions {
         listener: OnEventSentListener? = null,
     ) = trigger(TypingStartEvent, listener)
 
+    /**
+     * Send a [LoadThreadMetadataEvent] requesting additional thread information.
+     *
+     * @see ChatThreadEventHandler.trigger
+     * @see LoadThreadMetadataEvent
+     */
+    @JvmOverloads
+    @JvmStatic
+    fun ChatThreadEventHandler.loadMetadata(
+        listener: OnEventSentListener? = null,
+    ) = trigger(LoadThreadMetadataEvent, listener)
 }
