@@ -1,5 +1,5 @@
 # Global owners
-* @pavelreiter @davidberry-nice
+* @pavelreiter @nice-devone/DFO
 
 # CI owners
 .github/workflows/* @pavelreiter @davidberry-nice @LukasSanda
