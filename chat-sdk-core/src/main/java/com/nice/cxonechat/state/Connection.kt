@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ *
+ * Licensed under the NICE License;
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
+ *
+ * TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
+ * AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
+ * OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+ */
+
 package com.nice.cxonechat.state
 
 import com.nice.cxonechat.Public
@@ -8,28 +23,28 @@ import java.util.UUID
  * the lifecycle of SDK connection to the backend.
  */
 @Public
-abstract class Connection {
+interface Connection {
     /**
      * The id of the brand currently active in the instance of a chat, defined as integer.
      */
-    abstract val brandId: Int
+    val brandId: Int
 
     /**
      * The id of the channel currently connected to this instance.
      */
-    abstract val channelId: String
+    val channelId: String
 
     /**
      * First name of the customer connected to this instance.
      * It can be empty if the customer is not yet authorized.
      */
-    abstract val firstName: String
+    val firstName: String
 
     /**
      * The last name of the customer connected to this instance.
      * It can be empty if the customer is not yet authorized.
      */
-    abstract val lastName: String
+    val lastName: String
 
     /**
      * The id of the customer connected to this instance.
@@ -38,15 +53,15 @@ abstract class Connection {
      *
      * It's also unchanged as long as the app data are intact.
      */
-    abstract val customerId: UUID?
+    val customerId: UUID?
 
     /**
      * The environment through which this instance connected.
      */
-    abstract val environment: Environment
+    val environment: Environment
 
     /**
      * The internal unique id of installation instance.
      */
-    abstract val visitorId: UUID
+    val visitorId: UUID
 }

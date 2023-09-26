@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ *
+ * Licensed under the NICE License;
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
+ *
+ * TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
+ * AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
+ * OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+ */
+
 package com.nice.cxonechat.detekt
 
 import io.gitlab.arturbosch.detekt.api.Config
@@ -16,10 +31,10 @@ internal class ProhibitedCallRuleTest(private val env: KotlinCoreEnvironment) {
                 fun v(tag: String, message: String) {}                
             }
 
-            func foo() {
+            fun foo() {
                 Log.v("tag", "message")
             }
-        """.trimIndent()
+        """.trimMargin()
 
         val findings = ProhibitedCallRule(Config.empty).compileAndLintWithContext(env, code)
 
@@ -29,20 +44,20 @@ internal class ProhibitedCallRuleTest(private val env: KotlinCoreEnvironment) {
     @Test
     fun `android_util_Log should be an error`() {
         val code = """
-            func foo() {
+            fun foo() {
                 android.util.Log.v("tag", "message", null)
                 android.util.Log.d("tag", "message", null)
                 android.util.Log.i("tag", "message", null)
                 android.util.Log.w("tag", "message", null)
                 android.util.Log.e("tag", "message", null)
-    
+
                 android.util.Log.v("tag", "message")
                 android.util.Log.d("tag", "message")
                 android.util.Log.i("tag", "message")
                 android.util.Log.w("tag", "message")
                 android.util.Log.e("tag", "message")
             }
-        """.trimIndent()
+        """.trimMargin()
 
         val findings = ProhibitedCallRule(Config.empty).compileAndLintWithContext(env, code)
 
@@ -52,17 +67,17 @@ internal class ProhibitedCallRuleTest(private val env: KotlinCoreEnvironment) {
     @Test
     fun `println should generate an error`() {
         val code = """
-            class Foo() {
+            class Foo {
                 fun println() {
                 }
             }
-
+            
             fun bar() {
                 System.out.println("this should fail")
                 println("this should fail")
                 Foo().println()
             }
-        """.trimIndent()
+        """.trimMargin()
 
         val findings = ProhibitedCallRule(Config.empty).compileAndLintWithContext(env, code)
 

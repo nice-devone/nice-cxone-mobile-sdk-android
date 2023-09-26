@@ -3,18 +3,22 @@ import io.gitlab.arturbosch.detekt.DetektPlugin
 import io.gitlab.arturbosch.detekt.report.ReportMergeTask
 
 plugins {
-    id "org.jetbrains.kotlin.android" version "1.8.10" apply false
-    id "org.jetbrains.kotlin.jvm" version "1.8.10" apply false
-    id "com.android.library" version "7.4.2" apply false
-    id "org.jetbrains.dokka" version "1.8.10" apply true
-    id "com.vanniktech.maven.publish" version "0.25.2" apply false
-    id "io.gitlab.arturbosch.detekt" version "1.22.0"
-    id "nl.neotech.plugin.rootcoverage" version "1.6.0"
-    id "com.dipien.semantic-version" version "1.4.1" apply false
+    id "org.jetbrains.kotlin.android" version "$kotlinVersion" apply false
+    id "org.jetbrains.kotlin.jvm" version "$kotlinVersion" apply false
+    id "com.android.library" version "$androidGradlePluginVersion" apply false
+    id "com.android.application" version "$androidGradlePluginVersion" apply false
+    id "org.jetbrains.dokka" version "$dokkaVersion" apply true
+    id "com.vanniktech.maven.publish" version "0.25.3" apply false
+    id "com.google.gms.google-services" version "4.3.15" apply false
+    id "androidx.navigation.safeargs" version "2.6.0" apply false
+    id "io.gitlab.arturbosch.detekt" version "$detektVersion"
+    id "nl.neotech.plugin.rootcoverage" version "1.6.0" apply false
+    id "com.dipien.semantic-version" version "2.0.0" apply false
+    id "com.google.dagger.hilt.android" version "$daggerHiltVersion" apply false
 }
 
 group = GROUP
-version = "1.1.0" // Fallback version
+version = "1.2.0" // Fallback version
 
 allprojects {
     group = rootProject.group
@@ -30,10 +34,37 @@ tasks.dokkaHtmlMultiModule.configure {
     outputDirectory.set(project.file("dist"))
 }
 
-rootCoverage {
-    generateXml true
-    generateHtml false
-    excludes = ["**/internal/model/**"]
+// Disabled until the support for AGP 8 is resolved - https://github.com/NeoTech-Software/Android-Root-Coverage-Plugin/issues/82
+//rootCoverage {
+//    generateXml true
+//    generateHtml false
+//    excludes = ["**/internal/model/**", "com/nice/cxonechat/sample/**", "dagger/**", "hilt*/**"]
+//}
+
+/**
+ * Combines base version with branch and replaces all `/` with `-` from the final string.
+ *
+ * @param versionBase base which will be used for combining with branch.
+ * @return version string based on base version and branch
+ */
+static String branchVersion(String versionBase, Project project) {
+    if (versionBase == null) {
+        return null
+    }
+    String branch = getGitCurrentBranch(project)
+    return versionBase + "-" + branch.replaceAll("[/_]", "-")
+}
+
+static String getGitCurrentBranch(Project project) {
+    def branch = ""
+    def proc = "git rev-parse --abbrev-ref HEAD".execute()
+    proc.in.eachLine { line ->
+        project.logger.lifecycle("Current git branch: $line")
+        branch = line
+    }
+    proc.err.eachLine { line -> project.logger.error("Unable to resolve git branch: $line") }
+    proc.waitFor()
+    return branch
 }
 
 task clean(type: Delete) {

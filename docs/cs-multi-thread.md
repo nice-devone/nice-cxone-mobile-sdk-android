@@ -55,12 +55,34 @@ class ChatAllConversationsViewModel(
         handlerFields.add(deviceInfo)
     }
 
-    fun onConversion(type: String, value: Number) {
-        handlerEvents.trigger(ConversionEvent(type, value))
+    /**
+     * send a page viewed event to the server. 
+     * 
+     * onPageView and onPageViewEnded should be invoked from each page (i.e., fragment
+     * or activity) in your application, as in:
+     * 
+     *     OnLifecycleEvent { _, event ->
+     *         when (event) {
+     *             ON_RESUME -> viewModel.onPageView(pageTitle, pageUrl)
+     *             ON_PAUSE -> viewModel.onPageViewEnded(pageTitle, pageUrl)
+     *             else -> Ignored
+     *         }
+     *     }
+     */
+    fun onPageView(title: String, url: String) {
+        handlerEvents().pageView(title, url)
     }
 
-    fun onOpened() {
-        handlerEvents.trigger(VisitEvent())
+    /**
+     * Send a time spent on page event to the server to "close" a corresponding 
+     * page view event.
+     */
+    fun onPageViewEnded(title: String, url: String) {
+        handlerEvents().pageViewEnded(title, url)
+    }
+
+    fun onConversion(type: String, value: Number) {
+        handlerEvents.conversion(type, value)
     }
 
     fun onClickThread(thread: ChatThread) {

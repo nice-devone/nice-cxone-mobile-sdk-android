@@ -1,11 +1,24 @@
+/*
+ * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ *
+ * Licensed under the NICE License;
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
+ *
+ * TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
+ * AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
+ * OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+ */
+
 @file:Suppress("MaxLineLength", "TestFunctionName")
 
 package com.nice.cxonechat.server
 
 import com.nice.cxonechat.AbstractChatTestSubstrate.Companion.TestUUIDValue
 import com.nice.cxonechat.enums.VisitorEventType
-import com.nice.cxonechat.enums.VisitorEventType.ChatWindowOpened
-import com.nice.cxonechat.enums.VisitorEventType.VisitorVisit
 import com.nice.cxonechat.internal.model.AttachmentModel
 import com.nice.cxonechat.internal.model.CustomFieldModel
 import com.nice.cxonechat.internal.model.network.ActionArchiveThread
@@ -23,12 +36,8 @@ import com.nice.cxonechat.internal.model.network.ActionRecoverThread
 import com.nice.cxonechat.internal.model.network.ActionRefreshToken
 import com.nice.cxonechat.internal.model.network.ActionSetContactCustomFields
 import com.nice.cxonechat.internal.model.network.ActionSetCustomerCustomFields
-import com.nice.cxonechat.internal.model.network.ActionStoreVisitor
 import com.nice.cxonechat.internal.model.network.ActionStoreVisitorEvent
 import com.nice.cxonechat.internal.model.network.ActionUpdateThread
-import com.nice.cxonechat.internal.model.network.Conversion
-import com.nice.cxonechat.internal.model.network.PageViewData
-import com.nice.cxonechat.internal.model.network.ProactiveActionInfo
 import com.nice.cxonechat.internal.model.network.VisitorEvent
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyArchiveThread
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyAuthorizeConsumer
@@ -46,7 +55,6 @@ import com.nice.cxonechat.server.ServerRequestAssertions.verifySenderTypingEnded
 import com.nice.cxonechat.server.ServerRequestAssertions.verifySenderTypingStarted
 import com.nice.cxonechat.server.ServerRequestAssertions.verifySetContactCustomFields
 import com.nice.cxonechat.server.ServerRequestAssertions.verifySetCustomerCustomFields
-import com.nice.cxonechat.server.ServerRequestAssertions.verifyStoreVisitor
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyStoreVisitorEvent
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyUpdateThread
 import com.nice.cxonechat.state.Connection
@@ -114,10 +122,6 @@ internal object ServerRequest {
 
     fun StoreVisitorEvent(connection: Connection, vararg events: VisitorEvent): String {
         return ActionStoreVisitorEvent(connection, TestUUIDValue, TestUUIDValue, events = events).copy(eventId = TestUUIDValue).serialize().verifyStoreVisitorEvent()
-    }
-
-    fun StoreVisitor(connection: Connection, token: String?): String {
-        return ActionStoreVisitor(connection, TestUUIDValue, token).copy(eventId = TestUUIDValue).serialize().verifyStoreVisitor()
     }
 
     fun ExecuteTrigger(connection: Connection, id: UUID): String {
@@ -209,66 +213,8 @@ internal object ServerRequest {
         .verifySendOutbound()
 
     object StoreVisitorEvents {
-
-        fun ChatWindowOpenEvent(date: Date = Date(0)): VisitorEvent {
-            return VisitorEvent(type = ChatWindowOpened, id = TestUUIDValue, createdAt = date)
-        }
-
-        fun VisitorVisit(date: Date = Date(0)): VisitorEvent {
-            return VisitorEvent(type = VisitorVisit, id = TestUUIDValue, createdAt = date)
-        }
-
-        fun Conversion(
-            type: String,
-            value: Int,
-            createdAt: Date = Date(0),
-        ): VisitorEvent {
-            val model = Conversion(type, value, timestamp = createdAt)
-            return VisitorEvent(VisitorEventType.Conversion, id = TestUUIDValue, createdAt, model)
-        }
-
         fun CustomVisitorEvent(data: String, date: Date = Date(0)): VisitorEvent {
             return VisitorEvent(type = VisitorEventType.ProactiveActionDisplayed, createdAt = date, data = data, id = TestUUIDValue)
-        }
-
-        fun ProactiveActionDisplayed(
-            actionName: String,
-            actionType: String,
-            date: Date = Date(0),
-        ): VisitorEvent {
-            val info = ProactiveActionInfo(TestUUIDValue, actionName, actionType)
-            return VisitorEvent(type = VisitorEventType.ProactiveActionDisplayed, createdAt = date, data = info, id = TestUUIDValue)
-        }
-
-        fun ProactiveActionClicked(
-            actionName: String,
-            actionType: String,
-            date: Date = Date(0),
-        ): VisitorEvent {
-            val info = ProactiveActionInfo(TestUUIDValue, actionName, actionType)
-            return VisitorEvent(type = VisitorEventType.ProactiveActionClicked, createdAt = date, data = info, id = TestUUIDValue)
-        }
-
-        fun ProactiveActionSuccess(
-            actionName: String,
-            actionType: String,
-            date: Date = Date(0),
-        ): VisitorEvent {
-            val info = ProactiveActionInfo(TestUUIDValue, actionName, actionType)
-            return VisitorEvent(type = VisitorEventType.ProactiveActionSuccess, createdAt = date, data = info, id = TestUUIDValue)
-        }
-
-        fun ProactiveActionFailed(
-            actionName: String,
-            actionType: String,
-            date: Date = Date(0),
-        ): VisitorEvent {
-            val info = ProactiveActionInfo(TestUUIDValue, actionName, actionType)
-            return VisitorEvent(type = VisitorEventType.ProactiveActionFailed, createdAt = date, data = info, id = TestUUIDValue)
-        }
-
-        fun PageView(title: String, uri: String, date: Date = Date(0)): VisitorEvent {
-            return VisitorEvent(VisitorEventType.PageView, id = TestUUIDValue, createdAt = date, data = PageViewData(title, uri))
         }
     }
 }

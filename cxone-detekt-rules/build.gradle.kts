@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ *
+ * Licensed under the NICE License;
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
+ *
+ * TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
+ * AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
+ * OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+ */
+
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -9,27 +24,32 @@ group = "org.nice.cxonechat.detekt"
 version = "1.0-SNAPSHOT"
 
 detekt {
-    config = project.files("detekt.yml")
+    config.setFrom(
+        rootProject.files(
+            "config/detekt/detekt-common.yml",
+        )
+    )
     ignoredBuildTypes = listOf("release")
     buildUponDefaultConfig = true
 }
 
 dependencies {
-    compileOnly("io.gitlab.arturbosch.detekt:detekt-api:1.22.0")
+    val detektVersion = project.properties["detektVersion"]
+    compileOnly("io.gitlab.arturbosch.detekt:detekt-api:$detektVersion")
 
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-rules-libraries:1.22.0")
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detektVersion")
 
-    testImplementation("io.gitlab.arturbosch.detekt:detekt-test:1.22.0")
+    testImplementation("io.gitlab.arturbosch.detekt:detekt-test:$detektVersion")
     testImplementation("io.kotest:kotest-assertions-core:5.5.5")
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
 }
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(11))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
 
 tasks.withType<KotlinCompile>() {
-    kotlinOptions.jvmTarget = "11"
+    kotlinOptions.jvmTarget = "17"
 }
 
 tasks.withType<Test>().configureEach {

@@ -1,0 +1,22 @@
+style:
+  ForbiddenImport:
+    active: true
+    imports: [ 'android.util.Log' ]
+    excludes: [ '**/LoggerAndroid.kt' ]
+  UseDataClass:
+    active: true
+    excludes: [ '**/*Copyable.kt' ]
+    ignoreAnnotated: [ com.nice.cxonechat.Public ]
+
+cxone-rules:
+  active: true
+  ProhibitedCall:
+    active: true
+
+libraries:
+  ForbiddenPublicDataClass:
+    active: true
+  LibraryCodeMustSpecifyReturnType:
+    active: true
+  LibraryEntitiesShouldNotBePublic:
+    active: false   # We are using minification to prevent usage from applications.

@@ -6,15 +6,48 @@ pluginManagement {
     }
 }
 
+plugins {
+    id 'com.android.settings' version "$androidGradlePluginVersion"
+}
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
         mavenCentral()
+        maven { url 'https://jitpack.io' } //  Used only for com.github.jeziellago:compose-markdown
     }
 }
 
 rootProject.name = "cxone-chat-sdk"
 
+android {
+    compileSdk 33
+    minSdk 23
+    execution {
+        profiles {
+            high {
+                r8 {
+                    jvmOptions += ["-Xms2048m", "-Xmx8192m", "-XX:+HeapDumpOnOutOfMemoryError"]
+                    runInSeparateProcess true
+                }
+            }
+            low {
+                r8 {
+                    jvmOptions += ["-Xms256m", "-Xmx2048m", "-XX:+HeapDumpOnOutOfMemoryError"]
+                    runInSeparateProcess true
+                }
+            }
+            ci {
+                r8.runInSeparateProcess false
+            }
+        }
+        defaultProfile "low"
+    }
+
+}
+
 include ':chat-sdk-core'
+include ':chat-sdk-ui'
 include ':cxone-detekt-rules'
+include ':store'

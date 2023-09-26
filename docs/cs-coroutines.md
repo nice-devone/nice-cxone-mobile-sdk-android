@@ -24,7 +24,6 @@ data to your liking. Once the flow is disposed, the callback will automatically 
 val ChatThreadsHandler.flow
     get() = callbackFlow {
         val cancellable = threads(::trySend)
-        refresh()
         awaitClose {
             cancellable.cancel()
         }
@@ -40,8 +39,6 @@ data to your liking. Once the flow is disposed, the callback will automatically 
 val ChatThreadHandler.flow
     get() = callbackFlow {
         val cancellable = get(::trySend)
-        refresh()
-        send(get())
         awaitClose {
             cancellable.cancel()
         }
@@ -118,3 +115,5 @@ class ChatConversationViewModel(
 
 }
 ```
+
+[cs-instance-holder]: cs-instance-holder.md

@@ -1,0 +1,64 @@
+plugins {
+    id "android-library-conventions"
+    id "android-ui-conventions"
+    id "kotlin-conventions"
+    id "kapt-conventions"
+    id "test-conventions"
+    id "library-style-conventions"
+    id 'androidx.navigation.safeargs.kotlin'
+    id "com.google.dagger.hilt.android"
+}
+
+android {
+    namespace 'com.nice.cxonechat.ui'
+
+    defaultConfig {
+        versionName version
+        vectorDrawables.useSupportLibrary = true
+    }
+
+    buildTypes {
+        debug {
+            versionNameSuffix '-debug'
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.3.1'
+    implementation 'com.google.android.material:material:1.7.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
+
+    // Handling of push notification sent via FCM
+    implementation platform('com.google.firebase:firebase-bom:32.2.2')
+    implementation 'com.google.firebase:firebase-messaging'
+    implementation 'com.google.firebase:firebase-messaging-ktx'
+    // Lifecycle-process is used to suppress push notifications when app is in foreground
+    implementation "androidx.lifecycle:lifecycle-process:2.6.1"
+
+    implementation("com.google.dagger:hilt-android:$daggerHiltVersion")
+    kapt("com.google.dagger:hilt-android-compiler:$daggerHiltVersion")
+    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
+
+    def markdownVersion = "0.3.4"
+    implementation "com.github.jeziellago:compose-markdown:$markdownVersion"
+
+    // Async Image
+    implementation("io.coil-kt:coil-compose:2.4.0")
+    // Zoomable composable elements like Image & AsyncImage
+    implementation "net.engawapg.lib:zoomable:1.4.3"
+
+    // Multimedia message playback
+    def media3Version = "1.1.0"
+    implementation "androidx.media3:media3-exoplayer:$media3Version"
+    implementation "androidx.media3:media3-ui:$media3Version"
+
+    // CXOne Chat SDK
+    implementation project(":chat-sdk-core")
+}

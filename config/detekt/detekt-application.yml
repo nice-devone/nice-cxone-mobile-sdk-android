@@ -1,0 +1,8 @@
+config:
+  validation: true
+  warningsAsErrors: true
+
+cxone-rules:
+  active: true
+  ProhibitedCall:
+    active: true

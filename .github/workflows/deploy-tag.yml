@@ -1,0 +1,50 @@
+name: Deploy tag
+
+on:
+  push:
+    # on any tag created from git
+    tags:
+      - "*"
+  release:
+    # on any new release created from github
+    types: [created]
+  workflow_dispatch:
+  # show a button to manually trigger this workflow
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: "17"
+          distribution: "temurin" # aka adopt
+
+      - name: Set up Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Append Version
+        run: |
+          Name=${{ github.ref_name }}
+          Name=`echo ${Name}| tr \/_ -`
+          echo "VERSION_NAME=$Name" >> gradle.properties
+          echo "RELEASE_SIGNING_ENABLED=false" >> gradle.properties
+
+      - name: Run build
+        run: >
+          ./gradlew
+          publishAllPublicationsToGithubRepository
+          -Pandroid.experimental.settings.executionProfile=ci
+          --no-daemon
+          --no-parallel
+        env:
+          GPR_USERNAME: ${{ github.repository_owner }}
+          GPR_TOKEN: ${{ github.token }}
+
+#      - name: Release
+#        run: ./gradlew closeAndReleaseRepository

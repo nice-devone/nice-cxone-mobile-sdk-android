@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ *
+ * Licensed under the NICE License;
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
+ *
+ * TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
+ * AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
+ * OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+ */
+
 package com.nice.cxonechat.internal
 
 import com.nice.cxonechat.ChatThreadHandler
@@ -8,9 +23,7 @@ import com.nice.cxonechat.event.thread.MessageEvent
 import com.nice.cxonechat.internal.model.AttachmentModel
 import com.nice.cxonechat.internal.model.AttachmentUploadModel
 import com.nice.cxonechat.internal.model.CustomFieldModel
-import com.nice.cxonechat.message.ContentDescriptor
 import com.nice.cxonechat.message.OutboundMessage
-import kotlin.DeprecationLevel.WARNING
 
 internal class ChatThreadMessageHandlerImpl(
     private val chat: ChatWithParameters,
@@ -20,38 +33,6 @@ internal class ChatThreadMessageHandlerImpl(
     override fun loadMore() {
         thread.events().trigger(LoadMoreMessagesEvent)
     }
-
-    @Deprecated(
-        message = "Replaced in favor `send(OutboundMessage, OnMessageTransferListener)`",
-        replaceWith = ReplaceWith(
-            "send(message = OutboundMessage(attachments = files, message = text), listener = listener)"
-        ),
-        level = WARNING
-    )
-    override fun send(
-        attachments: Iterable<ContentDescriptor>,
-        message: String,
-        listener: OnMessageTransferListener?,
-    ) = send(
-        OutboundMessage(
-            attachments = attachments,
-            message = message,
-        ),
-        listener
-    )
-
-    @Deprecated(
-        message = "Replaced in favor `send(OutboundMessage, OnMessageTransferListener)`",
-        replaceWith = ReplaceWith("send(message = OutboundMessage(message = text), listener = listener)"),
-        level = WARNING
-    )
-    override fun send(
-        message: String,
-        listener: OnMessageTransferListener?,
-    ) = send(
-        OutboundMessage(message),
-        listener = listener
-    )
 
     override fun send(message: OutboundMessage, listener: OnMessageTransferListener?) {
         val uploads = message.attachments.mapNotNull { attachment ->

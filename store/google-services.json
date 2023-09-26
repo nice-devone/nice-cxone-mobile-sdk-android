@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "380097439409",
+    "project_id": "digital-mobile-sdk",
+    "storage_bucket": "digital-mobile-sdk.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:380097439409:android:3537e439b7eb1adef46490",
+        "android_client_info": {
+          "package_name": "com.nice.cxonechat.sample"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "380097439409-5jigbr2e8beu7qkpah2u2ja1vtjmunu5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nice.cxonechat.sample",
+            "certificate_hash": "ec3b4d40d5375963ef487cb7352ae784b277c220"
+          }
+        },
+        {
+          "client_id": "380097439409-606q9vcm6btfmdarvsm9eq0n2riiet0o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzR0msrKjQReMkXtPfhurxmvRPl0Sqogk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "380097439409-606q9vcm6btfmdarvsm9eq0n2riiet0o.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "380097439409-h4kmchq0c9ajm2m5gqjrac198etj28ah.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.incontact.mobileSDK.sample"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

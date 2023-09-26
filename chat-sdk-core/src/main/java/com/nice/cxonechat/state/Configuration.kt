@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ *
+ * Licensed under the NICE License;
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
+ *
+ * TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
+ * AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
+ * OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+ */
+
 package com.nice.cxonechat.state
 
 import com.nice.cxonechat.Public
@@ -6,28 +21,28 @@ import com.nice.cxonechat.Public
  * The various options for how a channel is configured.
  */
 @Public
-abstract class Configuration {
+interface Configuration {
 
     /** Whether the channel supports multiple threads for the same user. */
-    abstract val hasMultipleThreadsPerEndUser: Boolean
+    val hasMultipleThreadsPerEndUser: Boolean
 
     /** Whether the channel supports proactive chat features. */
-    abstract val isProactiveChatEnabled: Boolean
+    val isProactiveChatEnabled: Boolean
 
     /** Whether OAuth authorization is enabled for the channel. */
-    abstract val isAuthorizationEnabled: Boolean
+    val isAuthorizationEnabled: Boolean
 
     /**
      * Custom fields defined for supplying of additional information about customer,
      * for example data supplied during a pre-chat survey.
      */
-    abstract val contactCustomFields: FieldDefinitionList
+    val contactCustomFields: FieldDefinitionList
 
     /**
      * Definition of possible custom fields which are usable/valid for all
      * contacts with the customer.
      */
-    abstract val customerCustomFields: FieldDefinitionList
+    val customerCustomFields: FieldDefinitionList
 
     /** Return the list of all available customer fields. */
     val allCustomFields: FieldDefinitionList

@@ -1,0 +1,30 @@
+plugins {
+    id "io.gitlab.arturbosch.detekt"
+}
+
+detekt {
+    config = rootProject.files(
+            "config/detekt/detekt-common.yml",
+            "config/detekt/detekt-application.yml",
+    )
+    baseline = project.file("config/detekt/detekt-baseline.xml")
+    ignoredBuildTypes = ["release"]
+}
+
+dependencies {
+    detektPlugins "io.gitlab.arturbosch.detekt:detekt-formatting:$detektVersion"
+    detektPlugins project(":cxone-detekt-rules")
+}
+
+android {
+    lint {
+        baseline = file("lint-baseline.xml")
+    }
+
+    lintOptions {
+        // if true, stop the gradle build if errors are found
+        abortOnError true
+        // if true, check all issues, including those that are off by default
+        checkAllWarnings true
+    }
+}
