@@ -1,0 +1,27 @@
+plugins {
+    id "io.gitlab.arturbosch.detekt"
+    id "kotlin-android"
+}
+
+detekt {
+    config = rootProject.files(
+            "config/detekt/detekt-common.yml",
+            "config/detekt/detekt-library.yml",
+    )
+    baseline = project.file("config/detekt/detekt-baseline.xml")
+    ignoredBuildTypes = ["release"]
+}
+
+android {
+    lint {
+        htmlReport true
+
+        enable "CheckResult"
+    }
+}
+
+dependencies {
+    detektPlugins "io.gitlab.arturbosch.detekt:detekt-formatting:$detektVersion"
+    detektPlugins "io.gitlab.arturbosch.detekt:detekt-rules-libraries:$detektVersion"
+    detektPlugins project(":cxone-detekt-rules")
+}
