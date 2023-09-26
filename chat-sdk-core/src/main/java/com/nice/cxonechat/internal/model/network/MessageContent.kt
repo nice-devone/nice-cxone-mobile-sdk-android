@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ *
+ * Licensed under the NICE License;
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
+ *
+ * TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
+ * AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
+ * OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+ */
+
 package com.nice.cxonechat.internal.model.network
 
 import com.google.gson.annotations.SerializedName
@@ -19,17 +34,9 @@ internal data class MessageContent(
      * and its supported parameters.
      *
      * @see MessageContentType
-     * @see MessageElement
      * */
     @SerializedName("payload")
     val payload: MessagePayload,
-    /**
-     * Text to fall back to when payload is invalid or currently
-     * being loaded. The use-cases where this text is displayed
-     * is generally undefined.
-     * */
-    @SerializedName("fallbackText")
-    val fallbackText: String? = null,
 
     /**
      * Postback string value.
@@ -41,7 +48,7 @@ internal data class MessageContent(
      * so an automatic backend process can react to that selection.
      */
     @SerializedName("postback")
-    val postback: String? = null
+    val postback: String? = null,
 ) {
 
     constructor(

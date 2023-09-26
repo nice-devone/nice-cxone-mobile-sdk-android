@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ *
+ * Licensed under the NICE License;
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
+ *
+ * TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
+ * AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
+ * OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+ */
+
 package com.nice.cxonechat.message
 
 import com.nice.cxonechat.ChatThreadMessageHandler
@@ -72,6 +87,11 @@ sealed class Message {
      * */
     abstract val attachments: Iterable<Attachment>
 
+    /**
+     * Optional fallback text which can be used if UI integration doesn't support concrete subtype of [Message].
+     */
+    abstract val fallbackText: String?
+
     // ---
 
     /**
@@ -132,9 +152,6 @@ sealed class Message {
         /** title message to display. */
         abstract val title: String
 
-        /** message to display if QuickReplies messages are not supportable. */
-        abstract val fallbackText: String
-
         /** list of actions to display along with [title]. */
         abstract val actions: Iterable<Action>
     }
@@ -154,9 +171,6 @@ sealed class Message {
         /** Additional text to be displayed after clicking on the picker list. */
         abstract val text: String
 
-        /** Optional text to be displayed if ListPicker is not implemented. */
-        abstract val fallbackText: String?
-
         /** List of options to be displayed to the user. */
         abstract val actions: Iterable<Action>
     }
@@ -170,8 +184,6 @@ sealed class Message {
      */
     @Public
     abstract class RichLink : Message() {
-        /** fallback text message to display if RichLinks are not to be supported. */
-        abstract val fallbackText: String
 
         /** image media information to display in RichLink. */
         abstract val media: Media

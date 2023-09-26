@@ -1,0 +1,1046 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues name="AGP (7.3.1)" by="lint 7.3.1" client="gradle" dependencies="false" format="6" type="baseline" variant="all" version="7.3.1">
+
+    <issue
+        id="InvalidPackage"
+        message="Invalid package reference in org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm; not included in Android: `java.lang.instrument`. Referenced from `kotlinx.coroutines.debug.AgentPremain`.">
+        <location
+            file="$GRADLE_USER_HOME/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.6.4/2c997cd1c0ef33f3e751d3831929aeff1390cb30/kotlinx-coroutines-core-jvm-1.6.4.jar"/>
+    </issue>
+
+    <issue
+        errorLine1="open class SampleAppBaseActivity: AppCompatActivity() {"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~"
+        id="Registered"
+        message="The `&lt;activity> com.nice.cxonechat.sample.common.SampleAppBaseActivity` is not registered in the manifest">
+        <location
+            column="12"
+            file="src/main/java/com/nice/cxonechat/sample/common/SampleAppBaseActivity.kt"
+            line="6"/>
+    </issue>
+
+    <issue
+        errorLine1="    implementation platform(&apos;com.google.firebase:firebase-bom:28.2.1&apos;)"
+        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="GradleDependency"
+        message="A newer version of com.google.firebase:firebase-bom than 28.2.1 is available: 31.1.1">
+        <location
+            column="29"
+            file="build.gradle"
+            line="62"/>
+    </issue>
+
+    <issue
+        errorLine1="    &lt;string name=&quot;ok&quot;>Ok&lt;/string>"
+        errorLine2="                      ^"
+        id="Typos"
+        message="&quot;Ok&quot; is usually capitalized as &quot;OK&quot;">
+        <location
+            column="23"
+            file="src/main/res/values/strings.xml"
+            line="10"/>
+    </issue>
+
+    <issue
+        id="ObsoleteSdkInt"
+        message="This folder configuration (`v26`) is unnecessary; `minSdkVersion` is 26. Merge all the resources in this folder into `mipmap-anydpi`.">
+        <location
+            file="src/main/res/mipmap-anydpi-v26"/>
+    </issue>
+
+    <issue
+        errorLine1="                Log.i(&quot;amazon&quot;, ae.message.toString())"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="LogConditional"
+        message="The log call Log.i(...) should be conditional: surround with `if (Log.isLoggable(...))` or `if (BuildConfig.DEBUG) { ... }`">
+        <location
+            column="17"
+            file="src/main/java/com/nice/cxonechat/sample/LoginActivity.kt"
+            line="81"/>
+    </issue>
+
+    <issue
+        errorLine1="                Log.i(&quot;amazon&quot;, cancellation.description)"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="LogConditional"
+        message="The log call Log.i(...) should be conditional: surround with `if (Log.isLoggable(...))` or `if (BuildConfig.DEBUG) { ... }`">
+        <location
+            column="17"
+            file="src/main/java/com/nice/cxonechat/sample/LoginActivity.kt"
+            line="84"/>
+    </issue>
+
+    <issue
+        errorLine1="      android:pathData=&quot;M24,34Q24.7,34 25.175,33.525Q25.65,33.05 25.65,32.35Q25.65,31.65 25.175,31.175Q24.7,30.7 24,30.7Q23.3,30.7 22.825,31.175Q22.35,31.65 22.35,32.35Q22.35,33.05 22.825,33.525Q23.3,34 24,34ZM22.65,26.35H25.65V13.7H22.65ZM24,44Q19.9,44 16.25,42.425Q12.6,40.85 9.875,38.125Q7.15,35.4 5.575,31.75Q4,28.1 4,23.95Q4,19.85 5.575,16.2Q7.15,12.55 9.875,9.85Q12.6,7.15 16.25,5.575Q19.9,4 24.05,4Q28.15,4 31.8,5.575Q35.45,7.15 38.15,9.85Q40.85,12.55 42.425,16.2Q44,19.85 44,24Q44,28.1 42.425,31.75Q40.85,35.4 38.15,38.125Q35.45,40.85 31.8,42.425Q28.15,44 24,44ZM24.05,41Q31.1,41 36.05,36.025Q41,31.05 41,23.95Q41,16.9 36.05,11.95Q31.1,7 24,7Q16.95,7 11.975,11.95Q7,16.9 7,24Q7,31.05 11.975,36.025Q16.95,41 24.05,41ZM24,24Q24,24 24,24Q24,24 24,24Q24,24 24,24Q24,24 24,24Q24,24 24,24Q24,24 24,24Q24,24 24,24Q24,24 24,24Z&quot;/>"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="VectorPath"
+        message="Very long vector path (803 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector.">
+        <location
+            column="25"
+            file="src/main/res/drawable/error_48px.xml"
+            line="9"/>
+    </issue>
+
+    <issue
+        errorLine1="    &lt;color name=&quot;purple_200&quot;>#FFBB86FC&lt;/color>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~"
+        id="UnusedResources"
+        message="The resource `R.color.purple_200` appears to be unused">
+        <location
+            column="12"
+            file="src/main/res/values/colors.xml"
+            line="3"/>
+    </issue>
+
+    <issue
+        errorLine1="    &lt;color name=&quot;teal_200&quot;>#FF03DAC5&lt;/color>"
+        errorLine2="           ~~~~~~~~~~~~~~~"
+        id="UnusedResources"
+        message="The resource `R.color.teal_200` appears to be unused">
+        <location
+            column="12"
+            file="src/main/res/values/colors.xml"
+            line="6"/>
+    </issue>
+
+    <issue
+        errorLine1="    &lt;color name=&quot;teal_700&quot;>#FF018786&lt;/color>"
+        errorLine2="           ~~~~~~~~~~~~~~~"
+        id="UnusedResources"
+        message="The resource `R.color.teal_700` appears to be unused">
+        <location
+            column="12"
+            file="src/main/res/values/colors.xml"
+            line="7"/>
+    </issue>
+
+    <issue
+        errorLine1="&lt;set xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^"
+        id="UnusedResources"
+        message="The resource `R.anim.slide_enter_to_left` appears to be unused">
+        <location
+            column="1"
+            file="src/main/res/anim/slide_enter_to_left.xml"
+            line="2"/>
+    </issue>
+
+    <issue
+        errorLine1="&lt;set xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^"
+        id="UnusedResources"
+        message="The resource `R.anim.slide_leave_to_left` appears to be unused">
+        <location
+            column="1"
+            file="src/main/res/anim/slide_leave_to_left.xml"
+            line="2"/>
+    </issue>
+
+    <issue
+        errorLine1="    &lt;string name=&quot;new_message_received&quot;>New message received&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedResources"
+        message="The resource `R.string.new_message_received` appears to be unused">
+        <location
+            column="13"
+            file="src/main/res/values/strings.xml"
+            line="17"/>
+    </issue>
+
+    <issue
+        errorLine1="    &lt;string name=&quot;socket_disconnected&quot;>Socket disconnected&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedResources"
+        message="The resource `R.string.socket_disconnected` appears to be unused">
+        <location
+            column="13"
+            file="src/main/res/values/strings.xml"
+            line="18"/>
+    </issue>
+
+    <issue
+        errorLine1="    &lt;string name=&quot;configuration_error&quot;>Something went wrong and we couldn\&apos;t get the configuration for that channel. Please check your selection and try again.&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedResources"
+        message="The resource `R.string.configuration_error` appears to be unused">
+        <location
+            column="13"
+            file="src/main/res/values/strings.xml"
+            line="27"/>
+    </issue>
+
+    <issue
+        errorLine1="    &lt;style name=&quot;AppTheme.NoActionBar&quot;>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedResources"
+        message="The resource `R.style.AppTheme_NoActionBar` appears to be unused">
+        <location
+            column="12"
+            file="src/main/res/values/styles.xml"
+            line="10"/>
+    </issue>
+
+    <issue
+        errorLine1="    &lt;style name=&quot;Theme.AndroidSDK&quot; parent=&quot;Theme.AppCompat.Light.DarkActionBar&quot;>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedResources"
+        message="The resource `R.style.Theme_AndroidSDK` appears to be unused">
+        <location
+            column="12"
+            file="src/main/res/values/themes.xml"
+            line="3"/>
+    </issue>
+
+    <issue
+        errorLine1="                viewModel.sendAttachment(null, safeUri)"
+        errorLine2="                ~~~~~~~~~"
+        id="SyntheticAccessor"
+        message="Access to `private` method `getViewModel` of class `ChatThreadFragment` requires synthetic accessor">
+        <location
+            column="17"
+            file="src/main/java/com/nice/cxonechat/sample/ui/main/ChatThreadFragment.kt"
+            line="428"/>
+    </issue>
+
+    <issue
+        errorLine1="                viewModel.archiveThread(thread.chatThread)"
+        errorLine2="                ~~~~~~~~~"
+        id="SyntheticAccessor"
+        message="Access to `private` method `getViewModel` of class `ChatThreadsFragment` requires synthetic accessor">
+        <location
+            column="17"
+            file="src/main/java/com/nice/cxonechat/sample/ui/main/ChatThreadsFragment.kt"
+            line="67"/>
+    </issue>
+
+    <issue
+        errorLine1="                gson.fromJson(postback, PostBackPolyContent::class.java)"
+        errorLine2="                ~~~~"
+        id="SyntheticAccessor"
+        message="Access to `private` method `getGson` of class `Companion` requires synthetic accessor">
+        <location
+            column="17"
+            file="src/main/java/com/nice/cxonechat/sample/custom/holders/IncomingTextAndButtonsMessageViewHolder.kt"
+            line="181"/>
+    </issue>
+
+    <issue
+        errorLine1="                .registerTypeAdapterFactory(postbackContentAdapter)"
+        errorLine2="                                            ~~~~~~~~~~~~~~~~~~~~~~"
+        id="SyntheticAccessor"
+        message="Access to `private` method `getPostbackContentAdapter` of class `Companion` requires synthetic accessor">
+        <location
+            column="45"
+            file="src/main/java/com/nice/cxonechat/sample/custom/holders/IncomingTextAndButtonsMessageViewHolder.kt"
+            line="213"/>
+    </issue>
+
+    <issue
+        errorLine1="    &lt;LinearLayout"
+        errorLine2="     ~~~~~~~~~~~~"
+        id="UselessParent"
+        message="This `LinearLayout` layout or its `LinearLayout` parent is unnecessary">
+        <location
+            column="6"
+            file="src/main/res/layout/activity_login.xml"
+            line="10"/>
+    </issue>
+
+    <issue
+        errorLine1="        &lt;LinearLayout"
+        errorLine2="         ~~~~~~~~~~~~"
+        id="UselessParent"
+        message="This `LinearLayout` layout or its `LinearLayout` parent is unnecessary">
+        <location
+            column="10"
+            file="src/main/res/layout/thread_item.xml"
+            line="19"/>
+    </issue>
+
+    <issue
+        errorLine1="        android:id=&quot;@+id/photo_view&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.photo_view` appears to be unused">
+        <location
+            column="9"
+            file="src/main/res/layout/activity_image_preview.xml"
+            line="28"/>
+    </issue>
+
+    <issue
+        errorLine1="            android:id=&quot;@+id/guest_button&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.guest_button` appears to be unused">
+        <location
+            column="13"
+            file="src/main/res/layout/activity_login.xml"
+            line="16"/>
+    </issue>
+
+    <issue
+        errorLine1="            android:id=&quot;@+id/login_with_amazon&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.login_with_amazon` appears to be unused">
+        <location
+            column="13"
+            file="src/main/res/layout/activity_login.xml"
+            line="25"/>
+    </issue>
+
+    <issue
+        errorLine1="        android:id=&quot;@+id/videoView&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.videoView` appears to be unused">
+        <location
+            column="9"
+            file="src/main/res/layout/activity_video_preview.xml"
+            line="10"/>
+    </issue>
+
+    <issue
+        errorLine1="    android:id=&quot;@+id/homeConfigurationFragmentId&quot;"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.homeConfigurationFragmentId` appears to be unused">
+        <location
+            column="5"
+            file="src/main/res/navigation/configuration.xml"
+            line="5"/>
+    </issue>
+
+    <issue
+        errorLine1="        android:id=&quot;@+id/first_name_text_input_layout&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.first_name_text_input_layout` appears to be unused">
+        <location
+            column="9"
+            file="src/main/res/layout/create_customer_dialog.xml"
+            line="11"/>
+    </issue>
+
+    <issue
+        errorLine1="        android:id=&quot;@+id/last_name_text_input_layout&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.last_name_text_input_layout` appears to be unused">
+        <location
+            column="9"
+            file="src/main/res/layout/create_customer_dialog.xml"
+            line="25"/>
+    </issue>
+
+    <issue
+        errorLine1="        android:id=&quot;@+id/accept_button&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.accept_button` appears to be unused">
+        <location
+            column="9"
+            file="src/main/res/layout/create_customer_dialog.xml"
+            line="39"/>
+    </issue>
+
+    <issue
+        errorLine1="                android:id=&quot;@+id/location_spinner&quot;"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.location_spinner` appears to be unused">
+        <location
+            column="17"
+            file="src/main/res/layout/create_thread_dialog.xml"
+            line="36"/>
+    </issue>
+
+    <issue
+        errorLine1="                android:id=&quot;@+id/department_spinner&quot;"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.department_spinner` appears to be unused">
+        <location
+            column="17"
+            file="src/main/res/layout/create_thread_dialog.xml"
+            line="76"/>
+    </issue>
+
+    <issue
+        errorLine1="            android:id=&quot;@+id/cancel_button&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.cancel_button` appears to be unused">
+        <location
+            column="13"
+            file="src/main/res/layout/create_thread_dialog.xml"
+            line="95"/>
+    </issue>
+
+    <issue
+        errorLine1="            android:id=&quot;@+id/create_thread&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.create_thread` appears to be unused">
+        <location
+            column="13"
+            file="src/main/res/layout/create_thread_dialog.xml"
+            line="103"/>
+    </issue>
+
+    <issue
+        errorLine1="                    android:id=&quot;@+id/headingTextView&quot;"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.headingTextView` appears to be unused">
+        <location
+            column="21"
+            file="src/main/res/layout/custom_snack_bar.xml"
+            line="31"/>
+    </issue>
+
+    <issue
+        errorLine1="                    android:id=&quot;@+id/bodyTextView&quot;"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.bodyTextView` appears to be unused">
+        <location
+            column="21"
+            file="src/main/res/layout/custom_snack_bar.xml"
+            line="42"/>
+    </issue>
+
+    <issue
+        errorLine1="                    android:id=&quot;@+id/actionTextView&quot;"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.actionTextView` appears to be unused">
+        <location
+            column="21"
+            file="src/main/res/layout/custom_snack_bar.xml"
+            line="52"/>
+    </issue>
+
+    <issue
+        errorLine1="            android:id=&quot;@+id/closeButton&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.closeButton` appears to be unused">
+        <location
+            column="13"
+            file="src/main/res/layout/custom_snack_bar.xml"
+            line="75"/>
+    </issue>
+
+    <issue
+        errorLine1="        android:id=&quot;@+id/action_thread_name&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.action_thread_name` appears to be unused">
+        <location
+            column="9"
+            file="src/main/res/menu/default_menu.xml"
+            line="5"/>
+    </issue>
+
+    <issue
+        errorLine1="        android:id=&quot;@+id/action_favorite&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.action_favorite` appears to be unused">
+        <location
+            column="9"
+            file="src/main/res/menu/default_menu.xml"
+            line="11"/>
+    </issue>
+
+    <issue
+        errorLine1="        android:id=&quot;@+id/action_logout&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.action_logout` appears to be unused">
+        <location
+            column="9"
+            file="src/main/res/menu/default_menu.xml"
+            line="17"/>
+    </issue>
+
+    <issue
+        errorLine1="        android:id=&quot;@+id/messagesList&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.messagesList` appears to be unused">
+        <location
+            column="9"
+            file="src/main/res/layout/fragment_chat_thread.xml"
+            line="9"/>
+    </issue>
+
+    <issue
+        errorLine1="        android:id=&quot;@+id/agentTypingTextView&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.agentTypingTextView` appears to be unused">
+        <location
+            column="9"
+            file="src/main/res/layout/fragment_chat_thread.xml"
+            line="16"/>
+    </issue>
+
+    <issue
+        errorLine1="        android:id=&quot;@+id/separator&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.separator` appears to be unused">
+        <location
+            column="9"
+            file="src/main/res/layout/fragment_chat_thread.xml"
+            line="24"/>
+    </issue>
+
+    <issue
+        errorLine1="        android:id=&quot;@+id/input&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.input` appears to be unused">
+        <location
+            column="9"
+            file="src/main/res/layout/fragment_chat_thread.xml"
+            line="32"/>
+    </issue>
+
+    <issue
+        errorLine1="        android:id=&quot;@+id/threads_recycler_view&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.threads_recycler_view` appears to be unused">
+        <location
+            column="9"
+            file="src/main/res/layout/fragment_chat_threads.xml"
+            line="41"/>
+    </issue>
+
+    <issue
+        errorLine1="        android:id=&quot;@+id/floating_action_button&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.floating_action_button` appears to be unused">
+        <location
+            column="9"
+            file="src/main/res/layout/fragment_chat_threads.xml"
+            line="51"/>
+    </issue>
+
+    <issue
+        errorLine1="        android:id=&quot;@+id/environmentTextInputLayout&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.environmentTextInputLayout` appears to be unused">
+        <location
+            column="9"
+            file="src/main/res/layout/fragment_custom_configuration.xml"
+            line="17"/>
+    </issue>
+
+    <issue
+        errorLine1="            android:id=&quot;@+id/environmentAutoCompleteTextView&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.environmentAutoCompleteTextView` appears to be unused">
+        <location
+            column="13"
+            file="src/main/res/layout/fragment_custom_configuration.xml"
+            line="27"/>
+    </issue>
+
+    <issue
+        errorLine1="        android:id=&quot;@+id/brandIdTextInputLayout&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.brandIdTextInputLayout` appears to be unused">
+        <location
+            column="9"
+            file="src/main/res/layout/fragment_custom_configuration.xml"
+            line="33"/>
+    </issue>
+
+    <issue
+        errorLine1="        android:id=&quot;@+id/channelIdTextInputLayout&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.channelIdTextInputLayout` appears to be unused">
+        <location
+            column="9"
+            file="src/main/res/layout/fragment_custom_configuration.xml"
+            line="52"/>
+    </issue>
+
+    <issue
+        errorLine1="        android:id=&quot;@+id/useDefaultConfigurationTextView&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.useDefaultConfigurationTextView` appears to be unused">
+        <location
+            column="9"
+            file="src/main/res/layout/fragment_custom_configuration.xml"
+            line="69"/>
+    </issue>
+
+    <issue
+        errorLine1="        android:id=&quot;@+id/continueButton&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.continueButton` appears to be unused">
+        <location
+            column="9"
+            file="src/main/res/layout/fragment_custom_configuration.xml"
+            line="79"/>
+    </issue>
+
+    <issue
+        errorLine1="        android:id=&quot;@+id/configurationTextInputLayout&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.configurationTextInputLayout` appears to be unused">
+        <location
+            column="9"
+            file="src/main/res/layout/fragment_home_configuration.xml"
+            line="17"/>
+    </issue>
+
+    <issue
+        errorLine1="            android:id=&quot;@+id/configurationAutoCompleteTextView&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.configurationAutoCompleteTextView` appears to be unused">
+        <location
+            column="13"
+            file="src/main/res/layout/fragment_home_configuration.xml"
+            line="27"/>
+    </issue>
+
+    <issue
+        errorLine1="        android:id=&quot;@+id/useCustomConfigurationTextView&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.useCustomConfigurationTextView` appears to be unused">
+        <location
+            column="9"
+            file="src/main/res/layout/fragment_home_configuration.xml"
+            line="33"/>
+    </issue>
+
+    <issue
+        errorLine1="    android:id=&quot;@+id/thread_item_card_view&quot;"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.thread_item_card_view` appears to be unused">
+        <location
+            column="5"
+            file="src/main/res/layout/thread_item.xml"
+            line="5"/>
+    </issue>
+
+    <issue
+        errorLine1="                android:id=&quot;@+id/agent_image_view&quot;"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.agent_image_view` appears to be unused">
+        <location
+            column="17"
+            file="src/main/res/layout/thread_item.xml"
+            line="26"/>
+    </issue>
+
+    <issue
+        errorLine1="                    android:id=&quot;@+id/thread_number_text_view&quot;"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.thread_number_text_view` appears to be unused">
+        <location
+            column="21"
+            file="src/main/res/layout/thread_item.xml"
+            line="40"/>
+    </issue>
+
+    <issue
+        errorLine1="                    android:id=&quot;@+id/thread_last_message_text_view&quot;"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="UnusedIds"
+        message="The resource `R.id.thread_last_message_text_view` appears to be unused">
+        <location
+            column="21"
+            file="src/main/res/layout/thread_item.xml"
+            line="53"/>
+    </issue>
+
+    <issue
+        errorLine1="    &lt;string name=&quot;create_thread&quot;>Create thread&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="DuplicateStrings"
+        message="Duplicate string value `Create thread`, used in `create_thread` and `dsc_create_thread`">
+        <location
+            column="5"
+            file="src/main/res/values/strings.xml"
+            line="14"/>
+        <location
+            column="5"
+            file="src/main/res/values/strings.xml"
+            line="34"
+            message="Duplicates value in `create_thread`"/>
+    </issue>
+
+    <issue
+        id="ConvertToWebp"
+        message="One or more images in this project can be converted to the WebP format which typically results in smaller file sizes, even for lossless conversion">
+        <location
+            file="src/main/res/mipmap-xxxhdpi/ic_launcher_round.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/btnlwa_gold_loginwithamazon.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/btnlwa_gold_loginwithamazon.png"/>
+    </issue>
+
+    <issue
+        errorLine1="    &lt;TextView"
+        errorLine2="     ~~~~~~~~"
+        id="SelectableText"
+        message="Consider making the text value selectable by specifying `android:textIsSelectable=&quot;true&quot;`">
+        <location
+            column="6"
+            file="src/main/res/layout/fragment_chat_thread.xml"
+            line="15"/>
+    </issue>
+
+    <issue
+        errorLine1="    &lt;TextView"
+        errorLine2="     ~~~~~~~~"
+        id="SelectableText"
+        message="Consider making the text value selectable by specifying `android:textIsSelectable=&quot;true&quot;`">
+        <location
+            column="6"
+            file="src/main/res/layout/item_custom_incoming_text_and_buttons_message.xml"
+            line="27"/>
+    </issue>
+
+    <issue
+        errorLine1="        &lt;TextView"
+        errorLine2="         ~~~~~~~~"
+        id="SelectableText"
+        message="Consider making the text value selectable by specifying `android:textIsSelectable=&quot;true&quot;`">
+        <location
+            column="10"
+            file="src/main/res/layout/item_custom_incoming_text_message.xml"
+            line="16"/>
+    </issue>
+
+    <issue
+        errorLine1="    &lt;TextView"
+        errorLine2="     ~~~~~~~~"
+        id="SelectableText"
+        message="Consider making the text value selectable by specifying `android:textIsSelectable=&quot;true&quot;`">
+        <location
+            column="6"
+            file="src/main/res/layout/item_custom_incoming_text_message.xml"
+            line="25"/>
+    </issue>
+
+    <issue
+        errorLine1="        &lt;TextView"
+        errorLine2="         ~~~~~~~~"
+        id="SelectableText"
+        message="Consider making the text value selectable by specifying `android:textIsSelectable=&quot;true&quot;`">
+        <location
+            column="10"
+            file="src/main/res/layout/item_custom_outcoming_text_and_buttons_message.xml"
+            line="25"/>
+    </issue>
+
+    <issue
+        errorLine1="    &lt;TextView"
+        errorLine2="     ~~~~~~~~"
+        id="SelectableText"
+        message="Consider making the text value selectable by specifying `android:textIsSelectable=&quot;true&quot;`">
+        <location
+            column="6"
+            file="src/main/res/layout/item_custom_outcoming_text_and_buttons_message.xml"
+            line="36"/>
+    </issue>
+
+    <issue
+        errorLine1="        &lt;TextView"
+        errorLine2="         ~~~~~~~~"
+        id="SelectableText"
+        message="Consider making the text value selectable by specifying `android:textIsSelectable=&quot;true&quot;`">
+        <location
+            column="10"
+            file="src/main/res/layout/item_custom_outcoming_text_message.xml"
+            line="18"/>
+    </issue>
+
+    <issue
+        errorLine1="    &lt;TextView"
+        errorLine2="     ~~~~~~~~"
+        id="SelectableText"
+        message="Consider making the text value selectable by specifying `android:textIsSelectable=&quot;true&quot;`">
+        <location
+            column="6"
+            file="src/main/res/layout/item_custom_outcoming_text_message.xml"
+            line="37"/>
+    </issue>
+
+    <issue
+        errorLine1="                &lt;TextView"
+        errorLine2="                 ~~~~~~~~"
+        id="SelectableText"
+        message="Consider making the text value selectable by specifying `android:textIsSelectable=&quot;true&quot;`">
+        <location
+            column="18"
+            file="src/main/res/layout/thread_item.xml"
+            line="39"/>
+    </issue>
+
+    <issue
+        errorLine1="                &lt;TextView"
+        errorLine2="                 ~~~~~~~~"
+        id="SelectableText"
+        message="Consider making the text value selectable by specifying `android:textIsSelectable=&quot;true&quot;`">
+        <location
+            column="18"
+            file="src/main/res/layout/thread_item.xml"
+            line="52"/>
+    </issue>
+
+    <issue
+        errorLine1="        &lt;Button"
+        errorLine2="         ~~~~~~"
+        id="ButtonStyle"
+        message="Buttons in button bars should be borderless; use `style=&quot;?android:attr/buttonBarButtonStyle&quot;` (and `?android:attr/buttonBarStyle` on the parent)">
+        <location
+            column="10"
+            file="src/main/res/layout/create_thread_dialog.xml"
+            line="94"/>
+    </issue>
+
+    <issue
+        errorLine1="        &lt;Button"
+        errorLine2="         ~~~~~~"
+        id="ButtonStyle"
+        message="Buttons in button bars should be borderless; use `style=&quot;?android:attr/buttonBarButtonStyle&quot;` (and `?android:attr/buttonBarStyle` on the parent)">
+        <location
+            column="10"
+            file="src/main/res/layout/create_thread_dialog.xml"
+            line="102"/>
+    </issue>
+
+    <issue
+        errorLine1="        app:showAsAction=&quot;always&quot;/>"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="AlwaysShowAction"
+        message="Prefer &quot;`ifRoom`&quot; instead of &quot;`always`&quot;">
+        <location
+            column="9"
+            file="src/main/res/menu/default_menu.xml"
+            line="8"/>
+        <location
+            column="9"
+            file="src/main/res/menu/default_menu.xml"
+            line="14"/>
+        <location
+            column="9"
+            file="src/main/res/menu/default_menu.xml"
+            line="20"/>
+    </issue>
+
+    <issue
+        errorLine1="    &lt;string name=&quot;ok&quot;>Ok&lt;/string>"
+        errorLine2="                      ~~"
+        id="ButtonCase"
+        message="The standard Android way to capitalize Ok is &quot;OK&quot; (tip: use `@android:string/ok` instead)">
+        <location
+            column="23"
+            file="src/main/res/values/strings.xml"
+            line="10"/>
+    </issue>
+
+    <issue
+        errorLine1="        &lt;ImageButton"
+        errorLine2="         ~~~~~~~~~~~"
+        id="ContentDescription"
+        message="Missing `contentDescription` attribute on image">
+        <location
+            column="10"
+            file="src/main/res/layout/activity_login.xml"
+            line="24"/>
+    </issue>
+
+    <issue
+        errorLine1="        &lt;ImageButton"
+        errorLine2="         ~~~~~~~~~~~"
+        id="ContentDescription"
+        message="Missing `contentDescription` attribute on image">
+        <location
+            column="10"
+            file="src/main/res/layout/custom_snack_bar.xml"
+            line="74"/>
+    </issue>
+
+    <issue
+        errorLine1="            &lt;ImageView"
+        errorLine2="             ~~~~~~~~~"
+        id="ContentDescription"
+        message="Missing `contentDescription` attribute on image">
+        <location
+            column="14"
+            file="src/main/res/layout/thread_item.xml"
+            line="25"/>
+    </issue>
+
+    <issue
+        errorLine1="            &lt;ImageView"
+        errorLine2="             ~~~~~~~~~"
+        id="ContentDescription"
+        message="Missing `contentDescription` attribute on image">
+        <location
+            column="14"
+            file="src/main/res/layout/thread_item.xml"
+            line="66"/>
+    </issue>
+
+    <issue
+        errorLine1="        &lt;AutoCompleteTextView"
+        errorLine2="         ~~~~~~~~~~~~~~~~~~~~"
+        id="LabelFor"
+        message="Missing accessibility label: provide either a view with an `android:labelFor` that references this view or provide an `android:hint`">
+        <location
+            column="10"
+            file="src/main/res/layout/fragment_custom_configuration.xml"
+            line="26"/>
+    </issue>
+
+    <issue
+        errorLine1="        &lt;AutoCompleteTextView"
+        errorLine2="         ~~~~~~~~~~~~~~~~~~~~"
+        id="LabelFor"
+        message="Missing accessibility label: provide either a view with an `android:labelFor` that references this view or provide an `android:hint`">
+        <location
+            column="10"
+            file="src/main/res/layout/fragment_home_configuration.xml"
+            line="26"/>
+    </issue>
+
+    <issue
+        errorLine1="            configurationAutoCompleteTextView.setText(&quot;CD&quot;, false)"
+        errorLine2="                                                       ~~"
+        id="SetTextI18n"
+        message="String literal in `setText` can not be translated. Use Android resources instead.">
+        <location
+            column="56"
+            file="src/main/java/com/nice/cxonechat/sample/ui/config/HomeConfigurationFragment.kt"
+            line="61"/>
+    </issue>
+
+    <issue
+        errorLine1="        tvDuration.text = &quot;12min.&quot;"
+        errorLine2="                           ~~~~~~"
+        id="SetTextI18n"
+        message="String literal in `setText` can not be translated. Use Android resources instead.">
+        <location
+            column="28"
+            file="src/main/java/com/nice/cxonechat/sample/custom/holders/OutcomingTextAndButtonsMessageViewHolder.kt"
+            line="19"/>
+    </issue>
+
+    <issue
+        errorLine1="        tvTime.text = &quot;custom plugin&quot;"
+        errorLine2="                       ~~~~~~~~~~~~~"
+        id="SetTextI18n"
+        message="String literal in `setText` can not be translated. Use Android resources instead.">
+        <location
+            column="24"
+            file="src/main/java/com/nice/cxonechat/sample/custom/holders/OutcomingTextAndButtonsMessageViewHolder.kt"
+            line="20"/>
+    </issue>
+
+    <issue
+        errorLine1="        android:title=&quot;Set Name&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="HardcodedText"
+        message="Hardcoded string &quot;Set Name&quot;, should use `@string` resource">
+        <location
+            column="9"
+            file="src/main/res/menu/default_menu.xml"
+            line="7"/>
+    </issue>
+
+    <issue
+        errorLine1="        android:title=&quot;Edit&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~"
+        id="HardcodedText"
+        message="Hardcoded string &quot;Edit&quot;, should use `@string` resource">
+        <location
+            column="9"
+            file="src/main/res/menu/default_menu.xml"
+            line="13"/>
+    </issue>
+
+    <issue
+        errorLine1="        android:title=&quot;SignOut&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~"
+        id="HardcodedText"
+        message="Hardcoded string &quot;SignOut&quot;, should use `@string` resource">
+        <location
+            column="9"
+            file="src/main/res/menu/default_menu.xml"
+            line="19"/>
+    </issue>
+
+    <issue
+        errorLine1="            android:text=&quot;CUSTOM PLUGIN&quot; />"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        id="HardcodedText"
+        message="Hardcoded string &quot;CUSTOM PLUGIN&quot;, should use `@string` resource">
+        <location
+            column="13"
+            file="src/main/res/layout/item_custom_outcoming_text_and_buttons_message.xml"
+            line="23"/>
+    </issue>
+
+    <issue
+        errorLine1="    public CustomOutcomingTextMessageViewHolder(View itemView, Object payload) {"
+        errorLine2="                                                ~~~~"
+        id="UnknownNullness"
+        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://developer.android.com/kotlin/interop#nullability_annotations">
+        <location
+            column="49"
+            file="src/main/java/com/nice/cxonechat/sample/custom/holders/CustomOutcomingTextMessageViewHolder.java"
+            line="15"/>
+    </issue>
+
+    <issue
+        errorLine1="    public CustomOutcomingTextMessageViewHolder(View itemView, Object payload) {"
+        errorLine2="                                                               ~~~~~~"
+        id="UnknownNullness"
+        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://developer.android.com/kotlin/interop#nullability_annotations">
+        <location
+            column="64"
+            file="src/main/java/com/nice/cxonechat/sample/custom/holders/CustomOutcomingTextMessageViewHolder.java"
+            line="15"/>
+    </issue>
+
+    <issue
+        errorLine1="    public void onBind(Message message) {"
+        errorLine2="                       ~~~~~~~"
+        id="UnknownNullness"
+        message="Unknown nullability; explicitly declare as `@Nullable` or `@NonNull` to improve Kotlin interoperability; see https://developer.android.com/kotlin/interop#nullability_annotations">
+        <location
+            column="24"
+            file="src/main/java/com/nice/cxonechat/sample/custom/holders/CustomOutcomingTextMessageViewHolder.java"
+            line="22"/>
+    </issue>
+
+</issues>

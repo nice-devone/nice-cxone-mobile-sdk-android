@@ -8,3 +8,4 @@ Here's a selection of simplified, but fully functional, use cases to get you sta
 - [Multi Thread Chat](cs-multi-thread.md) (recommended)
 - [Push notifications](cs-push-notifications.md)
 - [Rich Messages](cs-rich-messages.md)
+- [Analytics](cs-analytics.md)

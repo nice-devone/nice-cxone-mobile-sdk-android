@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ *
+ * Licensed under the NICE License;
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
+ *
+ * TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
+ * AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
+ * OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+ */
+
 @file:Suppress("FunctionMaxLength")
 
 package com.nice.cxonechat
@@ -19,6 +34,7 @@ import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import retrofit2.Call
@@ -116,7 +132,6 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
         val (connection, builder) = prepareBuilder()
         assertSendTexts(
             ServerRequest.AuthorizeConsumer(connection, code = code, verifier = verifier),
-            ServerRequest.StoreVisitor(connection, null)
         ) {
             build(builder) {
                 whenever(storage.authToken).thenReturn(null)
@@ -124,6 +139,7 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
                 setAuthorization(Authorization(code, verifier))
             }
         }
+        verify(service, times(1)).createOrUpdateVisitor(any(), any(), any())
     }
 
     @Test
@@ -186,13 +202,13 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
         val (connection, builder) = prepareBuilder()
         assertSendTexts(
             ServerRequest.ReconnectConsumer(connection),
-            ServerRequest.StoreVisitor(connection, null)
         ) {
             build(builder) {
                 whenever(storage.authToken).thenReturn("token")
                 this
             }
         }
+        verify(service, times(1)).createOrUpdateVisitor(any(), any(), any())
     }
 
     @Test
@@ -244,6 +260,22 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
         assertSendText(ServerRequest.ArchiveThread(expected, thread), uuid.toString(), thread.id.toString()) {
             chat.threads().thread(thread).events().trigger(ArchiveThreadEvent)
         }
+    }
+
+    @Test
+    fun build_persists_deviceToken_if_set() {
+        val (_, builder) = prepareBuilder()
+        val token = UUID.randomUUID().toString()
+        builder.setDeviceToken(token)
+        build(builder)
+        verify(storage, times(1)).deviceToken = token
+    }
+
+    @Test
+    fun build_keeps_deviceToken_if_not_set() {
+        val (_, builder) = prepareBuilder()
+        build(builder)
+        verify(storage, times(0)).deviceToken = any()
     }
 
     // ---

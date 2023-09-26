@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ *
+ * Licensed under the NICE License;
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
+ *
+ * TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
+ * AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
+ * OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+ */
+
 package com.nice.cxonechat.state
 
 import com.nice.cxonechat.Public
@@ -8,35 +23,35 @@ import com.nice.cxonechat.Public
  * own running copy of the service.
  * */
 @Public
-abstract class Environment {
+interface Environment {
     /**
      * Name of the environment. It's defined only for semantic reasons.
      */
-    abstract val name: String
+    val name: String
 
     /**
      * Physical location of the environment that we'll connect to.
      */
-    abstract val location: String
+    val location: String
 
     /**
      * Url used for fetching base configuration, such as: multi/single
      * thread, auth.
-     * */
-    abstract val baseUrl: String
+     */
+    val baseUrl: String
 
     /**
      * Socket url used for chat communication.
-     * */
-    abstract val socketUrl: String
+     */
+    val socketUrl: String
 
     /**
      * Origin header required for live chat.
-     * */
-    abstract val originHeader: String
+     */
+    val originHeader: String
 
     /**
      * Chat sub-url. Usually defined as `/chat` suffix to [baseUrl]
-     * */
-    abstract val chatUrl: String
+     */
+    val chatUrl: String
 }

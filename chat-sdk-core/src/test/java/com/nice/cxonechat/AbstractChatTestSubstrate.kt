@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ *
+ * Licensed under the NICE License;
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
+ *
+ * TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
+ * AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
+ * OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+ */
+
 package com.nice.cxonechat
 
 import androidx.annotation.CallSuper
@@ -74,18 +89,30 @@ internal abstract class AbstractChatTestSubstrate {
         whenever(destinationId).thenReturn(UUID.fromString(TestUUID))
         whenever(welcomeMessage).thenReturn("welcome")
         whenever(authToken).thenReturn("token")
+        whenever(deviceToken).thenReturn("")
     }
 
     private fun mockService() = mock<RemoteService>().apply {
-        val call = mock<Call<ChannelConfiguration?>>()
-        whenever(getChannel(any(), any())).thenReturn(call)
-        whenever(call.execute()).then { Response.success(config) }
-        whenever(call.enqueue(any())).then { mock ->
+        val configurationCall = mock<Call<ChannelConfiguration?>>()
+        whenever(getChannel(any(), any())).thenReturn(configurationCall)
+        whenever(configurationCall.execute()).then { Response.success(config) }
+        whenever(configurationCall.enqueue(any())).then { mock ->
             val callback = mock.getArgument<Callback<ChannelConfiguration?>>(0)
             runCatching { config }
-                .onSuccess { callback.onResponse(call, Response.success(it)) }
-                .onFailure { callback.onFailure(call, it) }
+                .onSuccess { callback.onResponse(configurationCall, Response.success(it)) }
+                .onFailure { callback.onFailure(configurationCall, it) }
             Unit
+        }
+        val visitorCall = mock<Call<Void>>()
+        whenever(
+            createOrUpdateVisitor(
+                brandId = any(),
+                visitorId = any(),
+                visitor = any()
+            )
+        ).thenReturn(visitorCall)
+        whenever(visitorCall.enqueue(any())).then { answer ->
+            answer.getArgument<Callback<Void>?>(0).onResponse(visitorCall, Response.success(null))
         }
     }
 

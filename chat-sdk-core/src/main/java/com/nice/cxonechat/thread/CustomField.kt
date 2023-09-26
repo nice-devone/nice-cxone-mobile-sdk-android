@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ *
+ * Licensed under the NICE License;
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
+ *
+ * TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
+ * AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
+ * OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+ */
+
 package com.nice.cxonechat.thread
 
 import com.nice.cxonechat.Public
@@ -14,20 +29,20 @@ import java.util.Date
  * Consult the documentation for given implementation.
  * */
 @Public
-abstract class CustomField {
+interface CustomField {
     /**
      * Identifier or name of given property in custom field.
      * Consult a representative for more information.
      * */
-    abstract val id: String
+    val id: String
 
     /**
      * Value for given identifier.
      * */
-    abstract val value: String
+    val value: String
 
     /**
      * Timestamp when the instance was created (for locally created) or submitted to the backend.
      */
-    abstract val updatedAt: Date
+    val updatedAt: Date
 }

@@ -1,0 +1,113 @@
+<!--
+  ~ Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+  ~
+  ~ Licensed under the NICE License;
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
+  ~
+  ~ TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
+  ~ AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
+  ~ OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
+  ~ FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+  -->
+
+<resources>
+    <string name="app_name">SDK Demo</string>
+    <string name="default_notification_channel_id">2</string>
+    <string name="information">Information</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="change_details_label">Change custom fields</string>
+    <string name="change_thread_name">Set name</string>
+    <string name="text_send">Send</string>
+
+    <string-array name="thread_state_names">
+        <item>Current</item>
+        <item>Archived</item>
+    </string-array>
+
+    <string name="unsupported_type_title">Unsupported Document Type</string>
+    <string name="unsupported_type_message">You do not have a viewer for documents of type %1$s installed. Visit the google play store for options.</string>
+
+    <string name="title_attachment_picker">Select Attachment</string>
+
+    <string name="permission_requested">Permission Requested</string>
+    <string name="notifications_rationale">SDK Demo would like to send you notifications if your agent sends you messages when the application is suspended.</string>
+    <string name="no_notifications_title">Notifications Unavailable</string>
+    <string name="no_notifications_message">SDK Demo can not send you notifications if your agent sends you messages when the application is suspended.</string>
+    <string name="notification_channel_title">Channel human readable title</string>
+
+    <string name="message_plugin_custom_fallback_text_label">Fallback text: %1$s</string>
+
+    <string-array name="attachment_type_labels">
+        <item>Pick Image</item>
+        <item>Pick Video</item>
+        <item>Pick PDF Document</item>
+        <item>Pick Audio</item>
+    </string-array>
+    <string-array name="attachment_type_mimetypes">
+        <item>image/*</item>
+        <item>video/*</item>
+        <item>application/pdf</item>
+        <item>audio/*</item>
+    </string-array>
+
+    <string name="warning_thread_creation_forbidden">Chat configuration only allows usage of one thread. Please use existing thread to continue.</string>
+    <string name="warning_threads_refresh_required">Please refresh the thread list before attempting to create thread.</string>
+    <string name="warning_general_failure">Unable to finish action, due to the unhandled exception. Please check log for details and/or report the issue.</string>
+    <string name="warning_missing_prechat_survey_response">Response to the prechat survey is missing required fields.</string>
+    <string name="warning_missing_prechat_survey_response_failure">Unable to finish action. Response to the prechat survey is missing required fields.</string>
+    <string name="warning_invalid_fields">Some of the fields contain invalid values</string>
+
+    <string name="error_required_field">Required</string>
+    <string name="error_email_validation">Invalid E-mail Address"</string>
+    <string name="error_value_validation">Invalid Value</string>
+    <string name="error_validation_label">%1$s - %2$s</string>
+    <string name="error_invalid_number">Invalid Number</string>
+    <string name="error_invalid_integer">Invalid Integer</string>
+    <string name="error_invalid_color">Not a valid color</string>
+
+    <string name="recording_audio_hint">Recording</string>
+    <string name="recording_audio_permission_rationale">Application requires write access to external storage and permission to record audio for this functionality</string>
+    <string name="recording_audio_permission_denied_title">Audio message recording unavailable</string>
+    <string name="recording_audio_permission_denied_body">Application is not able to record audio messages without permission to write access to external storage and permission to record audio</string>
+    <string name="recording_audio_preview_title">Recorded audio message</string>
+    <string name="recording_audio_preview_message">Please review the recorded audio message</string>
+    <string name="recording_audio_failed_to_start">Failed to start audio recording</string>
+    <string name="recording_audio_failed">Audio recording has failed</string>
+    <string name="record_audio_stop_content_description">Stop audio recording</string>
+    <string name="record_audio_retry_content_description">Retry to record audio message</string>
+    <string name="record_audio_failed_cleanup">Unable to delete temporary audio recording</string>
+    <string name="send_audio_message_content_description">Send audio message</string>
+
+    <string name="chat_state_connecting">SDK connecting</string>
+    <string name="chat_state_connecting_action_cancel">@string/cancel</string>
+    <string name="chat_state_connected">SDK connected</string>
+    <string name="chat_state_connection_lost">SDK unexpectedly disconnected</string>
+    <string name="chat_state_connection_lost_action_reconnect">Reconnect</string>
+    <string name="chat_state_connection_closed">SDK closed</string>
+    <string name="chat_state_connection_closed_action_restart">Restart</string>
+
+    <string name="edit_custom_field_title">Edit pre-chat survey custom fields</string>
+
+    <string name="content_description_icon_is_selected">%1$s is selected</string>
+    <string name="content_description_tree_field_node_icon_expandable">Open Options</string>
+    <string name="content_description_dropdown_field_icon_is_selected">Item Selected</string>
+    <string name="content_description_dropdown_field_icon_expandable">Open Options</string>
+    <string name="background_thread_updated">New message in background thread %1$s</string>
+
+    <string name="archive_thread_content_description">Archive Thread</string>
+    <string name="thread_list_title">CXone Chat</string>
+
+    <string name="hint_enter_a_message">Type a message…</string>
+    <string name="text_agent_typing">Agent is typing…</string>
+    <string name="text_loading_more_messages">Loading more messages…</string>
+    <string name="text_unsupported_message_type">Unsupported message type</string>
+    <string name="content_description_text_input">Text input</string>
+    <string name="today">Today</string>
+    <string name="image_preview_title">Image preview</string>
+    <string name="update_thread_name">Update Thread Name</string>
+    <string name="enter_thread_name">Enter Thread Name</string>
+</resources>

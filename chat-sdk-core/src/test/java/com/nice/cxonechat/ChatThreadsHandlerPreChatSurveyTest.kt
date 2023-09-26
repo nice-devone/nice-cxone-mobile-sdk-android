@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ *
+ * Licensed under the NICE License;
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
+ *
+ * TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
+ * AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
+ * OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+ */
+
 @file:Suppress("FunctionMaxLength")
 
 package com.nice.cxonechat
@@ -19,7 +34,6 @@ import com.nice.cxonechat.state.HierarchyNode
 import com.nice.cxonechat.tool.SocketFactoryMock
 import com.nice.cxonechat.tool.awaitResult
 import com.nice.cxonechat.tool.nextString
-import org.junit.Ignore
 import org.junit.Test
 import java.util.UUID
 import kotlin.test.assertNotNull
@@ -194,7 +208,6 @@ internal class ChatThreadsHandlerPreChatSurveyTest : AbstractChatTest() {
     }
 
     @Test
-    @Ignore("junit tests do not allow usage of android functions as required for email field validation")
     fun create_withRequiredPreChatResponse_Email() {
         preChatSurveys = listOf(
             PreContactCustomFieldDefinitionModel(
@@ -210,7 +223,7 @@ internal class ChatThreadsHandlerPreChatSurveyTest : AbstractChatTest() {
         assertNotNull(survey)
         val response = PreChatSurveyResponse.Text(
             question = survey.fields.first() as FieldDefinition.Text,
-            response = nextString()
+            response = "foo@bar.com"
         )
         threads.create(sequenceOf(response))
     }

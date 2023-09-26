@@ -1,4 +1,61 @@
 
+<a name="1.2.0"></a>
+## [1.2.0] - 2023-09-26
+
+
+<a name="1.2.0-alpha04"></a>
+## [1.2.0-alpha04] - 2023-09-22
+
+### Bug Fixes
+- Remove messages with duplicate id from thread
+
+<a name="1.2.0-alpha03"></a>
+## [1.2.0-alpha03] - 2023-09-14
+
+
+<a name="1.2.0-alpha02"></a>
+## [1.2.0-alpha02] - 2023-09-13
+
+
+<a name="1.2.0-alpha01"></a>
+## [1.2.0-alpha01] - 2023-09-01
+
+### Bug Fixes
+- reenable tests depending on android.util.Patterns
+- Successful thread-archived event will trigger thread list refresh
+- Persist deviceToken until the value is updated
+- Fix StoreVisitor upload failure message - server message part
+- Create/update Visitor using new endpoint
+- fix issue with color settings fields not reflecting day/night
+- improve handling of notifications
+- Allow empty/non-existent TEXT in QuickReply plugins.
+- prepopulate configuration menu with last known custom values
+- fix thread update flow and remove extraneous refresh requests
+- Fix misc errors around state changes
+### Dependency Change
+- Bump androidx.core:core-ktx from 1.10.0 to 1.10.1
+- Bump com.squareup.okhttp3:okhttp from 4.10.0 to 4.11.0
+### Features
+- Create new chat-sdk-ui library from the prior sample application.
+- use events endpoint for analytics events
+- BREAKING CHANGE - Convert unnecessary abstract classes to interfaces
+- Merge SampleApplication project to the SDK project
+- internally mark archived threads as archived pending success/failure from server
+- Convert ListPicker message to Compose
+- Convert thread list screen to JetPack Compose
+- Compose Chat UI
+- add support for timeSpentOnPage
+- Support updated RecoveredThread event
+- Add ChatInstanceProvider
+- integrate new Chat UI module with Store application
+- Allow colorization of chat sdk screens
+- Add support for customizable brand logo
+- Android: implement conversion events in sample application
+
+<a name="1.1.0"></a>
+## [1.1.0] - 2023-06-26
+
+
 <a name="1.1.0-alpha04"></a>
 ## [1.1.0-alpha04] - 2023-05-31
 
@@ -123,10 +180,16 @@
     - failure
   - typing start/end
 
-[Unreleased]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/1.1.0-alpha04...HEAD
-[1.1.0-alpha04]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/1.1.0-alpha03...1.1.0-alpha04
-[1.1.0-alpha03]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/1.1.0-alpha02...1.1.0-alpha03
-[1.1.0-alpha02]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/1.1.0-alpha01...1.1.0-alpha02
-[1.1.0-alpha01]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/1.0.1...1.1.0-alpha01
-[1.0.1]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/1.0.1-alpha01...1.0.1
-[1.0.1-alpha01]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/1.0.0...1.0.1-alpha01
+[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.2.0...HEAD
+[1.2.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.2.0-alpha04...1.2.0
+[1.2.0-alpha04]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.2.0-alpha03...1.2.0-alpha04
+[1.2.0-alpha03]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.2.0-alpha02...1.2.0-alpha03
+[1.2.0-alpha02]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.2.0-alpha01...1.2.0-alpha02
+[1.2.0-alpha01]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.1.0...1.2.0-alpha01
+[1.1.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.1.0-alpha04...1.1.0
+[1.1.0-alpha04]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.1.0-alpha03...1.1.0-alpha04
+[1.1.0-alpha03]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.1.0-alpha02...1.1.0-alpha03
+[1.1.0-alpha02]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.1.0-alpha01...1.1.0-alpha02
+[1.1.0-alpha01]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.0.1...1.1.0-alpha01
+[1.0.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.0.1-alpha01...1.0.1
+[1.0.1-alpha01]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.0.0...1.0.1-alpha01
