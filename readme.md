@@ -7,6 +7,43 @@ This repository consists out of three main modules.
 This is the only published module, it is released as android multi-flavor library with maven artifact coordinates
 `com.nice.cxone:chat-core`.
 
+### Adding the dependency
+If you want to use published artifact you will have to include our public maven/gradle github repository into your project.
+For details see [Github documentation on using published packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-gradle-registry#using-a-published-package).
+
+In section where you define repositories used in your project (in our case it is settings.gradle) add this part:
+```groovy
+    def localProperties = new Properties()
+    try {
+        localProperties.load(file("local.properties").newReader())
+    } catch (ignored) {
+        logger.trace("Unable to read local.properties")
+    }
+    repositories {
+        maven {
+            name = "github-nice-devone-cxone-mobile"
+            url = "https://maven.pkg.github.com/nice-devone/nice-cxone-mobile-sdk-android"
+            credentials {
+                username = localProperties["github.user"] ?: System.getenv("GPR_USERNAME") // Use github.user property key from local.properties for local builds or environment variable GPR_USERNAME for CI builds
+                password = localProperties["github.key"] ?: System.getenv("GPR_TOKEN") // Use github.key property key from local.properties for local builds or environment variable GPR_USERNAME for CI builds
+            }
+        }
+    }
+```
+Then either add properties `github.user` and `github.key` to your local.properties
+e.g.:
+```
+github.user=myuser
+github.key=github_my_token
+```
+or set system variables `GPR_USERNAME` and `GPR_TOKEN`.
+You can use any uprivilidged valid token, since the package are public.
+
+Then you can the dependency simply by adding:
+```groovy
+    implementation "com.nice.cxone:chat-sdk-core:1.2.0"
+```
+### Additional information
 Visit [documentation][docs] for more information about SDK API.
 
 You can also find a simplified example of possible SDK usage in [case studies](docs/case-studies.md)
