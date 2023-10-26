@@ -1,10 +1,10 @@
 # CXone Chat for Android
 
-This repository consists out of three main modules.
+This repository consists out of three main modules, which are described in chapters below.
 
 ## CXOne Chat SDK
 
-This is the only published module, it is released as android multi-flavor library with maven artifact coordinates
+This is the only published module, it is released as an android multi-flavor library with maven artifact coordinates
 `com.nice.cxone:chat-core`.
 
 ### Adding the dependency
@@ -24,8 +24,9 @@ In section where you define repositories used in your project (in our case it is
             name = "github-nice-devone-cxone-mobile"
             url = "https://maven.pkg.github.com/nice-devone/nice-cxone-mobile-sdk-android"
             credentials {
-                username = localProperties["github.user"] ?: System.getenv("GPR_USERNAME") // Use github.user property key from local.properties for local builds or environment variable GPR_USERNAME for CI builds
-                password = localProperties["github.key"] ?: System.getenv("GPR_TOKEN") // Use github.key property key from local.properties for local builds or environment variable GPR_USERNAME for CI builds
+                // Use property key from local.properties for local builds or environment variable for CI builds
+                username = localProperties["github.user"] ?: System.getenv("GPR_USERNAME")
+                password = localProperties["github.key"] ?: System.getenv("GPR_TOKEN")
             }
         }
     }
