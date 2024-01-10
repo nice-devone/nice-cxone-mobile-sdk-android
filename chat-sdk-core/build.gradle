@@ -34,8 +34,12 @@ android {
         }
     }
 
+    kotlinOptions {
+        freeCompilerArgs = ['-Xjvm-default=all']
+    }
+
     buildFeatures {
-        buildConfig true // Library version is used for device fingerpint
+        buildConfig true // Library version is used for device fingerprint
     }
 }
 

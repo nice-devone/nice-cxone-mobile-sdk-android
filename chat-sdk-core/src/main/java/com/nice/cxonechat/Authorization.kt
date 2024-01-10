@@ -34,6 +34,7 @@ interface Authorization {
 
     @Public
     companion object {
+        @JvmSynthetic
         internal val None = Authorization("", "")
 
         /**
