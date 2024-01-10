@@ -129,6 +129,7 @@ interface ChatBuilder {
             )
         }
 
+        @JvmSynthetic
         internal operator fun invoke(
             entrails: ChatEntrails,
             factory: SocketFactory,

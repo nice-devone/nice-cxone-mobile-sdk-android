@@ -18,6 +18,7 @@ package com.nice.cxonechat
 /**
  * Definition of possible Chat states from application point-of-view.
  */
+@Public
 enum class ChatState {
     /** Not yet configured enough to connect. */
     INITIAL,

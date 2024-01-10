@@ -45,6 +45,7 @@ class ChatInstanceProvider(
     deviceTokenProvider: DeviceTokenProvider? = null,
 ) : ChatStateListener {
     /** those interested in ChatInstanceProvider updates. */
+    @Public
     interface Listener {
         /**
          * Invoked when the chat object changes.
@@ -62,6 +63,7 @@ class ChatInstanceProvider(
     }
 
     /** Defines provider of device token for push notifications, typically this will [Firebase.messaging.token]. */
+    @Public
     fun interface DeviceTokenProvider {
         /**
          * Create or retrieve a device token for push messages, if it is unavailable, the provider should return
@@ -72,6 +74,7 @@ class ChatInstanceProvider(
     }
 
     /** Configuration scope used to reconfigure and restart the chat session. */
+    @Public
     interface ConfigurationScope {
         /** True if authorization is required. */
         val authenticationRequired: Boolean
@@ -357,6 +360,7 @@ class ChatInstanceProvider(
         chatState = CONNECTION_LOST
     }
 
+    @Public
     companion object {
         @Suppress("LateinitUsage")
         private lateinit var instance: ChatInstanceProvider
@@ -374,6 +378,7 @@ class ChatInstanceProvider(
          * @param deviceTokenProvider Provider of device tokens for push messages.
          * @return the newly created ChatInstanceProvider singleton.
          */
+        @JvmOverloads
         fun create(
             configuration: SocketFactoryConfiguration?,
             authorization: Authorization? = null,

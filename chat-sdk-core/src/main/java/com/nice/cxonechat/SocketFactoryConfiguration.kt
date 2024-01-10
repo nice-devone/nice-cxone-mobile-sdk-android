@@ -48,6 +48,7 @@ interface SocketFactoryConfiguration {
          */
         @JvmName("create")
         @JvmStatic
+        @JvmOverloads
         operator fun invoke(
             environment: Environment,
             brandId: Long,
