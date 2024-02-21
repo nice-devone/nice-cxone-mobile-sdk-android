@@ -46,15 +46,6 @@
     </queries>
 
     <application tools:targetApi="q">
-        <activity
-            android:name=".VideoPreviewActivity"
-            android:configChanges="orientation|keyboardHidden"
-            android:exported="false"
-            android:screenOrientation="landscape" />
-        <activity
-            android:name=".ImagePreviewActivity"
-            android:exported="false" />
-
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="@string/default_notification_channel_id" />
@@ -62,7 +53,7 @@
             android:name=".ChatActivity"
             android:exported="false"
             android:theme="@style/ChatTheme"
-            />
+            android:launchMode="singleTop" />
 
         <service
             android:name=".PushListenerService"

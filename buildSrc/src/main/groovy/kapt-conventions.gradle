@@ -1,8 +1,0 @@
-plugins {
-    id "kotlin-kapt"
-}
-
-// Allow references to generated code
-kapt {
-    correctErrorTypes = true
-}

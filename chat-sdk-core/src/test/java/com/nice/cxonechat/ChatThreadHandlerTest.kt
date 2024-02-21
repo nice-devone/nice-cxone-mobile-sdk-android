@@ -24,9 +24,12 @@ import com.nice.cxonechat.internal.ChatWithParameters
 import com.nice.cxonechat.internal.copy.AgentCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.model.ChannelConfiguration
+import com.nice.cxonechat.internal.model.ChatThreadMutable
+import com.nice.cxonechat.internal.model.ChatThreadMutable.Companion.asMutable
 import com.nice.cxonechat.internal.model.CustomFieldInternal
 import com.nice.cxonechat.internal.model.CustomFieldPolyType.Text
 import com.nice.cxonechat.internal.model.MessageModel
+import com.nice.cxonechat.internal.model.network.EventCaseStatusChanged.CaseStatus.CLOSED
 import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.model.makeAgent
 import com.nice.cxonechat.model.makeChatThread
@@ -36,18 +39,22 @@ import com.nice.cxonechat.model.makeUserStatistics
 import com.nice.cxonechat.server.ServerRequest
 import com.nice.cxonechat.server.ServerResponse
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.thread.ChatThreadState
+import com.nice.cxonechat.thread.ChatThreadState.Loaded
+import com.nice.cxonechat.thread.ChatThreadState.Pending
 import com.nice.cxonechat.thread.CustomField
 import com.nice.cxonechat.tool.nextString
 import org.junit.Test
 import java.util.Date
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 internal class ChatThreadHandlerTest : AbstractChatTest() {
 
-    private lateinit var chatThread: ChatThread
+    private lateinit var chatThread: ChatThreadMutable
     private lateinit var thread: ChatThreadHandler
 
     private val customerCustomFields = listOf<CustomField>(
@@ -117,7 +124,7 @@ internal class ChatThreadHandlerTest : AbstractChatTest() {
     fun get_updates_existing_messages_moreMassagesLoaded() {
         val id = chatThread.id
         val existingMessage = makeMessage(makeMessageModel(threadIdOnExternalPlatform = id))
-        chatThread = chatThread.asCopyable().copy(messages = listOf(existingMessage))
+        chatThread = chatThread.asCopyable().copy(messages = listOf(existingMessage)).asMutable()
         val messages = arrayOf(
             makeMessageModel(threadIdOnExternalPlatform = id),
             makeMessageModel(threadIdOnExternalPlatform = id, idOnExternalPlatform = existingMessage.id)
@@ -140,7 +147,8 @@ internal class ChatThreadHandlerTest : AbstractChatTest() {
         val message = makeMessageModel(threadIdOnExternalPlatform = id)
         val expected = chatThread.asCopyable().copy(
             messages = listOfNotNull(message.toMessage()),
-            threadAgent = agent.toAgent()
+            threadAgent = agent.toAgent(),
+            threadState = Loaded,
         )
         val actual = testCallback(::get) {
             sendServerMessage(ServerResponse.ThreadMetadataLoaded(agent, message))
@@ -247,8 +255,22 @@ internal class ChatThreadHandlerTest : AbstractChatTest() {
                 )
             )
         }
-        assertEquals(expected, actual)
+        assertEquals<ChatThread>(expected, actual)
         assertEquals(customerCustomFields, chat.fields)
+    }
+
+    @Test
+    fun recoverThreadBlockedInPending() {
+        for (state in ChatThreadState.entries) {
+            updateChatThread(chatThread.asCopyable().copy(threadState = state))
+            if (state !== Pending) {
+                assertSendText(ServerRequest.RecoverThread(connection, chatThread)) {
+                    thread.refresh()
+                }
+            } else {
+                assertSendsNothing { thread.refresh() }
+            }
+        }
     }
 
     @Test
@@ -341,9 +363,7 @@ internal class ChatThreadHandlerTest : AbstractChatTest() {
         val actual = testCallback(::get) {
             sendServerMessage(ServerResponse.TypingStarted(thread))
         }
-        val threadAgent2 = threadAgent1.asCopyable().copy(isTyping = true)
-        val expected = thread.asCopyable().copy(threadAgent = threadAgent2)
-        assertEquals(expected, actual)
+        assertNull(actual)
     }
 
     @Test
@@ -361,11 +381,10 @@ internal class ChatThreadHandlerTest : AbstractChatTest() {
     fun get_observes_agentTypingEnded() {
         // prime the returned thread and ensure the test doesn't return false positive
         get_observes_agentTypingStarted()
-        val expected = chatThread
         val actual = testCallback(::get) {
-            sendServerMessage(ServerResponse.TypingEnded(expected))
+            sendServerMessage(ServerResponse.TypingEnded(chatThread))
         }
-        assertEquals(expected, actual)
+        assertNull(actual)
     }
 
     @Test
@@ -382,13 +401,30 @@ internal class ChatThreadHandlerTest : AbstractChatTest() {
         assertEquals(expected, actual)
     }
 
+    @Test
+    fun get_observes_case_closed() {
+        val expected = chatThread.asCopyable().copy(
+            canAddMoreMessages = false
+        )
+        assertNotEquals<ChatThread>(chatThread, expected)
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.CaseStatusChanged(chatThread.snapshot(), CLOSED))
+        }
+        assertEquals(expected, actual)
+    }
+
     // ---
 
     private fun get(listener: (ChatThread) -> Unit): Cancellable =
         thread.get(listener = { listener(it) })
 
     private fun updateChatThread(updatedThread: ChatThread) {
-        chatThread = updatedThread
-        thread = chat.threads().thread(updatedThread)
+        val threadMutable = updatedThread.asMutable() // Handlers are memoized, therefore mutating the thread is required
+        if (::chatThread.isInitialized) {
+            chatThread.update(threadMutable)
+        } else {
+            chatThread = threadMutable
+        }
+        thread = chat.threads().thread(threadMutable)
     }
 }

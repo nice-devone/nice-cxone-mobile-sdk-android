@@ -50,6 +50,7 @@ complexity:
     active: true
     ignoreAnnotated:
       - "androidx.compose.runtime.Composable"
+      - "javax.inject.Inject"
   MethodOverloading:
     active: true
   NamedArguments:
@@ -141,6 +142,7 @@ formatting:
   ArgumentListWrapping:
     active: true
     autoCorrect: true
+    maxLineLength: 140
     excludes: [ '**/test/**', '**/androidTest/**', '**/*.Spec.kt' ]
   BlockCommentInitialStarAlignment:
     active: true
@@ -332,6 +334,7 @@ formatting:
   Wrapping:
     active: true
     autoCorrect: true
+    maxLineLength: 140
 
 naming:
   BooleanPropertyNaming:
@@ -543,8 +546,6 @@ style:
     active: true
   OptionalUnit:
     active: false
-  OptionalWhenBraces:
-    active: true
   PreferToOverPairSyntax:
     active: true
   ProtectedMemberInFinalClass:

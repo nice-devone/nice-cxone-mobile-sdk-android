@@ -18,6 +18,7 @@ package com.nice.cxonechat.ui.model
 import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.thread.Agent
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.thread.ChatThreadState
 import com.nice.cxonechat.thread.CustomField
 import java.util.UUID
 
@@ -32,6 +33,7 @@ internal data class ChatThreadCopy(
     override val scrollToken: String,
     override val threadAgent: Agent?,
     override val threadName: String?,
+    override val threadState: ChatThreadState,
 ) : ChatThread() {
     companion object {
         @Suppress("LongParameterList")
@@ -43,6 +45,7 @@ internal data class ChatThreadCopy(
             scrollToken: String = this.scrollToken,
             threadAgent: Agent? = this.threadAgent,
             threadName: String? = this.threadName,
+            threadState: ChatThreadState = this.threadState,
         ): ChatThreadCopy = ChatThreadCopy(
             canAddMoreMessages = canAddMoreMessages,
             fields = fields,
@@ -50,7 +53,8 @@ internal data class ChatThreadCopy(
             messages = messages,
             scrollToken = scrollToken,
             threadAgent = threadAgent,
-            threadName = threadName
+            threadName = threadName,
+            threadState = threadState,
         )
     }
 }

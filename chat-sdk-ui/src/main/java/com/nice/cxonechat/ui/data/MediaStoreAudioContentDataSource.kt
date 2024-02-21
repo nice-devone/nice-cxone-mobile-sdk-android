@@ -19,20 +19,18 @@ import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
 import com.nice.cxonechat.message.ContentDescriptor
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
-import javax.inject.Singleton
+import org.koin.core.annotation.Single
 
 /**
  * [ContentDataSource] for media audio files based on android data storage.
  *
- * @property context Application context used for queries to ContentResolver.
+ * @param context Application context used for queries to ContentResolver.
  */
-@Singleton
-internal class MediaStoreAudioContentDataSource @Inject constructor(
-    @ApplicationContext private val context: Context,
+@Single
+internal class MediaStoreAudioContentDataSource(
+    private val context: Context,
 ) : ContentDataSource {
     override val acceptRegex: Regex = "audio/.*".toRegex()
 
@@ -47,8 +45,7 @@ internal class MediaStoreAudioContentDataSource @Inject constructor(
                     content = attachmentUri,
                     context = context,
                     mimeType = cursor.getString(mimeTypeIndex),
-                    fileName = null,
-                    friendlyName = cursor.getString(nameIndex)
+                    fileName = cursor.getString(nameIndex),
                 )
             }
     }

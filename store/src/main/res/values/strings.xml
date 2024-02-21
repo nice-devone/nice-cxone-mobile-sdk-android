@@ -36,7 +36,6 @@
     <!-- Validation Error Messages -->
     <string name="error_required_field">Required</string>
     <string name="error_email_validation">Invalid E-mail Address"</string>
-    <string name="error_value_validation">Invalid Value</string>
     <string name="error_validation_label">%1$s - %2$s</string>
     <string name="error_invalid_number">Invalid Number</string>
     <string name="error_invalid_integer">Invalid Integer</string>
@@ -67,12 +66,12 @@
     <string name="sdk_configuration">SDK Configuration</string>
     <string name="login">Login</string>
     <string name="sdk_settings">SDK Settings</string>
-    <string name="loading">Loading...</string>
-    <string name="connecting">Connecting...</string>
+    <string name="loading">Loading…</string>
+    <string name="connecting">Connecting…</string>
     <string name="logout">Logout</string>
     <string name="name">Name</string>
     <string name="card_number">Card Number</string>
-    <string name="card_number_placeholder">0000-0000-0000-0000</string>
+    <string name="card_number_placeholder">0000–0000–0000–0000</string>
     <string name="retry">Retry</string>
     <string name="unknown_product">Unknown Product</string>
     <string name="configuration">Configuration</string>
@@ -80,4 +79,7 @@
     <string name="set_defaults">Set Defaults</string>
     <string name="default_version_name">Preview</string>
     <string name="pick_a_logo_image">Pick a logo image</string>
+
+    <string name="label_chat_permission">Open chat view</string>
+    <string name="desc_chat_permission">Allows the app to open the chat view.</string>
 </resources>

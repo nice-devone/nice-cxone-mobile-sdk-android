@@ -16,11 +16,10 @@
 package com.nice.cxonechat.ui.domain
 
 import com.nice.cxonechat.ChatThreadHandler
-import dagger.hilt.android.scopes.ActivityRetainedScoped
-import javax.inject.Inject
+import org.koin.core.annotation.Single
 
-@ActivityRetainedScoped
 @Suppress("UseDataClass")
-internal class SelectedThreadRepository @Inject constructor() {
+@Single
+internal class SelectedThreadRepository {
     var chatThreadHandler: ChatThreadHandler? = null
 }

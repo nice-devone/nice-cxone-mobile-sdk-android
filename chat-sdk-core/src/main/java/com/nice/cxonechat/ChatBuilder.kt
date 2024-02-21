@@ -19,11 +19,14 @@ import android.content.Context
 import androidx.annotation.CheckResult
 import com.nice.cxonechat.internal.ChatBuilderDefault
 import com.nice.cxonechat.internal.ChatBuilderLogging
-import com.nice.cxonechat.internal.ChatBuilderRepeating
+import com.nice.cxonechat.internal.ChatBuilderThreading
 import com.nice.cxonechat.internal.ChatEntrails
 import com.nice.cxonechat.internal.ChatEntrailsAndroid
 import com.nice.cxonechat.internal.socket.SocketFactory
 import com.nice.cxonechat.internal.socket.SocketFactoryDefault
+import com.nice.cxonechat.log.Logger
+import com.nice.cxonechat.log.LoggerNoop
+import com.nice.cxonechat.utilities.TaggingSocketFactory
 import okhttp3.OkHttpClient
 
 /**
@@ -76,10 +79,24 @@ interface ChatBuilder {
     fun setDeviceToken(token: String): ChatBuilder
 
     /**
-     * Builds an instance of chat asynchronously. It's guaranteed to retrieve an
-     * instance of the chat. The method continuously polls the server when failure
-     * occurs with exponential backoff where the base is equal to 2 seconds. All
-     * failures are logged if [setDevelopmentMode] is set.
+     * Build an instance of chat asynchronously.
+     * Previously this method guaranteed an instance to be returned via [callback], this is no
+     * longer the case. If there is an communication issue with the server, this method will throw a runtime exception.
+     */
+    @CheckResult
+    @Deprecated(
+        message = "Please migrate to build method with OnChatBuildResultCallback",
+        replaceWith = ReplaceWith(
+            expression = "build(resultCallback = OnChatBuiltResultCallback { callback.onChatBuilt(it.getOrThrow()) })",
+            imports = ["com.nice.cxonechat.ChatBuilder.OnChatBuiltResultCallback"]
+        )
+    )
+    fun build(callback: OnChatBuiltCallback): Cancellable
+
+    /**
+     * Builds an instance of chat asynchronously.
+     * Any standard issue which may happen during will be reported as [IllegalStateException] in [Result.onFailure].
+     * All failures are logged if [setDevelopmentMode] is set.
      *
      * If the instance is not retrieved within a reasonable amount of time, the
      * device is not connected to the internet, or the chat provider experiences
@@ -89,9 +106,11 @@ interface ChatBuilder {
      * Can be called from any thread, but will change to non-main thread immediately.
      *
      * @see OnChatBuiltCallback.onChatBuilt
+     *
+     * @return A [Cancellable] which allows to cancel the asynchronous operation.
      */
     @CheckResult
-    fun build(callback: OnChatBuiltCallback): Cancellable
+    fun build(resultCallback: OnChatBuiltResultCallback): Cancellable
 
     /**
      * Callback allowing to listen to chat instance provisioning.
@@ -106,23 +125,47 @@ interface ChatBuilder {
         fun onChatBuilt(chat: Chat)
     }
 
+    /**
+     * Callback allowing to listen to chat instance provisioning.
+     */
+    @Public
+    fun interface OnChatBuiltResultCallback {
+        /**
+         * Notifies the consumer if the chat instance preparation has succeeded and provides the instance in the
+         * case of the success.
+         * It's always called on the main thread.
+         */
+        fun onChatBuiltResult(chat: Result<Chat>)
+    }
+
     @Public
     companion object {
 
         /**
          * Returns an instance of [ChatBuilder] with Android specific parameters.
+         *
+         * @param context The [Context] used for persistent storage of values by the SDK.
+         * @param config [SocketFactoryConfiguration] connection configuration of the chat.
+         * @param logger [Logger] which will be used by the builder and the SDK, default is no-op implementation.
+         *
          * @see build
          * @see OnChatBuiltCallback
          * @see OnChatBuiltCallback.onChatBuilt
          * */
         @JvmName("getDefault")
+        @JvmOverloads
+        @JvmStatic
         operator fun invoke(
             context: Context,
             config: SocketFactoryConfiguration,
+            logger: Logger = LoggerNoop,
         ): ChatBuilder {
             val sharedClient = OkHttpClient()
+                .newBuilder()
+                .socketFactory(TaggingSocketFactory)
+                .build()
             val factory = SocketFactoryDefault(config, sharedClient)
-            val entrails = ChatEntrailsAndroid(context.applicationContext, factory, config, sharedClient)
+            val entrails = ChatEntrailsAndroid(context.applicationContext, factory, config, sharedClient, logger)
             return invoke(
                 entrails = entrails,
                 factory = factory
@@ -137,7 +180,7 @@ interface ChatBuilder {
             var builder: ChatBuilder
             builder = ChatBuilderDefault(entrails, factory)
             builder = ChatBuilderLogging(builder, entrails)
-            builder = ChatBuilderRepeating(builder, entrails)
+            builder = ChatBuilderThreading(builder, entrails)
             return builder
         }
     }

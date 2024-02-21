@@ -49,7 +49,7 @@ class ChatEventHandlerVisitGuardTest {
     @InjectMockKs
     private lateinit var guard: ChatEventHandlerVisitGuard
 
-    private val kNow = Date()
+    private val now = Date()
 
     private val Date.expires: Date
         get() = this + 30.minutes
@@ -66,8 +66,8 @@ class ChatEventHandlerVisitGuardTest {
         MockKAnnotations.init(this)
 
         every { chat.events() } returns guard
-        every { origin.trigger(any(), any()) } answers {
-            (it.invocation.args[1] as? OnEventSentListener)?.onSent()
+        every { origin.trigger(any(), any(), any()) } answers {
+            arg<OnEventSentListener?>(1)?.onSent()
             Unit
         }
         every { chat.storage } returns storage
@@ -75,7 +75,7 @@ class ChatEventHandlerVisitGuardTest {
 
     @Test
     fun `no visit generates new visit`() {
-        val event = PageViewEvent(title, url, kNow)
+        val event = PageViewEvent(title, url, now)
 
         // return no visit in place yet
         every { storage.visitDetails } returns null
@@ -89,26 +89,26 @@ class ChatEventHandlerVisitGuardTest {
         verify(ordering = ORDERED) {
             // visit details should be updated with matching visit and updated time
             storage.visitDetails = match {
-                it.validUntil == kNow.expires
+                it.validUntil == now.expires
             }
             // visit event should be generated with a current time
             origin.trigger(
                 match {
-                    (it as? VisitEvent)?.date == kNow
+                    (it as? VisitEvent)?.date == now
                 }
             )
             // and the page view event should be passed on to the origin
-            origin.trigger(event, any())
+            origin.trigger(event, any(), any())
         }
     }
 
     @Test
     fun `stale visit id generates new visit`() {
-        val event = PageViewEvent(title, url, kNow)
+        val event = PageViewEvent(title, url, now)
         val visitID = UUID.randomUUID()
 
         // return a stale visit details, it expired 1 millisecond ago
-        every { storage.visitDetails } returns VisitDetails(visitID, kNow - 1.milliseconds)
+        every { storage.visitDetails } returns VisitDetails(visitID, now - 1.milliseconds)
 
         every { storage.visitDetails = any() } returns Unit
 
@@ -119,25 +119,25 @@ class ChatEventHandlerVisitGuardTest {
         verify(ordering = ORDERED) {
             // visit details should be updated with matching visit and updated time
             storage.visitDetails = match {
-                it.validUntil == kNow.expires
+                it.validUntil == now.expires
             }
             // visit event should be generated with a current time
             origin.trigger(
                 match {
-                    (it as? VisitEvent)?.date == kNow
+                    (it as? VisitEvent)?.date == now
                 }
             )
             // and the original event should be passed on to the origin
-            origin.trigger(event, any())
+            origin.trigger(event, any(), any())
         }
     }
 
     @Test
     fun `fresh visit updates visit id`() {
-        val event = PageViewEvent(title, url, kNow)
+        val event = PageViewEvent(title, url, now)
         val visitID = UUID.randomUUID()
 
-        every { storage.visitDetails } returns VisitDetails(visitID, kNow + 1.milliseconds)
+        every { storage.visitDetails } returns VisitDetails(visitID, now + 1.milliseconds)
 
         every { storage.visitDetails = any() } returns Unit
 
@@ -147,9 +147,9 @@ class ChatEventHandlerVisitGuardTest {
 
         verify(ordering = ORDERED) {
             // visit details should be updated with original visit and updated time
-            storage.visitDetails = VisitDetails(visitID, kNow.expires)
+            storage.visitDetails = VisitDetails(visitID, now.expires)
             // and the original event should be passed on to the origin
-            origin.trigger(event, any())
+            origin.trigger(event, any(), any())
         }
     }
 }

@@ -129,6 +129,9 @@ internal enum class EventType(val value: String) {
     @SerializedName("CaseCreated")
     CaseCreated("CaseCreated"), // TODO: Remove?
 
+    @SerializedName("CaseStatusChanged")
+    CaseStatusChanged("CaseStatusChanged"),
+
     // Custom Fields
 
     /** An event to send to set custom field values for a contact (thread). */

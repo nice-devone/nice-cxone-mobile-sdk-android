@@ -16,20 +16,19 @@
 package com.nice.cxonechat.sample
 
 import android.content.Context
+import android.net.Uri
+import android.os.Build.VERSION
+import android.os.Build.VERSION_CODES
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly
-import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.amazon.identity.auth.device.AuthError
@@ -40,32 +39,30 @@ import com.amazon.identity.auth.device.api.authorization.AuthorizeRequest
 import com.amazon.identity.auth.device.api.authorization.AuthorizeResult
 import com.amazon.identity.auth.device.api.authorization.ProfileScope
 import com.amazon.identity.auth.device.api.workflow.RequestContext
-import com.nice.cxonechat.UserName
+import com.nice.cxonechat.log.Logger
+import com.nice.cxonechat.log.LoggerScope
+import com.nice.cxonechat.log.debug
+import com.nice.cxonechat.log.error
+import com.nice.cxonechat.log.info
+import com.nice.cxonechat.log.scope
 import com.nice.cxonechat.sample.R.string
-import com.nice.cxonechat.sample.UiState.CONFIGURATION
-import com.nice.cxonechat.sample.UiState.CONNECTING
-import com.nice.cxonechat.sample.UiState.INITIAL
-import com.nice.cxonechat.sample.UiState.LOGIN
-import com.nice.cxonechat.sample.UiState.OAUTH
-import com.nice.cxonechat.sample.UiState.UI_SETTINGS
 import com.nice.cxonechat.sample.data.models.ChatAuthorization
-import com.nice.cxonechat.sample.data.models.SdkConfiguration
-import com.nice.cxonechat.sample.data.models.SdkConfigurations
-import com.nice.cxonechat.sample.data.repository.UISettings
-import com.nice.cxonechat.sample.extensions.Ignored
-import com.nice.cxonechat.sample.ui.BusySpinner
 import com.nice.cxonechat.sample.ui.CartScreen
 import com.nice.cxonechat.sample.ui.ConfirmationScreen
-import com.nice.cxonechat.sample.ui.LoginDialog
 import com.nice.cxonechat.sample.ui.PaymentScreen
 import com.nice.cxonechat.sample.ui.ProductListScreen
 import com.nice.cxonechat.sample.ui.ProductScreen
 import com.nice.cxonechat.sample.ui.Screen
-import com.nice.cxonechat.sample.ui.SdkConfigurationDialog
 import com.nice.cxonechat.sample.ui.theme.AppTheme
-import com.nice.cxonechat.sample.ui.uisettings.UISettingsDialog
 import com.nice.cxonechat.sample.utilities.PKCE
-import dagger.hilt.android.AndroidEntryPoint
+import com.nice.cxonechat.sample.viewModel.StoreViewModel
+import com.nice.cxonechat.sample.viewModel.UiState
+import com.nice.cxonechat.sample.viewModel.UiState.UiStateContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.koin.android.ext.android.get
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
 import java.lang.ref.WeakReference
 import java.util.concurrent.atomic.AtomicReference
@@ -73,9 +70,10 @@ import java.util.concurrent.atomic.AtomicReference
 /**
  * Store activity hosting Compose Navigation-based sample host application and integration.
  */
-@AndroidEntryPoint
-class StoreActivity : ComponentActivity() {
-    private val viewModel by viewModels<StoreViewModel>()
+class StoreActivity : ComponentActivity(), UiStateContext {
+    private val storeViewModel: StoreViewModel by viewModel()
+    private val pageViewHandler get() = storeViewModel.analyticsHandler
+
     private val requestContext by lazy {
         RequestContext.create(this as Context)
     }
@@ -83,20 +81,22 @@ class StoreActivity : ComponentActivity() {
     private val pickMedia = registerForActivityResult(PickVisualMedia()) { pickedUri ->
         // Callback is invoked after the user selects a media item or closes the
         // photo picker.
-        val uriString = runCatching {
-            val uri = checkNotNull(pickedUri)
-            val localCopy = File(filesDir, "logo")
-            checkNotNull(contentResolver.openInputStream(uri))
-                .use { inputStream -> localCopy.outputStream().use(inputStream::copyTo) }
-            localCopy.toUri().toString()
-        }.getOrNull()
-        onPickImageCallback.getAndSet(null)?.get()?.invoke(uriString)
+        lifecycleScope.launch {
+            val uriString = copyUriInputToLocalFile(pickedUri)
+            onPickImageCallback.getAndSet(null)?.get()?.invoke(uriString)
+        }
     }
 
     private val onPickImageCallback = AtomicReference<WeakReference<(String?) -> Unit>?>(null)
 
+    private val logger by lazy { LoggerScope(TAG, get()) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (VERSION.SDK_INT >= VERSION_CODES.S) {
+            window.setHideOverlayWindows(true)
+        }
 
         setContent {
             AppTheme {
@@ -108,27 +108,22 @@ class StoreActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         requestContext.onResume()
-        viewModel.startChat()
+
+        // Let the viewModels know activity has been resumed to properly track page view.
+        storeViewModel.onResume()
+        pageViewHandler.onResume()
+    }
+
+    override fun onPause() {
+        // let the viewModels know activity has been paused to properly track page view.
+        pageViewHandler.onPause()
+        super.onPause()
     }
 
     @Composable
     private fun Screen() {
-        val uiState = viewModel.uiState.collectAsState()
-        val settings = viewModel.chatSettingsRepository.settings.collectAsState()
-        val configuration = remember { derivedStateOf { settings.value?.sdkConfiguration } }
-        val userName = remember { derivedStateOf { settings.value?.userName } }
-        val configurations = viewModel.sdkConfigurationListRepository.configurationList.collectAsState()
-
-        Log.d(TAG, "Screen: uiState=${uiState.value}")
-
         NavScreen()
-        PresentDialogs(
-            uiState.value,
-            configuration.value,
-            configurations.value,
-            userName.value,
-            viewModel::cancelConnect
-        )
+        PresentDialogs(storeViewModel.uiState.collectAsState().value)
     }
 
     /**
@@ -146,7 +141,7 @@ class StoreActivity : ComponentActivity() {
             startDestination = ProductListScreen.defaultRoute,
         ) {
             screens.forEach {
-                it.navigation(this, navHostController, viewModel)
+                it.navigation(this, navHostController, storeViewModel)
             }
         }
     }
@@ -155,70 +150,22 @@ class StoreActivity : ComponentActivity() {
      * Overlay any required dialogs.
      */
     @Composable
-    private fun PresentDialogs(
-        uiState: UiState,
-        configuration: SdkConfiguration?,
-        configurations: SdkConfigurations,
-        userName: UserName?,
-        cancelConnect: () -> Unit
-    ) {
-        Log.d(TAG, "OverlayDialogs: uiState=$uiState")
+    private fun PresentDialogs(uiState: UiState) = logger.scope("PresentDialogs") {
+        debug("OverlayDialogs: uiState=$uiState")
 
-        when (uiState) {
-            INITIAL -> BusySpinner(message = stringResource(string.loading))
-
-            CONFIGURATION -> SdkConfigurationDialog(
-                configuration,
-                configurations,
-                { viewModel.cancelConfigurationDialog() },
-                viewModel::setConfiguration
-            )
-
-            CONNECTING -> BusySpinner(
-                message = stringResource(string.connecting),
-                onCancel = cancelConnect
-            )
-
-            LOGIN -> LoginDialog(userName, viewModel::setUserName)
-
-            OAUTH -> loginWithAmazon()
-
-            UI_SETTINGS -> UISettingsDialog(
-                value = UISettings.collectAsState().value,
-                onDismiss = viewModel::cancelUiSettings,
-                pickImage = ::pickImage,
-            ) {
-                viewModel.uiSettingsRepository.save(it)
-            }
-
-            else -> Ignored
-        }
+        uiState.Content(this@StoreActivity)
     }
 
-    private fun pickImage(onPickImage: (String?) -> Unit) {
+    override fun pickImage(onPickImage: (String?) -> Unit) {
         onPickImageCallback.set(WeakReference(onPickImage))
         // Launch the photo picker and let the user choose only images.
         pickMedia.launch(PickVisualMediaRequest(ImageOnly))
     }
 
-    private fun loginWithAmazon() {
+    override fun loginWithAmazon() = logger.scope("loginWithAmazon") {
         val (codeVerifier, codeChallenge) = PKCE.generateCodeVerifier()
 
-        requestContext.registerListener(object : AuthorizeListener() {
-            override fun onSuccess(result: AuthorizeResult?) {
-                result?.accessToken?.let { accessToken ->
-                    viewModel.setAuthorization(ChatAuthorization(codeVerifier, accessToken))
-                } ?: Log.e(TAG, "loginWithAmazon success with no result")
-            }
-
-            override fun onError(p0: AuthError?) {
-                Log.i(TAG, "LoginWithAmazon: ${p0?.message ?: getString(string.unknown_error)}")
-            }
-
-            override fun onCancel(p0: AuthCancellation?) {
-                Log.i(TAG, "LoginWithAmazon: ${p0?.description}")
-            }
-        })
+        requestContext.registerListener(LoggingAuthorizeListener(codeVerifier, this))
 
         AuthorizationManager.authorize(
             AuthorizeRequest.Builder(requestContext)
@@ -229,15 +176,46 @@ class StoreActivity : ComponentActivity() {
         )
     }
 
-    companion object {
+    private inner class LoggingAuthorizeListener(
+        private val codeVerifier: String,
+        logger: Logger,
+    ) : AuthorizeListener(), LoggerScope by LoggerScope<AuthorizeListener>(logger) {
+        override fun onSuccess(result: AuthorizeResult?) = scope("onSuccess") {
+            result?.accessToken?.let { accessToken ->
+                storeViewModel.chatSettingsHandler.setAuthorization(ChatAuthorization(codeVerifier, accessToken))
+            } ?: error("loginWithAmazon success with no result")
+        }
+
+        override fun onError(authError: AuthError?) = scope("onError") {
+            info("LoginWithAmazon: ${authError?.message ?: getString(string.unknown_error)}")
+        }
+
+        override fun onCancel(authCancellation: AuthCancellation?) = scope("onCancel") {
+            info("LoginWithAmazon: ${authCancellation?.description}")
+        }
+    }
+
+    private companion object {
         private const val TAG = "StoreActivity"
 
-        private val screens: List<Screen> = listOf(
+        val screens: List<Screen> = listOf(
             ProductListScreen,
             ProductScreen,
             CartScreen,
             PaymentScreen,
             ConfirmationScreen,
         )
+
+        suspend fun Context.copyUriInputToLocalFile(
+            pickedUri: Uri?
+        ): String? = withContext(Dispatchers.IO) {
+            runCatching {
+                val uri = checkNotNull(pickedUri)
+                val localCopy = File(filesDir, "logo")
+                checkNotNull(contentResolver.openInputStream(uri))
+                    .use { inputStream -> localCopy.outputStream().use(inputStream::copyTo) }
+                localCopy.toUri().toString()
+            }.getOrNull()
+        }
     }
 }

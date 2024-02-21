@@ -1,0 +1,50 @@
+plugins {
+    id "android-library-conventions"
+    id "android-kotlin-conventions"
+    id "android-docs-conventions"
+    id "android-test-conventions"
+    id "android-library-style-conventions"
+    id "publish-conventions"
+}
+
+android {
+    namespace 'com.nice.cxonechat.okhttp'
+
+    defaultConfig {
+        consumerProguardFiles "consumer-rules.pro"
+        versionName version
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+        }
+        release {
+            minifyEnabled false
+        }
+    }
+
+    sourceSets {
+        main.java.srcDirs += "../utilities/src/main/java"
+        test {
+            resources {
+                srcDirs "src/test/assets"
+            }
+        }
+    }
+}
+
+// Setup publishing of all library variants.
+// Dependant will get matching variant automatically (eg.: buildType:debug will get buildType:debug)
+// Alternatively they can provide transformation mapping.
+mavenPublishing {
+    configure(new com.vanniktech.maven.publish.AndroidMultiVariantLibrary(true, true))
+}
+
+dependencies {
+    implementation "androidx.core:core-ktx:1.12.0"
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+}

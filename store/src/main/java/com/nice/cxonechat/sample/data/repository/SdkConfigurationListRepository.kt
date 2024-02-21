@@ -19,20 +19,22 @@ import android.content.Context
 import androidx.compose.runtime.Stable
 import com.nice.cxonechat.sample.data.models.SdkConfigurationList
 import com.nice.cxonechat.sample.data.models.SdkConfigurations
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import javax.inject.Inject
-import javax.inject.Singleton
+import org.koin.core.annotation.Single
 
 /**
  * Repository to read the SdkConfigurationList from assets.
  *
  * @param context Application context to access assets.
  */
-@Singleton
-class SdkConfigurationListRepository @Inject constructor(@ApplicationContext val context: Context)
-    : AssetRepository<SdkConfigurationList>("environment.json", SdkConfigurationList::class) {
+@Single
+class SdkConfigurationListRepository(
+    val context: Context,
+) : AssetRepository<SdkConfigurationList>(
+    name = "environment.json",
+    type = SdkConfigurationList::class,
+) {
     private val configurationListStore = MutableStateFlow<SdkConfigurations>(emptyList())
 
     /** Predefined configurations from which we can choose. */

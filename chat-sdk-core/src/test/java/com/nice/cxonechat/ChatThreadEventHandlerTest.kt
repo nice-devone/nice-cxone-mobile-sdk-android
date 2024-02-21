@@ -4,8 +4,8 @@ import com.nice.cxonechat.event.thread.ChatThreadEvent
 import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.server.ServerRequest
 import com.nice.cxonechat.thread.ChatThread
+import io.mockk.every
 import org.junit.Test
-import org.mockito.kotlin.whenever
 import java.util.Date
 
 internal class ChatThreadEventHandlerTest : AbstractChatTest() {
@@ -31,7 +31,7 @@ internal class ChatThreadEventHandlerTest : AbstractChatTest() {
 
     @Test
     fun trigger_refreshesToken() {
-        whenever(storage.authTokenExpDate).thenReturn(Date())
+        every { storage.authTokenExpDate } returns Date()
         assertSendTexts(
             ServerRequest.RefreshToken(connection),
             """{"field":10}"""

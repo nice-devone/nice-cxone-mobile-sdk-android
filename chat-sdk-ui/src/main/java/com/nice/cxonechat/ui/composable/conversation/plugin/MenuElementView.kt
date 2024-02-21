@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.nice.cxonechat.ui.composable.conversation.MessageItem
 import com.nice.cxonechat.ui.composable.conversation.PreviewMessageItemBase
 import com.nice.cxonechat.ui.composable.conversation.model.PluginElement.Menu
 import com.nice.cxonechat.ui.composable.generic.ImageCarousel
@@ -52,7 +51,8 @@ internal fun MenuElementView(menu: Menu, modifier: Modifier = Modifier) {
 @Composable
 @Preview
 private fun PreviewMenu() {
-    PreviewMessageItemBase {
-        MessageItem(message = PluginPreviewProvider().menu.asMessage("menu"))
-    }
+    PreviewMessageItemBase(
+        message = MessagePreviewProvider().menu.asMessage("menu"),
+        showSender = true,
+    )
 }

@@ -23,32 +23,55 @@ import androidx.annotation.OptIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.Icon
 import androidx.compose.material.LocalContentColor
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.Icons.Outlined
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.outlined.VideoFile
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.R.string
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.C
+import androidx.media3.common.C.VideoScalingMode
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import androidx.media3.ui.PlayerView.FullscreenButtonClickListener
 import com.nice.cxonechat.ui.composable.theme.LocalSpace
 
 /**
  * ExoPlayer wrapped as Composable, set for video playing.
+ *
+ * @param uri An [Uri] of the video to be played.
+ * @param modifier A [Modifier] which should be used by the player view.
+ * @param videoScalingMode A [VideoScalingMode] to be used by the player,
+ * the default is [C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING].
+ * @param onFullScreenClickListener An optional listener which will
  */
 @Composable
 @OptIn(UnstableApi::class)
-internal fun VideoPlayer(uri: Uri, modifier: Modifier = Modifier) {
-    if (LocalInspectionMode.current) {
+internal fun VideoPlayer(
+    uri: Uri?,
+    modifier: Modifier = Modifier,
+    @VideoScalingMode videoScalingMode: Int = C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING,
+    onFullScreenClickListener: FullscreenButtonClickListener? = null,
+) {
+    if (uri == null) {
+        Icon(
+            imageVector = Icons.Default.ErrorOutline,
+            contentDescription = stringResource(id = string.default_error_message)
+        )
+    } else if (LocalInspectionMode.current) {
         // ExoPlayer is not working in Preview mode
         LocalInspectionPlaceholder()
     } else {
@@ -59,11 +82,11 @@ internal fun VideoPlayer(uri: Uri, modifier: Modifier = Modifier) {
         }
 
         exoPlayer.playWhenReady = true
-        exoPlayer.videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING
+        exoPlayer.videoScalingMode = videoScalingMode
         exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
 
         AndroidView(
-            factory = { viewContext -> playerFactory(viewContext, exoPlayer) },
+            factory = { viewContext -> playerFactory(viewContext, exoPlayer, onFullScreenClickListener) },
             modifier = modifier,
             onRelease = { playerView -> playerView.player?.release() },
             update = { playerView -> playerView.updatePlayer(exoPlayer) },
@@ -80,12 +103,17 @@ private fun PlayerView.updatePlayer(exoPlayer: ExoPlayer) {
 }
 
 @OptIn(UnstableApi::class)
-private fun playerFactory(viewContext: Context, exoPlayer: ExoPlayer) =
+private fun playerFactory(
+    viewContext: Context,
+    exoPlayer: ExoPlayer,
+    onFullScreenClickListener: FullscreenButtonClickListener?,
+) =
     PlayerView(viewContext).apply {
         controllerAutoShow = true
         resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
         player = exoPlayer
         layoutParams = FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
+        setFullscreenButtonClickListener(onFullScreenClickListener)
     }
 
 @Preview

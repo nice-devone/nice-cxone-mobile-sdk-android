@@ -1,20 +1,36 @@
+/*
+ * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ *
+ * Licensed under the NICE License;
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
+ *
+ * TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
+ * AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
+ * OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+ */
+
 package com.nice.cxonechat
 
-import androidx.test.InstrumentationRegistry
+import android.app.Application
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.filters.SmallTest
-import androidx.test.runner.AndroidJUnit4
+import com.nice.cxonechat.ChatBuilder.OnChatBuiltResultCallback
 import com.nice.cxonechat.internal.model.EnvironmentInternal
+import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.junit.runner.RunWith
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit.SECONDS
 
-@RunWith(AndroidJUnit4::class)
 @SmallTest
-class ChatBuilderIntegrationTest {
+internal class ChatBuilderIntegrationTest {
 
     @Test
     fun connectsToServer() {
-        val context = InstrumentationRegistry.getContext()
+        val context = ApplicationProvider.getApplicationContext<Application>()
         val environment = EnvironmentInternal(
             name = "",
             location = "",
@@ -25,14 +41,15 @@ class ChatBuilderIntegrationTest {
         )
         val config = SocketFactoryConfiguration(environment, 6450, "chat_f62c9eaf-f030-4d0d-aa87-6e8a5aed3c55")
         val latch = CountDownLatch(1)
-        ChatBuilder(context, config)
+        val cancellable = ChatBuilder(context, config)
             .setDevelopmentMode(true)
             .setUserName("john", "doe")
-            .build {
-                it.close()
+            .build(resultCallback = {
+                it.getOrThrow().close()
                 latch.countDown()
-            }
-        latch.await()
+            })
+        assertTrue(latch.await(10, SECONDS))
+        cancellable.cancel()
     }
 
 }

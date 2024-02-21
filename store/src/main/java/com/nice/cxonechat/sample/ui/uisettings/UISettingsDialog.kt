@@ -44,9 +44,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.ImageLoader
 import coil.compose.AsyncImage
 import com.nice.cxonechat.sample.R.string
 import com.nice.cxonechat.sample.data.models.UISettingsModel
@@ -58,7 +60,7 @@ import com.nice.cxonechat.sample.ui.theme.Dialog
 import com.nice.cxonechat.sample.ui.theme.LocalSpace
 import com.nice.cxonechat.sample.ui.theme.MultiToggleButton
 import com.nice.cxonechat.sample.ui.theme.OutlinedButton
-import com.nice.cxonechat.ui.composable.theme.ChatThemeDetails
+import kotlinx.coroutines.Dispatchers
 
 /**
  * Edit the UI Settings currently in place.
@@ -66,6 +68,7 @@ import com.nice.cxonechat.ui.composable.theme.ChatThemeDetails
  * @param value current settings
  * @param onDismiss close the dialog with no changes.
  * @param pickImage action which when finished will return string which will be resolvable as an image.
+ * @param onReset ui settings should be reset to a default state.
  * @param onConfirm new settings have been accepted, change them as necessary.
  */
 @Composable
@@ -73,6 +76,7 @@ fun UISettingsDialog(
     value: UISettingsModel,
     onDismiss: () -> Unit,
     pickImage: ((String?) -> Unit) -> Unit,
+    onReset: () -> Unit,
     onConfirm: (UISettingsModel) -> Unit,
 ) {
     var current by remember { mutableStateOf(value) }
@@ -96,7 +100,7 @@ fun UISettingsDialog(
             }
         }
     ) {
-        SettingsView(settings = current, pickImage, onChanged = { current = it })
+        SettingsView(settings = current, pickImage, onChanged = { current = it }, onReset = onReset)
 
         if (error != null) {
             AlertDialog(
@@ -118,6 +122,7 @@ private fun SettingsView(
     settings: UISettingsModel,
     pickImage: ((String?) -> Unit) -> Unit,
     onChanged: (UISettingsModel) -> Unit,
+    onReset: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -134,9 +139,7 @@ private fun SettingsView(
                 .fillMaxWidth()
                 .padding(top = space.large),
         ) {
-            AppTheme.OutlinedButton(text = stringResource(string.set_defaults)) {
-                onChanged(UISettingsModel())
-            }
+            AppTheme.OutlinedButton(text = stringResource(string.set_defaults), onClick = onReset)
         }
     }
 }
@@ -180,8 +183,9 @@ private fun ImagePicker(
         modifier = modifier,
     ) {
         AsyncImage(
+            imageLoader = ImageLoader.Builder(LocalContext.current).interceptorDispatcher(Dispatchers.IO).build(),
             placeholder = rememberVectorPainter(image = Icons.Default.Image),
-            model = settings.logo ?: ChatThemeDetails.images.logo,
+            model = settings.logo,
             contentDescription = null,
             modifier = Modifier
                 .padding(LocalSpace.current.medium)
@@ -190,7 +194,7 @@ private fun ImagePicker(
         Button(
             onClick = {
                 pickImage { pickedImage ->
-                    onChanged(settings.copy(logo = pickedImage))
+                    onChanged(settings.copy(storedLogo = pickedImage))
                 }
             },
             modifier = Modifier
@@ -269,7 +273,7 @@ private fun UISettingsDialogPreview() {
                 .fillMaxWidth(1f)
                 .fillMaxHeight(1f)
         ) {
-            UISettingsDialog(current, {}, {}, {})
+            UISettingsDialog(current, {}, {}, {}, {})
         }
     }
 }

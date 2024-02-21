@@ -17,14 +17,15 @@ package com.nice.cxonechat.ui.composable.conversation.model
 
 import android.content.Context
 import androidx.compose.runtime.Stable
+import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.message.OutboundMessage
-import com.nice.cxonechat.ui.composable.conversation.model.Message.Attachment
 import com.nice.cxonechat.ui.composable.conversation.model.Message.ListPicker
 import com.nice.cxonechat.ui.composable.conversation.model.Message.Plugin
 import com.nice.cxonechat.ui.composable.conversation.model.Message.QuickReply
 import com.nice.cxonechat.ui.composable.conversation.model.Message.RichLink
 import com.nice.cxonechat.ui.composable.conversation.model.Message.Text
 import com.nice.cxonechat.ui.composable.conversation.model.Message.Unsupported
+import com.nice.cxonechat.ui.composable.conversation.model.Message.WithAttachments
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -43,16 +44,17 @@ import com.nice.cxonechat.message.Message as SdkMessage
  * @property typingIndicator Flow indicating that the agent handling the conversation is typing.
  * @property sendMessage An action which will be invoked if the user wants to post a new message to the conversation, or
  * if he has interacted with an element which generates a message.
- * @property onClick An action which handles when users performs clicks interaction with one concrete message in the
- * conversation.
- * @property onLongClick An action which handles performs long click interaction with one concrete message in the
- * conversation.
  * @property loadMore An action which will be called when more messages can be displayed/loaded.
  * @property canLoadMore Flow indicating if there are more messages to load.
- * @param onStartTyping An action which will be called when the user has started to type a text message.
- * @param onStopTyping An action which will be called (with some delay) when the user has stopped typing a text message.
+ * @property onStartTyping An action which will be called when the user has started to type a text message.
+ * @property onStopTyping An action which will be called (with some delay) when the user has stopped typing a text message.
+ * @property onAttachmentClicked An action which handles when users clicks on an Attachment
+ * @property onMoreClicked An action to take when the more button is clicked in an attachment preview.
+ * @property onShare Action to take when share is selected via long press or attachment selection dialog.
  * @param backgroundDispatcher Optional dispatcher used for mapping of incoming messages off the main thread,
  * intended for testing.
+ * @property isMultiThreaded true iff the channel is configured for multiple threads.
+ * @property hasQuestions true iff there is a prechat questionnaire for the channel.
  */
 @Suppress(
     "LongParameterList", // POJO class
@@ -63,13 +65,16 @@ internal data class ConversationUiState(
     private val sdkMessages: Flow<List<SdkMessage>>,
     internal val typingIndicator: Flow<Boolean>,
     internal val sendMessage: (OutboundMessage) -> Unit,
-    internal val onClick: (Message) -> Unit = {},
-    internal val onLongClick: (Message) -> Unit = {},
     internal val loadMore: () -> Unit,
     internal val canLoadMore: StateFlow<Boolean>,
     internal val onStartTyping: () -> Unit,
     internal val onStopTyping: () -> Unit,
+    internal val onAttachmentClicked: (Attachment) -> Unit,
+    internal val onMoreClicked: (List<Attachment>, String) -> Unit,
+    internal val onShare: (Collection<Attachment>) -> Unit,
     private val backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    internal val isMultiThreaded: Boolean,
+    internal val hasQuestions: Boolean,
 ) {
     @Stable
     internal fun messages(context: Context): Flow<List<Section>> = sdkMessages
@@ -84,14 +89,12 @@ internal data class ConversationUiState(
 
     @Stable
     private fun SdkMessage.toUiMessage(): Message = when (this) {
-        is SdkMessage.Text -> {
-            val attachments = attachments.toList()
-            if (attachments.isEmpty()) {
+        is SdkMessage.Text ->
+            if (attachments.firstOrNull() == null) {
                 Text(message = this)
             } else {
-                Attachment(this, attachments.first())
+                WithAttachments(this)
             }
-        }
 
         is SdkMessage.RichLink -> RichLink(this)
         is SdkMessage.ListPicker -> ListPicker(this, sendMessage)

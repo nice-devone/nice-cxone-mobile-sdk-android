@@ -1,0 +1,117 @@
+// Signature format: 4.0
+package com.nice.cxonechat.log {
+
+  public abstract sealed class Level {
+    method public operator int compareTo(com.nice.cxonechat.log.Level other);
+    method public abstract int getIntValue();
+    property public abstract int intValue;
+  }
+
+  public static final class Level.All extends com.nice.cxonechat.log.Level {
+    method public int getIntValue();
+    property public int intValue;
+    field public static final com.nice.cxonechat.log.Level.All INSTANCE;
+  }
+
+  public static final class Level.Custom extends com.nice.cxonechat.log.Level {
+    ctor public Level.Custom(int intValue);
+    method public int getIntValue();
+    property public int intValue;
+  }
+
+  public static final class Level.Debug extends com.nice.cxonechat.log.Level {
+    method public int getIntValue();
+    property public int intValue;
+    field public static final com.nice.cxonechat.log.Level.Debug INSTANCE;
+  }
+
+  public static final class Level.Error extends com.nice.cxonechat.log.Level {
+    method public int getIntValue();
+    property public int intValue;
+    field public static final com.nice.cxonechat.log.Level.Error INSTANCE;
+  }
+
+  public static final class Level.Info extends com.nice.cxonechat.log.Level {
+    method public int getIntValue();
+    property public int intValue;
+    field public static final com.nice.cxonechat.log.Level.Info INSTANCE;
+  }
+
+  public static final class Level.Verbose extends com.nice.cxonechat.log.Level {
+    method public int getIntValue();
+    property public int intValue;
+    field public static final com.nice.cxonechat.log.Level.Verbose INSTANCE;
+  }
+
+  public static final class Level.Warning extends com.nice.cxonechat.log.Level {
+    method public int getIntValue();
+    property public int intValue;
+    field public static final com.nice.cxonechat.log.Level.Warning INSTANCE;
+  }
+
+  public final class LevelTest {
+    ctor public LevelTest();
+    method public void all_hasLevelMinValue();
+    method public void compareTo_returnsValidInteger();
+    method public void custom_hasLevelUnmodified();
+    method public void debug_hasLevel400();
+    method public void error_hasLevel1000();
+    method public void info_hasLevel800();
+    method public void verbose_hasLevel300();
+    method public void verify_order();
+    method public void warning_hasLevel900();
+  }
+
+  public interface Logger {
+    method public void log(com.nice.cxonechat.log.Level level, String message, optional Throwable? throwable);
+  }
+
+  public final class LoggerExtKt {
+    method public static void debug(com.nice.cxonechat.log.Logger, String message, optional Throwable? throwable);
+    method public static inline <T> T duration(com.nice.cxonechat.log.Logger, kotlin.jvm.functions.Function0<? extends T> body);
+    method public static void error(com.nice.cxonechat.log.Logger, String message, optional Throwable? throwable);
+    method public static void info(com.nice.cxonechat.log.Logger, String message, optional Throwable? throwable);
+    method public static void verbose(com.nice.cxonechat.log.Logger, String message, optional Throwable? throwable);
+    method public static void warning(com.nice.cxonechat.log.Logger, String message, optional Throwable? throwable);
+  }
+
+  public final class LoggerNoop implements com.nice.cxonechat.log.Logger {
+    method public void log(com.nice.cxonechat.log.Level level, String message, Throwable? throwable);
+    field public static final com.nice.cxonechat.log.LoggerNoop INSTANCE;
+  }
+
+  public interface LoggerScope extends com.nice.cxonechat.log.Logger {
+    method public com.nice.cxonechat.log.Logger getIdentity();
+    method public String getScope();
+    property public abstract com.nice.cxonechat.log.Logger identity;
+    property public abstract String scope;
+    field public static final com.nice.cxonechat.log.LoggerScope.Companion Companion;
+  }
+
+  public static final class LoggerScope.Companion {
+    method public inline operator <reified T> com.nice.cxonechat.log.LoggerScope! invoke(com.nice.cxonechat.log.Logger identity);
+    method public operator com.nice.cxonechat.log.LoggerScope invoke(String name, com.nice.cxonechat.log.Logger identity);
+  }
+
+  public final class LoggerScopeKt {
+    method public static inline <T> T scope(com.nice.cxonechat.log.LoggerScope, String name, kotlin.jvm.functions.Function1<? super com.nice.cxonechat.log.LoggerScope,? extends T> body);
+    method public static inline <T> T timedScope(com.nice.cxonechat.log.LoggerScope, String name, kotlin.jvm.functions.Function0<? extends T> body);
+  }
+
+  public final class ProxyLogger implements com.nice.cxonechat.log.Logger {
+    ctor public ProxyLogger(com.nice.cxonechat.log.Logger... loggers);
+    ctor public ProxyLogger(optional Iterable<? extends com.nice.cxonechat.log.Logger> initialLoggers);
+    method public void add(com.nice.cxonechat.log.Logger logger);
+    method public void add(com.nice.cxonechat.log.Logger... loggers);
+    method public void addAll(Iterable<? extends com.nice.cxonechat.log.Logger> loggers);
+    method public void clear();
+    method public int getLoggerCount();
+    method public java.util.List<com.nice.cxonechat.log.Logger> getLoggers();
+    method public void log(com.nice.cxonechat.log.Level level, String message, Throwable? throwable);
+    method public void remove(com.nice.cxonechat.log.Logger logger);
+    property public final int loggerCount;
+    property public final java.util.List<com.nice.cxonechat.log.Logger> loggers;
+  }
+
+}
+

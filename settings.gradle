@@ -1,7 +1,15 @@
 pluginManagement {
     repositories {
         gradlePluginPortal()
-        google()
+        google() {
+            content {
+                includeGroupByRegex "com.android.*"
+                includeGroupByRegex "androidx.*"
+                includeGroup "android.arch.lifecycle"
+                includeGroup "android.arch.core"
+                includeGroupByRegex "com.google.*"
+            }
+        }
         mavenCentral()
     }
 }
@@ -13,16 +21,38 @@ plugins {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        google()
+        google() {
+            content {
+                includeGroupByRegex "com.android.*"
+                includeGroupByRegex "androidx.*"
+                includeGroup "android.arch.lifecycle"
+                includeGroup "android.arch.core"
+                includeGroupByRegex "com.google.*"
+            }
+        }
         mavenCentral()
-        maven { url 'https://jitpack.io' } //  Used only for com.github.jeziellago:compose-markdown
+        exclusiveContent {
+            forRepository {
+                //noinspection ForeignDelegate
+                maven {
+                    url 'https://jitpack.io'
+                    content {
+                        includeModule("com.github.jeziellago", "Markwon")
+                        includeModule("com.github.jeziellago", "compose-markdown")
+                    }
+                }
+            }
+            filter {
+                includeGroup("com.github.jeziellago")
+            }
+        }
     }
 }
 
 rootProject.name = "cxone-chat-sdk"
 
 android {
-    compileSdk 33
+    compileSdk 34
     minSdk 23
     execution {
         profiles {
@@ -51,3 +81,6 @@ include ':chat-sdk-core'
 include ':chat-sdk-ui'
 include ':cxone-detekt-rules'
 include ':store'
+include ':utilities'
+include ':logger'
+include ':logger-android'

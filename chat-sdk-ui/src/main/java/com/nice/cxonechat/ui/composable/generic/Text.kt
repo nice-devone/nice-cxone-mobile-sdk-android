@@ -21,10 +21,15 @@ import androidx.compose.ui.Modifier
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 
 @Composable
-internal fun DialogTitle(text: String, modifier: Modifier = Modifier) {
-    Text(
-        text = text,
-        style = ChatTheme.chatTypography.dialogTitle,
-        modifier = modifier,
-    )
-}
+internal fun DialogTitle(text: String, modifier: Modifier = Modifier) = Text(
+    text = text,
+    style = ChatTheme.chatTypography.dialogTitle,
+    modifier = modifier,
+)
+
+@Composable
+internal fun CardTitle(title: String, modifier: Modifier = Modifier) = Text(
+    text = title,
+    style = ChatTheme.chatTypography.chatCardTitle,
+    modifier = modifier,
+)

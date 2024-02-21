@@ -35,73 +35,90 @@ import androidx.activity.result.contract.ActivityResultContracts.RequestMultiple
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.snackbar.Snackbar.SnackbarLayout
 import com.google.gson.Gson
-import com.nice.cxonechat.ui.R
+import com.nice.cxonechat.message.Attachment
+import com.nice.cxonechat.ui.EditCustomValuesDialog
+import com.nice.cxonechat.ui.EditThreadNameDialog
+import com.nice.cxonechat.ui.R.string
+import com.nice.cxonechat.ui.composable.conversation.AudioPlayerDialog
 import com.nice.cxonechat.ui.composable.conversation.AudioRecordingUiState
 import com.nice.cxonechat.ui.composable.conversation.ChatConversation
+import com.nice.cxonechat.ui.composable.conversation.SelectAttachmentsDialog
 import com.nice.cxonechat.ui.composable.conversation.model.ConversationUiState
-import com.nice.cxonechat.ui.composable.conversation.model.Message.Attachment
+import com.nice.cxonechat.ui.composable.generic.ImageViewerDialogCard
+import com.nice.cxonechat.ui.composable.generic.VideoViewerDialogCard
+import com.nice.cxonechat.ui.composable.theme.BusySpinner
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.customvalues.mergeWithCustomField
 import com.nice.cxonechat.ui.databinding.CustomSnackBarBinding
 import com.nice.cxonechat.ui.databinding.FragmentChatThreadBinding
 import com.nice.cxonechat.ui.domain.AttachmentSharingRepository
+import com.nice.cxonechat.ui.main.ChatThreadViewModel.Dialogs.AudioPlayer
+import com.nice.cxonechat.ui.main.ChatThreadViewModel.Dialogs.CustomValues
+import com.nice.cxonechat.ui.main.ChatThreadViewModel.Dialogs.EditThreadName
+import com.nice.cxonechat.ui.main.ChatThreadViewModel.Dialogs.ImageViewer
+import com.nice.cxonechat.ui.main.ChatThreadViewModel.Dialogs.None
+import com.nice.cxonechat.ui.main.ChatThreadViewModel.Dialogs.SelectAttachments
+import com.nice.cxonechat.ui.main.ChatThreadViewModel.Dialogs.VideoPlayer
 import com.nice.cxonechat.ui.main.ChatThreadViewModel.OnPopupActionState.ReceivedOnPopupAction
 import com.nice.cxonechat.ui.main.ChatThreadViewModel.ReportOnPopupAction.FAILURE
 import com.nice.cxonechat.ui.main.ChatThreadViewModel.ReportOnPopupAction.SUCCESS
+import com.nice.cxonechat.ui.storage.ValueStorage
 import com.nice.cxonechat.ui.util.checkPermissions
+import com.nice.cxonechat.ui.util.contentDescription
 import com.nice.cxonechat.ui.util.openWithAndroid
 import com.nice.cxonechat.ui.util.repeatOnViewOwnerLifecycle
 import com.nice.cxonechat.ui.util.showRationale
-import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import org.json.JSONTokener
-import javax.inject.Inject
-import com.nice.cxonechat.ui.composable.conversation.model.Message as UiMessage
+import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 /**
  * Fragment presenting UI of one concrete chat thread (conversation).
  */
 @Suppress(
-    "TooManyFunctions" // Legacy for now
+    "TooManyFunctions", // Legacy for now
+    "LargeClass",
 )
-@AndroidEntryPoint
 class ChatThreadFragment : Fragment() {
 
-    private val viewModel: ChatThreadViewModel by viewModels()
+    private val chatViewModel: ChatThreadViewModel by viewModel()
 
-    private val audioViewModel: AudioRecordingViewModel by viewModels()
-
-    private var fragmentBinding: FragmentChatThreadBinding? = null
+    private val audioViewModel: AudioRecordingViewModel by viewModel()
 
     private val activityLauncher by lazy {
         ActivityLauncher(requireActivity().activityResultRegistry)
             .also(lifecycle::addObserver)
     }
 
-    @Inject
-    internal lateinit var attachmentSharingRepository: AttachmentSharingRepository
-
     private val requestPermissionLauncher: ActivityResultLauncher<String> =
         registerForActivityResult(RequestPermission()) { isGranted ->
             if (!isGranted) {
                 AlertDialog.Builder(requireContext())
-                    .setTitle(R.string.no_notifications_title)
-                    .setMessage(R.string.no_notifications_message)
-                    .setNeutralButton(R.string.ok, null)
+                    .setTitle(string.no_notifications_title)
+                    .setMessage(string.no_notifications_message)
+                    .setNeutralButton(string.ok, null)
                     .show()
             }
         }
@@ -111,13 +128,19 @@ class ChatThreadFragment : Fragment() {
     ) { requestResults: Map<String, Boolean>? ->
         if (requestResults.orEmpty().any { !it.value }) {
             MaterialAlertDialogBuilder(requireContext())
-                .setTitle(R.string.recording_audio_permission_denied_title)
-                .setMessage(R.string.recording_audio_permission_denied_body)
-                .setNeutralButton(R.string.ok) { dialog, _ ->
+                .setTitle(string.recording_audio_permission_denied_title)
+                .setMessage(string.recording_audio_permission_denied_body)
+                .setNeutralButton(string.ok) { dialog, _ ->
                     dialog.dismiss()
                 }
         }
     }
+
+    private val valueStorage: ValueStorage by inject()
+
+    private val attachmentSharingRepository: AttachmentSharingRepository by inject()
+
+    private var fragmentBinding: FragmentChatThreadBinding? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -138,7 +161,7 @@ class ChatThreadFragment : Fragment() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             checkNotificationPermissions(
                 Manifest.permission.POST_NOTIFICATIONS,
-                R.string.notifications_rationale
+                string.notifications_rationale
             )
         }
         activityLauncher // activity launcher has to self-register before onStart
@@ -170,7 +193,7 @@ class ChatThreadFragment : Fragment() {
 
     private fun registerOnPopupActionListener() {
         repeatOnViewOwnerLifecycle {
-            viewModel.actionState.filterIsInstance<ReceivedOnPopupAction>().collect {
+            chatViewModel.actionState.filterIsInstance<ReceivedOnPopupAction>().collect {
                 val rawVariables = it.variables
                 try {
                     val variables = Gson().toJson(rawVariables)
@@ -183,7 +206,11 @@ class ChatThreadFragment : Fragment() {
                     val data = SnackbarSetupData(headingText, bodyText, actionText, actionUrl, it)
                     showSnackBar(data)
                 } catch (expected: Exception) {
-                    Toast.makeText(requireContext(), "Unable to decode ReceivedOnPopupAction", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        requireContext(),
+                        "Unable to decode ReceivedOnPopupAction",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }
@@ -191,7 +218,7 @@ class ChatThreadFragment : Fragment() {
 
     private fun registerChatMetadataListener() {
         repeatOnViewOwnerLifecycle {
-            viewModel.chatMetadata.collect { chatData ->
+            chatViewModel.chatMetadata.collect { chatData ->
                 activity?.title = chatData.threadName
             }
         }
@@ -199,86 +226,165 @@ class ChatThreadFragment : Fragment() {
 
     private fun registerMessageListener() {
         repeatOnViewOwnerLifecycle {
-            val threadNameFlow = viewModel.chatMetadata.map { it.threadName }
+            val threadNameFlow = chatViewModel.chatMetadata.map { it.threadName }
+
             fragmentBinding?.composeThreadView!!.setContent {
-                LaunchedEffect(key1 = viewModel) {
-                    viewModel.refresh()
-                }
-
-                ChatTheme {
-                    ChatConversation(
-                        conversationState = ConversationUiState(
-                            threadName = threadNameFlow,
-                            sdkMessages = viewModel.messages,
-                            typingIndicator = viewModel.agentState,
-                            sendMessage = viewModel::sendMessage,
-                            onClick = ::onMessageClick,
-                            onLongClick = ::onMessageLongClick,
-                            loadMore = viewModel::loadMore,
-                            canLoadMore = viewModel.canLoadMore,
-                            onStartTyping = ::onStartTyping,
-                            onStopTyping = ::onStopTyping,
-                        ),
-                        audioRecordingState = AudioRecordingUiState(
-                            uriFlow = audioViewModel.recordedUriFlow,
-                            isRecordingFlow = audioViewModel.recordingFlow,
-                            onDismiss = ::onDismissRecording,
-                            onApprove = viewModel::sendAttachment,
-                            onAudioRecordToggle = { onTriggerRecording() }
-                        ),
-                        onAttachmentTypeSelection = { activityLauncher.getContent(it) }
-                    )
-                }
+                ContentView(threadNameFlow)
+                DialogView()
             }
         }
     }
 
-    private fun onMessageClick(message: UiMessage) {
-        if (message !is Attachment) return
-        val url = message.originalUrl
-        val mimeType = message.mimeType.orEmpty()
-        val directions = when {
-            mimeType.startsWith("image/") -> ChatThreadFragmentDirections.actionChatThreadFragmentToImagePreviewActivity(
-                url
+    @Composable
+    private fun DialogView() {
+        when (val dialog = chatViewModel.dialogShown.collectAsState(None).value) {
+            None -> Unit
+            CustomValues -> EditCustomValuesDialog(
+                title = stringResource(string.edit_custom_field_title),
+                fields = chatViewModel
+                    .preChatSurvey
+                    ?.fields
+                    .orEmpty()
+                    .mergeWithCustomField(
+                        chatViewModel.customValues
+                    ),
+                onCancel = chatViewModel::cancelEditingCustomValues,
+                onConfirm = chatViewModel::confirmEditingCustomValues
+            )
+            EditThreadName -> EditThreadNameDialog(
+                threadName = chatViewModel.selectedThreadName.orEmpty(),
+                onCancel = chatViewModel::dismissDialog,
+                onAccept = chatViewModel::confirmEditThreadName
+            )
+            is AudioPlayer -> AudioPlayerDialog(
+                url = dialog.url,
+                title = dialog.title,
+                onCancel = chatViewModel::dismissDialog,
+            )
+            is SelectAttachments -> SelectAttachmentsDialog(
+                attachments = dialog.attachments,
+                title = dialog.title.orEmpty(),
+                onAttachmentTapped = ::onAttachmentClicked,
+                onCancel = chatViewModel::dismissDialog,
+                onShare = ::onShare,
             )
 
-            mimeType.startsWith("video/") -> ChatThreadFragmentDirections.actionChatThreadFragmentToVideoPreviewActivity(
-                url
+            is ImageViewer -> ImageViewerDialogCard(
+                image = dialog.image,
+                title = dialog.title,
+                onDismiss = chatViewModel::dismissDialog,
             )
 
-            else -> {
-                openWithAndroid(message)
-                return
-            }
+            is VideoPlayer -> VideoViewerDialogCard(
+                uri = dialog.uri,
+                title = dialog.title,
+                onDismiss = chatViewModel::dismissDialog
+            )
         }
-        findNavController().navigate(directions)
-    }
 
-    private fun onMessageLongClick(message: UiMessage) {
-        if (message !is Attachment) return
-        val context = context ?: return
-        lifecycleScope.launch {
-            val intent = attachmentSharingRepository.createSharingIntent(message, context)
-            if (intent == null) {
-                Toast.makeText(
-                    requireContext(),
-                    "Unable to store attachment for sharing, please try again later",
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else {
-                startActivity(Intent.createChooser(intent, null))
-            }
+        if (chatViewModel.preparingToShare.collectAsState().value) {
+            BusySpinner(message = stringResource(string.preparing))
         }
     }
 
-    private fun openWithAndroid(message: Attachment) {
+    @OptIn(ExperimentalComposeUiApi::class)
+    @Composable
+    private fun ContentView(threadNameFlow: Flow<String?>) {
+        LaunchedEffect(key1 = chatViewModel) {
+            chatViewModel.refresh()
+        }
+
+        ChatTheme {
+            ChatConversation(
+                conversationState = ConversationUiState(
+                    threadName = threadNameFlow,
+                    sdkMessages = chatViewModel.messages,
+                    typingIndicator = chatViewModel.agentState,
+                    sendMessage = chatViewModel::sendMessage,
+                    loadMore = chatViewModel::loadMore,
+                    canLoadMore = chatViewModel.canLoadMore,
+                    onStartTyping = ::onStartTyping,
+                    onStopTyping = ::onStopTyping,
+                    onAttachmentClicked = ::onAttachmentClicked,
+                    onMoreClicked = ::onMoreClicked,
+                    onShare = ::onShare,
+                    isMultiThreaded = chatViewModel.isMultiThreadEnabled,
+                    hasQuestions = chatViewModel.hasQuestions,
+                ),
+                audioRecordingState = AudioRecordingUiState(
+                    uriFlow = audioViewModel.recordedUriFlow,
+                    isRecordingFlow = audioViewModel.recordingFlow,
+                    onDismiss = ::onDismissRecording,
+                    onApprove = chatViewModel::sendAttachment,
+                    onAudioRecordToggle = ::onTriggerRecording
+                ),
+                onAttachmentTypeSelection = activityLauncher::getContent,
+                onEditThreadName = ::showEditThreadName,
+                onEditThreadValues = ::showEditCustomValues,
+                modifier = Modifier.semantics {
+                    testTagsAsResourceId = true // Enabled for UI test automation
+                }
+            )
+        }
+    }
+
+    private fun showEditThreadName() {
+        chatViewModel.editThreadName()
+    }
+
+    private fun showEditCustomValues() {
+        chatViewModel.startEditingCustomValues()
+    }
+
+    private fun onMoreClicked(attachments: List<Attachment>, title: String) {
+        chatViewModel.selectAttachments(attachments, title)
+    }
+
+    private fun onShare(attachments: Collection<Attachment>) {
+        chatViewModel.beginPrepareAttachments()
+
+        val context = context ?: return
+        lifecycleScope.launch(Dispatchers.IO) {
+            val intent = attachmentSharingRepository.createSharingIntent(attachments, context)
+            chatViewModel.finishPrepareAttachments()
+            lifecycleScope.launch(Dispatchers.Main) {
+                if (intent == null) {
+                    Toast.makeText(
+                        requireContext(),
+                        getString(string.prepare_attachments_failure),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    startActivity(Intent.createChooser(intent, null))
+                }
+            }
+        }
+    }
+
+    private fun onAttachmentClicked(attachment: Attachment) {
+        val url = attachment.url
+        val mimeType = attachment.mimeType.orEmpty()
+        val title by lazy { attachment.contentDescription }
+        when {
+            mimeType.startsWith("image/") ->
+                chatViewModel.showImage(url, title ?: getString(string.image_preview_title))
+
+            mimeType.startsWith("video/") ->
+                chatViewModel.showVideo(url, title ?: getString(string.video_preview_title))
+
+            mimeType.startsWith("audio/") -> chatViewModel.playAudio(url, title)
+            else -> openWithAndroid(attachment)
+        }
+    }
+
+    private fun openWithAndroid(attachment: Attachment) {
         val context = context ?: return
 
-        if (!context.openWithAndroid(message.originalUrl, message.mimeType)) {
+        if (!context.openWithAndroid(attachment.url, attachment.mimeType)) {
             AlertDialog.Builder(context)
-                .setTitle(R.string.unsupported_type_title)
-                .setMessage(getString(R.string.unsupported_type_message, message.mimeType))
-                .setNegativeButton(R.string.cancel, null)
+                .setTitle(string.unsupported_type_title)
+                .setMessage(getString(string.unsupported_type_message, attachment.mimeType))
+                .setNegativeButton(string.cancel, null)
                 .show()
         }
     }
@@ -291,12 +397,12 @@ class ChatThreadFragment : Fragment() {
     // TODO implement menu handling
 
     private fun onStartTyping() {
-        viewModel.reportThreadRead()
-        viewModel.reportTypingStarted()
+        chatViewModel.reportThreadRead()
+        chatViewModel.reportTypingStarted()
     }
 
     private fun onStopTyping() {
-        viewModel.reportTypingEnd()
+        chatViewModel.reportTypingEnd()
     }
 
     private fun showSnackBar(data: SnackbarSetupData) {
@@ -306,7 +412,7 @@ class ChatThreadFragment : Fragment() {
         val snackBinding = CustomSnackBarBinding.inflate(layoutInflater, null, false)
         snackbar.view.setBackgroundColor(Color.TRANSPARENT)
 
-        val snackbarLayout = snackbar.view as SnackbarLayout
+        val snackbarLayout = snackbar.view as ViewGroup
         snackbarLayout.setPadding(0, 0, 0, 0)
 
         val headingTextView: TextView = snackBinding.headingTextView
@@ -321,21 +427,21 @@ class ChatThreadFragment : Fragment() {
         val action = data.action
 
         actionTextView.setOnClickListener {
-            viewModel.reportOnPopupActionClicked(action)
+            chatViewModel.reportOnPopupActionClicked(action)
             // TODO build intent for the actionUrl
-            viewModel.reportOnPopupAction(SUCCESS, action)
+            chatViewModel.reportOnPopupAction(SUCCESS, action)
             snackbar.dismiss()
         }
 
         closeButton.setOnClickListener {
-            viewModel.reportOnPopupAction(FAILURE, action)
+            chatViewModel.reportOnPopupAction(FAILURE, action)
             snackbar.dismiss()
         }
 
         snackbarLayout.addView(snackBinding.root, 0)
         snackbar.show()
 
-        viewModel.reportOnPopupActionDisplayed(action)
+        chatViewModel.reportOnPopupActionDisplayed(action)
     }
 
     @SuppressLint(
@@ -343,8 +449,9 @@ class ChatThreadFragment : Fragment() {
     )
     private suspend fun onTriggerRecording(): Boolean {
         if (!checkPermissions(
+                valueStorage = valueStorage,
                 permissions = requiredRecordAudioPermissions,
-                rationale = R.string.recording_audio_permission_rationale,
+                rationale = string.recording_audio_permission_rationale,
                 onAcceptPermissionRequest = audioRequestPermissionLauncher::launch
             )
         ) {
@@ -363,16 +470,19 @@ class ChatThreadFragment : Fragment() {
         "MissingPermission" // permission state is checked by `checkPermissions()` method
     )
     private fun onDismissRecording() {
-        if (!checkPermissions(
-                permissions = requiredRecordAudioPermissions,
-                rationale = R.string.recording_audio_permission_rationale,
-                onAcceptPermissionRequest = audioRequestPermissionLauncher::launch
-            )
-        ) {
-            return
-        }
-        audioViewModel.deleteLastRecording(requireContext()) {
-            Toast.makeText(requireContext(), R.string.record_audio_failed_cleanup, Toast.LENGTH_LONG).show()
+        lifecycleScope.launch {
+            if (!checkPermissions(
+                    valueStorage = valueStorage,
+                    permissions = requiredRecordAudioPermissions,
+                    rationale = string.recording_audio_permission_rationale,
+                    onAcceptPermissionRequest = audioRequestPermissionLauncher::launch
+                )
+            ) {
+                return@launch
+            }
+            audioViewModel.deleteLastRecording(requireContext()) {
+                Toast.makeText(requireContext(), string.record_audio_failed_cleanup, Toast.LENGTH_LONG).show()
+            }
         }
     }
 
@@ -410,7 +520,7 @@ class ChatThreadFragment : Fragment() {
             getContent = registry.register("key", owner, GetContent()) { uri ->
                 val safeUri = uri ?: return@register
 
-                viewModel.sendAttachment(safeUri)
+                chatViewModel.sendAttachment(safeUri)
             }
         }
 

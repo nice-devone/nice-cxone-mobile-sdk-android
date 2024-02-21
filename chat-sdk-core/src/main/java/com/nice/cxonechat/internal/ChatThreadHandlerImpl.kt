@@ -21,7 +21,7 @@ import com.nice.cxonechat.ChatThreadEventHandler
 import com.nice.cxonechat.ChatThreadHandler
 import com.nice.cxonechat.ChatThreadHandler.OnThreadUpdatedListener
 import com.nice.cxonechat.ChatThreadMessageHandler
-import com.nice.cxonechat.enums.EventType.ThreadArchived
+import com.nice.cxonechat.enums.EventType.CaseStatusChanged
 import com.nice.cxonechat.enums.EventType.ThreadRecovered
 import com.nice.cxonechat.enums.EventType.ThreadUpdated
 import com.nice.cxonechat.event.thread.RecoverThreadEvent
@@ -30,11 +30,14 @@ import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.updateWith
 import com.nice.cxonechat.internal.model.ChatThreadMutable
 import com.nice.cxonechat.internal.model.CustomFieldInternal.Companion.updateWith
+import com.nice.cxonechat.internal.model.network.EventCaseStatusChanged
 import com.nice.cxonechat.internal.model.network.EventThreadRecovered
 import com.nice.cxonechat.internal.model.network.EventThreadUpdated
 import com.nice.cxonechat.internal.socket.EventCallback.Companion.addCallback
 import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.thread.ChatThreadState.Pending
+import com.nice.cxonechat.thread.ChatThreadState.Ready
 
 internal class ChatThreadHandlerImpl(
     private val chat: ChatWithParameters,
@@ -45,7 +48,7 @@ internal class ChatThreadHandlerImpl(
 
     override fun get(listener: OnThreadUpdatedListener): Cancellable {
         val onRecovered = chat.socketListener.addCallback<EventThreadRecovered>(ThreadRecovered) { event ->
-            if(event.inThread(thread)) {
+            if (event.inThread(thread)) {
                 updateFromEvent(event)
                 listener.onUpdated(thread)
             }
@@ -53,14 +56,16 @@ internal class ChatThreadHandlerImpl(
         val onUpdated = chat.socketListener.addCallback<EventThreadUpdated>(ThreadUpdated) {
             listener.onUpdated(thread)
         }
-        val onArchived = chat.socketListener.addCallback<Any>(ThreadArchived) {
-            refresh()
+        val onArchived = chat.socketListener.addCallback<EventCaseStatusChanged>(CaseStatusChanged) { event ->
+            CaseStatusChangedHandlerActions.handleCaseClosed(thread, event, listener::onUpdated)
         }
         return Cancellable(onRecovered, onUpdated, onArchived)
     }
 
     override fun refresh() {
-        events().trigger(RecoverThreadEvent)
+        if (thread.threadState != Pending) {
+            events().trigger(RecoverThreadEvent)
+        }
     }
 
     private fun updateFromEvent(event: EventThreadRecovered) {
@@ -77,7 +82,8 @@ internal class ChatThreadHandlerImpl(
             fields = thread.fields.updateWith(
                 // drop any fields not in the configuration
                 event.thread.fields.filter { chat.configuration.allowsFieldId(it.id) }
-            )
+            ),
+            threadState = Ready,
         )
         chat.fields = chat.fields.updateWith(
             // drop any fields not in the configuration
@@ -86,9 +92,12 @@ internal class ChatThreadHandlerImpl(
     }
 
     override fun setName(name: String) {
-        events().trigger(UpdateThreadEvent(name)) {
-            thread += thread.asCopyable().copy(threadName = name)
-        }
+        events().trigger(
+            event = UpdateThreadEvent(name),
+            listener = {
+                thread += thread.asCopyable().copy(threadName = name)
+            },
+        )
     }
 
     override fun messages(): ChatThreadMessageHandler {
@@ -104,6 +113,7 @@ internal class ChatThreadHandlerImpl(
         handler = ChatThreadEventHandlerImpl(chat, thread)
         handler = ChatThreadEventHandlerTokenGuard(handler, chat)
         handler = ChatThreadEventHandlerArchival(handler, chat, thread)
+        handler = ChatThreadEventHandlerThreading(handler, chat)
         return handler
     }
 

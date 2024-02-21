@@ -24,8 +24,18 @@ import java.util.Date
 @Public
 interface MessageMetadata {
     /**
+     * The date at which the message was seen (delivered) on backend.
+     * Default to null if the message is freshly sent by the SDK, always non-null
+     * if the message is delivered.
+     */
+    val seenAt: Date?
+
+    /**
      * The date at which the message was read.
      * Defaults to null if the message is freshly sent or delivered.
      * */
     val readAt: Date?
+
+    /** Inferred status of message. */
+    val status: MessageStatus
 }

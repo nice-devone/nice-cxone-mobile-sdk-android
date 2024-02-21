@@ -51,9 +51,9 @@ interface Connection {
      * It's automatically generated and not empty once connected
      * to the supporting socket for the first time.
      *
-     * It's also unchanged as long as the app data are intact.
+     * It may be changed by value originating from backend, e.g. in case of OAuth Authorization.
      */
-    val customerId: UUID?
+    val customerId: String?
 
     /**
      * The environment through which this instance connected.

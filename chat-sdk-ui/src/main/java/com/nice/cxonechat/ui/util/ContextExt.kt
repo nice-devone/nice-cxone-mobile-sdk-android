@@ -15,7 +15,9 @@
 
 package com.nice.cxonechat.ui.util
 
+import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.net.Uri
 import android.util.TypedValue
@@ -48,4 +50,15 @@ internal fun Context.openWithAndroid(url: String, mimeType: String?): Boolean {
         startActivity(intent)
         true
     }
+}
+
+/**
+ * Look up parent activity recursively.
+ *
+ * @return Parent [Activity] or `null`.
+ */
+internal tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    !is ContextWrapper -> null
+    else -> baseContext.findActivity()
 }

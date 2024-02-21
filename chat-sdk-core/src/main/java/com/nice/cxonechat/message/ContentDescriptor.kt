@@ -38,16 +38,14 @@ interface ContentDescriptor {
          *
          * @property bytes actual content
          */
-        class Bytes internal constructor(val bytes: ByteArray): DataSource() {
+        internal class Bytes(val bytes: ByteArray) : DataSource() {
             override fun equals(other: Any?): Boolean {
                 if (this === other) return true
                 if (javaClass != other?.javaClass) return false
 
                 other as Bytes
 
-                if (!bytes.contentEquals(other.bytes)) return false
-
-                return true
+                return bytes.contentEquals(other.bytes)
             }
 
             override fun hashCode(): Int = bytes.contentHashCode()
@@ -61,9 +59,9 @@ interface ContentDescriptor {
          * @property uri original uri of content
          * @property context Android context to be used to open the [uri]
          */
-        class Uri internal constructor(
+        internal class Uri(
             val uri: android.net.Uri,
-            val context: Context
+            val context: Context,
         ): DataSource() {
             override fun equals(other: Any?): Boolean {
                 if (this === other) return true
@@ -71,9 +69,7 @@ interface ContentDescriptor {
 
                 other as Uri
 
-                if (uri != other.uri) return false
-
-                return true
+                return uri == other.uri
             }
 
             override fun hashCode(): Int = uri.hashCode()
@@ -92,14 +88,15 @@ interface ContentDescriptor {
      * It's required to properly deserialize the file after upload.
      *
      * Visit [IANA](https://www.iana.org/) for valid mime types
-     * */
-    val mimeType: String?
+     */
+    val mimeType: String
 
     /**
      * Name of provided in [content].
      * Should contain the file name extension corresponding to the [mimeType].
-     * */
-    val fileName: String?
+     * Note: Either [mimeType] *must* be specified or [fileName] must include a valid extension.
+     */
+    val fileName: String
 
     /**
      * Friendly name provided in [content].
@@ -124,9 +121,9 @@ interface ContentDescriptor {
         operator fun invoke(
             content: android.net.Uri,
             context: Context,
-            mimeType: String?,
-            fileName: String?,
-            friendlyName: String?
+            mimeType: String,
+            fileName: String,
+            friendlyName: String? = null
         ): ContentDescriptor = ContentDescriptorInternal(
             content = DataSource.Uri(content, context),
             mimeType = mimeType,
@@ -146,8 +143,8 @@ interface ContentDescriptor {
         @JvmName("create")
         operator fun invoke(
             content: ByteArray,
-            mimeType: String?,
-            fileName: String?,
+            mimeType: String,
+            fileName: String,
             friendlyName: String?
         ): ContentDescriptor = ContentDescriptorInternal(
             content = DataSource.Bytes(content),

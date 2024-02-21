@@ -3,6 +3,8 @@
 /local.properties
 /.idea/
 !/.idea/codeStyles
+!/.idea/copyright
+!/.idea/scopes
 .DS_Store
 /build
 /captures

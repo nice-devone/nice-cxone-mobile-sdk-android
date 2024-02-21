@@ -15,7 +15,7 @@
 
 package com.nice.cxonechat.sample.ui
 
-import android.util.Log
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -24,7 +24,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
@@ -32,6 +32,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import com.nice.cxonechat.UserName
+import com.nice.cxonechat.log.Logger
+import com.nice.cxonechat.log.LoggerScope
+import com.nice.cxonechat.log.debug
+import com.nice.cxonechat.log.scope
 import com.nice.cxonechat.sample.R.string
 import com.nice.cxonechat.sample.data.models.ChatUserName
 import com.nice.cxonechat.sample.ui.theme.AppTheme
@@ -40,17 +44,29 @@ import com.nice.cxonechat.sample.ui.theme.Dialog
 import com.nice.cxonechat.sample.ui.theme.OutlinedButton
 import com.nice.cxonechat.sample.ui.theme.TextField
 import com.nice.cxonechat.sample.utilities.Requirements.required
+import org.koin.java.KoinJavaComponent.inject
 
 /**
  * Display the Login dialog to collect the users first and last name.
  *
  * @param userName Current [UserName] if any.
  * @param onAccept Invoked when the user accepts to dismiss the dialog and continue.
+ * @param analytics Additional [Composable] content which should be included in the dialog for purpose of tracking
+ * analytics data.
  */
 @Composable
-fun LoginDialog(userName: UserName?, onAccept: (UserName) -> Unit) {
-    var firstName by remember { mutableStateOf(userName?.firstName ?: "") }
-    var lastName by remember { mutableStateOf(userName?.lastName ?: "") }
+fun LoginDialog(
+    userName: UserName?,
+    onAccept: (UserName) -> Unit,
+    @SuppressLint(
+        "ComposableLambdaParameterNaming" // This is not intended for actual content.
+    )
+    analytics: (@Composable () -> Unit)? = null,
+) {
+    var firstName by rememberSaveable { mutableStateOf(userName?.firstName ?: "") }
+    var lastName by rememberSaveable { mutableStateOf(userName?.lastName ?: "") }
+
+    analytics?.invoke()
 
     AppTheme.Dialog(
         modifier = Modifier.wrapContentHeight(),
@@ -84,7 +100,7 @@ fun LoginDialog(userName: UserName?, onAccept: (UserName) -> Unit) {
                     onDone = {
                         focusManager.clearFocus()
                         val newUserName = ChatUserName(lastName = lastName, firstName = firstName)
-                        if(newUserName.valid) {
+                        if (newUserName.valid) {
                             onAccept(newUserName)
                         }
                     }
@@ -99,7 +115,15 @@ fun LoginDialog(userName: UserName?, onAccept: (UserName) -> Unit) {
 @Preview
 @Composable
 private fun LoginDialogPreview() {
-    LoginDialog(userName = null) { userName ->
-        Log.d("LoginDialog", "finish: $userName")
-    }
+    val logger: Logger by inject(Logger::class.java)
+    val loggerScope = LoggerScope("LoginDialogPreview", logger)
+
+    LoginDialog(
+        userName = null,
+        onAccept = { userName ->
+            loggerScope.scope("onAccept") {
+                debug("finish: $userName")
+            }
+        }
+    )
 }

@@ -16,6 +16,7 @@
 package com.nice.cxonechat.internal
 
 import com.nice.cxonechat.ChatEventHandler
+import com.nice.cxonechat.ChatEventHandler.OnEventErrorListener
 import com.nice.cxonechat.ChatEventHandler.OnEventSentListener
 import com.nice.cxonechat.event.ChatEvent
 import com.nice.cxonechat.event.PageViewEvent
@@ -28,11 +29,11 @@ internal class ChatEventHandlerVisitGuard(
     private val origin: ChatEventHandler,
     private val chat: ChatWithParameters,
 ) : ChatEventHandler by origin {
-    override fun trigger(event: ChatEvent, listener: OnEventSentListener?) {
+    override fun trigger(event: ChatEvent, listener: OnEventSentListener?, errorListener: OnEventErrorListener?) {
         if (event is PageViewEvent) {
             validateVisit(event.date)
         }
-        origin.trigger(event, listener)
+        origin.trigger(event, listener, errorListener)
     }
 
     private fun validateVisit(date: Date) {

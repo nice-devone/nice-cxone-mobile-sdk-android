@@ -52,17 +52,16 @@ internal fun RichLinkMessage(message: RichLink, modifier: Modifier = Modifier) {
 @Preview
 @Composable
 private fun PreviewMessageRichLink() {
-    PreviewMessageItemBase {
-        MessageItem(
-            message = RichLink(
-                message = PreviewRichLinkMessage(
-                    title = "Random cat",
-                    url = "https://nice.com",
-                    mediaUrl = "https://thecatapi.com/api/images/get?format=src&type=jpeg",
-                    mediaMimeType = "image/jpeg",
-                    mediaFileName = "Preview Image"
-                )
+    PreviewMessageItemBase(
+        message = RichLink(
+            message = PreviewRichLinkMessage(
+                title = "Random cat",
+                url = "https://nice.com",
+                mediaUrl = "https://thecatapi.com/api/images/get?format=src&type=jpeg",
+                mediaMimeType = "image/jpeg",
+                mediaFileName = "Preview Image"
             )
-        )
-    }
+        ),
+        showSender = true,
+    )
 }

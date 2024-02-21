@@ -18,7 +18,6 @@ package com.nice.cxonechat.ui.composable.conversation.plugin
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.nice.cxonechat.ui.composable.conversation.MessageItem
 import com.nice.cxonechat.ui.composable.conversation.PreviewMessageItemBase
 import com.nice.cxonechat.ui.composable.conversation.model.PluginElement.SatisfactionSurvey
 
@@ -41,7 +40,8 @@ internal fun SatisfactionSurveyElementView(
 @Composable
 @Preview
 private fun PreviewSatisfactionSurvey() {
-    PreviewMessageItemBase {
-        MessageItem(message = PluginPreviewProvider().satisfactionSurvey.asMessage("survey"))
-    }
+    PreviewMessageItemBase(
+        message = MessagePreviewProvider().satisfactionSurvey.asMessage("survey"),
+        showSender = true,
+    )
 }

@@ -28,7 +28,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.nice.cxonechat.ui.R
+import com.nice.cxonechat.ui.storage.ValueStorage
+import com.nice.cxonechat.ui.storage.ValueStorage.StringKey.REQUESTED_PERMISSIONS_KEY
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
 /**
@@ -67,38 +70,9 @@ internal fun Fragment.showRationale(@StringRes rationale: Int, onAcceptListener:
 }
 
 /**
- * Requests all permissions, for which user can be shown request, otherwise opens dialog which will navigate the user to system settings
- * of given application.
- * This method is intended to be used with [checkPermissions] method.
- *
- * @param rationale Rationale to be shown to the user.
- * @param requestablePermissions Permissions for which we can show user a request dialog.
- * @param onAcceptListener action which will be called if user accepts our dialog with rationale for permission request.
- * It will receive an array of requested permissions.
- */
-private fun Fragment.askForPermissions(
-    @StringRes rationale: Int,
-    requestablePermissions: Collection<String>,
-    onAcceptListener: (Array<String>) -> Unit,
-) {
-    if (requestablePermissions.isNotEmpty()) {
-        showRationale(rationale) {
-            onAcceptListener(requestablePermissions.toTypedArray())
-        }
-    } else {
-        // User has pressed 'Deny & Don't ask again' for permission request in the past,
-        // we need to navigate him to settings.
-        showRationale(rationale) {
-            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-            intent.data = Uri.fromParts("package", requireContext().packageName, null)
-            startActivity(intent)
-        }
-    }
-}
-
-/**
  * Checks if the required permissions are granted and requests user to grant them if they are not granted.
  *
+ * @param valueStorage Storage used to persist if the permission was already requested.
  * @param permissions Collection of required permissions
  * @param rationale Text with rationale which will explain user why we need said permissions.
  * @param onAcceptPermissionRequest Action which will be invoked when user accepts our request for permissions with an array of permissions
@@ -107,21 +81,47 @@ private fun Fragment.askForPermissions(
  *
  * @return `true` if all permissions were already granted, otherwise `false`.
  */
-internal fun Fragment.checkPermissions(
+internal suspend fun Fragment.checkPermissions(
+    valueStorage: ValueStorage,
     permissions: Iterable<String>,
     @StringRes rationale: Int,
     onAcceptPermissionRequest: (Array<String>) -> Unit,
 ): Boolean {
-    val missingPermissions = permissions.filterNot { permission ->
+    val missingPermissionsSet = permissions.filterNot { permission ->
         ContextCompat.checkSelfPermission(requireContext(), permission) == PackageManager.PERMISSION_GRANTED
-    }
+    }.toSet()
+    val missingPermissions = missingPermissionsSet.toTypedArray()
     val result = missingPermissions.isEmpty()
     if (!result) {
-        askForPermissions(
-            rationale = rationale,
-            requestablePermissions = missingPermissions.filter(::shouldShowRequestPermissionRationale),
-            onAcceptListener = onAcceptPermissionRequest
-        )
+        if (missingPermissions.any(::shouldShowRequestPermissionRationale)) {
+            // User has previously declined permission request, show rationale why the permission is important.
+            showRationale(
+                rationale = rationale,
+                onAcceptListener = { onAcceptPermissionRequest(missingPermissions) }
+            )
+        } else {
+            val requestedPermissions = valueStorage.getString(REQUESTED_PERMISSIONS_KEY)
+                .firstOrNull()
+                .orEmpty()
+                .split(", ")
+                .toSet()
+            if (missingPermissionsSet.intersect(requestedPermissions).isEmpty()) {
+                // Permission are requested for the first time
+                valueStorage.setString(
+                    REQUESTED_PERMISSIONS_KEY,
+                    requestedPermissions.union(missingPermissionsSet).joinToString(", ")
+                )
+                onAcceptPermissionRequest(missingPermissions)
+            } else {
+                // Permissions were requested and the user has repeatedly denied the request.
+                // Since the permissions can't be requested directly again, redirect user to the app settings.
+                showRationale(rationale) {
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                    intent.data = Uri.fromParts("package", requireContext().packageName, null)
+                    startActivity(intent)
+                }
+            }
+        }
     }
     return result
 }

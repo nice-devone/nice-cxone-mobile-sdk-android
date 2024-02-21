@@ -16,9 +16,7 @@
 package com.nice.cxonechat.ui.composable.conversation.model
 
 import com.nice.cxonechat.message.OutboundMessage
-import com.nice.cxonechat.ui.composable.conversation.model.PluginElement.Text.Format.Html
-import com.nice.cxonechat.ui.composable.conversation.model.PluginElement.Text.Format.Markdown
-import com.nice.cxonechat.ui.composable.conversation.model.PluginElement.Text.Format.Plain
+import com.nice.cxonechat.message.TextFormat
 import okhttp3.internal.toImmutableMap
 import java.util.Date
 import javax.annotation.concurrent.Immutable
@@ -77,21 +75,11 @@ internal sealed class PluginElement {
     @Immutable
     data class Text(
         val text: String,
-        val format: Format,
+        val format: TextFormat,
     ) : PluginElement() {
-        enum class Format {
-            Plain,
-            Markdown,
-            Html
-        }
-
         constructor(element: SdkPluginElement.Text) : this(
             text = element.text,
-            format = when {
-                element.isMarkdown -> Markdown
-                element.isHtml -> Html
-                else -> Plain
-            }
+            format = element.format
         )
     }
 
@@ -107,8 +95,8 @@ internal sealed class PluginElement {
             deepLink = element.deepLink,
             displayInApp = element.displayInApp,
             action = compoundAction(
-                sendMessageAction(sendMessage, element.text, element.postback),
-                deepLinkAction(element.deepLink)
+                element.postback?.let { sendMessageAction(sendMessage, element.text, it) },
+                element.deepLink?.let(::deepLinkAction)
             )
         )
     }

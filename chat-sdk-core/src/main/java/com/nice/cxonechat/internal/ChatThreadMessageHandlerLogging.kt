@@ -20,8 +20,8 @@ import com.nice.cxonechat.ChatThreadMessageHandler.OnMessageTransferListener
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerScope
 import com.nice.cxonechat.log.duration
-import com.nice.cxonechat.log.finest
 import com.nice.cxonechat.log.scope
+import com.nice.cxonechat.log.verbose
 import com.nice.cxonechat.message.OutboundMessage
 import java.util.UUID
 
@@ -40,7 +40,7 @@ internal class ChatThreadMessageHandlerLogging(
         message: OutboundMessage,
         listener: OnMessageTransferListener?,
     ) = scope("send(${message.hashCode()})") {
-        finest("(message=${message.message},attachments=${message.attachments},postback=${message.postback})")
+        verbose("(message=${message.message},attachments=${message.attachments},postback=${message.postback})")
         @Suppress("NAME_SHADOWING")
         val listener = if (listener !is LoggingListener) LoggingListener(listener, this) else listener
         origin.send(message, listener)

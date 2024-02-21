@@ -1,18 +1,3 @@
-/*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
- *
- * Licensed under the NICE License;
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
- *
- * TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
- * AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
- * OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
- */
-
 package com.nice.cxonechat
 
 import com.google.gson.GsonBuilder
@@ -64,37 +49,38 @@ internal class ChatEventHandlerActionsTest {
             .setLenient()
             .create()
     }
-    private val kVisitorId = UUID.randomUUID()
-    private val kCustomerId = UUID.randomUUID()
-    private val kDestinationId = UUID.randomUUID()
-    private val kVisitId = UUID.randomUUID()
-    private val kEventId = UUID.randomUUID()
-    private val kBrandId = Random.nextInt()
-    private val kNow = Date()
+    private val visitorId = UUID.randomUUID()
+    private val customerId = UUID.randomUUID().toString()
+    private val destinationId = UUID.randomUUID()
+    private val visitId = UUID.randomUUID()
+    private val eventId = UUID.randomUUID()
+    private val brandId = Random.nextInt()
+    private val now = Date()
     private val interceptor by lazy { MockInterceptor() }
     private val httpClient by lazy { OkHttpClient().newBuilder().addInterceptor(interceptor).build() }
-    private val kBaseUrl = "https://chat.server/"
-    private val kChatUrl by lazy { "${kBaseUrl}chat/" }
-    private val kAnalyticsUrl by lazy { "${kBaseUrl}web-analytics/1.0/tenants/$kBrandId/visitors/$kVisitorId/events" }
+    private val baseUrl = "https://chat.server/"
+    private val chatUrl by lazy { "${baseUrl}chat/" }
+    private val analyticsUrl by lazy { "${baseUrl}web-analytics/1.0/tenants/$brandId/visitors/$visitorId/events" }
     private val mockEnvironment by lazy {
         mockk<Environment> {
-            every { chatUrl } returns kChatUrl
+            every { chatUrl } returns this@ChatEventHandlerActionsTest.chatUrl
         }
     }
     private val mockConnection by lazy {
         mockk<Connection> {
             every { environment } returns mockEnvironment
-            every { brandId } returns kBrandId
+            every { brandId } returns this@ChatEventHandlerActionsTest.brandId
         }
     }
     private val mockStorage by lazy {
+        val local = this
         mockk<ValueStorage> {
-            every { visitorId } returns kVisitorId
-            every { customerId } returns kCustomerId
-            every { destinationId } returns kDestinationId
+            every { visitorId } returns local.visitorId
+            every { customerId } returns local.customerId
+            every { destinationId } returns local.destinationId
             every { welcomeMessage } returns "welcome"
             every { authToken } returns "token"
-            every { visitId } returns kVisitId
+            every { visitId } returns local.visitId
         }
     }
     private val mockService by lazy {
@@ -133,13 +119,13 @@ internal class ChatEventHandlerActionsTest {
     )
 
     private fun verifyEventSent(expect: AnalyticsEvent, send: ChatEventHandler.(done: () -> Unit) -> Unit) {
-        awaitResult(100.milliseconds) { done ->
+        awaitResult(200.milliseconds) { done ->
             events.send { done(Unit) }
         }
         assertEquals(1, interceptor.requests.size)
         with(interceptor.requests.first()) {
             assertEquals("POST", method)
-            assertEquals(kAnalyticsUrl, url.toString())
+            assertEquals(analyticsUrl, url.toString())
 
             val actual = gson.fromJson(this.body!!.asString, AnalyticsEvent::class.java)
 
@@ -152,11 +138,11 @@ internal class ChatEventHandlerActionsTest {
 
     private fun event(type: VisitorEventType, data: Any = mapOf<String, Any>()): AnalyticsEvent {
         return AnalyticsEvent(
-            kEventId,
+            eventId,
             type,
-            kVisitId,
-            Destination(kDestinationId),
-            kNow,
+            visitId,
+            Destination(destinationId),
+            now,
             gson.toJson(data).let { gson.fromJson(it, Map::class.java) }
         )
     }
@@ -165,10 +151,10 @@ internal class ChatEventHandlerActionsTest {
     fun conversion() {
         val expect = event(
             Conversion,
-            ConversionModel("cash", 324, kNow)
+            ConversionModel("cash", 324, now)
         )
         verifyEventSent(expect) { done ->
-            events.conversion("cash", 324, kNow) { done() }
+            events.conversion("cash", 324, now) { done() }
         }
     }
 
@@ -179,7 +165,7 @@ internal class ChatEventHandlerActionsTest {
             PageViewData("some title", "https://some.url/or/other")
         )
         verifyEventSent(expect) { done ->
-            events.pageView("some title", "https://some.url/or/other", kNow) { done() }
+            events.pageView("some title", "https://some.url/or/other", now) { done() }
         }
     }
 
@@ -187,7 +173,7 @@ internal class ChatEventHandlerActionsTest {
     fun proactiveActionClick() {
         val expect = event(ProactiveActionClicked, actionMetaData)
         verifyEventSent(expect) { done ->
-            events.proactiveActionClick(actionMetaData, kNow) { done() }
+            events.proactiveActionClick(actionMetaData, now) { done() }
         }
     }
 
@@ -195,7 +181,7 @@ internal class ChatEventHandlerActionsTest {
     fun proactiveActionDisplay() {
         val expect = event(ProactiveActionDisplayed, actionMetaData)
         verifyEventSent(expect) { done ->
-            events.proactiveActionDisplay(actionMetaData, kNow) { done() }
+            events.proactiveActionDisplay(actionMetaData, now) { done() }
         }
     }
 
@@ -203,7 +189,7 @@ internal class ChatEventHandlerActionsTest {
     fun proactiveActionFailure() {
         val expect = event(ProactiveActionFailed, actionMetaData)
         verifyEventSent(expect) { done ->
-            events.proactiveActionFailure(actionMetaData, kNow) { done() }
+            events.proactiveActionFailure(actionMetaData, now) { done() }
         }
     }
 
@@ -211,7 +197,7 @@ internal class ChatEventHandlerActionsTest {
     fun proactiveActionSuccess() {
         val expect = event(ProactiveActionSuccess, actionMetaData)
         verifyEventSent(expect) { done ->
-            events.proactiveActionSuccess(actionMetaData, kNow) { done() }
+            events.proactiveActionSuccess(actionMetaData, now) { done() }
         }
     }
 }

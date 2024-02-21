@@ -24,7 +24,7 @@ internal data class ConnectionInternal(
     override val channelId: String,
     override val firstName: String,
     override val lastName: String,
-    override val customerId: UUID?,
+    override val customerId: String?,
     override val environment: Environment,
     override val visitorId: UUID,
 ) : Connection {

@@ -35,20 +35,32 @@ import com.nice.cxonechat.message.MessageAuthor
 import com.nice.cxonechat.message.MessageDirection
 import com.nice.cxonechat.message.MessageDirection.ToAgent
 import com.nice.cxonechat.message.MessageMetadata
+import com.nice.cxonechat.message.MessageStatus
+import com.nice.cxonechat.message.MessageStatus.SENDING
 import com.nice.cxonechat.message.OutboundMessage
+import com.nice.cxonechat.prechat.PreChatSurvey
 import com.nice.cxonechat.thread.Agent
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.thread.CustomField
+import com.nice.cxonechat.ui.customvalues.CustomValueItemList
+import com.nice.cxonechat.ui.customvalues.extractStringValues
 import com.nice.cxonechat.ui.data.ContentDataSourceList
 import com.nice.cxonechat.ui.data.flow
 import com.nice.cxonechat.ui.domain.SelectedThreadRepository
 import com.nice.cxonechat.ui.main.ChatThreadViewModel.ChatMetadata.Companion.asMetadata
+import com.nice.cxonechat.ui.main.ChatThreadViewModel.Dialogs.AudioPlayer
+import com.nice.cxonechat.ui.main.ChatThreadViewModel.Dialogs.CustomValues
+import com.nice.cxonechat.ui.main.ChatThreadViewModel.Dialogs.EditThreadName
+import com.nice.cxonechat.ui.main.ChatThreadViewModel.Dialogs.None
+import com.nice.cxonechat.ui.main.ChatThreadViewModel.Dialogs.SelectAttachments
 import com.nice.cxonechat.ui.main.ChatThreadViewModel.OnPopupActionState.Empty
 import com.nice.cxonechat.ui.main.ChatThreadViewModel.OnPopupActionState.ReceivedOnPopupAction
 import com.nice.cxonechat.ui.main.ChatThreadViewModel.ReportOnPopupAction.CLICKED
 import com.nice.cxonechat.ui.main.ChatThreadViewModel.ReportOnPopupAction.DISPLAYED
 import com.nice.cxonechat.ui.main.ChatThreadViewModel.ReportOnPopupAction.FAILURE
 import com.nice.cxonechat.ui.main.ChatThreadViewModel.ReportOnPopupAction.SUCCESS
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.nice.cxonechat.ui.util.isEmpty
+import com.nice.cxonechat.utilities.isEmpty
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -64,23 +76,31 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.koin.android.annotation.KoinViewModel
 import java.lang.ref.WeakReference
-import java.util.*
-import javax.inject.Inject
+import java.util.Date
+import java.util.UUID
 import com.nice.cxonechat.message.Message as SdkMessage
 
 @Suppress("TooManyFunctions")
 @OptIn(ExperimentalCoroutinesApi::class)
-@HiltViewModel
-internal class ChatThreadViewModel @Inject constructor(
+@KoinViewModel
+internal class ChatThreadViewModel(
     private val contentDataSource: ContentDataSourceList,
     private val selectedThreadRepository: SelectedThreadRepository,
     private val chat: Chat,
 ) : ViewModel() {
+    private val threads by lazy { chat.threads() }
 
-    private val isMultiThreadEnabled = chat.configuration.hasMultipleThreadsPerEndUser
-    private val chatThreadHandler by lazy { selectedThreadRepository.chatThreadHandler!! }
+    val isMultiThreadEnabled = chat.configuration.hasMultipleThreadsPerEndUser
+    val preChatSurvey: PreChatSurvey?
+        get() = threads.preChatSurvey
+    val hasQuestions: Boolean
+        get() = preChatSurvey?.fields?.isEmpty() == false
+    private val chatThreadHandler = selectedThreadRepository.chatThreadHandler!!
     private val chatThreadFlow = chatThreadHandler.flow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null) // Share incoming flow values
+        .filterNotNull()
 
     /** Tracks messages before they are confirmed as received by backend. */
     private val sentMessagesFlow: MutableStateFlow<Map<UUID, SdkMessage>> = MutableStateFlow(emptyMap())
@@ -123,6 +143,43 @@ internal class ChatThreadViewModel @Inject constructor(
 
     val actionState: StateFlow<OnPopupActionState> = mutableActionState.asStateFlow()
 
+    val customValues: List<CustomField>
+        get() = selectedThreadRepository.chatThreadHandler?.get()?.fields ?: listOf()
+
+    val selectedThreadName: String?
+        get() = selectedThreadRepository.chatThreadHandler?.get()?.threadName
+
+    sealed interface Dialogs {
+        object None : Dialogs
+        object CustomValues : Dialogs
+        object EditThreadName : Dialogs
+        data class AudioPlayer(
+            val url: String,
+            val title: String?,
+        ) : Dialogs
+        data class SelectAttachments(
+            val attachments: List<Attachment>,
+            val title: String?
+        ) : Dialogs
+
+        data class VideoPlayer(
+            val uri: String,
+            val title: String?,
+        ) : Dialogs
+
+        data class ImageViewer(
+            val image: Any?,
+            val title: String?,
+        ) : Dialogs
+    }
+
+    private val showDialog = MutableStateFlow<Dialogs>(None)
+    val dialogShown = showDialog.asStateFlow()
+
+    // Note this is explicitly *not* part of Dialogs to allow it to be stacked over the select attachments dialog.
+    private val preparing = MutableStateFlow(false)
+    val preparingToShare = preparing.asStateFlow()
+
     init {
         val listener = OnPopupActionListener { variables, metadata ->
             mutableActionState.value = ReceivedOnPopupAction(variables, metadata)
@@ -135,6 +192,11 @@ internal class ChatThreadViewModel @Inject constructor(
     }
 
     fun sendMessage(message: OutboundMessage) {
+        // Ignore messages with no text, attachments, or postback.
+        if (message.attachments.isEmpty() && message.message.isBlank() && message.postback?.isBlank() == true) {
+            return
+        }
+
         val appMessage: (UUID) -> SdkMessage = { id ->
             TemporarySentMessage(
                 id = id,
@@ -159,14 +221,14 @@ internal class ChatThreadViewModel @Inject constructor(
     }
 
     fun sendAttachment(attachment: Uri, message: String? = null) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val contentDescriptor = contentDataSource.descriptorForUri(attachment) ?: return@launch
             val appMessage: (UUID) -> SdkMessage = { id ->
                 TemporarySentMessage(
                     id = id,
                     attachment = object : Attachment {
                         override val friendlyName: String = contentDescriptor.friendlyName ?: "unnamed"
-                        override val mimeType: String = contentDescriptor.mimeType ?: "application/octet-stream"
+                        override val mimeType: String = contentDescriptor.mimeType
                         override val url: String = attachment.toString()
                     },
                     text = message.orEmpty(),
@@ -237,6 +299,67 @@ internal class ChatThreadViewModel @Inject constructor(
         super.onCleared()
     }
 
+    internal fun setThreadName(threadName: String) {
+        selectedThreadRepository.chatThreadHandler?.setName(threadName)
+    }
+
+    private fun showDialog(dialog: Dialogs) {
+        showDialog.value = dialog
+    }
+
+    internal fun dismissDialog() {
+        showDialog.value = Dialogs.None
+    }
+
+    internal fun editThreadName() {
+        showDialog(EditThreadName)
+    }
+
+    internal fun confirmEditThreadName(name: String) {
+        dismissDialog()
+
+        setThreadName(name)
+    }
+
+    internal fun startEditingCustomValues() {
+        showDialog(CustomValues)
+    }
+
+    internal fun confirmEditingCustomValues(values: CustomValueItemList) {
+        dismissDialog()
+        viewModelScope.launch(Dispatchers.Default) {
+            chatThreadHandler.customFields().add(values.extractStringValues())
+        }
+    }
+
+    internal fun cancelEditingCustomValues() {
+        dismissDialog()
+    }
+
+    internal fun playAudio(url: String, title: String?) {
+        showDialog(AudioPlayer(url, title))
+    }
+
+    internal fun selectAttachments(attachments: List<Attachment>, title: String?) {
+        showDialog(SelectAttachments(attachments, title))
+    }
+
+    internal fun beginPrepareAttachments() {
+        preparing.value = true
+    }
+
+    internal fun finishPrepareAttachments() {
+        preparing.value = false
+    }
+
+    internal fun showImage(image: Any, title: String?) {
+        showDialog(Dialogs.ImageViewer(image, title))
+    }
+
+    internal fun showVideo(url: String, title: String?) {
+        showDialog(Dialogs.VideoPlayer(url, title))
+    }
+
     sealed interface OnPopupActionState {
         object Empty : OnPopupActionState
         data class ReceivedOnPopupAction(val variables: Any, val metadata: ActionMetadata) : OnPopupActionState
@@ -268,7 +391,7 @@ private data class TemporarySentMessage(
     override val createdAt: Date,
     override val direction: MessageDirection,
     override val metadata: MessageMetadata,
-    override val author: MessageAuthor,
+    override val author: MessageAuthor?,
     override val attachments: Iterable<Attachment>,
     override val fallbackText: String?,
     override val text: String,
@@ -279,7 +402,9 @@ private data class TemporarySentMessage(
         createdAt = Date(),
         direction = ToAgent,
         metadata = object : MessageMetadata {
+            override val seenAt: Date? = null
             override val readAt: Date? = null
+            override val status: MessageStatus = SENDING
         },
         author = object : MessageAuthor() {
             override val id: String = ChatThreadFragment.SENDER_ID
@@ -298,7 +423,9 @@ private data class TemporarySentMessage(
         createdAt = Date(),
         direction = ToAgent,
         metadata = object : MessageMetadata {
+            override val seenAt: Date? = null
             override val readAt: Date? = null
+            override val status: MessageStatus = SENDING
         },
         author = object : MessageAuthor() {
             override val id: String = ChatThreadFragment.SENDER_ID

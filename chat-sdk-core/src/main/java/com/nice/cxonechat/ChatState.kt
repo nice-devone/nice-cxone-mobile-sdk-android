@@ -23,15 +23,40 @@ enum class ChatState {
     /** Not yet configured enough to connect. */
     INITIAL,
 
-    /** in the process of connecting. */
+    /**
+     * In the process of preparing the chat by performing initial configuration
+     * checks fetching the channel configuration.
+     */
+    PREPARING,
+
+    /**
+     * The chat is "prepared" but no web socket is open.
+     *
+     * In the prepared state it is acceptable to generate analytics events via
+     * [[ChatEventHandlerActions]] and to attempt to connect the web socket via
+     * [Chat.connect], but chat functionality via [Chat.threads] is
+     * unavailable.
+     */
+    PREPARED,
+
+    /** In the process of connecting the websocket. */
     CONNECTING,
 
-    /** a connection has been established. */
+    /**
+     * A websocket connection has been established.
+     *
+     * In the CONNECTED state it is acceptable to generate analytics events via
+     * [[ChatEventHandlerActions]] or to access chat functionality available via
+     * [Chat.threads].
+     */
     CONNECTED,
+
+    /**
+     * A chat state was recovered (if there was anything to recover).
+     * If there were any thread/s recovered, then this fact should have signaled via listener.
+     */
+    READY,
 
     /** the connection was involuntarily lost. */
     CONNECTION_LOST,
-
-    /** the connection was closed by the user. */
-    CONNECTION_CLOSED
 }

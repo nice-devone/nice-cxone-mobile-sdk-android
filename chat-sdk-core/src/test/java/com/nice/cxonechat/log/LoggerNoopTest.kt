@@ -1,10 +1,10 @@
 package com.nice.cxonechat.log
 
+import io.mockk.confirmVerified
+import io.mockk.mockk
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.verifyZeroInteractions
 import java.io.PrintStream
 
 internal class LoggerNoopTest {
@@ -13,7 +13,7 @@ internal class LoggerNoopTest {
 
     @Before
     fun prepare() {
-        out = mock()
+        out = mockk()
         System.setOut(out)
     }
 
@@ -25,6 +25,6 @@ internal class LoggerNoopTest {
     @Test
     fun log_hasNoInteractions() {
         LoggerNoop.log(Level.Info, "")
-        verifyZeroInteractions(out)
+        confirmVerified(out)
     }
 }

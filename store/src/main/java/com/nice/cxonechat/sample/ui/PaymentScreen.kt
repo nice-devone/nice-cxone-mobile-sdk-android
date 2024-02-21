@@ -35,11 +35,11 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.nice.cxonechat.sample.R.string
-import com.nice.cxonechat.sample.StoreViewModel
 import com.nice.cxonechat.sample.data.operations.total
 import com.nice.cxonechat.sample.ui.theme.AppTheme
 import com.nice.cxonechat.sample.ui.theme.ContinueButton
 import com.nice.cxonechat.sample.ui.theme.ScreenWithScaffold
+import com.nice.cxonechat.sample.viewModel.StoreViewModel
 
 /**
  * Payment screen to dummy collect payment information.
@@ -55,11 +55,11 @@ object PaymentScreen : Screen {
         ) {
             val cart = viewModel.storeRepository.cart.collectAsState().value
 
-            viewModel.SendPageView("payment", "/payment")
+            viewModel.analyticsHandler.SendPageView("payment", "/payment")
 
             Screen(
                 onContinue = {
-                    viewModel.sendConversion("sale", cart.total)
+                    viewModel.analyticsHandler.sendConversion("sale", cart.total)
                     viewModel.storeRepository.resetCart()
                     ConfirmationScreen.navigateTo(navHostController)
                 }

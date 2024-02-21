@@ -27,7 +27,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.ui.R.string
-import com.nice.cxonechat.ui.composable.conversation.MessageItem
 import com.nice.cxonechat.ui.composable.conversation.PreviewMessageItemBase
 import com.nice.cxonechat.ui.composable.conversation.model.PluginElement.Custom
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
@@ -58,7 +57,8 @@ internal fun CustomElementView(custom: Custom, modifier: Modifier = Modifier) {
 @Composable
 @Preview
 private fun PreviewCustom() {
-    PreviewMessageItemBase {
-        MessageItem(message = PluginPreviewProvider().custom.asMessage("custom"))
-    }
+    PreviewMessageItemBase(
+        message = MessagePreviewProvider().custom.asMessage("custom"),
+        showSender = true,
+    )
 }

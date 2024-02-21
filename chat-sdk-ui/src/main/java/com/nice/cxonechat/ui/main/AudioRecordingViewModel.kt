@@ -24,25 +24,36 @@ import android.os.Build
 import android.os.Environment
 import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
-import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nice.cxonechat.log.Logger
+import com.nice.cxonechat.log.LoggerScope
+import com.nice.cxonechat.log.error
+import com.nice.cxonechat.log.scope
+import com.nice.cxonechat.ui.PushListenerService
+import com.nice.cxonechat.ui.UiModule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koin.android.annotation.KoinViewModel
+import org.koin.core.qualifier.named
+import org.koin.java.KoinJavaComponent.get
 import java.io.File
 import java.io.FileDescriptor
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
 
 /**
  * ViewModel, which is responsible for providing state-based audio recording functionality.
  */
+@KoinViewModel
 internal class AudioRecordingViewModel : ViewModel() {
+
+    private val logger by lazy { LoggerScope(PushListenerService.TAG, get(Logger::class.java, named(UiModule.loggerName))) }
 
     private val internalRecordingUriFlow: MutableStateFlow<Uri> = MutableStateFlow(Uri.EMPTY)
     private var filename: String? = null
@@ -85,15 +96,17 @@ internal class AudioRecordingViewModel : ViewModel() {
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
         ]
     )
-    suspend fun startRecording(context: Context): Result<Unit> = runCatching {
-        val descriptor = getFileDescriptorAndSetUri(context)
-        val newRecorder = prepareRecording(context, descriptor.fileDescriptor)
-        fileDescriptor = descriptor
-        recorder = newRecorder
-        newRecorder.start()
-        internalRecordingFlow.value = true
-    }.onFailure {
-        Log.e(TAG, "startRecording: ", it)
+    suspend fun startRecording(context: Context): Result<Unit> = logger.scope("startRecording") {
+        runCatching {
+            val descriptor = getFileDescriptorAndSetUri(context)
+            val newRecorder = prepareRecording(context, descriptor.fileDescriptor)
+            fileDescriptor = descriptor
+            recorder = newRecorder
+            newRecorder.start()
+            internalRecordingFlow.value = true
+        }.onFailure {
+            error("startRecording: ", it)
+        }
     }
 
     private suspend fun getFileDescriptorAndSetUri(context: Context): ParcelFileDescriptor = withContext(Dispatchers.IO) {
@@ -151,14 +164,7 @@ internal class AudioRecordingViewModel : ViewModel() {
      * @return [Uri] of the recorded audio file, if it is available. Missing uri indicates failure in the recording process.
      */
     suspend fun stopRecording(context: Context): Boolean {
-        recorder?.apply {
-            runCatching {
-                stop()
-                release()
-            }.onFailure {
-                Log.e(TAG, "Failure during stopRecording().", it)
-            }
-        }
+        stopRecorder()
         recorder = null
         internalRecordingFlow.value = false
         filename = null
@@ -166,6 +172,19 @@ internal class AudioRecordingViewModel : ViewModel() {
         context.clearPendingStatus(recordingUri)
         internalRecordedUriFlow.value = recordingUri
         return true
+    }
+
+    /**
+     * Stops&releases the audio recorder and also logs potential exceptions.
+     */
+    private fun stopRecorder() = logger.scope("stopRecorder") {
+        val mediaRecorder = recorder ?: return@scope
+        mediaRecorder.runCatching {
+            stop()
+            release()
+        }.onFailure {
+            error("Failure during stopRecording().", it)
+        }
     }
 
     override fun onCleared() {

@@ -25,32 +25,5 @@
         android:name="com.nice.cxonechat.ui.main.ChatThreadFragment"
         android:label="ChatThreadFragment"
         tools:layout="@layout/fragment_chat_thread">
-        <action
-            android:id="@+id/action_chatThreadFragment_to_imagePreviewActivity"
-            app:destination="@id/imagePreviewActivity"
-            app:launchSingleTop="true"
-            app:popUpTo="@id/chatThreadFragment" />
-        <action
-            android:id="@+id/action_chatThreadFragment_to_videoPreviewActivity"
-            app:destination="@id/videoPreviewActivity"
-            app:launchSingleTop="true"
-            app:popUpTo="@id/chatThreadFragment" />
     </fragment>
-    <activity
-        android:id="@+id/imagePreviewActivity"
-        android:name="com.nice.cxonechat.ui.ImagePreviewActivity"
-        android:label="activity_image_preview">
-        <argument
-            android:name="imageUrl"
-            app:argType="string" />
-    </activity>
-    <activity
-        android:id="@+id/videoPreviewActivity"
-        android:name="com.nice.cxonechat.ui.VideoPreviewActivity"
-        android:label="activity_video_preview"
-        tools:layout="@layout/activity_video_preview">
-        <argument
-            android:name="videoUrl"
-            app:argType="string" />
-    </activity>
 </navigation>
