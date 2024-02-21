@@ -16,6 +16,9 @@
 package com.nice.cxonechat.sample.data.repository
 
 import android.content.Context
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.FileNotFoundException
 import java.io.IOException
 import kotlin.reflect.KClass
@@ -24,41 +27,38 @@ import kotlin.reflect.KClass
  * A repository to read a typed-object from a named Android file in the documents directory.
  *
  * @param Type Type of asset to read.
- * @property fileName Name of file to read/write.
+ * @param fileName Name of file to read/write.
  * @param type Class of asset to read.
  */
-open class FileRepository<Type: Any>(
+open class FileRepository<Type : Any>(
     private val fileName: String,
-    type: KClass<Type>
+    type: KClass<Type>,
 ) : Repository<Type>(type) {
+
     @Throws(RepositoryError::class)
     override fun doStore(string: String, context: Context) {
-        try {
-            context.openFileOutput(fileName, 0)?.use {
-                doStore(string, it)
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                context.openFileOutput(fileName, 0)?.use {
+                    doStore(string, it)
+                }
+            } catch (exc: IOException) {
+                throw RepositoryError("Error saving settings: $fileName:", exc)
             }
-        } catch(exc: IOException) {
-            throw RepositoryError(TAG, "Error saving settings: $fileName:", exc)
         }
     }
 
-    override fun doLoad(context: Context): String? {
-        return try {
-            return context.openFileInput(fileName).use {
-                doLoad(it)
-            }
-        } catch (_: FileNotFoundException) {
-            null
-        } catch (exc: IOException) {
-            throw RepositoryError(TAG, "Error loading settings: $fileName:", exc)
+    override fun doLoad(context: Context): String? = try {
+        context.openFileInput(fileName).use {
+            doLoad(it)
         }
+    } catch (_: FileNotFoundException) {
+        null
+    } catch (exc: IOException) {
+        throw RepositoryError("Error loading settings: $fileName:", exc)
     }
 
     override fun doClear(context: Context) {
         context.deleteFile(fileName)
-    }
-
-    companion object {
-        private const val TAG = "FileRepository"
     }
 }

@@ -29,7 +29,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -40,7 +39,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.ui.R.string
+import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.LocalSpace
+import com.nice.cxonechat.ui.util.toggle
 
 internal interface TreeFieldItem<ValueType> {
     val label: String
@@ -63,21 +64,18 @@ internal fun <ValueType> TreeField(
     modifier: Modifier = Modifier,
     label: String = "",
     items: List<TreeFieldItem<ValueType>>,
-    expanded: Array<TreeFieldItem<ValueType>> = arrayOf(),
-    canSelect: (TreeFieldItem<ValueType>) -> Boolean,
+    isExpanded: (TreeFieldItem<ValueType>) -> Boolean,
     isSelected: (TreeFieldItem<ValueType>) -> Boolean,
-    toggleSelected: (TreeFieldItem<ValueType>) -> Unit,
+    onNodeClicked: (TreeFieldItem<ValueType>) -> Unit,
+    onExpandClicked: (TreeFieldItem<ValueType>) -> Unit,
 ) {
-    val expandedItems = remember { mutableStateListOf<TreeFieldItem<ValueType>>() }
-    expandedItems.addAll(expanded)
-
     Row(
         verticalAlignment = Alignment.Top,
         modifier = modifier
             .fillMaxWidth()
             .defaultMinSize(minHeight = LocalSpace.current.clickableSize)
     ) {
-        Column {
+        Column(modifier = Modifier.fillMaxWidth()) {
             if(label.isNotBlank()) {
                 Text(text = label, modifier = Modifier.padding(LocalSpace.current.treeFieldIndent))
                 Spacer(Modifier.size(16.dp))
@@ -85,21 +83,12 @@ internal fun <ValueType> TreeField(
             items.forEach { item ->
                 TreeNode(
                     node = item,
-                    modifier = modifier,
+                    modifier = modifier.fillMaxWidth(),
                     indent = 8.dp,
-                    isExpanded = { node ->
-                        expandedItems.contains(node)
-                    },
-                    toggleExpanded = { node ->
-                        if(expandedItems.contains(node)) {
-                            expandedItems.remove(node)
-                        } else {
-                            expandedItems.add(node)
-                        }
-                    },
-                    canSelect = canSelect,
+                    isExpanded = isExpanded,
                     isSelected = isSelected,
-                    toggleSelected = toggleSelected
+                    onNodeClicked = onNodeClicked,
+                    onExpandClicked = onExpandClicked,
                 )
             }
         }
@@ -113,39 +102,35 @@ private fun <ValueType> TreeNode(
     modifier: Modifier,
     indent: Dp,
     isExpanded: (TreeFieldItem<ValueType>) -> Boolean,
-    toggleExpanded: (TreeFieldItem<ValueType>) -> Unit,
-    canSelect: (TreeFieldItem<ValueType>) -> Boolean,
     isSelected: (TreeFieldItem<ValueType>) -> Boolean,
-    toggleSelected: (TreeFieldItem<ValueType>) -> Unit,
+    onNodeClicked: (TreeFieldItem<ValueType>) -> Unit,
+    onExpandClicked: (TreeFieldItem<ValueType>) -> Unit,
 ) {
+    val expanded = isExpanded(node)
+
     Column {
         Row(
-            modifier = modifier,
+            modifier = modifier.clickable {
+                onNodeClicked(node)
+            },
             verticalAlignment = Alignment.CenterVertically,
         ) {
             when {
                 node.isLeaf -> Spacer(Modifier.size(LocalSpace.current.clickableSize))
                 else -> ExpandableIcon(expanded = isExpanded(node)) {
-                    toggleExpanded(node)
+                    onExpandClicked(node)
                 }
             }
             Text(
                 node.label,
-                Modifier.clickable {
-                    if (canSelect(node)) {
-                        toggleSelected(node)
-                    } else {
-                        toggleExpanded(node)
-                    }
-                }
             )
             if (isSelected(node)) {
-                SelectedIcon(node.label)
+                SelectedIcon(node.label, modifier = Modifier.padding(start = ChatTheme.space.small))
             }
         }
 
         val children = node.children
-        if (children != null && isExpanded(node)) {
+        if (children != null && expanded) {
             Column(Modifier.padding(start = LocalSpace.current.treeFieldIndent)) {
                 children.forEach {
                     TreeNode(
@@ -153,10 +138,9 @@ private fun <ValueType> TreeNode(
                         modifier = modifier,
                         indent = indent + LocalSpace.current.treeFieldIndent,
                         isExpanded = isExpanded,
-                        toggleExpanded = toggleExpanded,
-                        canSelect = canSelect,
                         isSelected = isSelected,
-                        toggleSelected = toggleSelected,
+                        onNodeClicked = onNodeClicked,
+                        onExpandClicked = onExpandClicked,
                     )
                 }
             }
@@ -165,7 +149,7 @@ private fun <ValueType> TreeNode(
 }
 
 @Composable
-private fun SelectedIcon(label: String) {
+private fun SelectedIcon(label: String, modifier: Modifier = Modifier) {
     Icon(
         imageVector = Icons.Default.Check,
         contentDescription = stringResource(
@@ -173,7 +157,8 @@ private fun SelectedIcon(label: String) {
             formatArgs = arrayOf(
                 label,
             )
-        )
+        ),
+        modifier = modifier,
     )
 }
 
@@ -196,17 +181,68 @@ private fun TreeFieldPreview() {
         ),
         SimpleTreeFieldItem("Node 1", "1")
     )
-    var value by remember { mutableStateOf("0-1") }
+    var selected: TreeFieldItem<String>? by remember {
+        mutableStateOf(nodes.findRecursive { it.value == "0-0-0" })
+    }
+    var expanded: Set<TreeFieldItem<String>> by remember { mutableStateOf(setOf()) }
 
     Column {
-        Text(value) // Serves as a double-check that the correct value is set.
+        Text(selected?.label ?: "")
+
         TreeField(
             label = "Label",
             items = nodes,
-            expanded = arrayOf(nodes.first()),
-            canSelect = { it.isLeaf },
-            isSelected = { it.value == value },
-            toggleSelected = { value = it.value },
+            isExpanded = expanded::contains,
+            isSelected = { selected == it },
+            onNodeClicked = { node ->
+                if (node.isLeaf) {
+                    selected = if (selected == node) null else node
+                } else {
+                    expanded = expanded.toggle(node)
+                }
+            },
+            onExpandClicked = { node ->
+                expanded = expanded.toggle(node)
+            }
         )
+    }
+}
+
+/**
+ * Recursive searches [TreeFieldItem] and builds a path to the node matching [test].
+ *
+ * @param Type type of value items in the included [TreeFieldItem].
+ * @param test Test function to match the node being sought.
+ * @return list of items to traverse to reach the matching node or null if no
+ * match was found.
+ */
+@Suppress("ReturnCount")
+internal fun <Type> Iterable<TreeFieldItem<Type>>.pathToNode(
+    test: (TreeFieldItem<Type>) -> Boolean
+): List<TreeFieldItem<Type>>? {
+    for(child in this) {
+        if (test(child)) {
+            return listOf(child)
+        }
+
+        child.children?.pathToNode(test)?.let {
+            return listOf(child) + it
+        }
+    }
+    return null
+}
+
+/**
+ * Recursive searches [TreeFieldItem] and returns the matching item.
+ *
+ * @param Type type of value items in the included [TreeFieldItem].
+ * @param test Test function to match the node being sought.
+ * @return matching item or null if no match is found.
+ */
+internal fun <Type> Iterable<TreeFieldItem<Type>>.findRecursive(
+    test: (TreeFieldItem<Type>) -> Boolean
+): TreeFieldItem<Type>? {
+    return fold(null as TreeFieldItem<Type>?) { found, node ->
+        found ?: if (test(node)) node else node.children?.findRecursive(test)
     }
 }

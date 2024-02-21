@@ -4,21 +4,15 @@ import android.content.SharedPreferences
 import android.content.SharedPreferences.Editor
 import com.nice.cxonechat.tool.getPublicProperties
 import com.nice.cxonechat.tool.nextString
-import org.junit.Before
+import io.mockk.confirmVerified
+import io.mockk.every
+import io.mockk.justRun
+import io.mockk.mockk
+import io.mockk.verify
 import org.junit.Test
-import org.mockito.ArgumentCaptor
-import org.mockito.kotlin.any
-import org.mockito.kotlin.anyOrNull
-import org.mockito.kotlin.eq
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.times
-import org.mockito.kotlin.verify
-import org.mockito.kotlin.verifyNoMoreInteractions
-import org.mockito.kotlin.verifyZeroInteractions
-import org.mockito.kotlin.whenever
 import kotlin.reflect.KMutableProperty
+import kotlin.reflect.KProperty
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 /**
  * This test objective is to ensure that the [SharedPreferences] are used correctly.
@@ -29,17 +23,17 @@ import kotlin.test.assertTrue
  */
 internal class PreferencesValueStorageTest {
 
-    private lateinit var storage: ValueStorage
-    private lateinit var sharedPreferences: SharedPreferences
-    private lateinit var editor: Editor
-
-    @Before
-    fun setup() {
-        sharedPreferences = mock()
-        editor = mock()
-        whenever(sharedPreferences.edit()).thenReturn(editor)
-        storage = PreferencesValueStorage(sharedPreferences)
+    private val editor = mockk<Editor>()
+    private val sharedPreferences = mockk<SharedPreferences> {
+        every { edit() } returns editor
     }
+    private val storage: ValueStorage = PreferencesValueStorage(sharedPreferences)
+    private val stringProperties
+        get() = storage::class
+            .members
+            .getPublicProperties()
+            .filter { it.returnType.classifier == String::class }
+            .map { it as KMutableProperty<String> }
 
     /**
      * Test that all supported property types from [ValueStorage] interface a properly stored to [SharedPreferences] using unique key for
@@ -47,21 +41,26 @@ internal class PreferencesValueStorageTest {
      */
     @Test
     fun storageIsStoringValues() {
-        val properties = storage::class.members.getPublicProperties()
-        val usedKeys = ArgumentCaptor.forClass(String::class.java)
-        val uniqueUsedKeys = mutableSetOf<String>()
-        val filledProperties = properties.fillStorageWithRandomValues()
-        filledProperties.forEach { value ->
-                when (value) {
-                    is String -> verify(editor).putString(usedKeys.capture(), eq(value))
-                }
-                assertTrue(uniqueUsedKeys.add(usedKeys.value), "Key ${usedKeys.value} was already used to store different property")
+        val keys = mutableListOf<String>()
+
+        every { editor.putString(capture(keys), any()) } returns editor
+        justRun { editor.apply() }
+
+        for (property in stringProperties) {
+            val value = nextString()
+
+            property.set(value)
+
+            verify {
+                editor.putString(any(), eq(value))
+                editor.apply()
             }
-        val testedProperties = filledProperties.size
-        verify(sharedPreferences, times(testedProperties)).edit()
-        verify(editor, times(testedProperties)).apply()
-        verifyNoMoreInteractions(editor)
-        verifyNoMoreInteractions(sharedPreferences)
+        }
+
+        confirmVerified(editor)
+
+        // Insure that there are no duplicated keys
+        assertEquals(keys, keys.toSet().toList(), "Duplicated key used in ValueStorage: $keys")
     }
 
     /**
@@ -70,28 +69,21 @@ internal class PreferencesValueStorageTest {
     @Test
     fun storageIsRetrievingValues() {
         val testStringValue = nextString()
-        whenever(sharedPreferences.getString(any(), anyOrNull())).thenReturn(testStringValue)
-        val properties = storage::class.members.getPublicProperties()
-        var stringCount = 0
-        properties.forEach {
-            when (it.returnType.classifier) {
-                String::class -> {
-                    assertEquals(testStringValue, getStoredProperty(it))
-                    stringCount++
-                }
-            }
+
+        every { sharedPreferences.getString(any(), any()) } returns testStringValue
+
+        for (property in stringProperties) {
+            assertEquals(testStringValue, property.get())
         }
-        verify(sharedPreferences, times(stringCount)).getString(any(), anyOrNull())
-        verifyNoMoreInteractions(sharedPreferences)
-        verifyZeroInteractions(editor)
+
+        verify(exactly = stringProperties.size) {
+            sharedPreferences.getString(any(), any())
+        }
+        confirmVerified(sharedPreferences)
+        confirmVerified(editor)
     }
 
-    private fun getStoredProperty(property: KMutableProperty<*>) = property.getter.call(storage)
+    private fun KProperty<*>.get() = getter.call(storage)
 
-    private fun List<KMutableProperty<*>>.fillStorageWithRandomValues(): List<Any> = mapNotNull { property ->
-        when (property.returnType.classifier) {
-            String::class -> nextString()
-            else -> null // not implemented
-        }?.also { property.setter.call(storage, it) }
-    }
+    private fun <T> KMutableProperty<T>.set(value: T) = setter.call(storage, value)
 }

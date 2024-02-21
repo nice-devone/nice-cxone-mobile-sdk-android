@@ -16,6 +16,7 @@
 package com.nice.cxonechat
 
 import com.nice.cxonechat.event.thread.ChatThreadEvent
+import com.nice.cxonechat.exceptions.CXOneException
 import com.nice.cxonechat.exceptions.MissingCustomerId
 import com.nice.cxonechat.thread.ChatThread
 
@@ -38,13 +39,14 @@ interface ChatThreadEventHandler {
      * @param event [ChatThreadEvent] subclass which generates an event model.
      * @param listener nullable listener if the client wants to know when it
      * was sent.
-     *
-     * @throws MissingCustomerId in case of internal invalid state.
+     * @param errorListener An optional listener if the client wants to know about errors encountered when handling
+     * the event.
      */
-    @Throws(
-        MissingCustomerId::class
+    fun trigger(
+        event: ChatThreadEvent,
+        listener: OnEventSentListener? = null,
+        errorListener: OnEventErrorListener? = null,
     )
-    fun trigger(event: ChatThreadEvent, listener: OnEventSentListener? = null)
 
     /**
      * A listener to be notified when the triggered event is sent.
@@ -55,5 +57,19 @@ interface ChatThreadEventHandler {
          * Notifies about event being sent to the server.
          */
         fun onSent()
+    }
+
+    /**
+     * Listener which will be notified when the triggered event has failed with an error.
+     */
+    @Public
+    fun interface OnEventErrorListener {
+
+        /**
+         * Notifies about event the reason why the event wasn't sent successfully to the server.
+         * @param exception The cause of failure. Possible cause can be:
+         * * [MissingCustomerId] in case of internal invalid state.
+         */
+        fun onError(exception: CXOneException)
     }
 }

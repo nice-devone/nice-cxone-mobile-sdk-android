@@ -17,7 +17,6 @@ package com.nice.cxonechat.ui.composable.conversation
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -64,27 +63,25 @@ internal fun QuickReplyMessage(
 @Preview
 @Composable
 private fun QuickReplyMessagePreview() {
-    PreviewMessageItemBase {
-        MessageItem(
-            message = QuickReply(
-                message = object : QuickReplies() {
-                    override val title: String = "This is a quick reply card"
-                    override val actions: Iterable<SdkAction> = listOf(
-                        PreviewReplyButton("Some text"),
-                        PreviewReplyButton("Random cat", "https://http.cat/203")
-                    )
-                    override val id: UUID = UUID.randomUUID()
-                    override val threadId: UUID = UUID.randomUUID()
-                    override val createdAt: Date = Date()
-                    override val direction: MessageDirection = ToClient
-                    override val metadata: MessageMetadata = PreviewMetadata
-                    override val author: MessageAuthor = PreviewAuthor("first", "last")
-                    override val attachments: Iterable<Attachment> = emptyList()
-                    override val fallbackText: String = "Fallback"
-                },
-                sendMessage = {}
-            ),
-            modifier = Modifier.padding(space.large)
-        )
-    }
+    PreviewMessageItemBase(
+        message = QuickReply(
+            message = object : QuickReplies() {
+                override val title: String = "This is a quick reply card"
+                override val actions: Iterable<SdkAction> = listOf(
+                    PreviewReplyButton("Some text"),
+                    PreviewReplyButton("Random cat", "https://http.cat/203")
+                )
+                override val id: UUID = UUID.randomUUID()
+                override val threadId: UUID = UUID.randomUUID()
+                override val createdAt: Date = Date()
+                override val direction: MessageDirection = ToClient
+                override val metadata: MessageMetadata = PreviewMetadata()
+                override val author: MessageAuthor? = PreviewAuthor("first", "last")
+                override val attachments: Iterable<Attachment> = emptyList()
+                override val fallbackText: String = "Fallback"
+            },
+            sendMessage = {}
+        ),
+        showSender = true,
+    )
 }

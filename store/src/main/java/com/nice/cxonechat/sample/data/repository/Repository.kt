@@ -31,7 +31,7 @@ import kotlin.reflect.KClass
  * @param Type type of data to be stored.
  * @param type class of data to be stored.
  */
-abstract class Repository<Type: Any>(
+abstract class Repository<Type : Any>(
     private val type: KClass<Type>,
 ) {
     /**
@@ -82,7 +82,7 @@ abstract class Repository<Type: Any>(
         try {
             stream.write(string.toByteArray(Charsets.UTF_8))
         } catch (exc: IOException) {
-            throw RepositoryError(TAG, "Error encountered saving data", exc)
+            throw RepositoryError("Error encountered saving data", exc)
         }
     }
 
@@ -94,10 +94,10 @@ abstract class Repository<Type: Any>(
      * @throws RepositoryError if any error is encountered while reading or parsing the stream.
      */
     @Throws(RepositoryError::class)
-    protected fun doLoad(stream: InputStream) = try {
+    protected fun doLoad(stream: InputStream): String = try {
         stream.readBytes().toString(Charsets.UTF_8)
     } catch (exc: IOException) {
-        throw RepositoryError(TAG, "Error encountered loading data", exc)
+        throw RepositoryError("Error encountered loading data", exc)
     }
 
     /**
@@ -140,8 +140,4 @@ abstract class Repository<Type: Any>(
      * @throws [JsonIOException] if any error is encountered during the conversion.
      */
     private fun fromJson(string: String) = Gson().fromJson(string, type.java)
-
-    companion object {
-        private const val TAG = "Repository"
-    }
 }

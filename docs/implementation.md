@@ -17,10 +17,11 @@ been provided is heavily obfuscated to discourage you from using internal APIs.
 > Note that in every example, the instance of any given Handler is created at most once.
 > Make sure to follow suit.
 
-## Proguard
+## Proguard / R8
 
-There are no specific Proguard rules needed for this library. If there will be in the future, they
-will be bundled with your aar and provided automatically with Maven.
+There are specific Proguard rules needed for this library.
+They are bundled with the chat-sdk-code aar and are provided automatically with Maven, alternatively they can be found in a file
+[chat-sdk-core/consumer-rules.pro](../chat-sdk-core/consumer-rules.pro) and copied directly to your rule file.
 
 ## Setting Up
 
@@ -52,12 +53,17 @@ val config = SocketFactoryConfiguration(
   yourBrandId,
   yourChannelId
 )
+val myChatStateListener = object : ChatStateListener() {
+  override fun onReady() {
+    // TODO - Chat instance is ready for usage by the consumer, use Chat instance for chat
+  }
+}
 cancellable = ChatBuilder(context, config)
   .setDevelopmentMode(BuildConfig.DEBUG)
   .setAuthorization(yourAuthorization) // (1)
   .setUserName("firstName", "lastName") // (2)
+  .setChatStateListener(myChatStateListener)
   .build { chat ->
-    // Chat instance will delivered in this callback once connection is established
     // TODO save chat instance
   }
 ```
@@ -73,18 +79,32 @@ cancellable = ChatBuilder(context, config)
     (if it can change in your application).
 
 > ℹ️
-> The `build` method asynchronously creates instance of chat which will be already connected
-> to the backend.
-> In case of connection error, the builder will schedule a connection retry attempt.
-> Application can cancel this process according to its requirements via `Cancellable` instance
-> returned from `build` method call.
----
+> The `build` method asynchronously creates an instance of Chat which is ready for analytics usage, for chat use-case it
+> needs to be connected.
+> Chat will start the asynchronous connection attempt once the `Chat.connect()` method is called.
+>
+> In case of connection error, the application will be notified and it will have to schedule a connection retry attempt.
+> Application can cancel both the build and connection process according to its requirements via `Cancellable` instance
+> returned from the `build` and `connect` method calls.
 
-Great! Now you're ready to use the CXone Chat SDK.
-
+> ⚠️ Important note
 > In case the startup was not successful for you and `build` method did not return the `Chat`
 > instance, be sure to check your configuration as server might have rejected the request. Read the
 > documentation for `build` method for more clarity on the subject.
+
+---
+
+Now you can use the CXone Chat SDK for sending of analytics events (which are used for automation).
+If you also need to activate the chat, you will need to connect it to backend and let Chat perform basic preparation of
+the instance.
+
+First you need to inform `Chat` instance that it should connect to backend by calling `chat.connect`.
+Once it is connected the `Chat` instance will call the supplied `ChatStateListener.onConnected` callback.
+At this moment the `Chat` has established socket connection with backend and it will start final background
+tasks to fully prepare instance for usage (retrieval of the thread in single-thread mode or thread list in the
+multi-thread mode). `Chat` will inform that is fully ready by calling the `ChatStateListener.onReady` callback.
+
+Great! Now you're ready to use the CXone Chat SDK.
 
 > ⚠️ Important note
 > Chat instance maintains open socket connection to backend, until `chat.close()` is called, or the
@@ -98,7 +118,7 @@ You can use the chat `configuration` property to support different UI/UX flows i
 preemptively verify that your assumptions about active chat configuration are correct.
 
 ```kotlin
-val chat = MyChatInstanceProvide.chat ?: return
+val chat = MyChatInstanceProvider.chat ?: return
 val chatConfiguration = chat.configuration
 ```
 
@@ -243,8 +263,7 @@ for some threading methods.
 First, you're required to fetch a Threads list.
 This is a list of all the threads you can access and have been created by this app's instance.
 
-> ⚠️ Note that when retrieving a `Handler` you should keep the instance as long as you project
-> needing it.
+> ⚠️ Note that when retrieving a `Handler` you don't have to keep the instance since it is internally memoized.
 > Some methods may have effects directly on the given handler or parent handlers
 
 ```kotlin
@@ -253,7 +272,6 @@ threadsHandler.threads {
   // todo save the threads list
   // update ui
 }
-threadsHandler.refresh()
 ```
 
 > Note that we do not encourage a specific pattern as every application's code might be different.
@@ -274,8 +292,7 @@ Use a thread list to fetch the first instance in the list OR create a new thread
 > instances can have at most one thread.
 > Thrown exception can be of type `UnsupportedChannelConfigException` in case you are trying
 > to create second thread (or archive current one),
-> or it can of type `MissingThreadListFetchException` in case you have forgotten to call the fetch,
-> before the create call.
+> or it can be of type `MissingThreadListFetchException` when you have called `create` before the chat has signaled `ChatStateListener.onReady()`.
 
 ```kotlin
 val threads: List<ChatThread> // stored somewhere
@@ -350,8 +367,7 @@ defined by warnings and notes above, you're generally good to go.
 > ℹ️
 > SDK is in-memory caching thread information for loaded threads (thread is considered loaded once
 > it's ChatThreadHandler has refreshed its information or user has sent at least one message).
-> The cache update is not propagated as thread list update, but it will take effect on next refresh
-> call.
+> The cache update is also propagated as thread list update.
 
 ---
 
@@ -464,6 +480,10 @@ messageHandler.send(listOf(descriptor))
 > Note that such attachments will be stored in memory until they are uploaded to the server.
 > Be careful how large files you'll upload.
 
+In case of an issue during attachment upload, the application will be notified via `ChatStateListener.onChatRuntimeException`, if the
+optional `ChatStateListener` instance was supplied to the SDK. The `onChatRuntimeException` will be invoked with an
+instance of `RuntimeChatException.AttachmentUploadError` which will contain information about the cause and the
+attachment filename.
 
 ### Load more Messages
 

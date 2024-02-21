@@ -24,18 +24,18 @@ import com.nice.cxonechat.ui.composable.conversation.ContentType.RICH_LINK
 import com.nice.cxonechat.ui.composable.conversation.ContentType.TEXT
 import com.nice.cxonechat.ui.composable.conversation.ContentType.UNSUPPORTED
 import com.nice.cxonechat.ui.composable.conversation.model.Message
-import com.nice.cxonechat.ui.composable.conversation.model.Message.Attachment
 import com.nice.cxonechat.ui.composable.conversation.model.Message.ListPicker
 import com.nice.cxonechat.ui.composable.conversation.model.Message.Plugin
 import com.nice.cxonechat.ui.composable.conversation.model.Message.QuickReply
 import com.nice.cxonechat.ui.composable.conversation.model.Message.RichLink
 import com.nice.cxonechat.ui.composable.conversation.model.Message.Text
 import com.nice.cxonechat.ui.composable.conversation.model.Message.Unsupported
+import com.nice.cxonechat.ui.composable.conversation.model.Message.WithAttachments
 
 @Stable
 internal val Message.contentType: ContentType
     get() = when (this) {
-        is Attachment -> ATTACHMENT
+        is WithAttachments -> ATTACHMENT
         is Text -> TEXT
         is ListPicker -> LIST_PICKER
         is RichLink -> RICH_LINK

@@ -17,20 +17,26 @@ package com.nice.cxonechat.ui.composable.conversation
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.conversation.ContentType.DATE_HEADER
 import com.nice.cxonechat.ui.composable.conversation.ContentType.LOADING
-import com.nice.cxonechat.ui.composable.conversation.model.Message
 import com.nice.cxonechat.ui.composable.conversation.model.Section
+import com.nice.cxonechat.ui.composable.conversation.plugin.MessagePreviewProvider
+import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.util.isSameDay
 import java.util.Date
@@ -40,10 +46,11 @@ import java.util.Date
 internal fun ColumnScope.Messages(
     scrollState: LazyListState,
     groupedMessages: List<Section>,
-    onClick: (Message) -> Unit,
-    onMessageLongClick: (Message) -> Unit,
     loadMore: () -> Unit,
     canLoadMore: Boolean,
+    onAttachmentClicked: (Attachment) -> Unit,
+    onMoreClicked: (List<Attachment>, String) -> Unit,
+    onShare: (Collection<Attachment>) -> Unit,
 ) {
     LazyColumn(
         reverseLayout = true,
@@ -52,21 +59,29 @@ internal fun ColumnScope.Messages(
         modifier = Modifier
             .weight(1f)
             .fillMaxSize(),
-        contentPadding = PaddingValues(space.medium)
+        contentPadding = PaddingValues(space.medium),
     ) {
         groupedMessages.forEach { section ->
-            items(items = section.messages, key = Message::id, contentType = Message::contentType) { message ->
+            itemsIndexed(
+                items = section.messages,
+                key = { _, message -> message.id },
+                contentType = { _, message -> message.contentType }
+            ) { i, message ->
+                val isLast = i == section.messages.lastIndex
+                val showSender = isLast || message.sender != section.messages[i + 1].sender
                 MessageItem(
                     message = message,
-                    onClick = onClick,
-                    onMessageLongClick = onMessageLongClick,
+                    showSender = showSender,
+                    onAttachmentClicked = onAttachmentClicked,
+                    onMoreClicked = onMoreClicked,
+                    onShare = onShare,
                 )
             }
 
             // Note that these will actually appear *above* the relevant messages because of `reverseLayout = true`
             when {
                 // no header if only one day is displayed
-                groupedMessages.count() <= 1 -> Unit
+                groupedMessages.size <= 1 -> Unit
 
                 // Display "Today" over today's messages
                 section.createdAt.isSameDay(Date()) ->
@@ -81,10 +96,38 @@ internal fun ColumnScope.Messages(
                     }
             }
         }
+
         if (canLoadMore) {
             item(contentType = LOADING) {
                 LoadMore(loadMore)
             }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun MessagesPreview() {
+    val context = LocalContext.current
+    val section = MessagePreviewProvider()
+        .values
+        .toList()
+        .groupBy { message -> message.createdAtDate(context) }
+        .entries
+        .map(::Section)
+    val listState = rememberLazyListState()
+
+    ChatTheme {
+        Column {
+            Messages(
+                scrollState = listState,
+                groupedMessages = section,
+                loadMore = {},
+                canLoadMore = false,
+                onAttachmentClicked = {},
+                onMoreClicked = { _, _ -> },
+                onShare = {},
+            )
         }
     }
 }

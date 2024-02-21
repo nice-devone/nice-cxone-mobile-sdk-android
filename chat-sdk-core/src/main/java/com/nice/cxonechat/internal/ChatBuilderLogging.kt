@@ -19,11 +19,12 @@ import com.nice.cxonechat.Authorization
 import com.nice.cxonechat.Cancellable
 import com.nice.cxonechat.ChatBuilder
 import com.nice.cxonechat.ChatBuilder.OnChatBuiltCallback
+import com.nice.cxonechat.ChatBuilder.OnChatBuiltResultCallback
 import com.nice.cxonechat.ChatStateListener
 import com.nice.cxonechat.log.LoggerScope
 import com.nice.cxonechat.log.duration
+import com.nice.cxonechat.log.error
 import com.nice.cxonechat.log.scope
-import com.nice.cxonechat.log.severe
 
 internal class ChatBuilderLogging(
     private val origin: ChatBuilder,
@@ -36,7 +37,7 @@ internal class ChatBuilderLogging(
         origin.setAuthorization(authorization)
     }
 
-    override fun setDevelopmentMode(enabled: Boolean) = scope("setDevelopmentMode") {
+    override fun setDevelopmentMode(enabled: Boolean): ChatBuilder = scope("setDevelopmentMode") {
         this@ChatBuilderLogging.developmentMode = enabled
         origin.setDevelopmentMode(enabled)
     }
@@ -53,11 +54,27 @@ internal class ChatBuilderLogging(
         origin.setDeviceToken(token)
     }
 
+    @Deprecated(
+        "Please migrate to build method with OnChatBuildResultCallback",
+        replaceWith = ReplaceWith(
+            "build(resultCallback = OnChatBuiltResultCallback { callback.onChatBuilt(it.getOrThrow()) })",
+            "com.nice.cxonechat.ChatBuilder.OnChatBuiltResultCallback"
+        )
+    )
     override fun build(callback: OnChatBuiltCallback): Cancellable = scope("build") {
         return try {
-            duration { origin.build(callback) }
+            duration { origin.build(resultCallback = { callback.onChatBuilt(it.getOrThrow()) }) }
         } catch (expected: Throwable) {
-            if (developmentMode) severe("Failed to initialize", expected)
+            if (developmentMode) error("Failed to initialize", expected)
+            throw expected
+        }
+    }
+
+    override fun build(resultCallback: OnChatBuiltResultCallback): Cancellable = scope("build") {
+        return try {
+            duration { origin.build(resultCallback) }
+        } catch (expected: Throwable) {
+            if (developmentMode) error("Failed to initialize", expected)
             throw expected
         }
     }

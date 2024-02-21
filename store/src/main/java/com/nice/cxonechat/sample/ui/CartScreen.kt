@@ -55,7 +55,6 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.nice.cxonechat.sample.R.string
-import com.nice.cxonechat.sample.StoreViewModel
 import com.nice.cxonechat.sample.data.models.Cart
 import com.nice.cxonechat.sample.data.models.Cart.Item
 import com.nice.cxonechat.sample.data.operations.isEmpty
@@ -65,6 +64,7 @@ import com.nice.cxonechat.sample.extensions.bold
 import com.nice.cxonechat.sample.ui.theme.AppTheme
 import com.nice.cxonechat.sample.ui.theme.ContinueButton
 import com.nice.cxonechat.sample.ui.theme.ScreenWithScaffold
+import com.nice.cxonechat.sample.viewModel.StoreViewModel
 
 /**
  * Defines the Cart Screen which displays a list of items in the cart as well
@@ -89,7 +89,7 @@ object CartScreen : Screen {
 
     override fun navigation(navGraphBuilder: NavGraphBuilder, navHostController: NavHostController, viewModel: StoreViewModel) {
         navGraphBuilder.composable(route = routeFormat) {
-            viewModel.SendPageView("cart", "/cart")
+            viewModel.analyticsHandler.SendPageView("cart", "/cart")
 
             Screen(
                 cart = viewModel.storeRepository.cart.collectAsState().value,

@@ -17,21 +17,21 @@ package com.nice.cxonechat.sample.data.repository
 
 import android.content.Context
 import com.nice.cxonechat.sample.data.models.ChatSettings
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import javax.inject.Inject
-import javax.inject.Singleton
+import org.koin.core.annotation.Single
 
 /**
  * Repository responsible saving, loading, and tracking chat related settings.
  *
  * @param context Application context for file access.
  */
-@Singleton
-class ChatSettingsRepository @Inject constructor(@ApplicationContext val context: Context) : FileRepository<ChatSettings>(
-    "settings.json",
-    ChatSettings::class
+@Single
+class ChatSettingsRepository(
+    val context: Context,
+) : FileRepository<ChatSettings>(
+    fileName = "settings.json",
+    type = ChatSettings::class,
 ) {
     private val mutableSettings = MutableStateFlow<ChatSettings?>(null)
 

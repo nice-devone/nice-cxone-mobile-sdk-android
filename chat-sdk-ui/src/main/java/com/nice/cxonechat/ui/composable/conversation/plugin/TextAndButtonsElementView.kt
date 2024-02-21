@@ -18,7 +18,6 @@ package com.nice.cxonechat.ui.composable.conversation.plugin
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.nice.cxonechat.ui.composable.conversation.MessageItem
 import com.nice.cxonechat.ui.composable.conversation.PreviewMessageItemBase
 import com.nice.cxonechat.ui.composable.conversation.model.PluginElement.TextAndButtons
 
@@ -35,7 +34,8 @@ internal fun TextAndButtonsElementView(textAndButtons: TextAndButtons, modifier:
 @Composable
 @Preview
 private fun PreviewSubtitle() {
-    PreviewMessageItemBase {
-        MessageItem(message = PluginPreviewProvider().textAndButtons.asMessage("text and buttons"))
-    }
+    PreviewMessageItemBase(
+        message = MessagePreviewProvider().textAndButtons.asMessage("text and buttons"),
+        showSender = true,
+    )
 }

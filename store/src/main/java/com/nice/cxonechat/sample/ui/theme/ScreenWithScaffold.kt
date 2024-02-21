@@ -16,7 +16,6 @@
 package com.nice.cxonechat.sample.ui.theme
 
 import android.app.Activity
-import android.content.Intent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
@@ -36,7 +35,6 @@ import com.nice.cxonechat.sample.ui.theme.Strings.content
 import com.nice.cxonechat.sample.ui.theme.Strings.title
 import com.nice.cxonechat.ui.ChatActivity
 import kotlinx.coroutines.launch
-import com.nice.cxonechat.ui.R.anim as ChatUiAnimations
 
 /**
  * Displays a screen in an AppTheme Scaffold.
@@ -84,13 +82,7 @@ fun AppTheme.ScreenWithScaffold(
     }
 
     val onOpenChat: (() -> Unit) = {
-        with(context) {
-            startActivity(Intent(context, ChatActivity::class.java))
-            (this as? Activity)?.overridePendingTransition(
-                ChatUiAnimations.present_chat,
-                ChatUiAnimations.present_host
-            )
-        }
+        (context as? Activity)?.run(ChatActivity::startChat)
     }
 
     Scaffold(
@@ -103,7 +95,11 @@ fun AppTheme.ScreenWithScaffold(
             )
         },
         floatingActionButton = { ChatFab(onClick = onOpenChat) },
-        drawerContent = { drawerContent?.invoke { closeDrawer() } },
+        drawerContent = drawerContent?.let {
+            {
+                drawerContent.invoke { closeDrawer() }
+            }
+        },
     ) { paddingValues ->
         Box(
             modifier = Modifier

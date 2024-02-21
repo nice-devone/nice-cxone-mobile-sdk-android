@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Card
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,11 +52,13 @@ import com.nice.cxonechat.ui.composable.generic.SimpleDropdownItem
 import com.nice.cxonechat.ui.composable.generic.SimpleTreeFieldItem
 import com.nice.cxonechat.ui.composable.generic.TreeField
 import com.nice.cxonechat.ui.composable.generic.TreeFieldItem
+import com.nice.cxonechat.ui.composable.generic.pathToNode
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.FieldLabelDecoration
 import com.nice.cxonechat.ui.composable.theme.TextField
 import com.nice.cxonechat.ui.util.isEmpty
+import com.nice.cxonechat.ui.util.toggle
 
 @Composable
 internal fun CVFieldList(fields: CustomValueItemList) {
@@ -152,21 +155,25 @@ private fun <ValueType> Sequence<HierarchyNode<ValueType>>.toTreeFieldItemList()
         SimpleTreeFieldItem(
             it.label,
             it,
-            it.children.firstOrNull()?.children?.toTreeFieldItemList(),
+            it.children.toTreeFieldItemList().ifEmpty { null },
         )
     }.toList()
 }
+
+private typealias CVHFItem = TreeFieldItem<HierarchyNode<String>>
 
 @Composable
 private fun CVHierarchyField(item: CustomValueItem.Hierarchy) {
     val details = item.definition
     val requiredError = stringResource(id = string.error_required_field)
     val valueError = stringResource(id = string.error_value_validation)
-    var node by remember { item.response }
+    val nodes by remember { mutableStateOf(details.values.toTreeFieldItemList()) }
+    var selected by remember { item.response }
+    var expanded: Set<CVHFItem> by remember { mutableStateOf(setOf()) }
     var error: String? by remember { mutableStateOf(null) }
     val label = when {
         error != null -> error
-        node != null -> details.label
+        selected != null -> details.label
         else -> null
     }
 
@@ -178,19 +185,30 @@ private fun CVHierarchyField(item: CustomValueItem.Hierarchy) {
         }
     }
 
+    fun expandClicked(node: CVHFItem) {
+        expanded = expanded.toggle(node)
+    }
+
+    fun selectClicked(node: CVHFItem) {
+        if (node.isLeaf) {
+            selected = if (selected == node.value) null else node.value
+            validate(selected)
+        } else {
+            expandClicked(node)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        expanded = nodes.pathToNode { it.value == selected }?.toSet() ?: setOf()
+    }
+
     ChatTheme.FieldLabelDecoration(label = label, isError = error != null) {
         TreeField(
-            items = details.values.toTreeFieldItemList(),
-            canSelect = { it.isLeaf },
-            isSelected = { it.value == node },
-            toggleSelected = { selected ->
-                node = if (node == selected.value) {
-                    null
-                } else {
-                    selected.value
-                }
-                validate(node)
-            }
+            items = nodes,
+            isSelected = { it.value == selected },
+            isExpanded = expanded::contains,
+            onNodeClicked = ::selectClicked,
+            onExpandClicked = ::expandClicked
         )
     }
 }

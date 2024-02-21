@@ -38,27 +38,27 @@ sealed class Message {
     /**
      * The id that was assigned to this message.
      * If another message has matching id, it's the same message with possibly different content.
-     * */
+     */
     abstract val id: UUID
 
     /**
      * The thread id that this message belongs to. Messages should never be
      * mismatched between threads as this can lead to inconsistencies and
      * undefined behavior.
-     * */
+     */
     abstract val threadId: UUID
 
     /**
      * The timestamp of when the message was created on the server. Similarly
      * to [id] this field shouldn't change for the lifetime of the message.
-     * */
+     */
     abstract val createdAt: Date
 
     /**
      * The direction in which the message is sent.
      *
      * @see MessageDirection
-     * */
+     */
     abstract val direction: MessageDirection
 
     /**
@@ -66,15 +66,18 @@ sealed class Message {
      * contain anything from message status to custom properties.
      *
      * @see MessageMetadata
-     * */
+     */
     abstract val metadata: MessageMetadata
 
     /**
      * Author associated with this message.
      *
+     * *Note:* Under some circumstances the author name may be unknown and [author] will be null.
+     * The UI can provide a suitable localized fallback based on [direction].
+     *
      * @see MessageAuthor
-     * */
-    abstract val author: MessageAuthor
+     */
+    abstract val author: MessageAuthor?
 
     /**
      * Attachments provided with the message. This field can be empty.
@@ -84,7 +87,7 @@ sealed class Message {
      * Never make any assumption on the implemented type of the [Iterable].
      *
      * @see ChatThreadMessageHandler.send
-     * */
+     */
     abstract val attachments: Iterable<Attachment>
 
     /**
@@ -97,7 +100,7 @@ sealed class Message {
     /**
      * Simple message representing only text content. This type of content
      * is usually generated through User or Agent replying to each other.
-     * */
+     */
     @Public
     abstract class Text : Message() {
 
@@ -109,7 +112,7 @@ sealed class Message {
          * characters out of scope for your current device (typically emojis
          * or unsupported characters from some languages). Use support
          * libraries to display them, if applicable.
-         * */
+         */
         abstract val text: String
     }
 
@@ -120,14 +123,14 @@ sealed class Message {
      * required by your own specification. Note that new elements can be added
      * to the backend services for which you need to update the SDK. New
      * elements, previously undefined are ignored by the SDK until implemented.
-     * */
+     */
     @Public
     abstract class Plugin : Message() {
 
         /**
          * Additional information provided alongside with the message. Refer to
          * information given by a representative to correctly use this parameter.
-         * */
+         */
         abstract val postback: String?
 
         /**
@@ -136,7 +139,7 @@ sealed class Message {
          * this version. Kindly update the SDK in order to gain support.
          *
          * @see PluginElement
-         * */
+         */
         abstract val element: PluginElement?
     }
 

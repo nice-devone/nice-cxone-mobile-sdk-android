@@ -9,7 +9,7 @@ internal fun makeCustomerIdentity(
     firstName: String? = nextString(),
     lastName: String? = nextString(),
 ) = CustomerIdentityModel(
-    idOnExternalPlatform = idOnExternalPlatform,
+    idOnExternalPlatform = idOnExternalPlatform.toString(),
     firstName = firstName,
     lastName = lastName
 )

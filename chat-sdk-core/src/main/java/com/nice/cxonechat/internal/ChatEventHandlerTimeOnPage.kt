@@ -16,6 +16,7 @@
 package com.nice.cxonechat.internal
 
 import com.nice.cxonechat.ChatEventHandler
+import com.nice.cxonechat.ChatEventHandler.OnEventErrorListener
 import com.nice.cxonechat.ChatEventHandler.OnEventSentListener
 import com.nice.cxonechat.event.ChatEvent
 import com.nice.cxonechat.event.PageViewEndedEvent
@@ -27,15 +28,15 @@ internal class ChatEventHandlerTimeOnPage(
     private val origin: ChatEventHandler,
     private val chat: ChatWithParameters,
 ) : ChatWithParameters by chat, ChatEventHandler {
-    override fun trigger(event: ChatEvent, listener: OnEventSentListener?) {
+    override fun trigger(event: ChatEvent, listener: OnEventSentListener?, errorListener: OnEventErrorListener?) {
         when (event) {
-            is PageViewEvent -> onPageViewed(event, listener)
-            is PageViewEndedEvent -> onPageEnded(event, listener)
-            else -> origin.trigger(event, listener)
+            is PageViewEvent -> onPageViewed(event, listener, errorListener)
+            is PageViewEndedEvent -> onPageEnded(event, listener, errorListener)
+            else -> origin.trigger(event, listener, errorListener)
         }
     }
 
-    private fun onPageViewed(event: PageViewEvent, listener: OnEventSentListener?) {
+    private fun onPageViewed(event: PageViewEvent, listener: OnEventSentListener?, errorListener: OnEventErrorListener?) {
         // Ignore a duplicate event
         if (event.uri == lastPageViewed?.uri && event.title == lastPageViewed?.title) {
             listener?.onSent()
@@ -43,14 +44,14 @@ internal class ChatEventHandlerTimeOnPage(
         }
 
         lastPageViewed?.let { last ->
-            onPageEnded(PageViewEndedEvent(last.title, last.uri, event.date), listener)
+            onPageEnded(PageViewEndedEvent(last.title, last.uri, event.date), listener, errorListener)
         }
         lastPageViewed = event
 
-        origin.trigger(event, listener)
+        origin.trigger(event, listener, errorListener)
     }
 
-    private fun onPageEnded(event: PageViewEndedEvent, listener: OnEventSentListener?) {
+    private fun onPageEnded(event: PageViewEndedEvent, listener: OnEventSentListener?, errorListener: OnEventErrorListener?) {
         val last = lastPageViewed
 
         if (last != null &&
@@ -58,13 +59,14 @@ internal class ChatEventHandlerTimeOnPage(
             last.title == event.title
         ) {
             origin.trigger(
-                TimeSpentOnPageEvent(
+                event = TimeSpentOnPageEvent(
                     uri = event.uri,
                     title = event.title,
                     timeSpentOnPage = max(1, (event.date.time - last.date.time) / 1000),
                     date = event.date
                 ),
-                listener
+                listener = listener,
+                errorListener = errorListener,
             )
         } else {
             listener?.onSent()

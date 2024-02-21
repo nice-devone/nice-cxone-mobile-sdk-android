@@ -19,21 +19,21 @@ import android.content.Context
 import android.net.Uri
 import android.webkit.MimeTypeMap
 import com.nice.cxonechat.message.ContentDescriptor
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.runInterruptible
+import org.koin.core.annotation.Module
+import org.koin.core.annotation.Single
 import java.util.UUID
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * [ContentDataSource] for videos, pdf documents and other attachments that are
  * treated as raw data.
  *
- * @property context Context for content resolver
+ * @param context Context for content resolver
  */
-@Singleton
-internal class DocumentContentDataSource @Inject constructor(
-    @ApplicationContext private val context: Context,
+@Single
+@Module()
+internal class DocumentContentDataSource(
+    private val context: Context,
 ) : ContentDataSource {
     override val acceptRegex = Regex("""(video/.*|application/pdf)""")
 

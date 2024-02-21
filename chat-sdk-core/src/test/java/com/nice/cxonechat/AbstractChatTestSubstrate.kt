@@ -1,18 +1,3 @@
-/*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
- *
- * Licensed under the NICE License;
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
- *
- * TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
- * AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
- * OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
- */
-
 package com.nice.cxonechat
 
 import androidx.annotation.CallSuper
@@ -27,12 +12,13 @@ import com.nice.cxonechat.storage.ValueStorage
 import com.nice.cxonechat.tool.ChatEntrailsMock
 import com.nice.cxonechat.tool.MockServer
 import com.nice.cxonechat.tool.awaitResult
+import io.mockk.clearMocks
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.spyk
+import io.mockk.verify
 import okhttp3.WebSocket
 import org.junit.Before
-import org.mockito.kotlin.any
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.spy
-import org.mockito.kotlin.whenever
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -81,39 +67,36 @@ internal abstract class AbstractChatTestSubstrate {
             println(message)
             throwable?.printStackTrace()
         }
-    }.let(::spy)
+    }.let(::spyk)
 
-    private fun mockStorage(): ValueStorage = mock<ValueStorage>().apply {
-        whenever(visitorId).thenReturn(UUID.fromString(TestUUID))
-        whenever(customerId).thenReturn(UUID.fromString(TestUUID))
-        whenever(destinationId).thenReturn(UUID.fromString(TestUUID))
-        whenever(welcomeMessage).thenReturn("welcome")
-        whenever(authToken).thenReturn("token")
-        whenever(deviceToken).thenReturn("")
+    // relaxUnitFun = true means we don't need to mock all the setters.
+    private fun mockStorage(): ValueStorage = mockk(relaxUnitFun = true) {
+        every { visitorId } returns UUID.fromString(TestUUID)
+        every { customerId } returns TestUUID
+        every { destinationId } returns UUID.fromString(TestUUID)
+        every { welcomeMessage } returns "welcome"
+        every { authToken } returns "token"
+        every { authTokenExpDate } returns null
+        every { deviceToken } returns ""
     }
 
-    private fun mockService() = mock<RemoteService>().apply {
-        val configurationCall = mock<Call<ChannelConfiguration?>>()
-        whenever(getChannel(any(), any())).thenReturn(configurationCall)
-        whenever(configurationCall.execute()).then { Response.success(config) }
-        whenever(configurationCall.enqueue(any())).then { mock ->
-            val callback = mock.getArgument<Callback<ChannelConfiguration?>>(0)
+    fun <T> mockCall(result: () -> T) = mockk<Call<T>> {
+        every { execute() } answers { Response.success(result()) }
+        every { enqueue(any()) } answers {
+            @Suppress("UNCHECKED_CAST")
+            val call = self as Call<T>
+            val callback = arg<Callback<T>>(0)
+
             runCatching { config }
-                .onSuccess { callback.onResponse(configurationCall, Response.success(it)) }
-                .onFailure { callback.onFailure(configurationCall, it) }
-            Unit
+                .onSuccess { callback.onResponse(call, Response.success(result())) }
+                .onFailure { callback.onFailure(call, it) }
         }
-        val visitorCall = mock<Call<Void>>()
-        whenever(
-            createOrUpdateVisitor(
-                brandId = any(),
-                visitorId = any(),
-                visitor = any()
-            )
-        ).thenReturn(visitorCall)
-        whenever(visitorCall.enqueue(any())).then { answer ->
-            answer.getArgument<Callback<Void>?>(0).onResponse(visitorCall, Response.success(null))
-        }
+    }
+
+    private fun mockService() = mockk<RemoteService> {
+        every { getChannel(any(), any()) } returns mockCall { config }
+        @Suppress("UNCHECKED_CAST")
+        every { createOrUpdateVisitor(any(), any(), any()) } returns mockCall { null } as Call<Void>
     }
 
     protected inline fun <T> testCallback(
@@ -142,22 +125,33 @@ internal abstract class AbstractChatTestSubstrate {
         assertSendTexts(expected, except = except, replaceDate = replaceDate, body = expression)
     }
 
+    protected fun assertSendsNothing(body: () -> Unit) {
+        clearMocks(socket)
+        every { socket.send(text = any()) } returns true
+
+        body()
+
+        verify(exactly = 0) { socket.send(text = any()) }
+    }
+
     protected fun assertSendTexts(
         vararg expected: String,
         except: Array<out String> = emptyArray(),
         replaceDate: Boolean = false,
         body: () -> Unit,
     ) {
+        clearMocks(socket)
         val arguments = mutableListOf<String>()
-        whenever(socket.send(text = any())).then {
-            arguments += it.getArgument<String>(0)
-            true
-        }
+        every { socket.send(text = capture(arguments)) } returns true
+
         body()
+
         assert(arguments.isNotEmpty()) {
             "Nothing was sent to the socket"
         }
-        val expectedArray = expected.map { if (replaceDate) replaceDate(it, emptyArray()) else it }
+        val expectedArray = expected
+            .map { if (replaceDate) replaceDate(it, emptyArray()) else it }
+            .map { replaceUUID(it, except) }
         arguments
             .map { replaceUUID(it, except) }
             .map { if (replaceDate) replaceDate(it, except) else it }
@@ -167,7 +161,7 @@ internal abstract class AbstractChatTestSubstrate {
     }
 
     protected fun testSendTextFeedback() {
-        whenever(socket.send(text = any())).thenReturn(true)
+        every { socket.send(text = any()) } returns true
     }
 
     private fun replaceUUID(text: String, except: Array<out String>): String {

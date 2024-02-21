@@ -28,10 +28,10 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.nice.cxonechat.sample.R.string
-import com.nice.cxonechat.sample.StoreViewModel
 import com.nice.cxonechat.sample.ui.theme.AppTheme
 import com.nice.cxonechat.sample.ui.theme.ContinueButton
 import com.nice.cxonechat.sample.ui.theme.ScreenWithScaffold
+import com.nice.cxonechat.sample.viewModel.StoreViewModel
 
 /**
  * Define the ConfirmationScreen that appears after the Payment screen, confirming that
@@ -47,7 +47,7 @@ object ConfirmationScreen : Screen {
         navGraphBuilder.composable(
             route = routeFormat,
         ) {
-            viewModel.SendPageView("confirmation", "/confirmation")
+            viewModel.analyticsHandler.SendPageView("confirmation", "/confirmation")
 
             Screen(
                 onContinue = {

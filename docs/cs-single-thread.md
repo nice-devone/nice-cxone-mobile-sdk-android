@@ -54,9 +54,7 @@ class ChatConversationViewModel : ViewModel() {
                 thread = it
                 // notify ui
             }
-            handlerThread.refresh() // (1)
         }
-        handlerThreads.refresh() // (4)
     }
 
     override fun onCleared() {
@@ -74,8 +72,6 @@ class ChatConversationViewModel : ViewModel() {
   - In this case all we care about is the first list
 - (3) Create or select a Thread
   - When Thread exists, then pick a thread otherwise create a new one
-- (4) Fetch a current Thread representation
-  - Note the `refresh` call after setting a listener
 
 [cs-instance-holder]: cs-instance-holder.md
 

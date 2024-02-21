@@ -43,10 +43,10 @@ internal class PreferencesValueStorage(private val sharedPreferences: SharedPref
             }
         }
 
-    override var customerId: UUID?
-        get() = sharedPreferences.getUUID(PREF_CUSTOMER_ID, null)
+    override var customerId: String?
+        get() = sharedPreferences.getString(PREF_CUSTOMER_ID, null)
         set(value) = sharedPreferences.edit {
-            putString(PREF_CUSTOMER_ID, value.toString())
+            putString(PREF_CUSTOMER_ID, value)
         }
 
     override var visitorId: UUID

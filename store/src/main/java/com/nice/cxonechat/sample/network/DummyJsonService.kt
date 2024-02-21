@@ -17,6 +17,8 @@ package com.nice.cxonechat.sample.network
 
 import com.nice.cxonechat.sample.data.models.Product
 import com.nice.cxonechat.sample.data.models.ProductList
+import com.nice.cxonechat.utilities.TaggingSocketFactory
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
@@ -45,11 +47,18 @@ interface DummyJsonService {
     suspend fun product(@Path("productId") productId: String): Product
 
     companion object {
+        private val client by lazy {
+            OkHttpClient.Builder()
+                .socketFactory(TaggingSocketFactory)
+                .build()
+        }
+
         /** singleton instance of DummyJsonService provided by retrofit. */
         val dummyJsonService: DummyJsonService by lazy {
             Retrofit.Builder()
                 .baseUrl("https://dummyjson.com")
                 .addConverterFactory(GsonConverterFactory.create())
+                .client(client)
                 .build()
                 .create(DummyJsonService::class.java)
         }

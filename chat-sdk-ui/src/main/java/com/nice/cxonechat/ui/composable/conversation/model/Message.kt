@@ -19,6 +19,7 @@ import android.content.Context
 import com.nice.cxonechat.message.Media
 import com.nice.cxonechat.message.Message.QuickReplies
 import com.nice.cxonechat.message.MessageDirection
+import com.nice.cxonechat.message.MessageStatus
 import com.nice.cxonechat.message.OutboundMessage
 import com.nice.cxonechat.ui.util.toShortDateString
 import java.util.Date
@@ -35,11 +36,17 @@ internal sealed class Message(original: SdkMessage) {
     /** See [SdkMessage.id]. */
     val id = original.id
 
+    /** Friendly name of sender.  See [SdkMessage.author] */
+    val sender: String? = original.author?.name
+
     /** See [com.nice.cxonechat.message.MessageAuthor.imageUrl]. */
-    private val imageUrl: String? = original.author.imageUrl
+    private val imageUrl: String? = original.author?.imageUrl
 
     /** See [SdkMessage.createdAt]. */
     val createdAt: Date = original.createdAt
+
+    /** The status of message. */
+    val status: MessageStatus = original.metadata.status
 
     /** See [SdkMessage.direction]. */
     val direction: MessageDirection = original.direction
@@ -55,23 +62,17 @@ internal sealed class Message(original: SdkMessage) {
     fun createdAtDate(context: Context): String = context.toShortDateString(createdAt)
 
     /**
-     * UI version of a [SdkMessage.Text] with a [SdkAttachment].
+     * UI version of a [SdkMessage.Text] with one or more [SdkAttachment].
      */
-    data class Attachment(
+    data class WithAttachments(
         private val message: SdkMessage.Text,
-        private val attachment: SdkAttachment,
     ) : Message(message) {
         /** See [SdkMessage.Text.text]. */
         val text: String = message.text
 
-        /** See [SdkAttachment.friendlyName]. */
-        val name: String = attachment.friendlyName
-
-        /** See [SdkAttachment.url]. */
-        val originalUrl: String = attachment.url
-
-        /** See [SdkAttachment.mimeType]. */
-        val mimeType: String? = attachment.mimeType
+        /** Attachments to be presented to the user. */
+        val attachments: Iterable<SdkAttachment>
+            get() = message.attachments
     }
 
     /**

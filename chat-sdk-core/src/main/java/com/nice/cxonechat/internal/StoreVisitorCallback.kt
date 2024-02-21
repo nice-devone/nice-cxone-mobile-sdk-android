@@ -17,8 +17,8 @@ package com.nice.cxonechat.internal
 
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerScope
-import com.nice.cxonechat.log.finest
 import com.nice.cxonechat.log.scope
+import com.nice.cxonechat.log.verbose
 import com.nice.cxonechat.log.warning
 import retrofit2.Call
 import retrofit2.Callback
@@ -31,7 +31,7 @@ internal class StoreVisitorCallback(
 
     override fun onResponse(call: Call<Void>, response: Response<Void>) = scope("onResponse") {
         if (response.isSuccessful) {
-            logger.finest("StoreVisitor created")
+            logger.verbose("StoreVisitor created")
         } else {
             logger.warning("StoreVisitor creation failed: ${response.errorBody()?.string()}")
         }

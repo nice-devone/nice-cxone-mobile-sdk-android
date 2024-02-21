@@ -21,13 +21,14 @@ import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.sample.ui.theme.Colors.Dark
 import com.nice.cxonechat.sample.ui.theme.Colors.DefaultColors
 import com.nice.cxonechat.sample.ui.theme.Colors.Light
+import com.nice.cxonechat.sample.ui.theme.Images
 
 /**
  * UI Settings as saved to file.
  *
  * @param lightModeColors Colors to be used in light mode.
  * @param darkModeColors Colors to be used in dark mode.
- * @param logo Logo image which should be used for chat branding.
+ * @param storedLogo Logo image which should be used for chat branding.
  */
 @Immutable
 data class UISettingsModel(
@@ -36,8 +37,13 @@ data class UISettingsModel(
     @SerializedName("darkModeColors")
     val darkModeColors: Colors = Colors(Dark),
     @SerializedName("logo")
-    val logo: String? = null,
+    private val storedLogo: String? = null,
 ) {
+
+    /** Either stored logo, or default image. */
+    val logo: Any
+        get() = storedLogo ?: Images.logo
+
     /**
      * A set of custom colors to be applied during either day or night mode.
      *

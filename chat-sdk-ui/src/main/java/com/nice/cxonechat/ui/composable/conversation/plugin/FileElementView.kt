@@ -18,7 +18,6 @@ package com.nice.cxonechat.ui.composable.conversation.plugin
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.nice.cxonechat.ui.composable.conversation.MessageItem
 import com.nice.cxonechat.ui.composable.conversation.PreviewMessageItemBase
 import com.nice.cxonechat.ui.composable.conversation.model.PluginElement.File
 import com.nice.cxonechat.ui.composable.generic.PresetAsyncImage
@@ -35,7 +34,8 @@ internal fun FileElementView(file: File, modifier: Modifier = Modifier) {
 @Composable
 @Preview
 private fun PreviewFile() {
-    PreviewMessageItemBase {
-        MessageItem(message = PluginPreviewProvider().file.asMessage("file"))
-    }
+    PreviewMessageItemBase(
+        message = MessagePreviewProvider().file.asMessage("file"),
+        showSender = true,
+    )
 }

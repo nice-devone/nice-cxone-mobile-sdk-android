@@ -24,14 +24,12 @@ import android.os.Build.VERSION_CODES
 import androidx.annotation.DrawableRes
 import com.nice.cxonechat.ui.domain.PushMessage
 import com.nice.cxonechat.ui.domain.PushMessageParser
-import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
 
 /**
  * Pinpoint specific implementation of [PushMessageParser].
  */
-internal class PinpointPushMessageParser @Inject constructor(
-    @ApplicationContext private val context: Context,
+internal class PinpointPushMessageParser(
+    private val context: Context,
 ) : PushMessageParser {
 
     override fun parse(data: Map<String, String>): PushMessage {

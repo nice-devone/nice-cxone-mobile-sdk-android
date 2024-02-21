@@ -25,9 +25,6 @@ import com.nice.cxonechat.Public
 sealed class CXOneException : Exception {
     constructor(message: String?) : super(message)
 
-    @Suppress(
-        "UNUSED" // Reserved for future usage
-    )
     constructor(message: String?, cause: Throwable?) : super(message, cause)
 
     @Suppress(
@@ -44,12 +41,33 @@ sealed class CXOneException : Exception {
 }
 
 /**
+ * An action was attempted when a [ChatInstanceProvider] was in an invalid state.
+ *
+ * Some examples of invalid states might be:
+ * * calling [ChatInstanceProvider.connect] on an unprepared provider;
+ * * calling [ChatInstanceProvider.prepare] on a prepared or connected provider;
+ *
+ * Further details are available in the exception description.
+ */
+@Public
+class InvalidStateException internal constructor(message: String) : CXOneException(message)
+
+/**
+ * An action was attempted with an invalid parameter.
+ *
+ * Some examples of invalid parameters are:
+ * * calling [ChatThreadMessageHandler.send] with a message with no message, attachment, or postback text.
+ */
+@Public
+class InvalidParameterException internal constructor(message: String) : CXOneException(message)
+
+/**
  * The method being called is not supported with the current channel configuration.
  */
 @Public
 class UnsupportedChannelConfigException internal constructor() : CXOneException(
     "The method you are trying to call is not supported with your current channel configuration." +
-    " For example, archiving a thread is only supported on a channel configured for multiple threads."
+            " For example, archiving a thread is only supported on a channel configured for multiple threads."
 )
 
 /**
@@ -115,3 +133,57 @@ class MissingCustomerId internal constructor() : CXOneException(
  */
 @Public
 class InternalError internal constructor(message: String) : CXOneException(message)
+
+/**
+ * The SDK was unable to dispatch analytics event to server, due to some kind of connectivity issue.
+ */
+@Public
+class AnalyticsEventDispatchException(message: String, throwable: Throwable?) : CXOneException(message, throwable)
+
+/**
+ *
+ */
+@Public
+sealed class RuntimeChatException(message: String, cause: Throwable? = null) : CXOneException(message, cause) {
+
+    /**
+     * Exception reported when the SDK was unable to upload supplied attachment.
+     *
+     * @property attachmentName Name of file as it was specified in the
+     * [com.nice.cxonechat.message.ContentDescriptor.fileName] supplied for upload.
+     * @param cause In case of networking error it will be [java.io.IOException] or [java.lang.RuntimeException], in
+     * case of backend error it will be [InvalidStateException].
+     */
+    @Public
+    class AttachmentUploadError internal constructor(val attachmentName: String?, cause: Throwable?) : RuntimeChatException(
+        message = "Failure during upload of an attachment: $attachmentName",
+        cause = cause
+    )
+
+    /**
+     * Exception reported when server reports error in response to an action (e.g. sending of a message).
+     *
+     * The message will contain a simple code string which marks reported error.
+     * Errors:
+     * - SendingMessageFailed
+     * - RecoveringLivechatFailed
+     * - RecoveringThreadFailed
+     * - SendingOutboundFailed
+     * - UpdatingThreadFailed
+     * - ArchivingThreadFailed
+     * - SendingTranscriptFailed
+     * - SendingOfflineMessageFailed
+     * - MetadataLoadFailed
+     */
+    @Public
+    class ServerCommunicationError internal constructor(message: String) : RuntimeChatException(message)
+
+    /**
+     * SDK has received information from server that authorization of user has failed.
+     * SDK instance should be considered in invalid state. New instance should be created before connection attempt is
+     * made again.
+     * Integrators should also check if their authorization setup is correct.
+     */
+    @Public
+    class AuthorizationError internal constructor(message: String) : RuntimeChatException(message)
+}

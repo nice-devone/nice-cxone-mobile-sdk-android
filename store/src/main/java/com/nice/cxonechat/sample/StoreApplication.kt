@@ -16,23 +16,43 @@
 package com.nice.cxonechat.sample
 
 import android.app.Application
+import android.os.Build
+import android.os.StrictMode
+import android.os.StrictMode.ThreadPolicy
+import android.os.StrictMode.VmPolicy
 import androidx.emoji2.bundled.BundledEmojiCompatConfig
 import androidx.emoji2.text.EmojiCompat
+import coil.ImageLoader
+import coil.ImageLoaderFactory
 import com.google.firebase.FirebaseApp
-import com.nice.cxonechat.sample.data.repository.ChatSettingsRepository
-import dagger.hilt.android.HiltAndroidApp
-import javax.inject.Inject
+import com.nice.cxonechat.log.LoggerAndroid
+import com.nice.cxonechat.log.ProxyLogger
+import com.nice.cxonechat.sample.modules.StoreModule
+import com.nice.cxonechat.sample.utilities.logging.FirebaseLogger
+import com.nice.cxonechat.ui.UiModule.Companion.chatUiModule
+import com.nice.cxonechat.utilities.TaggingSocketFactory
+import okhttp3.OkHttpClient
+import org.koin.android.ext.koin.androidContext
+import org.koin.core.context.startKoin
+import org.koin.ksp.generated.module
 
 /**
  * Host application, initializes customized Emoji and Firebase.
  */
-@HiltAndroidApp
-class StoreApplication : Application() {
-    @Inject
-    internal lateinit var chatSettingsRepository: ChatSettingsRepository
-
+class StoreApplication : Application(), ImageLoaderFactory {
     override fun onCreate() {
         super.onCreate()
+
+        startKoin {
+            androidContext(applicationContext)
+            chatUiModule(
+                ProxyLogger(
+                    FirebaseLogger(),
+                    LoggerAndroid("CXoneChatUi")
+                )
+            )
+            modules(StoreModule().module)
+        }
 
         /*
          SampleApp is using a bundled version of an emoji support library,
@@ -48,5 +68,33 @@ class StoreApplication : Application() {
 
         /* set up Firebase */
         FirebaseApp.initializeApp(applicationContext)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            StrictModePolicy.apply()
+        } else {
+            StrictMode.setThreadPolicy(
+                ThreadPolicy.Builder()
+                    .detectAll()
+                    .penaltyLog()
+                    .build()
+            )
+
+            StrictMode.setVmPolicy(
+                VmPolicy.Builder()
+                    .detectAll()
+                    .penaltyLog()
+                    .build()
+            )
+        }
+    }
+
+    override fun newImageLoader(): ImageLoader {
+        return ImageLoader.Builder(this)
+            .okHttpClient(
+                OkHttpClient.Builder()
+                    .socketFactory(TaggingSocketFactory)
+                    .build()
+            )
+            .build()
     }
 }

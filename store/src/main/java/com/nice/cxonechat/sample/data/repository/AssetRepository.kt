@@ -24,34 +24,30 @@ import kotlin.reflect.KClass
  * A read-only repository to read a typed-object from a named Android asset.
  *
  * @param Type Type of asset to read.
- * @property name Name of asset to read.
+ * @param name Name of asset to read.
  * @param type Class of asset to read.
  */
-open class AssetRepository<Type: Any>(
+open class AssetRepository<Type : Any>(
     private val name: String,
-    type: KClass<Type>
+    type: KClass<Type>,
 ) : Repository<Type>(type) {
+
     override fun doStore(string: String, context: Context) {
-        throw RepositoryError(TAG, "An attempt was made to write to asset: $name")
+        throw RepositoryError("An attempt was made to write to asset: $name")
     }
 
-    override fun doLoad(context: Context): String? {
-        return try {
-            return context.assets.open(name).use {
+    override fun doLoad(context: Context): String? =
+        try {
+            context.assets.open(name).use {
                 doLoad(it)
             }
         } catch (_: FileNotFoundException) {
             null
         } catch (exc: IOException) {
-            throw RepositoryError(TAG, "Error loading settings: $name", exc)
+            throw RepositoryError("Error loading settings: $name", exc)
         }
-    }
 
     override fun doClear(context: Context) {
-        throw RepositoryError(TAG, "An attempt was made to clear asset: $name")
-    }
-
-    companion object {
-        private const val TAG = "AssetRepository"
+        throw RepositoryError("An attempt was made to clear asset: $name")
     }
 }

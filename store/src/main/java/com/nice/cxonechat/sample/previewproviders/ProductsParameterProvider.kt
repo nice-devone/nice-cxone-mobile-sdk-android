@@ -27,12 +27,12 @@ class ProductsParameterProvider: PreviewParameterProvider<List<Product>> {
     override val values: Sequence<List<Product>>
         get() = sequenceOf(items)
 
-    companion object {
-        private val items by lazy {
-            Gson().fromJson(json, ProductList::class.java).items
+    private companion object {
+        val items by lazy {
+            Gson().fromJson(JSON, ProductList::class.java).items
         }
 
-        private const val json = """
+        private const val JSON = """
             {
     "products": [
         {

@@ -1,12 +1,15 @@
 package com.nice.cxonechat.tool
 
 import com.nice.cxonechat.internal.socket.ProxyWebSocketListener
+import io.mockk.every
+import io.mockk.mockk
 import okhttp3.WebSocket
-import org.mockito.kotlin.mock
 
 internal class MockServer {
 
-    val socket: WebSocket = mock()
+    val socket: WebSocket = mockk {
+        every { send(text = any()) } returns true
+    }
     val proxyListener: ProxyWebSocketListener = ProxyWebSocketListener()
 
     fun sendServerMessage(text: String) {

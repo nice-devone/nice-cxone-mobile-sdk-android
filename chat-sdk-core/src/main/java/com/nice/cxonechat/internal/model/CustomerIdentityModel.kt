@@ -17,11 +17,10 @@ package com.nice.cxonechat.internal.model
 
 import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.message.MessageAuthor
-import java.util.UUID
 
 internal data class CustomerIdentityModel(
     @SerializedName("idOnExternalPlatform")
-    val idOnExternalPlatform: UUID,
+    val idOnExternalPlatform: String,
 
     @SerializedName("firstName")
     val firstName: String? = null,
@@ -34,7 +33,7 @@ internal data class CustomerIdentityModel(
 ) {
 
     fun toMessageAuthor(): MessageAuthor = MessageAuthorInternal(
-        id = idOnExternalPlatform.toString(),
+        id = idOnExternalPlatform,
         firstName = firstName.orEmpty(),
         lastName = lastName.orEmpty(),
         imageUrl = imageUrl,

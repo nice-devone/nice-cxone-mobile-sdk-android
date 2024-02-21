@@ -18,10 +18,19 @@ package com.nice.cxonechat
 import android.content.Context
 import com.nice.cxonechat.ChatState.CONNECTED
 import com.nice.cxonechat.ChatState.CONNECTING
-import com.nice.cxonechat.ChatState.CONNECTION_CLOSED
 import com.nice.cxonechat.ChatState.CONNECTION_LOST
 import com.nice.cxonechat.ChatState.INITIAL
-import com.nice.cxonechat.state.lookup
+import com.nice.cxonechat.ChatState.PREPARED
+import com.nice.cxonechat.ChatState.PREPARING
+import com.nice.cxonechat.ChatState.READY
+import com.nice.cxonechat.exceptions.InvalidStateException
+import com.nice.cxonechat.exceptions.RuntimeChatException
+import com.nice.cxonechat.log.Logger
+import com.nice.cxonechat.log.LoggerNoop
+import com.nice.cxonechat.log.LoggerScope
+import com.nice.cxonechat.log.scope
+import com.nice.cxonechat.log.warning
+import com.nice.cxonechat.state.containsField
 import com.nice.cxonechat.state.validate
 import java.lang.ref.WeakReference
 
@@ -34,16 +43,23 @@ import java.lang.ref.WeakReference
  * @param developmentMode True if in development mode to get extra logging.
  * @param deviceTokenProvider Provider of device tokens for push messages, default implementation will
  * disable push notifications.
+ * @param logger The [Logger] used by the SDK, default is no-op implementation.
+ * @param chatBuilderProvider **INTERNAL USAGE ONLY** Provides [ChatBuilder].  For internal testing usage only.
  */
-@Suppress("TooManyFunctions")
+@Suppress(
+    "TooManyFunctions",
+    "LongParameterList"
+)
 @Public
-class ChatInstanceProvider(
+class ChatInstanceProvider private constructor(
     configuration: SocketFactoryConfiguration?,
-    authorization: Authorization? = null,
-    userName: UserName? = null,
-    developmentMode: Boolean = false,
-    deviceTokenProvider: DeviceTokenProvider? = null,
-) : ChatStateListener {
+    authorization: Authorization?,
+    userName: UserName?,
+    developmentMode: Boolean,
+    deviceTokenProvider: DeviceTokenProvider?,
+    logger: Logger,
+    private val chatBuilderProvider: (Context, SocketFactoryConfiguration, Logger) -> ChatBuilder,
+) : ChatStateListener, LoggerScope by LoggerScope(TAG, logger) {
     /** those interested in ChatInstanceProvider updates. */
     @Public
     interface Listener {
@@ -60,9 +76,15 @@ class ChatInstanceProvider(
          * @param chatState New chat state.
          */
         fun onChatStateChanged(chatState: ChatState) {}
+
+        /**
+         * Invoked when chat reports runtime exception which was encounter in background thread.
+         * @see [ChatStateListener.onChatRuntimeException].
+         */
+        fun onChatRuntimeException(exception: RuntimeChatException) {}
     }
 
-    /** Defines provider of device token for push notifications, typically this will [Firebase.messaging.token]. */
+    /** Defines provider of device token for push notifications, typically this will be `Firebase.messaging.token`. */
     @Public
     fun interface DeviceTokenProvider {
         /**
@@ -93,6 +115,9 @@ class ChatInstanceProvider(
 
         /** Current deviceToken provider. */
         var deviceTokenProvider: DeviceTokenProvider?
+
+        /** Current [Logger]. */
+        var logger: Logger
     }
 
     /** Current configuration. */
@@ -115,18 +140,19 @@ class ChatInstanceProvider(
     var deviceTokenProvider: DeviceTokenProvider? = deviceTokenProvider
         private set
 
+    /** Current [Logger]. */
+    var logger: Logger = logger
+        private set
+
+    override val identity: Logger
+        get() = logger
+
     /** token provided by deviceTokenProvider. */
     private var deviceToken: String? = null
         set(value) {
             field = value
             chat?.setDeviceToken(value)
         }
-
-    /** Cancellable creating chat instance. */
-    private var createJob: Cancellable? = null
-
-    /** Cancellable establishing new chat connection. */
-    private var reconnectJob: Cancellable? = null
 
     /** List of listeners to be notified. */
     private var listeners = listOf<WeakReference<Listener>>()
@@ -136,18 +162,20 @@ class ChatInstanceProvider(
         private set(value) {
             if (field != value) {
                 field = value
-                eachListener { onChatChanged(field) }
+                eachListener(value, Listener::onChatChanged)
             }
         }
 
+    private data class ChatStateInternal(
+        val state: ChatState,
+        val cancellable: Cancellable? = null,
+    )
+
+    private var state = ChatStateInternal(INITIAL)
+
     /** Current chat state. */
-    var chatState: ChatState = INITIAL
-        private set(value) {
-            if (field != value) {
-                field = value
-                eachListener { onChatStateChanged(value) }
-            }
-        }
+    val chatState: ChatState
+        get() = state.state
 
     /**
      * Add a listener to receive notifications of chat and state changes.
@@ -167,71 +195,161 @@ class ChatInstanceProvider(
      * @param listener Listener to remove.
      */
     fun removeListener(listener: Listener) {
-        listeners = listeners.filter { it !== listener }
+        listeners = listeners.filter { it.get() !== listener }
     }
+
+    private fun assertState(state: (ChatState) -> Boolean, generator: () -> String) {
+        if (!state(chatState)) {
+            throw InvalidStateException(generator())
+        }
+    }
+
+    private fun assertState(state: ChatState, generator: () -> String) =
+        assertState({ it === state }, generator)
 
     /**
      * Reestablish a chat connection if one does not currently exist.
      * @param context Application context for resource access.
+     * @param newConfig Optional configuration which will be used to prepare [Chat] instance. If supplied, it will take precedence over
+     * previously set configuration.
+     * @throws InvalidStateException if the connection is not in the initial state, i.e.:
+     * * it has already been prepared or connected;
+     * * the [ChatInstanceProvider] was not provided with a configuration at creation time.
      */
-    fun start(context: Context) {
-        if (setOf(CONNECTED, CONNECTING).contains(chatState)) {
-            return
+    @Throws(InvalidStateException::class)
+    @JvmOverloads
+    fun prepare(context: Context, newConfig: SocketFactoryConfiguration? = null) = scope("prepare") {
+        if (state.state == PREPARED) {
+            warning("Ignoring prepare in PREPARED state")
+            return@scope
         }
 
-        configuration?.let { configuration ->
-            chatState = CONNECTING
+        assertState(INITIAL) {
+            "ChatInstanceProvider.prepare called in an incorrect state ($chatState). " +
+                    "It is only valid from the INITIAL state."
+        }
 
-            createJob = ChatBuilder(context = context, config = configuration).apply {
+        val currentConfig = configuration
+        val configuration = newConfig ?: currentConfig ?: throw InvalidStateException(
+            "ChatInstanceProvider called with no valid configuration.  Insure the ChatInstanceProvider is " +
+                    "properly configured before calling prepare."
+        )
+
+        chatBuilderProvider(context, configuration, logger)
+            .setChatStateListener(this@ChatInstanceProvider)
+            .setDevelopmentMode(developmentMode)
+            .apply {
                 userName?.run {
                     setUserName(first = firstName, last = lastName)
                 }
+            }
+            .apply {
                 authorization?.let(::setAuthorization)
-                setDevelopmentMode(developmentMode)
-                setChatStateListener(this@ChatInstanceProvider)
+            }
+            .apply {
                 deviceTokenProvider?.requestDeviceToken { token ->
                     deviceToken = token
                     setDeviceToken(token)
                 }
-            }.build { result ->
-                chat = result
-                deviceToken?.let { chat?.setDeviceToken(it) }
+            }
+            .build { result: Result<Chat> ->
+                result.onSuccess { newChat ->
+                    chat = newChat
+                    advanceState(PREPARED)
+                    deviceToken?.let { chat?.setDeviceToken(it) }
+                }.onFailure {
+                    warning("Failed to prepare Chat", it)
+                    chat = null
+                    advanceState(INITIAL)
+                }
+            }
+            .also {
+                // if build is synchronous, the chat will have already advanced
+                // to PREPARED, so just skip PREPARING.
+                if (it != Cancellable.noop) {
+                    advanceState(PREPARING, it)
+                }
+            }
+    }
+
+    /**
+     * Connect the chat web socket so chat functions are available.
+     * @throws InvalidStateException if the connection is not in the correct state:
+     * * it has not been prepared;
+     * * it is already connected or connecting.
+     */
+    @Throws(InvalidStateException::class)
+    fun connect() = scope("connect") {
+        if (state.state == CONNECTED) {
+            warning("Ignoring connect in CONNECTED state")
+            return@scope
+        }
+
+        assertState({ setOf(PREPARED, CONNECTION_LOST).contains(it) }) {
+            "ChatInstanceProvider.connect called in invalid state ($chatState). " +
+                    "It is only allowed when the connection is either PREPARED or LOST_CONNECTION."
+        }
+
+        doConnect()
+    }
+
+    private fun doConnect() {
+        chat?.run {
+            val cancellable = connect()
+
+            if (cancellable != Cancellable.noop) {
+                // if connect is synchronous skip CONNECTING state
+                advanceState(CONNECTING, cancellable = cancellable, cancel = false)
             }
         }
     }
 
     /**
-     * Cancel a pending start request.
-     */
-    fun cancelStart() {
-        createJob?.cancel()
-        createJob = null
-
-        chatState = INITIAL
-    }
-
-    /**
      * Reconnect a broken connection.
+     * @throws InvalidStateException if the connection was not previously reported as lost
+     * or [connect] has already been called since it was reported lost.
      */
+    @Throws(InvalidStateException::class)
+    @Deprecated(
+        "ChatInstanceProvider.reconnect() has been deprecated.  Replace with ChatInstanceProvider.connect()",
+        replaceWith = ReplaceWith("connect()")
+    )
     fun reconnect() {
-        reconnectJob = chat?.reconnect()?.also {
-            chatState = CONNECTING
+        assertState(CONNECTION_LOST) {
+            "ChatInstanceProvider.reconnect called in invalid state ($chatState). " +
+                    "It is only allowed after when the connection has been closed by the server. "
         }
+
+        doConnect()
     }
 
     /**
-     * Stop any existing chat attempts and reset the state to CONNECTION_CLOSED.
+     * Close any connected chat web sockets.
+     *
+     * After `close()` is called, only usage of [Chat.events] is allowed.
+     *
+     * The [state] is moved to [PREPARED].
      */
-    fun stop() {
-        reconnectJob?.cancel()
-        reconnectJob = null
-
-        createJob?.cancel()
-        createJob = null
-
+    fun close() {
         chat?.close()
-        chat = null
-        chatState = CONNECTION_CLOSED
+
+        advanceState(PREPARED)
+    }
+
+    /**
+     * Cancel any pending prepare or connect action and return the state
+     * to an appropriate starting point.
+     */
+    fun cancel() {
+        when (chatState) {
+            INITIAL -> Unit
+            PREPARING -> advanceState(INITIAL)
+            PREPARED -> Unit
+            CONNECTING -> advanceState(PREPARED)
+            CONNECTED -> Unit
+            CONNECTION_LOST -> advanceState(PREPARED)
+            READY -> Unit
+        }
     }
 
     /**
@@ -242,9 +360,10 @@ class ChatInstanceProvider(
             authorization = null
             userName = null
 
-            chatState = CONNECTION_CLOSED
             chat?.signOut()
             chat = null
+
+            advanceState(INITIAL)
         }
     }
 
@@ -260,9 +379,7 @@ class ChatInstanceProvider(
     fun setCustomerValues(values: Map<String, String>) = apply {
         chat?.run {
             val customerCustomFields = configuration.customerCustomFields
-            val fields = values.filter {
-                customerCustomFields.lookup(it.key) != null
-            }
+            val fields = values.filterKeys(customerCustomFields::containsField)
 
             runCatching { customerCustomFields.validate(fields) }
                 .onSuccess {
@@ -274,7 +391,8 @@ class ChatInstanceProvider(
     /**
      * Update the configuration of chat.
      *
-     * 1. Stops any current chat.
+     * 1. Stops any current chat.  This will result in discarding any stored [Authorization]
+     * or [UserName].  Any such details must be provided in the configuration block once again.
      * 2. Executes the configuration actions block.
      * 3. Restarts chat.
      *
@@ -284,16 +402,14 @@ class ChatInstanceProvider(
     fun configure(context: Context, actions: ConfigurationScope.() -> Unit) {
         val provider = this
 
-        chat?.signOut()
-        chat = null
-
-        object : ConfigurationScope {
-            override val authenticationRequired: Boolean
-                get() = provider.chat?.configuration?.isAuthorizationEnabled == true
+        val scope = object : ConfigurationScope {
+            override val authenticationRequired = provider.chat?.configuration?.isAuthorizationEnabled == true
 
             override var configuration: SocketFactoryConfiguration?
                 get() = provider.configuration
-                set(value) { provider.configuration = value }
+                set(value) {
+                    provider.configuration = value
+                }
 
             override var userName: UserName?
                 get() = provider.userName
@@ -318,34 +434,56 @@ class ChatInstanceProvider(
                 set(value) {
                     provider.deviceTokenProvider = value
                 }
-        }.actions()
 
-        restart(context)
+            override var logger: Logger
+                get() = provider.logger
+                set(value) {
+                    provider.logger = value
+                }
+        }
+
+        signOut()
+
+        scope.actions()
+
+        prepare(context)
+    }
+
+    @JvmSynthetic
+    internal fun advanceState(next: ChatState, cancellable: Cancellable? = null, cancel: Boolean = true) {
+        if (chatState != next) {
+            if (cancel) {
+                state.cancellable?.cancel()
+            }
+
+            if (next in setOf(PREPARING, CONNECTING)) {
+                assert(cancellable != null) {
+                    "Internal error: advanceState($next) requires a cancellable."
+                }
+            } else {
+                assert(cancellable == null) {
+                    "Internal error: advanceState($next) prohibits a cancellable."
+                }
+            }
+
+            state = ChatStateInternal(next, cancellable)
+
+            eachListener(next, Listener::onChatStateChanged)
+        }
     }
 
     /**
      * Iterate over the list of listeners, forwarding the given
      * action or removing the listener if it's no longer valid.
      *
+     * @param T An object which is passed to all listeners as part of an [action].
+     * @param actionParameter An object with will be passed to the action.
      * @param action Action to perform on each listener.
      */
-    private fun eachListener(action: Listener.() -> Unit) {
-        listeners = listeners.filter {
-            it.get()?.run {
-                action()
-                true
-            } ?: false
+    private fun <T> eachListener(actionParameter: T, action: Listener.(T) -> Unit) {
+        listeners = listeners.filter { listenerWeakReference ->
+            listenerWeakReference.get()?.also { listener -> listener.action(actionParameter) } != null
         }
-    }
-
-    /**
-     * Stop any current connection under way and start a new connection attempt.
-     *
-     * @param context Application context for resource access.
-     */
-    private fun restart(context: Context) {
-        stop()
-        start(context)
     }
 
     //
@@ -353,15 +491,38 @@ class ChatInstanceProvider(
     //
 
     override fun onConnected() {
-        chatState = CONNECTED
+        advanceState(CONNECTED)
+    }
+
+    override fun onReady() {
+        advanceState(READY)
     }
 
     override fun onUnexpectedDisconnect() {
-        chatState = CONNECTION_LOST
+        advanceState(CONNECTION_LOST)
+    }
+
+    override fun onChatRuntimeException(exception: RuntimeChatException) {
+        eachListener(exception, Listener::onChatRuntimeException)
+    }
+
+    /**
+     * Sets [UserName] which will be used during creation of [Chat] instance
+     * and will apply it to current instance of [Chat], if it exists.
+     * The username will be applied only if the chat channel configuration allows it.
+     *
+     * @param name A username which should be set.
+     * @see [Chat.setUserName].
+     */
+    fun setUserName(name: UserName) {
+        userName = name
+        chat?.setUserName(name.firstName, name.lastName)
     }
 
     @Public
     companion object {
+        private const val TAG = "ChatInstanceProvider"
+
         @Suppress("LateinitUsage")
         private lateinit var instance: ChatInstanceProvider
 
@@ -376,8 +537,12 @@ class ChatInstanceProvider(
          * @param userName Initial user name to use.
          * @param developmentMode True if in development mode to get extra logging.
          * @param deviceTokenProvider Provider of device tokens for push messages.
+         * @param logger [Logger] to be used by the ChatInstanceProvider and Chat.
          * @return the newly created ChatInstanceProvider singleton.
          */
+        @Suppress(
+            "LongParameterList" // Most of the parameters have default values provided.
+        )
         @JvmOverloads
         fun create(
             configuration: SocketFactoryConfiguration?,
@@ -385,12 +550,47 @@ class ChatInstanceProvider(
             userName: UserName? = null,
             developmentMode: Boolean = false,
             deviceTokenProvider: DeviceTokenProvider? = null,
+            logger: Logger = LoggerNoop,
+        ) = create(
+            configuration,
+            authorization,
+            userName,
+            developmentMode,
+            deviceTokenProvider,
+            logger,
+            ChatBuilder.Companion::invoke,
+        )
+
+        /**
+         * Create the ChatInstanceProvider singleton.
+         *
+         * @param configuration Initial Sdk Configuration to use.
+         * @param authorization Initial authorization to use.
+         * @param userName Initial user name to use.
+         * @param developmentMode True if in development mode to get extra logging.
+         * @param deviceTokenProvider Provider of device tokens for push messages.
+         * @param logger [Logger] to be used by the ChatInstanceProvider and Chat.
+         * @param chatBuilderProvider **INTERNAL USAGE ONLY** Provides [ChatBuilder].  For internal testing usage only.
+         * @return the newly created ChatInstanceProvider singleton.
+         */
+        @Suppress("LongParameterList")
+        @JvmSynthetic
+        internal fun create(
+            configuration: SocketFactoryConfiguration?,
+            authorization: Authorization? = null,
+            userName: UserName? = null,
+            developmentMode: Boolean = false,
+            deviceTokenProvider: DeviceTokenProvider? = null,
+            logger: Logger = LoggerNoop,
+            chatBuilderProvider: (Context, SocketFactoryConfiguration, Logger) -> ChatBuilder,
         ) = ChatInstanceProvider(
             configuration,
             authorization,
             userName,
             developmentMode,
             deviceTokenProvider,
+            logger,
+            chatBuilderProvider,
         ).also {
             instance = it
         }

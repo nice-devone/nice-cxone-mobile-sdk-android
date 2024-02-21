@@ -15,29 +15,25 @@
 
 package com.nice.cxonechat.ui.main
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nice.cxonechat.Chat
 import com.nice.cxonechat.ChatEventHandlerActions.chatWindowOpen
 import com.nice.cxonechat.ChatInstanceProvider
+import com.nice.cxonechat.ChatMode.MULTI_THREAD
+import com.nice.cxonechat.ChatMode.SINGLE_THREAD
 import com.nice.cxonechat.prechat.PreChatSurvey
-import com.nice.cxonechat.state.containsField
-import com.nice.cxonechat.state.validate
-import com.nice.cxonechat.thread.CustomField
-import com.nice.cxonechat.ui.customvalues.CustomValueItemList
-import com.nice.cxonechat.ui.customvalues.extractStringValues
 import com.nice.cxonechat.ui.data.flow
 import com.nice.cxonechat.ui.domain.SelectedThreadRepository
-import com.nice.cxonechat.ui.main.ChatViewModel.Dialogs.CustomValues
-import com.nice.cxonechat.ui.main.ChatViewModel.Dialogs.EditThreadName
 import com.nice.cxonechat.ui.main.ChatViewModel.Dialogs.None
 import com.nice.cxonechat.ui.main.ChatViewModel.Dialogs.Survey
 import com.nice.cxonechat.ui.main.ChatViewModel.NavigationState.MultiThreadEnabled
 import com.nice.cxonechat.ui.main.ChatViewModel.NavigationState.NavigationFinished
 import com.nice.cxonechat.ui.main.ChatViewModel.NavigationState.SingleThreadCreated
+import com.nice.cxonechat.ui.main.ChatViewModel.State.CreateSingleThread
 import com.nice.cxonechat.ui.main.ChatViewModel.State.Initial
 import com.nice.cxonechat.ui.main.ChatViewModel.State.SingleThreadCreationFailed
-import com.nice.cxonechat.ui.main.ChatViewModel.State.SingleThreadCreationReady
 import com.nice.cxonechat.ui.main.ChatViewModel.State.SingleThreadPreChatSurveyRequired
 import com.nice.cxonechat.ui.model.CreateThreadResult.Failure
 import com.nice.cxonechat.ui.model.CreateThreadResult.Success
@@ -45,24 +41,21 @@ import com.nice.cxonechat.ui.model.foldToCreateThreadResult
 import com.nice.cxonechat.ui.model.prechat.PreChatResponse
 import com.nice.cxonechat.ui.storage.ValueStorage
 import com.nice.cxonechat.ui.storage.getCustomerCustomValues
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import org.koin.android.annotation.KoinViewModel
 
 @Suppress("TooManyFunctions")
-@HiltViewModel
-internal class ChatViewModel @Inject constructor(
+@KoinViewModel
+internal class ChatViewModel(
     private val valueStorage: ValueStorage,
     private val selectedThreadRepository: SelectedThreadRepository,
+    private val chatProvider: ChatInstanceProvider,
 ) : ViewModel() {
-    private val chatProvider = ChatInstanceProvider.get()
-
-    val chat: Chat
+    private val chat: Chat
         get() = requireNotNull(chatProvider.chat)
 
     private val threads by lazy { chat.threads() }
@@ -71,16 +64,8 @@ internal class ChatViewModel @Inject constructor(
 
     private val internalState: MutableStateFlow<State> = MutableStateFlow(Initial)
 
-    val customValues: List<CustomField>
-        get() = selectedThreadRepository.chatThreadHandler?.get()?.fields ?: listOf()
-
-    val selectedThreadName: String?
-        get() = selectedThreadRepository.chatThreadHandler?.get()?.threadName
-
     sealed interface Dialogs {
-        object None : Dialogs
-        object CustomValues : Dialogs
-        object EditThreadName : Dialogs
+        data object None : Dialogs
         class Survey(val survey: PreChatSurvey) : Dialogs
     }
 
@@ -88,7 +73,7 @@ internal class ChatViewModel @Inject constructor(
     val dialogShown = showDialog.asStateFlow()
 
     val isMultiThreadEnabled: Boolean
-        get() = chat.configuration.hasMultipleThreadsPerEndUser
+        get() = chat.chatMode == MULTI_THREAD
 
     val state
         get() = internalState
@@ -111,12 +96,6 @@ internal class ChatViewModel @Inject constructor(
     }
 
     internal fun createThread() {
-        val preChatSurvey = threads.preChatSurvey
-        if (preChatSurvey != null) {
-            internalState.value = SingleThreadPreChatSurveyRequired(preChatSurvey)
-            return
-        }
-
         createThread(emptySequence())
     }
 
@@ -144,31 +123,45 @@ internal class ChatViewModel @Inject constructor(
 
     private suspend fun resolveCurrentState(): State {
         if (internalState.value == NavigationFinished) return NavigationFinished
-        return when {
-            isMultiThreadEnabled -> MultiThreadEnabled
-            isFirstThread() -> SingleThreadCreationReady
-            else -> SingleThreadCreated
+
+        return when (chat.chatMode) {
+            MULTI_THREAD -> MultiThreadEnabled
+            SINGLE_THREAD -> singleThreadChatState()
         }
     }
 
-    private suspend fun isFirstThread(): Boolean {
+    /**
+     * Determine the correct state for a single thread chat.
+     *
+     * when:
+     *
+     * - there's already a thread, use [SingleThreadCreated]
+     * - there's a survey, use [SingleThreadPreChatSurveyRequired]
+     * - otherwise use [CreateSingleThread]
+     */
+    private suspend fun singleThreadChatState() = if (selectFirstThread()) {
+        SingleThreadCreated
+    } else {
+        preChatSurvey?.let(::SingleThreadPreChatSurveyRequired) ?: CreateSingleThread
+    }
+
+    /**
+     * We're in single thread mode.  Select the first thread if it exists.
+     *
+     * Returns true iff the initial thread exists and was selected.
+     */
+    private suspend fun selectFirstThread(): Boolean {
         val flow = threads.flow
         threads.refresh()
-        val threadList = flow.first()
-        val isFirst = threadList.isEmpty()
-        if (!isFirst) selectedThreadRepository.chatThreadHandler = threads.thread(threadList.first())
-        return isFirst
+
+        return flow.first().firstOrNull()?.let {
+            selectedThreadRepository.chatThreadHandler = threads.thread(it)
+            true
+        } ?: false
     }
 
     private suspend fun setCustomFields() {
-        val customerCustomFields = chat.configuration.customerCustomFields
-        val fields = valueStorage.getCustomerCustomValues().filterKeys(customerCustomFields::containsField)
-        customerCustomFields.validate(fields)
-        chat.customFields().add(fields)
-    }
-
-    internal fun setThreadName(threadName: String) {
-        selectedThreadRepository.chatThreadHandler?.setName(threadName)
+        chatProvider.setCustomerValues(valueStorage.getCustomerCustomValues())
     }
 
     internal fun reportOnResume() {
@@ -179,41 +172,24 @@ internal class ChatViewModel @Inject constructor(
         showDialog.value = dialog
     }
 
-    internal fun dismissDialog() {
+    private fun dismissDialog() {
         showDialog.value = None
-    }
-
-    internal fun editThreadName() {
-        showDialog(EditThreadName)
-    }
-
-    internal fun confirmEditThreadName(name: String) {
-        dismissDialog()
-
-        setThreadName(name)
-    }
-
-    internal fun startEditingCustomValues() {
-        showDialog(CustomValues)
-    }
-
-    internal fun confirmEditingCustomValues(values: CustomValueItemList) {
-        dismissDialog()
-        viewModelScope.launch(Dispatchers.Default) {
-            selectedThreadRepository.chatThreadHandler?.customFields()?.add(values.extractStringValues())
-        }
-    }
-
-    internal fun cancelEditingCustomValues() {
-        dismissDialog()
     }
 
     internal fun showPreChatSurvey(survey: PreChatSurvey) {
         showDialog(Survey(survey))
     }
 
-    internal fun reconnect() {
-        chatProvider.reconnect()
+    internal fun prepare(context: Context) {
+        chatProvider.prepare(context)
+    }
+
+    internal fun connect() {
+        chatProvider.connect()
+    }
+
+    internal fun close() {
+        chatProvider.close()
     }
 
     /**
@@ -223,18 +199,18 @@ internal class ChatViewModel @Inject constructor(
         /**
          * Navigation should be directed to multi-thread flow.
          */
-        object MultiThreadEnabled : NavigationState
+        data object MultiThreadEnabled : NavigationState
 
         /**
          * Navigation should be directed to single thread chat.
          */
-        object SingleThreadCreated : NavigationState
+        data object SingleThreadCreated : NavigationState
 
         /**
          * Final state of navigation, either the activity has successfully navigated to [MultiThreadEnabled]
          * state or [SingleThreadCreated] state.
          */
-        object NavigationFinished : NavigationState
+        data object NavigationFinished : NavigationState
     }
 
     /**
@@ -244,12 +220,12 @@ internal class ChatViewModel @Inject constructor(
         /**
          * Default state.
          */
-        object Initial : State
+        data object Initial : State
 
         /**
          * Single thread is ready to be created.
          */
-        object SingleThreadCreationReady : State
+        data object CreateSingleThread : State
 
         /**
          * Single thread creation requires prechat survey to be finished first, before thread can be created.

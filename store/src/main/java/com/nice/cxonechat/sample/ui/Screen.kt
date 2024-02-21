@@ -17,7 +17,7 @@ package com.nice.cxonechat.sample.ui
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
-import com.nice.cxonechat.sample.StoreViewModel
+import com.nice.cxonechat.sample.viewModel.StoreViewModel
 
 /**
  * Generic definition of a screen to be included in a NavGraphBuilder/NavHostController pair.
@@ -30,5 +30,9 @@ interface Screen {
      * @param navHostController NavHostController to use for navigation.
      * @param viewModel StoreViewModel associated with attach activity.
      */
-    fun navigation(navGraphBuilder: NavGraphBuilder, navHostController: NavHostController, viewModel: StoreViewModel)
+    fun navigation(
+        navGraphBuilder: NavGraphBuilder,
+        navHostController: NavHostController,
+        viewModel: StoreViewModel,
+    )
 }

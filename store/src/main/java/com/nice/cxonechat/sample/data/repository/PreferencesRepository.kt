@@ -23,9 +23,9 @@ import kotlin.reflect.KClass
  * A repository to read a typed-object from shared preferences.
  *
  * @param Type Type of asset to read.
- * @property key Preference key to target.
+ * @param key Preference key to target.
  * @param type Class of asset to read.
- * @property fileName Name of preference file to use.  Defaults to "com.nice.cxonechat.storefront".
+ * @param fileName Name of preference file to use.  Defaults to "com.nice.cxonechat.storefront".
  */
 open class PreferencesRepository<Type: Any>(
     private val key: String,

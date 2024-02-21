@@ -9,7 +9,7 @@ follows "Google Suggested" practices.
 
 ```groovy
 dependencies {
-    implementation "androidx.lifecycle:lifecycle-common:2.5.1"
+    implementation "androidx.lifecycle:lifecycle-common:2.6.2"
     implementation "androidx.startup:startup-runtime:1.1.1"
 }
 ```
@@ -63,6 +63,11 @@ class ChatActivity : AppCompatActivity(R.layout.activity_chat), ChatInstanceProv
             CONNECTED -> chatStateSnackbar = Snackbar.make(
                 Window.DecorView.RootView,
                 "Chat SDK connected",
+                Snackbar.LENGTH_SHORT
+            ).apply(Snackbar::show)
+            READY -> chatStateSnackbar = Snackbar.make(
+                Window.DecorView.RootView,
+                "Chat SDK is ready",
                 Snackbar.LENGTH_SHORT
             ).apply(Snackbar::show)
             CONNECTION_LOST -> chatStateSnackbar = Snackbar.make(

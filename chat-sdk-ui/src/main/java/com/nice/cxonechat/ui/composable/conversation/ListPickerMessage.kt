@@ -17,7 +17,6 @@ package com.nice.cxonechat.ui.composable.conversation
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -29,6 +28,8 @@ import com.nice.cxonechat.message.MessageAuthor
 import com.nice.cxonechat.message.MessageDirection
 import com.nice.cxonechat.message.MessageDirection.ToClient
 import com.nice.cxonechat.message.MessageMetadata
+import com.nice.cxonechat.message.MessageStatus
+import com.nice.cxonechat.message.MessageStatus.SENT
 import com.nice.cxonechat.ui.composable.conversation.model.Message.ListPicker
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
@@ -54,35 +55,35 @@ internal fun ListPickerMessage(message: ListPicker, modifier: Modifier = Modifie
 @Preview
 @Composable
 private fun ListPickerMessagePreview() {
-    PreviewMessageItemBase {
-        MessageItem(
-            message = ListPicker(
-                message = object : SdkListPicker() {
-                    override val title: String = "This is a list picker card"
-                    override val text: String = "We have provided list of random options, you should select one."
-                    override val actions: Iterable<SdkAction> = listOf(
-                        PreviewReplyButton("Some text"),
-                        PreviewReplyButton("Random cat", "https://http.cat/203")
-                    )
-                    override val id: UUID = UUID.randomUUID()
-                    override val threadId: UUID = UUID.randomUUID()
-                    override val createdAt: Date = Date()
-                    override val direction: MessageDirection = ToClient
-                    override val metadata: MessageMetadata = object : MessageMetadata {
-                        override val readAt: Date? = null
-                    }
-                    override val author: MessageAuthor = object : MessageAuthor() {
-                        override val id: String = ""
-                        override val firstName: String = "firstname"
-                        override val lastName: String = "lastname"
-                        override val imageUrl: String? = null
-                    }
-                    override val attachments: Iterable<Attachment> = emptyList()
-                    override val fallbackText: String = "Fallback"
-                },
-                sendMessage = {}
-            ),
-            modifier = Modifier.padding(space.large)
-        )
-    }
+    PreviewMessageItemBase(
+        message = ListPicker(
+            message = object : SdkListPicker() {
+                override val title: String = "This is a list picker card"
+                override val text: String = "We have provided list of random options, you should select one."
+                override val actions: Iterable<SdkAction> = listOf(
+                    PreviewReplyButton("Some text"),
+                    PreviewReplyButton("Random cat", "https://http.cat/203")
+                )
+                override val id: UUID = UUID.randomUUID()
+                override val threadId: UUID = UUID.randomUUID()
+                override val createdAt: Date = Date()
+                override val direction: MessageDirection = ToClient
+                override val metadata: MessageMetadata = object : MessageMetadata {
+                    override val readAt: Date? = null
+                    override val status: MessageStatus = SENT
+                    override val seenAt: Date? = null
+                }
+                override val author: MessageAuthor = object : MessageAuthor() {
+                    override val id: String = ""
+                    override val firstName: String = "firstname"
+                    override val lastName: String = "lastname"
+                    override val imageUrl: String? = null
+                }
+                override val attachments: Iterable<Attachment> = emptyList()
+                override val fallbackText: String = "Fallback"
+            },
+            sendMessage = {}
+        ),
+        showSender = true,
+    )
 }

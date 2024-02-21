@@ -1,5 +1,22 @@
+/*
+ * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ *
+ * Licensed under the NICE License;
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
+ *
+ * TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
+ * AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
+ * OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+ */
+
 package com.nice.cxonechat
 
+import com.nice.cxonechat.ChatMode.MULTI_THREAD
+import com.nice.cxonechat.ChatMode.SINGLE_THREAD
 import com.nice.cxonechat.state.Configuration
 import com.nice.cxonechat.state.Environment
 import com.nice.cxonechat.thread.ChatThread
@@ -48,6 +65,12 @@ interface Chat : AutoCloseable {
     val fields: Collection<CustomField>
 
     /**
+     * Current mode of the chat.
+     */
+    val chatMode: ChatMode
+        get() = if (configuration.hasMultipleThreadsPerEndUser) MULTI_THREAD else SINGLE_THREAD
+
+    /**
      * Sets device token (notification push token) to this instance and transmits it
      * to the server. It's not guaranteed that the token is delivered to the server
      * though. Therefore, clients are strongly advised to call this method every time
@@ -89,11 +112,10 @@ interface Chat : AutoCloseable {
 
     /**
      * Closes the connection to the chat backend and removes all listeners, even those
-     * the client forgot to unregister. The instance is considered dead after calling
-     * this method.
+     * the client forgot to unregister.
      *
-     * Interacting with any handlers or methods in this class can lead to unspecified,
-     * untested and further unwanted behavior, this includes [reconnect] method.
+     * Further interaction with any handlers or methods other than [events()] or [connect()] in this class can lead
+     * to unspecified, untested and further unwanted behavior.
      */
     override fun close()
 
@@ -109,5 +131,26 @@ interface Chat : AutoCloseable {
      *
      * @return An instance of [Cancellable] which can be used to interrupt background operation.
      */
+    @Deprecated("Deprecated, use connect() instead.", replaceWith = ReplaceWith("connect()"))
     fun reconnect(): Cancellable
+
+    /**
+     * Attempts to connect the chat session using existing configuration, the attempt will be made on background thread.
+     * Successful connection will be announced to the [ChatStateListener.onConnected] which was
+     * supplied in [ChatBuilder].
+     * If there is an issue during/after reconnection the [ChatStateListener.onUnexpectedDisconnect] will be called,
+     * it is responsibility of application to perform a repeated reconnection attempt, if it is desirable.
+     * Reconnect attempts should be performed only if the device is connected to the internet.
+     * If the repeated reconnection attempts are made, they should be called with exponential backoff,
+     * in order to prevent backend overload.
+     *
+     * @return An instance of [Cancellable] which can be used to interrupt background operation.
+     */
+    fun connect(): Cancellable
+
+    /**
+     * Attempts to change username if the channel configuration allows setting of the username.
+     * All subsequent events sent from chat will have new value filled out.
+     */
+    fun setUserName(firstName: String, lastName: String)
 }

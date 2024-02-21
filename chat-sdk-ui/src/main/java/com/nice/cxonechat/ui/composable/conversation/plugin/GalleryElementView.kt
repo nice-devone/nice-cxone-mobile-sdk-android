@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.nice.cxonechat.ui.composable.conversation.MessageItem
 import com.nice.cxonechat.ui.composable.conversation.PreviewMessageItemBase
 import com.nice.cxonechat.ui.composable.conversation.model.PluginElement
 import com.nice.cxonechat.ui.composable.conversation.model.PluginElement.Gallery
@@ -44,7 +43,8 @@ internal fun GalleryElementView(gallery: Gallery, modifier: Modifier = Modifier,
 @Composable
 @Preview
 private fun PreviewGallery() {
-    PreviewMessageItemBase {
-        MessageItem(message = PluginPreviewProvider().gallery.asMessage("gallery"))
-    }
+    PreviewMessageItemBase(
+        message = MessagePreviewProvider().gallery.asMessage("gallery"),
+        showSender = true,
+    )
 }

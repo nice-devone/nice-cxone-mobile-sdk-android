@@ -13,107 +13,177 @@
  * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
  */
 
+@file:Suppress("ForbiddenImport")
+
 package com.nice.cxonechat.ui.domain
 
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import com.nice.cxonechat.ui.composable.conversation.model.Message.Attachment
+import com.nice.cxonechat.log.Logger
+import com.nice.cxonechat.log.LoggerScope
+import com.nice.cxonechat.log.error
+import com.nice.cxonechat.log.scope
+import com.nice.cxonechat.message.Attachment
+import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.storage.TemporaryFileProvider
 import com.nice.cxonechat.ui.storage.TemporaryFileStorage
 import com.nice.cxonechat.ui.util.await
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request.Builder
 import okio.buffer
-import okio.sink
 import okio.source
+import org.koin.core.annotation.Single
 import java.io.File
 import java.io.InputStream
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Class responsible for caching of attachments before they can be shared
  * and creation of [Intent] which will be used for sharing.
+ *
+ * @param storage [TemporaryFileStorage] to cache files before sharing.
+ * @param httpClient [OkHttpClient] used to fetch remote attachments for sharing.
+ * @param logger [Logger] for logging warnings and errors.
  */
-@Singleton
-internal class AttachmentSharingRepository @Inject constructor(
+@Single
+internal class AttachmentSharingRepository(
     private val storage: TemporaryFileStorage,
-) {
-
-    private val client by lazy { OkHttpClient() }
+    private val httpClient: OkHttpClient,
+    private val logger: Logger,
+) : LoggerScope by LoggerScope<AttachmentSharingRepository>(logger) {
+    /** return the type of a string representing mimetype. */
+    private val String.type: String?
+        get() = split("/").firstOrNull()
 
     /**
      * Caches file from the original url to storage and creates Intent with action [Intent.ACTION_SEND] set to provide
      * data via stream from [TemporaryFileProvider].
      *
-     * @param message AttachmentMessage whose content will be cached to file and that file shared.
+     * @param attachments Attachments that will be cached to local storage and shared.
      * @param context Context which will be used for caching.
      * @return Prepared intent or null if caching has failed.
      */
     suspend fun createSharingIntent(
-        message: Attachment,
+        attachments: Collection<Attachment>,
         context: Context,
-    ): Intent? = runCatching {
-        val filename = message.text
-        val file = cacheUrlContents(message.originalUrl, filename, context) ?: return null
-        val uri = TemporaryFileProvider.getUriForFile(file, filename, context)
-        return Intent().apply {
-            action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TITLE, "Share attachment $filename")
-            putExtra(Intent.EXTRA_TEXT, filename)
-            putExtra(Intent.EXTRA_STREAM, uri)
-            setDataAndType(uri, message.mimeType)
-            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+    ): Intent? {
+        val mapped = attachments.mapNotNull {
+            context.prepareAttachment(it)
         }
-    }.getOrNull()
 
-    private suspend fun cacheUrlContents(
+        return when (mapped.count()) {
+            0 -> null
+            1 -> Intent().apply {
+                val attachment = mapped.first()
+                val url = Uri.parse(attachment.url)
+
+                action = Intent.ACTION_SEND
+                putExtra(Intent.EXTRA_TITLE, context.getString(string.share_attachment, attachment.friendlyName))
+                putExtra(Intent.EXTRA_TEXT, attachment.friendlyName)
+                putExtra(Intent.EXTRA_STREAM, url)
+                setDataAndType(url, attachment.mimeType)
+                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+            }
+
+            else -> Intent().apply {
+                action = Intent.ACTION_SEND_MULTIPLE
+                putExtra(
+                    Intent.EXTRA_TITLE,
+                    context.getString(
+                        string.share_attachment_others,
+                        mapped.first().friendlyName,
+                        mapped.count() - 1
+                    )
+                )
+                putExtra(Intent.EXTRA_TEXT, ArrayList(mapped.map(Attachment::friendlyName)))
+                putExtra(Intent.EXTRA_STREAM, ArrayList(mapped.map { Uri.parse(it.url) }))
+                type = mapped.map(Attachment::mimeType).commonMimeType()
+                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+            }
+        }
+    }
+
+    private fun Collection<String?>.commonMimeType() = fold(null as String?) { acc, value ->
+        when {
+            acc == null -> value ?: "*/*"
+            acc == value -> acc
+            acc.type == value?.type -> "${acc.type}/*"
+            else -> "*/*"
+        }
+    } ?: "*/*"
+
+    private suspend fun Context.prepareAttachment(attachment: Attachment) = scope("Context.prepareAttachment") {
+        runCatching {
+            val file = cacheUrlContents(url = attachment.url, hint = attachment.friendlyName) ?: return null
+            val uri = TemporaryFileProvider.getUriForFile(file, file.name, this@prepareAttachment)
+
+            object : Attachment {
+                override val url = uri.toString()
+                override val friendlyName = attachment.friendlyName
+                override val mimeType = attachment.mimeType
+            }
+        }
+            .onFailure {
+                error("Error preparing: ${attachment.friendlyName}", it)
+            }
+            .getOrNull()
+    }
+
+    private suspend fun Context.cacheUrlContents(
         url: String,
-        name: String,
-        context: Context,
-    ): File? = withContext(Dispatchers.IO) {
+        hint: String,
+    ): File? = scope("Context.cacheUrlContents") {
         val uri = Uri.parse(url)
         val stream: InputStream = when (uri.scheme) {
             // Attachment can be available via content if the message was just sent, before it is updated from backend.
-            "content" -> runCatching { context.contentResolver.openInputStream(uri) }.getOrNull()
-            "http", "https" -> {
-                val request = Builder().url(url).build()
-                runCatching { client.newCall(request).await() }.getOrNull()?.byteStream()
-            }
+            "content" ->
+                runCatching {
+                    contentResolver.openInputStream(uri)
+                }
+                    .onFailure {
+                        error("Error opening content: $url", it)
+                    }
+                    .getOrNull()
+
+            "http", "https" ->
+                runCatching {
+                    httpClient.newCall(
+                        Builder().url(url).build()
+                    ).await()
+                }
+                    .onFailure {
+                        error("Error opening http: $url", it)
+                    }
+                    .getOrNull()
+                    ?.byteStream()
+
             else -> null
-        } ?: return@withContext null
-        storeToCache(stream, name)
+        } ?: return null
+
+        return storeToCache(stream, hint)
     }
 
     /**
      * Simple function which writes given [InputStream] to file which will be accessible from [TemporaryFileProvider].
-     * If there is already a file for given [fileName], then it will be overwritten.
+     * A new filename will be randomly created.  [hint] will be used for error messages.
      */
-    private suspend fun storeToCache(inputStream: InputStream, fileName: String): File? = withContext(Dispatchers.IO) {
-        runCatching {
-            storage.createFile(fileName)?.also { file ->
-                val sink = file.outputStream().sink().buffer()
-                val source = inputStream.source().buffer()
-                sink.use {
-                    source.use {
-                        while (isActive) {
-                            val readCount = source.read(sink.buffer, SEGMENT_SIZE)
-                            if (readCount == -1L) break
+    private suspend fun storeToCache(inputStream: InputStream, hint: String): File? = scope("storeToCache") {
+        withContext(Dispatchers.IO) {
+            runCatching {
+                storage.createFile()?.also { file ->
+                    file.outputStream().buffered().use { output ->
+                        inputStream.source().buffer().use { source ->
+                            source.buffer.copyTo(output)
                         }
                     }
                 }
             }
-        }.getOrNull()
-    }
-
-    private companion object {
-        /**
-         * Matches [okio.Segment.SIZE] which is internal to okio.
-         */
-        const val SEGMENT_SIZE = 8192L
+                .onFailure {
+                    error("Error copying: $hint", it)
+                }
+                .getOrNull()
+        }
     }
 }

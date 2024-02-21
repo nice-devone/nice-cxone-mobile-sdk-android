@@ -1,4 +1,21 @@
+/*
+ * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ *
+ * Licensed under the NICE License;
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
+ *
+ * TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
+ * AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
+ * OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+ */
+
 package com.nice.cxonechat
+
+import com.nice.cxonechat.exceptions.RuntimeChatException
 
 /**
  * Listener for [Chat] instance state changes.
@@ -25,4 +42,17 @@ interface ChatStateListener {
      * This happens once initial connection is established or after [Chat.reconnect] is called.
      */
     fun onConnected()
+
+    /**
+     * Method is invoked when chat instance has finished performing background tasks after connection was established.
+     */
+    fun onReady()
+
+    /**
+     * Method is invoked when [Chat] instance encounters possible exception in a background process.
+     * Application should handle these exceptions according to the description of each [RuntimeChatException].
+     * Some of these exceptions can indicate issues during transfer of messages while others may indicate that further
+     * interactions with [Chat] will be ignored.
+     */
+    fun onChatRuntimeException(exception: RuntimeChatException)
 }

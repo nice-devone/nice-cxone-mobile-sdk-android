@@ -1,0 +1,10 @@
+// Signature format: 4.0
+package com.nice.cxonechat.log {
+
+  public final class LoggerAndroid implements com.nice.cxonechat.log.Logger {
+    ctor public LoggerAndroid(String tag);
+    method public void log(com.nice.cxonechat.log.Level level, String message, Throwable? throwable);
+  }
+
+}
+

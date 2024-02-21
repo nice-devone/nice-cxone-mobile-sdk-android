@@ -16,15 +16,27 @@
 package com.nice.cxonechat.internal.model
 
 import com.nice.cxonechat.message.MessageMetadata
+import com.nice.cxonechat.message.MessageStatus
+import com.nice.cxonechat.message.MessageStatus.READ
+import com.nice.cxonechat.message.MessageStatus.SEEN
+import com.nice.cxonechat.message.MessageStatus.SENT
 import java.util.Date
 
 internal data class MessageMetadataInternal(
+    override val seenAt: Date?,
     override val readAt: Date?,
 ) : MessageMetadata {
 
-    override fun toString() = buildString {
-        append("MessageMetadata(readAt=")
-        append(readAt)
-        append(")")
+    @Transient
+    override val status: MessageStatus = when {
+        readAt != null -> READ
+        seenAt != null -> SEEN
+        else -> SENT
     }
+
+    override fun toString(): String = "MessageMetadata(" +
+            "seenAt=$seenAt, " +
+            "readAt=$readAt, " +
+            "status=$status" +
+            ")"
 }

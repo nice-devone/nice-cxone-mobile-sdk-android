@@ -5,6 +5,6 @@ plugins {
 android {
 
     defaultConfig {
-        targetSdk 33
+        targetSdk 34
     }
 }

@@ -28,6 +28,7 @@ import com.nice.cxonechat.internal.model.network.EventThreadUpdated
 import com.nice.cxonechat.internal.model.network.Postback
 import com.nice.cxonechat.internal.serializer.Default
 import com.nice.cxonechat.internal.socket.ProxyWebSocketListener
+import com.nice.cxonechat.thread.ChatThreadState.Received
 import io.mockk.Ordering.ORDERED
 import io.mockk.every
 import io.mockk.mockk
@@ -41,7 +42,7 @@ import kotlin.test.assertTrue
 
 class ChatThreadEventHandlerArchivalTest {
     private val threadId = UUID.randomUUID()
-    private val thread = ChatThreadMutable.from(ChatThreadInternal(threadId))
+    private val thread = ChatThreadMutable.from(ChatThreadInternal(threadId, threadState = Received))
     private lateinit var socketListener: ProxyWebSocketListener
     private lateinit var origin: ChatThreadEventHandler
     private lateinit var chat: ChatWithParameters
@@ -55,8 +56,8 @@ class ChatThreadEventHandlerArchivalTest {
             every { onMessage(any(), any<String>()) } returns Unit
         }
         origin = mockk {
-            every { trigger(any(), any()) } answers {
-                (it.invocation.args[1] as? OnEventSentListener)?.onSent()
+            every { trigger(any(), any(), any()) } answers {
+                arg<OnEventSentListener?>(1)?.onSent()
             }
         }
         chat = mockk {
@@ -73,7 +74,7 @@ class ChatThreadEventHandlerArchivalTest {
         handler.typingStart(onSent)
 
         verify {
-            origin.trigger(any<TypingStartEvent>(), any())
+            origin.trigger(any<TypingStartEvent>(), any(), any())
             onSent.onSent()
         }
 
@@ -100,7 +101,7 @@ class ChatThreadEventHandlerArchivalTest {
         ).let<EventThreadUpdated, String>(Default.serializer::toJson)
 
         verify(ordering = ORDERED) {
-            origin.trigger(any<ArchiveThreadEvent>(), any())
+            origin.trigger(any<ArchiveThreadEvent>(), any(), any())
             socketListener.onMessage(socket, expect)
             onSent.onSent()
         }

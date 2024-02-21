@@ -1,0 +1,8 @@
+plugins {
+    id "me.tylerbwong.gradle.metalava"
+}
+
+metalava {
+    reportWarningsAsErrors.set(true)
+    reportLintsAsErrors.set(true)
+}

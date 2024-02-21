@@ -15,15 +15,13 @@
 
 package com.nice.cxonechat.sample.data.repository
 
-import android.util.Log
-
 /**
  * Exception thrown when an issue arises with saving or restoring repository data.
  *
  * @param message Description of error.
  * @param cause Underlying exception describing error.
  */
-class RepositoryError(message: String, cause: Throwable? = null): Exception(message, cause) {
-    constructor(tag: String, message: String, cause: Throwable? = null) :
-            this(message.also { Log.e(tag, it) }, cause)
-}
+class RepositoryError(
+    message: String,
+    cause: Throwable? = null,
+) : Exception(message, cause)

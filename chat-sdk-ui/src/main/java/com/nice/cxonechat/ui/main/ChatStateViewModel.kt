@@ -18,26 +18,38 @@ package com.nice.cxonechat.ui.main
 import androidx.lifecycle.ViewModel
 import com.nice.cxonechat.ChatInstanceProvider
 import com.nice.cxonechat.ChatState
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.nice.cxonechat.exceptions.RuntimeChatException
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import javax.inject.Inject
+import kotlinx.coroutines.flow.callbackFlow
+import org.koin.android.annotation.KoinViewModel
 
 /**
  * ViewModel responsible for providing [Flow] of [ChatState].
  */
-@HiltViewModel
-internal class ChatStateViewModel @Inject constructor(
+@KoinViewModel
+internal class ChatStateViewModel(
     private val chatInstanceProvider: ChatInstanceProvider,
-) : ViewModel(), ChatInstanceProvider.Listener {
+) : ViewModel() {
     private val internalState: MutableStateFlow<ChatState> = MutableStateFlow(chatInstanceProvider.chatState)
     private val providerListener = object : ChatInstanceProvider.Listener {
         override fun onChatStateChanged(chatState: ChatState) {
             internalState.value = chatState
         }
     }.also(chatInstanceProvider::addListener)
+
+    val chatErrorState: Flow<RuntimeChatException> = callbackFlow {
+        val listener = object : ChatInstanceProvider.Listener {
+            override fun onChatRuntimeException(exception: RuntimeChatException) {
+                trySend(exception)
+            }
+        }
+        chatInstanceProvider.addListener(listener)
+        awaitClose { chatInstanceProvider.removeListener(listener) }
+    }
 
     val state: StateFlow<ChatState> get() = internalState.asStateFlow()
 

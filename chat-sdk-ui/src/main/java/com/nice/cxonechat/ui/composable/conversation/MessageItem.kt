@@ -16,7 +16,6 @@
 package com.nice.cxonechat.ui.composable.conversation
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -29,18 +28,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.message.MessageDirection.ToAgent
+import com.nice.cxonechat.message.MessageDirection.ToClient
+import com.nice.cxonechat.message.MessageStatus.FAILED_TO_DELIVER
+import com.nice.cxonechat.message.MessageStatus.READ
+import com.nice.cxonechat.message.MessageStatus.SEEN
+import com.nice.cxonechat.message.MessageStatus.SENDING
+import com.nice.cxonechat.message.MessageStatus.SENT
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.conversation.model.Message
-import com.nice.cxonechat.ui.composable.conversation.model.Message.Attachment
 import com.nice.cxonechat.ui.composable.conversation.model.Message.ListPicker
 import com.nice.cxonechat.ui.composable.conversation.model.Message.Plugin
 import com.nice.cxonechat.ui.composable.conversation.model.Message.QuickReply
 import com.nice.cxonechat.ui.composable.conversation.model.Message.RichLink
 import com.nice.cxonechat.ui.composable.conversation.model.Message.Text
 import com.nice.cxonechat.ui.composable.conversation.model.Message.Unsupported
+import com.nice.cxonechat.ui.composable.conversation.model.Message.WithAttachments
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatShapes
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.SmallSpacer
 
@@ -48,42 +55,74 @@ import com.nice.cxonechat.ui.composable.theme.SmallSpacer
 @Composable
 internal fun LazyItemScope.MessageItem(
     message: Message,
+    showSender: Boolean,
     modifier: Modifier = Modifier,
-    onClick: (Message) -> Unit = {},
-    onMessageLongClick: (Message) -> Unit = {},
+    onAttachmentClicked: (Attachment) -> Unit,
+    onMoreClicked: (List<Attachment>, String) -> Unit,
+    onShare: (Collection<Attachment>) -> Unit,
 ) {
-    val alignment = if (message.direction == ToAgent) Alignment.End else Alignment.Start
-    val chatColor = if (message.direction == ToAgent) chatColors.customer else chatColors.agent
-    val shape = if (message.direction == ToAgent) chatShapes.bubbleShapeToAgent else chatShapes.bubbleShapeToClient
+    val toAgent = message.direction == ToAgent
+    val alignment = if (toAgent) Alignment.End else Alignment.Start
+    val chatColor = if (toAgent) chatColors.customer else chatColors.agent
+    val shape = if (toAgent) chatShapes.bubbleShapeToAgent else chatShapes.bubbleShapeToClient
+    val showAgentSender = showSender && !toAgent
+
     Row(
         modifier = modifier
             .fillParentMaxWidth()
             .wrapContentWidth(align = alignment)
             .animateItemPlacement(),
     ) {
-        Surface(
-            color = chatColor.background,
-            contentColor = chatColor.foreground,
-            shape = shape,
-        ) {
-            MessageContent(
-                message = message,
-                modifier = Modifier
-                    .weight(1f)
-                    .combinedClickable(
-                        onClick = { onClick(message) },
-                        onLongClick = { onMessageLongClick(message) },
-                    ),
-            )
+        Column(horizontalAlignment = alignment) {
+            if (showAgentSender) {
+                Text(
+                    message.sender?.ifBlank { null } ?: stringResource(id = string.default_agent_name),
+                    style = chatTypography.chatAgentName,
+                )
+            }
+            Surface(
+                color = chatColor.background,
+                contentColor = chatColor.foreground,
+                shape = shape,
+            ) {
+                MessageContent(
+                    message = message,
+                    modifier = Modifier
+                        .weight(1f),
+                    onAttachmentClicked = onAttachmentClicked,
+                    onMoreClicked = onMoreClicked,
+                    onShare = onShare,
+                )
+            }
+            if (toAgent) {
+                MessageStatus(message)
+            }
         }
     }
     SmallSpacer()
 }
 
 @Composable
+private fun MessageStatus(message: Message) {
+    Text(
+        when (message.status) {
+            SENDING -> stringResource(string.status_sending)
+            SENT -> stringResource(string.status_sent)
+            FAILED_TO_DELIVER -> stringResource(string.status_failed)
+            SEEN -> stringResource(string.status_received)
+            READ -> stringResource(string.status_read)
+        },
+        style = chatTypography.chatStatus,
+    )
+}
+
+@Composable
 private fun MessageContent(
     message: Message,
     modifier: Modifier = Modifier,
+    onAttachmentClicked: (Attachment) -> Unit,
+    onMoreClicked: (List<Attachment>, String) -> Unit,
+    onShare: (Collection<Attachment>) -> Unit,
 ) = Column(modifier) {
     val padding = Modifier.padding(space.large)
     when (message) {
@@ -92,8 +131,18 @@ private fun MessageContent(
             modifier = padding,
         )
 
-        is Text -> Text(text = message.text, modifier = padding)
-        is Attachment -> AttachmentMessage(message, modifier = padding)
+        is Text -> Text(
+            text = message.text,
+            modifier = padding,
+            style = chatTypography.chatMessage
+        )
+        is WithAttachments -> AttachmentMessage(
+            message,
+            modifier = padding,
+            onAttachmentClicked = onAttachmentClicked,
+            onMoreClicked = onMoreClicked,
+            onShare = onShare,
+        )
         is ListPicker -> ListPickerMessage(message, modifier = padding)
         is RichLink -> RichLinkMessage(message = message, modifier = padding)
         is QuickReply -> QuickReplyMessage(message, modifier = padding)
@@ -104,19 +153,17 @@ private fun MessageContent(
 @Preview
 @Composable
 private fun PreviewContentTextMessage() {
-    PreviewMessageItemBase {
-        MessageItem(
-            message = Text(previewTextMessage("Text message")),
-        )
-    }
+    PreviewMessageItemBase(
+        message = Text(previewTextMessage("Text message", direction = ToClient)),
+        showSender = true,
+    )
 }
 
 @Preview
 @Composable
 private fun PreviewContentUnsupported() {
-    PreviewMessageItemBase {
-        MessageItem(
-            message = Unsupported(previewTextMessage("Unused")),
-        )
-    }
+    PreviewMessageItemBase(
+        message = Unsupported(previewTextMessage("Unused")),
+        showSender = true,
+    )
 }
