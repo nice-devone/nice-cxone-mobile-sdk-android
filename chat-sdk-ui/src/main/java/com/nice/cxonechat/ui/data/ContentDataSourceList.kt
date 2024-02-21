@@ -18,23 +18,21 @@ package com.nice.cxonechat.ui.data
 import android.content.Context
 import android.net.Uri
 import com.nice.cxonechat.message.ContentDescriptor
-import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
-import javax.inject.Singleton
+import org.koin.core.annotation.Single
 
 /**
  * List of available [ContentDataSource] which can be used
  * to process an content URI for attachment.
  *
- * @property context for content resolving
+ * @param context for content resolving
  * @param imageContentDataSource [ContentDataSource] for images
  * @param documentContentDataSource [ContentDataSource] for videos and pdf
  * documents and other attachments that are treated as raw data
  * @param audioContentDataSource [ContentDataSource] for audio
  */
-@Singleton
-internal class ContentDataSourceList @Inject constructor(
-    @ApplicationContext private val context: Context,
+@Single
+internal class ContentDataSourceList(
+    private val context: Context,
     imageContentDataSource: ImageContentDataSource,
     documentContentDataSource: DocumentContentDataSource,
     audioContentDataSource: MediaStoreAudioContentDataSource,

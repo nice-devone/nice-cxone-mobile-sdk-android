@@ -1,6 +1,53 @@
 <a name="unreleased"></a>
 ## [Unreleased]
 
+## [Unreleased]
+### Bug Fixes
+- Set CustomerId type to String
+- consolidate differing kotlin tool versions on 1.9.21
+- Make date formatting thread safe
+- Use referential equality for enum comparison
+- Cancel start job in case of re-configuration
+- Update Chat to separate prepare and connect actions.
+- Display sender name and read/received status.
+- fix TreeField/CVHierarchicalField to not skip every other level.
+- Update Agent.isTyping only when agent is typing
+- Remove messages with duplicate id from thread
+- fix crash when restore suspended login dialog
+- Sockets created by SDK are tagged for TrafficStats
+- Delay SharedPreferences initialization
+- Fix unreliable unit tests depending on makeMessageModel being sequential
+- fix display of new agent messages
+- Disable sending empty messages. ([#454](https://github.com/nice-devone/nice-cxone-mobile-sdk-android/issues/454))
+- return error when receiving "invalid" server response on image upload
+- BREAKING CHANGE if uploaded filename has no extension, get one using MimeTypeMap
+- Fix crashes on some Qualcomm/Samsung devices
+
+
+### Dependency Change
+- Update Kotlin 1.9.20 -> 1.9.21
+- Bump com.squareup.okhttp3:okhttp from 4.11.0 to 4.12.0
+- Bump androidx.core:core-ktx from 1.10.1 to 1.12.0
+- Update Kotlin 1.8.21 -> 1.9.10
+
+
+### Features
+- Add ProxyLogger constructor with vararg param
+- Improve Java compatibility
+- Raise project compileSdk 33 -> 34
+- Improve logging of outgoing events
+- Pass server reported errors to integration
+- Process events on background thread
+- Allow to change users name
+- Message is updated when read by agent
+- Add seenAt and inferred state to message metadata
+- Add logger-android module
+- Extract logging library module
+- Add option to specify Logger for the SDK
+- Correct welcome message handling
+- replace dagger/hilt with Koin in UI and sample application components
+- Implement CaseStatusChanged event
+
 
 <a name="1.2.1"></a>
 ## [1.2.1]

@@ -1,14 +1,17 @@
 plugins {
     id "android-library-conventions"
-    id "kotlin-conventions"
-    id "docs-conventions"
-    id "test-conventions"
-    id "library-style-conventions"
+    id "android-kotlin-conventions"
+    id "android-docs-conventions"
+    id "android-test-conventions"
+    id "android-library-style-conventions"
     id "publish-conventions"
+    id "api-conventions"
 }
-
+metalava {
+    hiddenPackages = ["com.nice.cxonechat.internal"]
+}
 android {
-    namespace 'com.nice.cxonechat'
+    namespace 'com.nice.cxonechat.core'
 
     defaultConfig {
         consumerProguardFiles "consumer-rules.pro"
@@ -34,12 +37,14 @@ android {
         }
     }
 
-    kotlinOptions {
-        freeCompilerArgs = ['-Xjvm-default=all']
-    }
-
     buildFeatures {
         buildConfig true // Library version is used for device fingerprint
+    }
+}
+
+kotlin {
+    compilerOptions {
+        freeCompilerArgs = ['-Xjvm-default=all']
     }
 }
 
@@ -51,9 +56,12 @@ mavenPublishing {
 }
 
 dependencies {
-    implementation "androidx.core:core-ktx:1.10.1"
+    implementation "androidx.core:core-ktx:1.12.0"
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
-    implementation 'com.squareup.okhttp3:okhttp:4.11.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation project(':utilities')
+    api project(':logger')
+    implementation project(':logger-android')
 }

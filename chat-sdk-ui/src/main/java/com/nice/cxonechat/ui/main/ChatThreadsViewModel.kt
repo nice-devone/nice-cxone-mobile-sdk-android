@@ -19,11 +19,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nice.cxonechat.Chat
 import com.nice.cxonechat.ChatThreadEventHandlerActions.archiveThread
-import com.nice.cxonechat.ChatThreadEventHandlerActions.loadMetadata
+import com.nice.cxonechat.log.Logger
+import com.nice.cxonechat.log.LoggerScope
+import com.nice.cxonechat.log.timedScope
 import com.nice.cxonechat.prechat.PreChatSurvey
 import com.nice.cxonechat.state.lookup
 import com.nice.cxonechat.state.validate
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.ui.UiModule
 import com.nice.cxonechat.ui.data.flow
 import com.nice.cxonechat.ui.domain.SelectedThreadRepository
 import com.nice.cxonechat.ui.main.ChatThreadsViewModel.State.Initial
@@ -35,7 +38,6 @@ import com.nice.cxonechat.ui.model.foldToCreateThreadResult
 import com.nice.cxonechat.ui.model.prechat.PreChatResponse
 import com.nice.cxonechat.ui.storage.ValueStorage
 import com.nice.cxonechat.ui.storage.getCustomerCustomValues
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -47,6 +49,7 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.map
@@ -55,40 +58,40 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.*
-import javax.inject.Inject
+import org.koin.android.annotation.KoinViewModel
+import org.koin.core.qualifier.named
+import org.koin.java.KoinJavaComponent.get
+import java.util.UUID
 
-@HiltViewModel
+@KoinViewModel
 @Suppress(
     "TooManyFunctions"
 )
-internal class ChatThreadsViewModel @Inject constructor(
+internal class ChatThreadsViewModel(
     private val chat: Chat,
     private val selectedThreadRepository: SelectedThreadRepository,
     private val valueStorage: ValueStorage,
 ) : ViewModel() {
-
+    private val logger = LoggerScope(TAG, get(Logger::class.java, named(UiModule.loggerName)))
     private val threadsHandler = chat.threads()
     private val internalState: MutableStateFlow<State> = MutableStateFlow(Initial)
-    private val metadataRequested = mutableSetOf<UUID>()
-
     val createThreadFailure = MutableStateFlow(null as Failure?)
 
-    private val threadList: StateFlow<List<Thread>> = threadsHandler
-        .flow
+    private val threadFlow = threadsHandler.flow
+
+    private val threadList: StateFlow<List<Thread>> = threadFlow
         .conflate()
         .map { chatThreads ->
             chatThreads
                 .asSequence()
                 .map(::toUiThread)
-                .apply { scheduleLoadMetadata() }
                 .toList()
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     private val threadUpdates = MutableStateFlow<List<Thread>>(emptyList())
 
-    val isMultiThreadEnabled: Boolean = chat.configuration.hasMultipleThreadsPerEndUser
+    private val isMultiThreadEnabled: Boolean = chat.configuration.hasMultipleThreadsPerEndUser
 
     /**
      * Updated state of the chat threads view.
@@ -97,7 +100,6 @@ internal class ChatThreadsViewModel @Inject constructor(
         get() = internalState
             .asStateFlow()
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     val threads = merge(threadUpdates, threadList)
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
@@ -130,8 +132,7 @@ internal class ChatThreadsViewModel @Inject constructor(
         val chatThreadHandler = selectedThreadRepository.chatThreadHandler
         if (
             chatThreadHandler == null || // No thread is selected
-            previousThreadsState.isEmpty() || // Previous threads state was not yet loaded - unable to compare
-            !metadataRequested.contains(chatThread.id) // Metadata update is not yet finished
+            previousThreadsState.isEmpty() // Previous threads state was not yet loaded - unable to compare
         ) {
             return false
         }
@@ -151,15 +152,6 @@ internal class ChatThreadsViewModel @Inject constructor(
         }
     )
 
-    private fun Sequence<Thread>.scheduleLoadMetadata() {
-        forEach { thread ->
-            if (!metadataRequested.contains(thread.id)) {
-                threadsHandler.thread(thread.chatThread).events().loadMetadata()
-                metadataRequested.add(thread.id)
-            }
-        }
-    }
-
     internal fun resetState() {
         internalState.value = Initial
     }
@@ -168,52 +160,62 @@ internal class ChatThreadsViewModel @Inject constructor(
         createThreadFailure.value = null
     }
 
-    internal fun createThread() {
+    internal fun createThread() = logger.timedScope("createThread") {
         viewModelScope.launch {
             when (val preChatSurvey = threadsHandler.preChatSurvey) {
-                null -> createThread(emptySequence())
+                null -> createThreadWorker(emptySequence())
                 else -> internalState.value = ThreadPreChatSurveyRequired(preChatSurvey)
             }
         }
     }
 
-    internal fun respondToSurvey(response: Sequence<PreChatResponse>) {
+    internal fun respondToSurvey(response: Sequence<PreChatResponse>) = logger.timedScope("respondToSurvey") {
         viewModelScope.launch {
-            createThread(response)
+            createThreadWorker(response)
         }
     }
 
-    internal fun archiveThread(thread: Thread) =
+    internal fun archiveThread(thread: Thread) = logger.timedScope("archiveThread(${thread.id})") {
         threadsHandler.thread(thread.chatThread).events().archiveThread()
+    }
 
-    internal fun selectThread(thread: Thread) {
+    internal fun selectThread(thread: Thread) = logger.timedScope("selectThread(${thread.id})") {
         selectedThreadRepository.chatThreadHandler = threadsHandler.thread(thread.chatThread)
         internalState.value = ThreadSelected
     }
 
-    private suspend fun createThread(response: Sequence<PreChatResponse>) = withContext(Dispatchers.Default) {
-        val customerCustomFields = chat.configuration.customerCustomFields
-        val fields = valueStorage.getCustomerCustomValues().filter {
-            customerCustomFields.lookup(it.key) != null
-        }
-        val result = runCatching {
-            customerCustomFields.validate(fields)
-            chat.customFields().add(fields)
-            selectedThreadRepository.chatThreadHandler = threadsHandler.create(response)
-        }.foldToCreateThreadResult()
-
-        if (result is Failure) {
-            createThreadFailure.value = result
-        } else {
-            internalState.value = ThreadSelected
-        }
+    internal suspend fun selectThreadById(threadId: UUID) = logger.timedScope("selectThreadById($threadId)") {
+        val flow = threadFlow
+        refreshThreads()
+        val threadList = flow.first()
+        require(threadList.isNotEmpty())
+        selectedThreadRepository.chatThreadHandler = threadsHandler.thread(threadList.first { it.id == threadId })
+        internalState.value = ThreadSelected
     }
 
-    internal fun refreshThreads() {
-        viewModelScope.launch {
-            metadataRequested.clear()
-            threadsHandler.refresh()
+    private suspend fun createThreadWorker(response: Sequence<PreChatResponse>) =
+        logger.timedScope("createThreadWorker") {
+            withContext(Dispatchers.Default) {
+                val customerCustomFields = chat.configuration.customerCustomFields
+                val fields = valueStorage.getCustomerCustomValues().filter {
+                    customerCustomFields.lookup(it.key) != null
+                }
+                val result = runCatching {
+                    customerCustomFields.validate(fields)
+                    chat.customFields().add(fields)
+                    selectedThreadRepository.chatThreadHandler = threadsHandler.create(response)
+                }.foldToCreateThreadResult()
+
+                if (result is Failure) {
+                    createThreadFailure.value = result
+                } else {
+                    internalState.value = ThreadSelected
+                }
+            }
         }
+
+    internal fun refreshThreads() = logger.timedScope("refreshThreads") {
+        threadsHandler.refresh()
     }
 
     /**
@@ -226,7 +228,7 @@ internal class ChatThreadsViewModel @Inject constructor(
         object Initial : State
 
         /**
-         * Possible state following [createThread] call.
+         * Possible state following [createThreadWorker] call.
          * This state carries information about the prechat survey which should be presented to the user.
          *
          * @property survey The [PreChatSurvey] which should be presented to user.

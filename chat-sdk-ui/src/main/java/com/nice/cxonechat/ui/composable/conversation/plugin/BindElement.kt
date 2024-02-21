@@ -15,12 +15,10 @@
 
 package com.nice.cxonechat.ui.composable.conversation.plugin
 
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
-import com.nice.cxonechat.ui.composable.conversation.MessageItem
 import com.nice.cxonechat.ui.composable.conversation.PreviewMessageItemBase
 import com.nice.cxonechat.ui.composable.conversation.model.Message
 import com.nice.cxonechat.ui.composable.conversation.model.PluginElement
@@ -35,7 +33,6 @@ import com.nice.cxonechat.ui.composable.conversation.model.PluginElement.Subtitl
 import com.nice.cxonechat.ui.composable.conversation.model.PluginElement.Text
 import com.nice.cxonechat.ui.composable.conversation.model.PluginElement.TextAndButtons
 import com.nice.cxonechat.ui.composable.conversation.model.PluginElement.Title
-import com.nice.cxonechat.ui.composable.theme.ChatTheme
 
 @Composable
 internal fun BindElement(
@@ -60,10 +57,11 @@ internal fun BindElement(
 @Composable
 @Preview
 private fun PluginMessagePreview(
-    @PreviewParameter(PluginPreviewProvider::class)
+    @PreviewParameter(MessagePreviewProvider::class)
     message: Message
 ) {
-    PreviewMessageItemBase {
-        MessageItem(message = message, modifier = Modifier.padding(ChatTheme.space.large))
-    }
+    PreviewMessageItemBase(
+        message = message,
+        showSender = true,
+    )
 }

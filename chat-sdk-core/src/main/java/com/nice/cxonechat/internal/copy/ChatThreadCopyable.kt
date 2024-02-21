@@ -20,6 +20,7 @@ import com.nice.cxonechat.internal.model.ChatThreadMutable
 import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.thread.Agent
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.thread.ChatThreadState
 import com.nice.cxonechat.thread.CustomField
 import java.util.UUID
 
@@ -36,6 +37,7 @@ internal class ChatThreadCopyable(
         canAddMoreMessages: Boolean = model.canAddMoreMessages,
         scrollToken: String = model.scrollToken,
         fields: List<CustomField> = model.fields,
+        threadState: ChatThreadState = model.threadState,
     ) = ChatThreadInternal(
         id = id,
         threadName = threadName,
@@ -43,7 +45,8 @@ internal class ChatThreadCopyable(
         threadAgent = threadAgent,
         canAddMoreMessages = canAddMoreMessages,
         scrollToken = scrollToken,
-        fields = fields
+        fields = fields,
+        threadState = threadState,
     )
 
     companion object {

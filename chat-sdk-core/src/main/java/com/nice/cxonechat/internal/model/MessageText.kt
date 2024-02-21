@@ -15,7 +15,6 @@
 
 package com.nice.cxonechat.internal.model
 
-import com.nice.cxonechat.internal.model.MessageModel.Companion.author
 import com.nice.cxonechat.internal.model.network.MessagePolyContent
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.message.Message.Text
@@ -42,7 +41,7 @@ internal data class MessageText(
         get() = model.direction.toMessageDirection()
     override val metadata: MessageMetadata
         get() = model.userStatistics.toMessageMetadata()
-    override val author: MessageAuthor
+    override val author: MessageAuthor?
         get() = model.author
     override val attachments: Iterable<Attachment>
         get() = model.attachments.map(AttachmentModel::toAttachment)

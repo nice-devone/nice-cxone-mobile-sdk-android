@@ -68,6 +68,7 @@ import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.SemanticsPropertyReceiver
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -147,13 +148,19 @@ internal fun UserInput(
     }
 
     val sendMessage = {
-        conversationUiState.sendMessage(OutboundMessage(textState.text))
-        // Reset text field and close keyboard
-        textState = TextFieldValue()
-        // Move scroll to bottom
-        resetScroll()
-        dismissKeyboard()
-        if (isTypingState) signalStoppedTyping()
+        // trim surrounding spaces
+        val text = textState.text.trim()
+
+        // Don't send blank messages.
+        if (text.isNotEmpty()) {
+            conversationUiState.sendMessage(OutboundMessage(text))
+            // Reset text field and close keyboard
+            textState = TextFieldValue()
+            // Move scroll to bottom
+            resetScroll()
+            dismissKeyboard()
+            if (isTypingState) signalStoppedTyping()
+        }
     }
 
     Surface(modifier = modifier) {
@@ -272,6 +279,9 @@ private fun RowScope.UserInputText(
                         onTextFieldFocused(state.isFocused)
                     }
                     lastFocusState = state.isFocused
+                }
+                .semantics {
+                    testTag = "chat_text_field"
                 },
             keyboardOptions = KeyboardOptions(
                 keyboardType = keyboardType,

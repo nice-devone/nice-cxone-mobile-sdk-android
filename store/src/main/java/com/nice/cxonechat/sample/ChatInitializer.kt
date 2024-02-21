@@ -20,13 +20,18 @@ import androidx.startup.Initializer
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.ktx.messaging
 import com.nice.cxonechat.ChatInstanceProvider
+import com.nice.cxonechat.log.LoggerAndroid
+import com.nice.cxonechat.log.ProxyLogger
 import com.nice.cxonechat.sample.data.repository.ChatSettingsRepository
+import com.nice.cxonechat.sample.data.repository.UISettingsRepository
+import com.nice.cxonechat.sample.utilities.logging.FirebaseLogger
 
 /** Automatic initialization of ChatInstanceProvider. */
-class ChatInitializer: Initializer<ChatInstanceProvider> {
+class ChatInitializer : Initializer<ChatInstanceProvider> {
     override fun create(context: Context): ChatInstanceProvider {
         /* set up the chat instance provider */
         val settings = ChatSettingsRepository(context).load()
+        UISettingsRepository(context).load()
         return ChatInstanceProvider.create(
             configuration = settings?.sdkConfiguration?.asSocketFactoryConfiguration,
             authorization = null,
@@ -34,7 +39,11 @@ class ChatInitializer: Initializer<ChatInstanceProvider> {
             developmentMode = true,
             deviceTokenProvider = { setToken ->
                 Firebase.messaging.token.addOnSuccessListener(setToken)
-            }
+            },
+            logger = ProxyLogger(
+                FirebaseLogger(),
+                LoggerAndroid("CXoneChat")
+            )
         )
     }
 

@@ -22,14 +22,12 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import com.nice.cxonechat.message.ContentDescriptor
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.runInterruptible
+import org.koin.core.annotation.Single
 import java.io.ByteArrayOutputStream
 import java.io.FileNotFoundException
 import java.io.IOException
-import java.util.*
-import javax.inject.Inject
-import javax.inject.Singleton
+import java.util.UUID
 
 /**
  * [ContentDataSource] that handles Image uri's for uploading to the host.
@@ -38,11 +36,11 @@ import javax.inject.Singleton
  * before a [ContentDescriptor] is created.  This means that a fairly large
  * chunk of memory will be consumed while the ContentDescriptor is held.
  *
- * @property context Context to be used for Uri resolution
+ * @param context Context to be used for Uri resolution
  */
-@Singleton
-internal class ImageContentDataSource @Inject constructor(
-    @ApplicationContext private val context: Context,
+@Single
+internal class ImageContentDataSource(
+    private val context: Context,
 ) : ContentDataSource {
     override val acceptRegex = Regex("image/.*")
 
@@ -62,7 +60,7 @@ internal class ImageContentDataSource @Inject constructor(
                     // can convert it to JPG from whatever it happens to currently be, which
                     // is probably either PNG or WEBP
                     content = getContent(attachmentUri) ?: return@runInterruptible null,
-                    mimeType = "image/jpg",
+                    mimeType = "image/jpeg",
                     fileName = "${UUID.randomUUID()}.jpg",
                     friendlyName = attachmentUri.lastPathSegment
                 )

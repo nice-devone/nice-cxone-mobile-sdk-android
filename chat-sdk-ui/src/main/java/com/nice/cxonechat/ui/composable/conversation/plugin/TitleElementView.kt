@@ -19,7 +19,6 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.nice.cxonechat.ui.composable.conversation.MessageItem
 import com.nice.cxonechat.ui.composable.conversation.PreviewMessageItemBase
 import com.nice.cxonechat.ui.composable.conversation.model.PluginElement.Title
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
@@ -32,7 +31,8 @@ internal fun TitleElementView(title: Title, modifier: Modifier = Modifier) {
 @Composable
 @Preview
 private fun PreviewTitle() {
-    PreviewMessageItemBase {
-        MessageItem(message = PluginPreviewProvider().title.asMessage("title"))
-    }
+    PreviewMessageItemBase(
+        message = MessagePreviewProvider().title.asMessage("title"),
+        showSender = true,
+    )
 }

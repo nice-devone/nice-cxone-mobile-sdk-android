@@ -20,8 +20,8 @@ import com.nice.cxonechat.message.ContentDescriptor.DataSource
 
 internal data class ContentDescriptorInternal(
     override val content: DataSource,
-    override val mimeType: String?,
-    override val fileName: String?,
+    override val mimeType: String,
+    override val fileName: String,
     override val friendlyName: String?,
 ) : ContentDescriptor {
     override fun toString(): String =

@@ -15,36 +15,54 @@
 
 package com.nice.cxonechat.internal
 
+import com.google.gson.JsonParseException
 import com.nice.cxonechat.ChatEventHandler
+import com.nice.cxonechat.ChatEventHandler.OnEventErrorListener
 import com.nice.cxonechat.ChatEventHandler.OnEventSentListener
 import com.nice.cxonechat.event.AnalyticsEvent
 import com.nice.cxonechat.event.ChatEvent
 import com.nice.cxonechat.event.LocalEvent
+import com.nice.cxonechat.exceptions.AnalyticsEventDispatchException
+import com.nice.cxonechat.exceptions.CXOneException
+import com.nice.cxonechat.exceptions.InternalError
 import com.nice.cxonechat.internal.socket.send
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.text.ParseException
 
 internal class ChatEventHandlerImpl(
     private val chat: ChatWithParameters,
 ) : ChatEventHandler {
 
-    override fun trigger(event: ChatEvent, listener: OnEventSentListener?) {
+    override fun trigger(event: ChatEvent, listener: OnEventSentListener?, errorListener: OnEventErrorListener?) {
         // Is this an internal event that doesn't get broadcast any further?
         if (event is LocalEvent) return
 
-        when (val model = event.getModel(chat.connection, chat.storage)) {
+        val model = runCatching {
+            event.getModel(chat.connection, chat.storage)
+        }.onFailure { throwable ->
+            when (throwable) {
+                is CXOneException -> errorListener?.onError(throwable)
+                is ParseException, is JsonParseException -> errorListener?.onError(InternalError("Serialization error"))
+            }
+        }.getOrNull() ?: return
+        when (model) {
             is LocalEvent -> Unit
-            is AnalyticsEvent -> postAnalyticsEvent(model, listener)
+            is AnalyticsEvent -> postAnalyticsEvent(model, listener, errorListener)
             else -> postWSSEvent(model, listener)
         }
     }
 
     private fun postWSSEvent(model: Any, listener: OnEventSentListener?) {
-        chat.socket.send(model, listener?.run { ::onSent })
+        chat.socket?.send(model, listener?.run { ::onSent })
     }
 
-    private fun postAnalyticsEvent(event: AnalyticsEvent, listener: OnEventSentListener?) {
+    private fun postAnalyticsEvent(
+        event: AnalyticsEvent,
+        listener: OnEventSentListener?,
+        errorListener: OnEventErrorListener?,
+    ) {
         chat.service.postEvent(
             chat.connection.brandId.toString(),
             chat.storage.visitorId.toString(),
@@ -56,6 +74,7 @@ internal class ChatEventHandlerImpl(
 
             override fun onFailure(call: Call<Void>, t: Throwable) {
                 listener?.onSent()
+                errorListener?.onError(AnalyticsEventDispatchException(t.message ?: "Failed to dispatch event.", t))
             }
         })
     }

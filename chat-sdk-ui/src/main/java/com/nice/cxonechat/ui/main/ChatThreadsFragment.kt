@@ -15,7 +15,6 @@
 
 package com.nice.cxonechat.ui.main
 
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -65,7 +64,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle.State
 import androidx.navigation.fragment.findNavController
 import coil.compose.AsyncImage
@@ -75,6 +73,8 @@ import com.nice.cxonechat.state.FieldDefinition
 import com.nice.cxonechat.state.FieldDefinitionList
 import com.nice.cxonechat.thread.Agent
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.thread.ChatThreadState
+import com.nice.cxonechat.thread.ChatThreadState.Ready
 import com.nice.cxonechat.thread.CustomField
 import com.nice.cxonechat.ui.PreChatSurveyDialog
 import com.nice.cxonechat.ui.R.array
@@ -89,6 +89,7 @@ import com.nice.cxonechat.ui.composable.theme.Fab
 import com.nice.cxonechat.ui.composable.theme.MultiToggleButton
 import com.nice.cxonechat.ui.composable.theme.Scaffold
 import com.nice.cxonechat.ui.composable.theme.SwipeToDismiss
+import com.nice.cxonechat.ui.composable.theme.TopBar
 import com.nice.cxonechat.ui.main.ChatThreadsViewModel.State.Initial
 import com.nice.cxonechat.ui.main.ChatThreadsViewModel.State.ThreadPreChatSurveyRequired
 import com.nice.cxonechat.ui.main.ChatThreadsViewModel.State.ThreadSelected
@@ -99,23 +100,23 @@ import com.nice.cxonechat.ui.model.describe
 import com.nice.cxonechat.ui.model.prechat.PreChatResponse
 import com.nice.cxonechat.ui.util.Ignored
 import com.nice.cxonechat.ui.util.repeatOnViewOwnerLifecycle
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.UUID
 import kotlin.random.Random
 
 /**
  * Fragment displaying the list of available chat threads.
  */
-@AndroidEntryPoint
 class ChatThreadsFragment : Fragment() {
-    private val viewModel: ChatThreadsViewModel by activityViewModels()
+    private val chatThreadsViewModel: ChatThreadsViewModel by activityViewModel()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         repeatOnViewOwnerLifecycle(State.STARTED) {
-            viewModel.state.collect { state ->
+            chatThreadsViewModel.state.collect { state ->
                 when (state) {
                     /* normal state */
                     Initial -> Ignored
@@ -132,35 +133,30 @@ class ChatThreadsFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setContent {
                 ChatThreadsFragmentView(
-                    state = viewModel.state.collectAsState().value,
-                    threads = viewModel.threads.collectAsState().value,
-                    threadFailure = viewModel.createThreadFailure.collectAsState().value,
-                    onThreadSelected = viewModel::selectThread,
-                    onCreateThread = viewModel::createThread,
-                    onArchiveThread = viewModel::archiveThread,
-                    resetState = viewModel::resetState,
-                    respondToSurvey = viewModel::respondToSurvey,
-                    resetCreateThreadState = viewModel::resetCreateThreadState
+                    state = chatThreadsViewModel.state.collectAsState().value,
+                    threads = chatThreadsViewModel.threads.collectAsState().value,
+                    threadFailure = chatThreadsViewModel.createThreadFailure.collectAsState().value,
+                    onThreadSelected = chatThreadsViewModel::selectThread,
+                    onCreateThread = chatThreadsViewModel::createThread,
+                    onArchiveThread = chatThreadsViewModel::archiveThread,
+                    resetState = chatThreadsViewModel::resetState,
+                    respondToSurvey = chatThreadsViewModel::respondToSurvey,
+                    resetCreateThreadState = chatThreadsViewModel::resetCreateThreadState
                 )
             }
         }
     }
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-
-        activity?.title = getString(string.thread_list_title)
-    }
-
     override fun onResume() {
         super.onResume()
-        viewModel.refreshThreads()
+        activity?.title = getString(string.thread_list_title)
+        chatThreadsViewModel.refreshThreads()
     }
 
     private fun navigateToThread() {
         val destination = ChatThreadsFragmentDirections.actionChatThreadsFragmentToChat()
         findNavController().navigate(destination)
-        viewModel.resetState()
+        chatThreadsViewModel.resetState()
     }
 }
 
@@ -178,6 +174,7 @@ private fun ChatThreadsFragmentView(
 ) {
     ChatTheme {
         ChatTheme.Scaffold(
+            topBar = { ChatTheme.TopBar(title = stringResource(id = string.thread_list_title)) },
             floatingActionButton = {
                 ChatTheme.Fab(rememberVectorPainter(image = Icons.Default.Add), null, onClick = onCreateThread)
             },
@@ -420,6 +417,7 @@ private data class PreviewThread(
     override val canAddMoreMessages: Boolean = true,
     override val scrollToken: String = "",
     override val fields: List<CustomField> = listOf(),
+    override val threadState: ChatThreadState = Ready,
 ) : ChatThread() {
     companion object {
         var nextThreadIndex: Int = 1

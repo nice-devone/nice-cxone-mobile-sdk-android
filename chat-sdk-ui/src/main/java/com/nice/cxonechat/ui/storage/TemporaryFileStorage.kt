@@ -16,20 +16,18 @@
 package com.nice.cxonechat.ui.storage
 
 import android.content.Context
-import dagger.hilt.android.qualifiers.ApplicationContext
+import org.koin.core.annotation.Single
 import java.io.File
-import javax.inject.Inject
-import javax.inject.Singleton
+import java.util.UUID
 
 /**
  * This class manages storage of files which should be accessible via [TemporaryFileProvider].
  */
-@Singleton
+@Single
 internal class TemporaryFileStorage(
     context: Context,
-    private val baseDirectory: String?,
+    private val baseDirectory: String? = null,
 ) {
-
     private val cacheDir: File by lazy { baseDirectory?.let(::File) ?: context.cacheDir }
     private val cacheFolder: File by lazy {
         val directory = File(cacheDir, "/tmp/")
@@ -39,11 +37,11 @@ internal class TemporaryFileStorage(
         directory
     }
 
-    @Inject
-    constructor(@ApplicationContext context: Context) : this(context, null)
-
-    fun createFile(name: String): File? {
-        val file = File(cacheFolder, name)
+    /**
+     * Creates a new temporary file with a randomly generated name.  A [File] reference will be returned.
+     */
+    fun createFile(): File? {
+        val file = File(cacheFolder, UUID.randomUUID().toString())
         val fileCreated = runCatching { file.createNewFile() }
         return if (fileCreated.isSuccess) file else null
     }

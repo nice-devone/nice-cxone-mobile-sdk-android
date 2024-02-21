@@ -23,15 +23,13 @@ import androidx.datastore.preferences.core.Preferences.Key
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
-import javax.inject.Singleton
+import org.koin.core.annotation.Single
 
-@Singleton
-internal class ValueStorage @Inject constructor(
-    @ApplicationContext private val context: Context,
+@Single
+internal class ValueStorage(
+    private val context: Context,
 ) {
 
     private val Context.storage: DataStore<Preferences> by preferencesDataStore(name = PREFERENCES_FILE_NAME)
@@ -66,9 +64,11 @@ internal class ValueStorage @Inject constructor(
     private companion object {
         private const val PREFERENCES_FILE_NAME = "com.nice.cxonechat.ui.settings"
         private const val PREF_CUSTOM_VALUES: String = "share_custom_values_serialized"
+        private const val PREF_REQUESTED_PERMISSIONS: String = "ui_requested_permissions"
     }
 
     enum class StringKey(val value: Key<String>) {
-        CUSTOMER_CUSTOM_VALUES_KEY(stringPreferencesKey(PREF_CUSTOM_VALUES))
+        CUSTOMER_CUSTOM_VALUES_KEY(stringPreferencesKey(PREF_CUSTOM_VALUES)),
+        REQUESTED_PERMISSIONS_KEY(stringPreferencesKey(PREF_REQUESTED_PERMISSIONS))
     }
 }

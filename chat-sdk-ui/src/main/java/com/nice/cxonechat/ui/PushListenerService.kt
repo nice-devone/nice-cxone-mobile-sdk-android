@@ -22,42 +22,47 @@ import android.content.Intent
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import androidx.core.app.NotificationCompat.Builder
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.nice.cxonechat.ChatInstanceProvider
+import com.nice.cxonechat.log.LoggerScope
+import com.nice.cxonechat.log.debug
+import com.nice.cxonechat.log.scope
+import com.nice.cxonechat.log.verbose
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.domain.PushMessage
 import com.nice.cxonechat.ui.domain.PushMessageParser
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
+import org.koin.android.ext.android.get
+import org.koin.android.ext.android.inject
+import org.koin.core.qualifier.named
 
-@AndroidEntryPoint
 internal class PushListenerService : FirebaseMessagingService() {
-    private var chatProvider = ChatInstanceProvider.get()
 
-    @Inject
-    lateinit var parser: PushMessageParser
+    private val chatProvider: ChatInstanceProvider by inject()
 
-    override fun onNewToken(token: String) {
+    private val parser: PushMessageParser by inject()
+
+    private val logger by lazy { LoggerScope(TAG, get(named(UiModule.loggerName))) }
+
+    override fun onNewToken(token: String) = logger.scope("onNewToken") {
         super.onNewToken(token)
         val chat = chatProvider.chat
         if (chat == null) {
-            Log.v(TAG, "No chat instance present, token not passed")
-            return
+            verbose("No chat instance present, token not passed")
+            return@scope
         }
         chat.setDeviceToken(token)
-        Log.d(TAG, "Registering push notifications token: $token")
+        debug("Registering push notifications token: $token")
     }
 
-    override fun onMessageReceived(remoteMessage: RemoteMessage) {
+    override fun onMessageReceived(remoteMessage: RemoteMessage): Unit = logger.scope("onMessageReceived") {
         super.onMessageReceived(remoteMessage)
-        Log.d(TAG, "Received push message: " + remoteMessage.data)
+        debug("Received push message: " + remoteMessage.data)
         if (isAppInForeground()) {
-            Log.d(TAG, "Application is in foreground, discarding push message")
+            debug("Application is in foreground, discarding push message")
         } else {
             val pushMessage = parser.parse(remoteMessage.data)
             sendNotification(pushMessage)
@@ -76,7 +81,7 @@ internal class PushListenerService : FirebaseMessagingService() {
             .setSmallIcon(iconResId)
             .setContentTitle(message.title)
             .setContentText(message.message)
-            .setAutoCancel(false)
+            .setAutoCancel(true)
             .setSound(defaultSoundUri)
             .setPriority(2)
 

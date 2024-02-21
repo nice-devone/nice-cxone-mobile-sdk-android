@@ -31,6 +31,7 @@ internal data class ChatShapes(
     val chatVideoPlayer: Shape = DefaultChatShapes.chatVideoPlayerClip,
     val chatAudioPlayer: Shape = DefaultChatShapes.chatAudioPlayerClip,
     val chip: Shape = DefaultChatShapes.chip,
+    val selectionFrame: Shape = DefaultChatShapes.selectionFrame,
 )
 
 internal object DefaultChatShapes {
@@ -58,6 +59,8 @@ internal object DefaultChatShapes {
     val chatAudioPlayerClip = RoundedCornerShape(8.dp)
 
     val chip = RoundedCornerShape(8.dp)
+
+    val selectionFrame = RoundedCornerShape(8.dp)
 }
 
 internal val LocalChatShapes = staticCompositionLocalOf {

@@ -41,17 +41,11 @@ internal fun compoundAction(
 internal fun sendMessageAction(
     sendMessage: (OutboundMessage) -> Unit,
     text: String,
-    postback: String?
-): ButtonAction? = postback?.let { pb ->
-    { _ ->
-        sendMessage(OutboundMessage(text, pb))
-    }
+    postback: String,
+): ButtonAction = { _ ->
+    sendMessage(OutboundMessage(text, postback))
 }
 
-internal fun deepLinkAction(deepLink: String?): ButtonAction? = deepLink?.let { link ->
-    { context ->
-        context.startActivity(
-            Intent(Intent.ACTION_VIEW, Uri.parse(link))
-        )
-    }
+internal fun deepLinkAction(deepLink: String): ButtonAction = { context ->
+    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(deepLink)))
 }

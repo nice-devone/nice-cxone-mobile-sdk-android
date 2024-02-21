@@ -21,12 +21,10 @@ import com.nice.cxonechat.sample.data.models.UISettingsModel.Colors
 import com.nice.cxonechat.ui.composable.theme.ChatThemeDetails
 import com.nice.cxonechat.ui.composable.theme.Images
 import com.nice.cxonechat.ui.composable.theme.ThemeColors
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import javax.inject.Inject
-import javax.inject.Singleton
+import org.koin.core.annotation.Single
 
 /** Current UI Settings as a mutable flow for compose theming. */
 val UISettingsState = MutableStateFlow(UISettingsModel())
@@ -39,9 +37,27 @@ val UISettings: StateFlow<UISettingsModel> = UISettingsState.asStateFlow()
  *
  * @param context Application context for file access.
  */
-@Singleton
-class UISettingsRepository @Inject constructor(@ApplicationContext val context: Context)
-    : FileRepository<UISettingsModel>("UISettings.json", UISettingsModel::class) {
+@Single
+class UISettingsRepository(
+    val context: Context,
+) : FileRepository<UISettingsModel>(
+    fileName = "UISettings.json",
+    type = UISettingsModel::class
+) {
+    private val Colors.asChatThemeColors: ThemeColors
+        get() = ThemeColors(
+            primary = primary,
+            onPrimary = onPrimary,
+            background = background,
+            onBackground = onBackground,
+            accent = accent,
+            onAccent = onAccent,
+            agentBackground = agentBackground,
+            agentText = agentText,
+            customerBackground = customerBackground,
+            customerText = customerText
+        )
+
     /**
      * Update the saved UI Settings.
      *
@@ -70,24 +86,10 @@ class UISettingsRepository @Inject constructor(@ApplicationContext val context: 
         super.clear(context)
         UISettingsState.value = UISettingsModel()
     }
-}
 
-private fun UISettingsModel.applyToChatSdk() {
-    ChatThemeDetails.darkColors = darkModeColors.asChatThemeColors
-    ChatThemeDetails.lightColors = lightModeColors.asChatThemeColors
-    if (logo != null) ChatThemeDetails.images = Images(logo)
+    private fun UISettingsModel.applyToChatSdk() {
+        ChatThemeDetails.darkColors = darkModeColors.asChatThemeColors
+        ChatThemeDetails.lightColors = lightModeColors.asChatThemeColors
+        ChatThemeDetails.images = Images(logo)
+    }
 }
-
-private val Colors.asChatThemeColors: ThemeColors
-    get() = ThemeColors(
-        primary = primary,
-        onPrimary = onPrimary,
-        background = background,
-        onBackground = onBackground,
-        accent = accent,
-        onAccent = onAccent,
-        agentBackground = agentBackground,
-        agentText = agentText,
-        customerBackground = customerBackground,
-        customerText = customerText
-    )

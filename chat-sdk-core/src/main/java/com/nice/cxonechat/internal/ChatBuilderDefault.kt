@@ -19,15 +19,19 @@ import com.nice.cxonechat.Authorization
 import com.nice.cxonechat.Cancellable
 import com.nice.cxonechat.ChatBuilder
 import com.nice.cxonechat.ChatBuilder.OnChatBuiltCallback
+import com.nice.cxonechat.ChatBuilder.OnChatBuiltResultCallback
+import com.nice.cxonechat.ChatMode.MULTI_THREAD
+import com.nice.cxonechat.ChatMode.SINGLE_THREAD
 import com.nice.cxonechat.ChatStateListener
 import com.nice.cxonechat.ChatThreadingImpl
 import com.nice.cxonechat.internal.copy.ConnectionCopyable.Companion.asCopyable
+import com.nice.cxonechat.internal.model.ChannelConfiguration
 import com.nice.cxonechat.internal.socket.SocketFactory
 import com.nice.cxonechat.internal.socket.StateReportingSocketFactory
+import com.nice.cxonechat.state.Connection
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.io.IOException
 
 internal class ChatBuilderDefault(
     private val entrails: ChatEntrails,
@@ -62,8 +66,27 @@ internal class ChatBuilderDefault(
         deviceToken = token
     }
 
-    @Throws(IllegalStateException::class, IOException::class, RuntimeException::class)
-    override fun build(callback: OnChatBuiltCallback): Cancellable {
+    @Deprecated(
+        message = "Please migrate to build method with OnChatBuildResultCallback",
+        replaceWith = ReplaceWith(
+            expression = "build(resultCallback = OnChatBuiltResultCallback { callback.onChatBuilt(it.getOrThrow()) })",
+            imports = ["com.nice.cxonechat.ChatBuilder.OnChatBuiltResultCallback"]
+        )
+    )
+    override fun build(callback: OnChatBuiltCallback): Cancellable =
+        build(resultCallback = { chatResult -> callback.onChatBuilt(chatResult.getOrThrow()) })
+
+    override fun build(resultCallback: OnChatBuiltResultCallback): Cancellable {
+        resultCallback.onChatBuiltResult(
+            runCatching {
+                val chatParameters = prepareChatParameters()
+                createChatInstance(chatParameters)
+            }
+        )
+        return Cancellable.noop
+    }
+
+    private fun prepareChatParameters(): ChatParameters {
         val socketFactory = chatStateListener?.let { StateReportingSocketFactory(it, factory) } ?: factory
         var connection = socketFactory.getConfiguration(entrails.storage)
         val firstName = firstName
@@ -79,23 +102,43 @@ internal class ChatBuilderDefault(
         check(response.isSuccessful) { "Response from the server was not successful" }
         val body = checkNotNull(response.body()) { "Response body was null" }
         val storeVisitorCallback = if (isDevelopment) StoreVisitorCallback(entrails.logger) else IgnoredCallback
+        return ChatParameters(connection, socketFactory, body, storeVisitorCallback)
+    }
+
+    private fun createChatInstance(
+        chatParameters: ChatParameters,
+    ): ChatWithParameters {
+        val storeVisitorCallback: Callback<Void> = chatParameters.storeVisitorCallback
         var chat: ChatWithParameters
         chat = ChatImpl(
-            connection = connection,
+            connection = chatParameters.connection,
             entrails = entrails,
-            socketFactory = socketFactory,
-            configuration = body.toConfiguration(connection.channelId),
-            callback = storeVisitorCallback
+            socketFactory = chatParameters.socketFactory,
+            configuration = chatParameters.body.toConfiguration(chatParameters.connection.channelId),
+            callback = storeVisitorCallback,
+            chatStateListener = chatStateListener
         )
+        chat = ChatMemoizeThreadsHandler(chat)
         chat = ChatAuthorization(chat, authorization)
         chat = ChatStoreVisitor(chat, storeVisitorCallback)
         chat = ChatWelcomeMessageUpdate(chat)
+        chat = ChatServerErrorReporting(chat)
+        chat = when (chat.chatMode) {
+            SINGLE_THREAD -> ChatSingleThread(chat)
+            MULTI_THREAD -> ChatMultiThread(chat)
+        }
         chat = ChatThreadingImpl(chat)
-        if (isDevelopment) chat = ChatLogging(chat, entrails.logger)
-        callback.onChatBuilt(chat)
-        return Cancellable.noop
+        if (isDevelopment) chat = ChatLogging(chat)
+        return chat
     }
 }
+
+private data class ChatParameters(
+    val connection: Connection,
+    val socketFactory: SocketFactory,
+    val body: ChannelConfiguration,
+    val storeVisitorCallback: Callback<Void>,
+)
 
 private object IgnoredCallback : Callback<Void> {
     override fun onResponse(call: Call<Void>, response: Response<Void>) = Unit

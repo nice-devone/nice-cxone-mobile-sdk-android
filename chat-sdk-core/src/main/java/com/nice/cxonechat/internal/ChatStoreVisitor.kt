@@ -30,10 +30,15 @@ internal class ChatStoreVisitor(
     callback: Callback<Void>,
 ) : ChatWithParameters by origin {
     init {
-        entrails.service.createOrUpdateVisitor(
+        val createOrUpdateVisitor = entrails.service.createOrUpdateVisitor(
             brandId = connection.brandId,
             visitorId = entrails.storage.visitorId.toString(),
             visitor = Visitor(connection, origin.storage.deviceToken)
-        ).enqueue(callback)
+        )
+        runCatching {
+            callback.onResponse(createOrUpdateVisitor, createOrUpdateVisitor.execute())
+        }.onFailure {
+            callback.onFailure(createOrUpdateVisitor, it)
+        }
     }
 }

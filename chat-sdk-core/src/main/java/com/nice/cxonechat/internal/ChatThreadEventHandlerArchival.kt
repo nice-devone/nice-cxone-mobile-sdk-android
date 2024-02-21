@@ -16,6 +16,7 @@
 package com.nice.cxonechat.internal
 
 import com.nice.cxonechat.ChatThreadEventHandler
+import com.nice.cxonechat.ChatThreadEventHandler.OnEventErrorListener
 import com.nice.cxonechat.ChatThreadEventHandler.OnEventSentListener
 import com.nice.cxonechat.event.thread.ArchiveThreadEvent
 import com.nice.cxonechat.event.thread.ChatThreadEvent
@@ -29,22 +30,28 @@ internal class ChatThreadEventHandlerArchival(
     private val chat: ChatWithParameters,
     private val thread: ChatThreadMutable
 ): ChatThreadEventHandler by origin {
-    override fun trigger(event: ChatThreadEvent, listener: OnEventSentListener?) {
-        origin.trigger(event) {
-            if(event is ArchiveThreadEvent) {
-                handleArchiveThread()
-            }
-            listener?.onSent()
-        }
+    override fun trigger(event: ChatThreadEvent, listener: OnEventSentListener?, errorListener: OnEventErrorListener?) {
+        origin.trigger(
+            event = event,
+            listener = {
+                if (event is ArchiveThreadEvent) {
+                    handleArchiveThread()
+                }
+                listener?.onSent()
+            },
+            errorListener = errorListener
+        )
     }
 
     private fun handleArchiveThread() {
+        val socket = chat.socket ?: return
+
         // mark this thread as archived
         thread += thread.asCopyable().copy(canAddMoreMessages = false)
 
         // send thread updated to host application
         chat.socketListener.onMessage(
-            chat.socket,
+            socket,
             serializer.toJson(EventThreadUpdated(thread))
         )
     }

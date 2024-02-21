@@ -23,23 +23,31 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.message.MessageDirection.ToClient
+import com.nice.cxonechat.ui.R.drawable
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.conversation.model.ConversationUiState
 import com.nice.cxonechat.ui.composable.conversation.model.Section
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.composable.theme.Scaffold
+import com.nice.cxonechat.ui.composable.theme.TopBar
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Date
@@ -51,6 +59,8 @@ import java.util.Date
  * @param conversationState State of the conversation and means how to send new messages.
  * @param audioRecordingState State of the audio recording and means how to trigger it.
  * @param onAttachmentTypeSelection Action invoked when a user has selected what type of file they want to send as attachment.
+ * @param onEditThreadName Callback to trigger edit thread name dialog.
+ * @param onEditThreadValues Callback to trigger edit thread values dialog.
  * @param modifier Optional [Modifier] for [Scaffold] surrounding the conversation view.
  */
 @Composable
@@ -58,6 +68,8 @@ internal fun ChatConversation(
     conversationState: ConversationUiState,
     audioRecordingState: AudioRecordingUiState,
     onAttachmentTypeSelection: (mimeType: String) -> Unit,
+    onEditThreadName: () -> Unit,
+    onEditThreadValues: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scrollState = rememberLazyListState()
@@ -65,29 +77,76 @@ internal fun ChatConversation(
     val context = LocalContext.current
     val messages = conversationState.messages(context).collectAsState(initial = emptyList()).value
 
-    Column(
-        modifier.fillMaxSize(),
-    ) {
-        MessageListView(
-            messages,
-            conversation = conversationState,
-            scrollState = scrollState,
-            modifier = Modifier.weight(1f)
-        )
-        UserInput(
-            conversationUiState = conversationState,
-            resetScroll = {
-                scope.launch {
-                    scrollState.scrollToItem(0)
-                }
-            },
-            modifier = Modifier
-                .navigationBarsPadding()
-                .imePadding(),
-            audioRecordingUiState = audioRecordingState,
-            onAttachmentTypeSelection = onAttachmentTypeSelection,
-        )
+    LaunchedEffect(messages) {
+        if (scrollState.firstVisibleItemIndex <= 1) { // Only autoscroll if user is on last message
+            delay(250)
+            scrollState.scrollToItem(0)
+        }
     }
+
+    ChatTheme.Scaffold(
+        topBar = {
+            ChatThreadTopBar(
+                conversationState = conversationState,
+                onEditThreadName = onEditThreadName,
+                onEditThreadValues = onEditThreadValues,
+            )
+        }
+    ) {
+        Column(
+            modifier.fillMaxSize(),
+        ) {
+            MessageListView(
+                messages,
+                conversation = conversationState,
+                scrollState = scrollState,
+                modifier = Modifier.weight(1f)
+            )
+            UserInput(
+                conversationUiState = conversationState,
+                resetScroll = {
+                    scope.launch {
+                        scrollState.scrollToItem(0)
+                    }
+                },
+                modifier = Modifier
+                    .navigationBarsPadding()
+                    .imePadding(),
+                audioRecordingUiState = audioRecordingState,
+                onAttachmentTypeSelection = onAttachmentTypeSelection,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ChatThreadTopBar(
+    conversationState: ConversationUiState,
+    onEditThreadName: () -> Unit,
+    onEditThreadValues: () -> Unit,
+) {
+    ChatTheme.TopBar(
+        title = conversationState.threadName.collectAsState(null).value?.ifBlank { null }
+            ?: stringResource(id = string.thread_list_title),
+        actions = {
+            if (conversationState.isMultiThreaded) {
+                IconButton(onClick = onEditThreadName) {
+                    Icon(
+                        painter = painterResource(id = drawable.ic_baseline_chat_24),
+                        contentDescription = stringResource(id = string.change_thread_name)
+                    )
+                }
+            }
+            if (conversationState.hasQuestions) {
+                IconButton(onClick = onEditThreadValues) {
+                    Icon(
+                        painter = painterResource(id = drawable.ic_baseline_edit),
+                        contentDescription = stringResource(id = string.change_details_label)
+                    )
+                }
+            }
+        }
+    )
 }
 
 @Composable
@@ -99,15 +158,17 @@ internal fun MessageListView(
 ) {
     val isTyping = conversation.typingIndicator.collectAsState(initial = false).value
     val canLoadMore = conversation.canLoadMore.collectAsState().value
+
     Surface(modifier) {
         Column {
             Messages(
                 scrollState = scrollState,
                 groupedMessages = messages,
-                onClick = conversation.onClick,
-                onMessageLongClick = conversation.onLongClick,
                 loadMore = conversation.loadMore,
-                canLoadMore = canLoadMore
+                canLoadMore = canLoadMore,
+                onAttachmentClicked = conversation.onAttachmentClicked,
+                onMoreClicked = conversation.onMoreClicked,
+                onShare = conversation.onShare,
             )
             TypingIndicator(isTyping)
         }
@@ -138,6 +199,7 @@ private fun PreviewChat() {
             previewTextMessage("Hello again", createdAt = firstDate),
             previewTextMessage("Is anyone there?", createdAt = firstDate),
             previewTextMessage("Hi, how are you?", direction = ToClient, createdAt = secondDate),
+            previewTextMessage("Hi, how are you, again?", direction = ToClient, createdAt = secondDate),
         ).sortedByDescending(Message::createdAt)
         val conversation = previewUiState(messages)
         val context = LocalContext.current
@@ -157,6 +219,8 @@ private fun PreviewChatMessageInput() {
         conversationState = previewUiState(messages),
         audioRecordingState = previewAudioState(),
         onAttachmentTypeSelection = {},
+        onEditThreadName = {},
+        onEditThreadValues = {},
     )
 }
 

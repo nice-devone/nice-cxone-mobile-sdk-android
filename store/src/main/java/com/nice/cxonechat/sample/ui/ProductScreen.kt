@@ -15,6 +15,7 @@
 
 package com.nice.cxonechat.sample.ui
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -52,7 +53,6 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.nice.cxonechat.sample.R.string
-import com.nice.cxonechat.sample.StoreViewModel
 import com.nice.cxonechat.sample.data.models.Product
 import com.nice.cxonechat.sample.extensions.asCurrency
 import com.nice.cxonechat.sample.extensions.bold
@@ -62,6 +62,7 @@ import com.nice.cxonechat.sample.ui.components.RatingBar
 import com.nice.cxonechat.sample.ui.theme.AppTheme
 import com.nice.cxonechat.sample.ui.theme.AppTheme.space
 import com.nice.cxonechat.sample.ui.theme.ScreenWithScaffold
+import com.nice.cxonechat.sample.viewModel.StoreViewModel
 
 /**
  * The Product screen, allowing a single product to be displayed.
@@ -92,7 +93,7 @@ object ProductScreen : Screen {
             val cart = viewModel.storeRepository.cart.collectAsState().value
             val context = LocalContext.current
 
-            viewModel.SendPageView(title = "product?$productId", url = "/product/$productId")
+            viewModel.analyticsHandler.SendPageView("product?$productId", "/product/$productId")
 
             LaunchedEffect(productId, attempt) {
                 viewModel.storeRepository.getProduct(productId)
@@ -131,6 +132,9 @@ object ProductScreen : Screen {
     internal fun Screen(
         product: Product?,
         addToCart: (Product) -> Unit,
+        @SuppressLint(
+            "ComposableLambdaParameterNaming" // This isn't intended to be a re-usable composable
+        )
         showCart: @Composable RowScope.() -> Unit,
     ) {
         AppTheme.ScreenWithScaffold(

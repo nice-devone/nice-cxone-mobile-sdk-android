@@ -1,18 +1,3 @@
-/*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
- *
- * Licensed under the NICE License;
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
- *
- * TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
- * AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
- * OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
- */
-
 @file:Suppress("FunctionMaxLength")
 
 package com.nice.cxonechat
@@ -28,19 +13,15 @@ import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.tool.SocketFactoryMock
 import com.nice.cxonechat.tool.awaitResult
 import com.nice.cxonechat.tool.nextString
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.After
 import org.junit.Test
-import org.mockito.ArgumentCaptor
-import org.mockito.kotlin.any
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.times
-import org.mockito.kotlin.verify
-import org.mockito.kotlin.whenever
 import retrofit2.Call
 import retrofit2.Response
 import java.io.IOException
-import java.util.Date
 import java.util.UUID
 import kotlin.test.assertEquals
 
@@ -61,68 +42,93 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
     }
 
     @Test
-    fun build_recoversIOException() {
-        val call = mock<Call<ChannelConfiguration?>>()
+    fun build_handlesIOException() {
         var thrownException = false
-        whenever(service.getChannel(any(), any())).thenReturn(call)
-        whenever(call.execute()).then {
-            if (!thrownException) {
-                thrownException = true
-                throw IOException()
-            } else {
-                Response.success(config)
+        val exception = IOException()
+
+        val call = mockk<Call<ChannelConfiguration?>> {
+            every { execute() } answers {
+                if (!thrownException) {
+                    thrownException = true
+                    throw exception
+                } else {
+                    Response.success(config)
+                }
             }
         }
-        build()
+        every { service.getChannel(any(), any()) } returns call
+
+        val result = build()
+        assert(result.isFailure)
+        assertEquals(exception, result.exceptionOrNull())
+        val secondResult = build()
+        assert(secondResult.isSuccess)
     }
 
     @Test
-    fun build_recoversRuntimeException() {
-        val call = mock<Call<ChannelConfiguration?>>()
+    fun build_handlesRuntimeException() {
         var thrownException = false
-        whenever(service.getChannel(any(), any())).thenReturn(call)
-        whenever(call.execute()).then {
-            @Suppress("TooGenericExceptionThrown")
-            if (!thrownException) {
-                thrownException = true
-                throw RuntimeException()
-            } else {
-                Response.success(config)
+        val exception = RuntimeException()
+
+        val call = mockk<Call<ChannelConfiguration?>> {
+            every { execute() } answers {
+                @Suppress("TooGenericExceptionThrown")
+                if (!thrownException) {
+                    thrownException = true
+                    throw exception
+                } else {
+                    Response.success(config)
+                }
             }
         }
-        build()
+        every { service.getChannel(any(), any()) } returns call
+
+        val result = build()
+        assert(result.isFailure)
+        assertEquals(exception, result.exceptionOrNull())
+        val secondResult = build()
+        assert(secondResult.isSuccess)
     }
 
     @Test
-    fun build_recoversFailure() {
-        val call = mock<Call<ChannelConfiguration?>>()
+    fun build_handlesFailure() {
         var returnedFailure = false
-        whenever(service.getChannel(any(), any())).thenReturn(call)
-        whenever(call.execute()).then {
-            if (!returnedFailure) {
-                returnedFailure = true
-                Response.error(500, "".toResponseBody())
-            } else {
-                Response.success(config)
+        val call = mockk<Call<ChannelConfiguration?>> {
+            every { execute() } answers {
+                if (!returnedFailure) {
+                    returnedFailure = true
+                    Response.error(500, "".toResponseBody())
+                } else {
+                    Response.success(config)
+                }
             }
         }
-        build()
+        every { service.getChannel(any(), any()) } returns call
+
+        val result = build()
+        assert(result.isFailure)
+        val secondResult = build()
+        assert(secondResult.isSuccess)
     }
 
     @Test
-    fun build_recoversInvalidBody() {
-        val call = mock<Call<ChannelConfiguration?>>()
+    fun build_handlesInvalidBody() {
         var returnedFailure = false
-        whenever(service.getChannel(any(), any())).thenReturn(call)
-        whenever(call.execute()).then {
-            if (!returnedFailure) {
-                returnedFailure = true
-                Response.success(null)
-            } else {
-                Response.success(config)
+        val call = mockk<Call<ChannelConfiguration?>> {
+            every { execute() } answers {
+                if (!returnedFailure) {
+                    returnedFailure = true
+                    Response.success(null)
+                } else {
+                    Response.success(config)
+                }
             }
         }
-        build()
+        every { service.getChannel(any(), any()) } returns call
+        val result = build()
+        assert(result.isFailure)
+        val secondResult = build()
+        assert(secondResult.isSuccess)
     }
 
     @Test
@@ -133,22 +139,25 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
         assertSendTexts(
             ServerRequest.AuthorizeConsumer(connection, code = code, verifier = verifier),
         ) {
-            build(builder) {
-                whenever(storage.authToken).thenReturn(null)
-                whenever(storage.customerId).thenReturn(null)
+            connect(builder) {
+                every { storage.authToken } returns null
+                every { storage.customerId } returns null
                 setAuthorization(Authorization(code, verifier))
             }
         }
-        verify(service, times(1)).createOrUpdateVisitor(any(), any(), any())
+
+        verify(exactly = 1) {
+            service.createOrUpdateVisitor(any(), any(), any())
+        }
     }
 
     @Test
     fun build_authorization_updatesConnection() {
-        val uuid = UUID.randomUUID()
+        val uuid = UUID.randomUUID().toString()
         val firstName = "new-first-name"
         val lastName = "new-last-name"
         val (connection, builder) = prepareBuilder()
-        val chat = build(builder)
+        val chat = connect(builder)
 
         // updates connection
         this serverResponds ServerResponse.ConsumerAuthorized(uuid, firstName, lastName)
@@ -163,10 +172,11 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
 
     @Test
     fun build_authorization_updatesStorage_consumer() {
-        val uuid = UUID.randomUUID()
+        val uuid = UUID.randomUUID().toString()
         build()
         this serverResponds ServerResponse.ConsumerAuthorized(uuid)
-        verify(storage).customerId = uuid
+
+        verify { storage.customerId = uuid }
     }
 
     @Test
@@ -174,23 +184,23 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
         val token = nextString()
         build()
         this serverResponds ServerResponse.ConsumerAuthorized(accessToken = token)
-        verify(storage).authToken = token
+
+        verify { storage.authToken = token }
     }
 
     @Test
     fun build_authorization_updatesStorage_tokenExpDate() {
-        val captor = ArgumentCaptor.forClass(Date::class.java)
         build()
         this serverResponds ServerResponse.ConsumerAuthorized()
-        verify(storage).authTokenExpDate = captor.capture()
+        verify(exactly = 1) { storage.authTokenExpDate = any() }
     }
 
     @Test
     fun build_sets_consumerId_fromStorage() {
-        val expected = UUID.randomUUID()
-        whenever(storage.customerId).thenReturn(expected)
+        val expected = UUID.randomUUID().toString()
+        every { storage.customerId } returns expected
         val (connection, builder) = prepareBuilder()
-        val chat = build(builder)
+        val chat = connect(builder)
         val thread = makeChatThread()
         assertSendText(ServerRequest.ArchiveThread(connection, thread), expected.toString(), thread.id.toString()) {
             chat.threads().thread(thread).events().trigger(ArchiveThreadEvent)
@@ -203,12 +213,14 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
         assertSendTexts(
             ServerRequest.ReconnectConsumer(connection),
         ) {
-            build(builder) {
-                whenever(storage.authToken).thenReturn("token")
+            connect(builder) {
+                every { storage.authToken } returns "token"
+                every { storage.authTokenExpDate } returns null
                 this
             }
         }
-        verify(service, times(1)).createOrUpdateVisitor(any(), any(), any())
+
+        verify(exactly = 1) { service.createOrUpdateVisitor(any(), any(), any()) }
     }
 
     @Test
@@ -216,7 +228,8 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
         val expected = "Welcome, how was your day?"
         build()
         this serverResponds ServerResponse.WelcomeMessage(expected)
-        verify(storage).welcomeMessage = expected
+
+        verify { storage.welcomeMessage = expected }
     }
 
     @Test
@@ -225,7 +238,7 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
         val lastName = nextString()
         val chat = build {
             setUserName(firstName, lastName)
-        } as ChatWithParameters
+        }.getOrThrow() as ChatWithParameters
         val connection = chat.connection
         assertEquals(firstName, connection.firstName)
         assertEquals(lastName, connection.lastName)
@@ -233,7 +246,7 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
 
     @Test
     fun build_keeps_username_if_not_set() {
-        val chat = build() as ChatWithParameters
+        val chat = build().getOrThrow() as ChatWithParameters
         val connection = chat.connection
         assertEquals(SocketFactoryMock.firstName, connection.firstName)
         assertEquals(SocketFactoryMock.lastName, connection.lastName)
@@ -244,10 +257,10 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
         isAuthorizationEnabled = false
         val firstName = nextString()
         val lastName = nextString()
-        val uuid = UUID.randomUUID()
+        val uuid = UUID.randomUUID().toString()
         val empty = ""
         val (connection, builder) = prepareBuilder()
-        val chat = build(builder) {
+        val chat = connect(builder) {
             setUserName(firstName, lastName)
         } as ChatWithParameters
 
@@ -268,14 +281,16 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
         val token = UUID.randomUUID().toString()
         builder.setDeviceToken(token)
         build(builder)
-        verify(storage, times(1)).deviceToken = token
+
+        verify(exactly = 1) { storage.deviceToken = token }
     }
 
     @Test
     fun build_keeps_deviceToken_if_not_set() {
         val (_, builder) = prepareBuilder()
         build(builder)
-        verify(storage, times(0)).deviceToken = any()
+
+        verify(exactly = 0) { storage.deviceToken = any() }
     }
 
     // ---
@@ -289,10 +304,24 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
     private fun build(
         builder: ChatBuilder = prepareBuilder().second,
         body: ChatBuilder.() -> ChatBuilder = { this },
-    ): Chat = awaitResult {
+    ): Result<Chat> = awaitResult {
         builder
             .setDevelopmentMode(true)
             .body()
             .build(it)
+    }
+
+    private fun connect(
+        builder: ChatBuilder = prepareBuilder().second,
+        body: ChatBuilder.() -> ChatBuilder = { this },
+    ): Chat = awaitResult { finish ->
+        builder
+            .setDevelopmentMode(true)
+            .body()
+            .build { result: Result<Chat> ->
+                val chat = result.getOrThrow()
+                chat.connect()
+                finish(chat)
+            }
     }
 }

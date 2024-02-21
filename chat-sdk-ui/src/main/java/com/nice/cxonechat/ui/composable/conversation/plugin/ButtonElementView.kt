@@ -25,7 +25,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import com.nice.cxonechat.ui.composable.conversation.MessageItem
 import com.nice.cxonechat.ui.composable.conversation.PreviewMessageItemBase
 import com.nice.cxonechat.ui.composable.conversation.model.PluginElement.Button
 import com.nice.cxonechat.ui.composable.generic.SimpleAlertDialog
@@ -63,7 +62,8 @@ internal fun ButtonElementView(
 @Composable
 @Preview
 private fun PreviewButton() {
-    PreviewMessageItemBase {
-        MessageItem(message = PluginPreviewProvider().button.asMessage("button"))
-    }
+    PreviewMessageItemBase(
+        message = MessagePreviewProvider().button.asMessage("button"),
+        showSender = true,
+    )
 }

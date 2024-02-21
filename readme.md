@@ -1,10 +1,11 @@
 # CXone Chat for Android
 
-This repository consists out of three main modules, which are described in chapters below.
+This repository consists out of three main modules and three tooling modules,
+which are described in chapters below.
 
 ## CXOne Chat SDK
 
-This is the only published module, it is released as an android multi-flavor library with maven artifact coordinates
+This is the main published module, it is released as an android multi-flavor library with maven artifact coordinates
 `com.nice.cxone:chat-core`.
 
 ### Adding the dependency
@@ -78,3 +79,24 @@ the intended target application.
 
 This is a mock application that tries to imitate e-store with its purchase flow, so we can
 also demonstrate an integration of the SDK analytics events like pageView or conversion.
+
+## Tooling modules:
+
+### logger
+
+The logger module is a minimalistic logging framework used by the chat-sdk-core without any platform-specific code.
+It is distributed as a java library at the moment.
+
+The maven artifact coordinates are `com.nice.cxone:logger`.
+
+### logger-android
+
+The logger-android module provides the default android-specific implementation of the Logger.
+Application can provide this instance to the SDK builder if it wishes the SDK to log to the Android
+platform log output.
+
+The maven artifact coordinates are `com.nice.cxone:logger-android`.
+
+### utilities
+
+This is an internal module that attempts to resolve some of the issues reported by the strict mode. 

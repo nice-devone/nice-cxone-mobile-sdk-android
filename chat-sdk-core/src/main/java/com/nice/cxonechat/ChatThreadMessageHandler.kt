@@ -64,13 +64,16 @@ interface ChatThreadMessageHandler {
      * background thread, though [listener] will always be invoked on a
      * foreground thread.
      *
+     * Note that messages with no test, attachments, or postback specified will
+     * be silently ignored.
+     *
      * If you are supplying attachments for upload, then be aware of the following.
      *
-     * If attachment misses file name, the file is named to "document"
+     * * If attachment misses file name, the file is named to "document"
      * upon being sent to the server. Please take care to provide localized
      * file names if you want to display them to the user.
      *
-     * The upload of files is performed at most **once** before subsequent
+     * * The upload of files is performed at most **once** before subsequent
      * processing of the message and sending it to the server. If the file
      * call succeeds, it's cached internally to avoid doubling uploads.
      * Therefore, subsequent calls (if the primary were to fail) are much
@@ -79,12 +82,19 @@ interface ChatThreadMessageHandler {
      * upload. This cache is active as long as the [ChatBuilder] instance
      * remains the same. Reinitializing the [Chat] doesn't clear the cache.
      *
-     * If any upload of any attachment fails by connection error, [listener]
+     * * If any upload of any attachment fails by connection error, [listener]
      * will **not** be invoked for even processing triggers. The error is
-     * muted and consumed within the thread.
+     * passed to the [ChatStateListener.onChatRuntimeException] as
+     * an instance of [com.nice.cxonechat.exceptions.RuntimeChatException.AttachmentUploadError]
+     * with information about the failed attachment upload.
      *
-     * If any upload of any attachment fails by server error (returns but an
+     * * If any upload of any attachment fails by server error (returns but an
      * empty body), then the attachment is skipped, and execution continues.
+     *
+     * @param message Message to be sent.
+     * @param listener listener to be notified when the message has been sent.
+     * @throws InvalidParameterException if the message is empty, ie., has no attachment,
+     * message, or postback.
      */
     fun send(message: OutboundMessage, listener: OnMessageTransferListener? = null)
 

@@ -25,6 +25,9 @@ import androidx.compose.ui.text.style.TextAlign
 internal data class ChatTypography(
     val threadListName: TextStyle = Typography.body1.copy(fontWeight = FontWeight.Bold),
     val threadListLastMessage: TextStyle = Typography.body2,
+    val chatAgentName: TextStyle = Typography.subtitle1,
+    val chatMessage: TextStyle = Typography.body1,
+    val chatStatus: TextStyle = Typography.caption,
     val chatAttachmentCaption: TextStyle = Typography.caption,
     val chatAttachmentMessage: TextStyle = Typography.subtitle2,
     val chatDayHeader: TextStyle = Typography.subtitle1,

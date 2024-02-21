@@ -21,9 +21,11 @@ import com.nice.cxonechat.AbstractChatTestSubstrate.Companion.TestUUID
 import com.nice.cxonechat.AbstractChatTestSubstrate.Companion.TestUUIDValue
 import com.nice.cxonechat.enums.ActionType
 import com.nice.cxonechat.enums.ActionType.CustomPopupBox
+import com.nice.cxonechat.enums.EventType
 import com.nice.cxonechat.internal.model.AgentModel
 import com.nice.cxonechat.internal.model.CustomFieldModel
 import com.nice.cxonechat.internal.model.MessageModel
+import com.nice.cxonechat.internal.model.network.EventCaseStatusChanged.CaseStatus
 import com.nice.cxonechat.model.makeAgent
 import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.model.makeMessageModel
@@ -32,6 +34,8 @@ import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.CustomField
 import com.nice.cxonechat.tool.nextString
 import com.nice.cxonechat.tool.serialize
+import com.nice.cxonechat.util.DateTime
+import java.lang.reflect.Type
 import java.util.Date
 import java.util.UUID
 
@@ -41,7 +45,7 @@ import java.util.UUID
 internal object ServerResponse {
 
     fun ConsumerAuthorized(
-        identity: UUID = TestUUIDValue,
+        identity: String = TestUUIDValue.toString(),
         firstName: String = "firstName",
         lastName: String = "lastName",
         accessToken: String = "access-token",
@@ -217,7 +221,7 @@ internal object ServerResponse {
         val postback = object {
             val eventType = "ThreadListFetched"
             val data = object {
-                val threads = threads.map { it.toReceived() }
+                val threads = threads.map(ChatThread::toReceived)
             }
         }
     }.serialize()
@@ -263,6 +267,13 @@ internal object ServerResponse {
         }
     }.serialize()
 
+    fun ErrorResponse(errorCode: String) = object {
+        val error = object {
+            val errorCode = errorCode
+            val transactionId = UUID.randomUUID()
+        }
+    }.serialize()
+
     fun MessageCreated(
         thread: ChatThread,
         message: MessageModel,
@@ -280,6 +291,35 @@ internal object ServerResponse {
             val thread = object {
                 val idOnExternalPlatform = thread.id
                 val threadName = "thread.threadName"
+            }
+        }
+    }.serialize()
+
+    fun MessageReadChanged(
+        message: MessageModel,
+        temporaryTypeAdapters: Map<Type, Any> = emptyMap(),
+    ) = object {
+        val eventId = TestUUID
+        val eventType = "MessageReadChanged".also { assert(it == EventType.MessageReadChanged.value) }
+        val data = object {
+            val message = message.copy(
+                userStatistics = message.userStatistics.copy(readAt = Date(0))
+            )
+        }
+    }.serialize(temporaryTypeAdapters)
+
+    fun CaseStatusChanged(
+        thread: ChatThread,
+        status: CaseStatus,
+    ) = object {
+        val eventId = TestUUID
+        val eventType = "CaseStatusChanged".also { assert(it == EventType.CaseStatusChanged.value) }
+        val createdAt = DateTime(Date(0))
+        val data = object {
+            val case = object {
+                val threadIdOnExternalPlatform = thread.id
+                val status = status
+                val statusUpdatedAt = DateTime(Date(0))
             }
         }
     }.serialize()

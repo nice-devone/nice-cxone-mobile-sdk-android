@@ -15,79 +15,81 @@
 
 package com.nice.cxonechat.ui
 
-import android.content.res.Resources
-import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.Drawable
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
 import android.view.Menu
-import android.view.MenuItem
 import android.view.WindowManager.LayoutParams
-import androidx.activity.viewModels
+import androidx.annotation.AnimRes
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.Lifecycle.State.DESTROYED
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
-import coil.ImageLoader
-import coil.request.ImageRequest
-import coil.target.Target
 import com.google.android.material.snackbar.Snackbar
 import com.nice.cxonechat.ChatState
 import com.nice.cxonechat.ChatState.CONNECTED
 import com.nice.cxonechat.ChatState.CONNECTING
-import com.nice.cxonechat.ChatState.CONNECTION_CLOSED
 import com.nice.cxonechat.ChatState.CONNECTION_LOST
 import com.nice.cxonechat.ChatState.INITIAL
+import com.nice.cxonechat.ChatState.PREPARED
+import com.nice.cxonechat.ChatState.PREPARING
+import com.nice.cxonechat.ChatState.READY
 import com.nice.cxonechat.Public
+import com.nice.cxonechat.exceptions.RuntimeChatException.AuthorizationError
 import com.nice.cxonechat.prechat.PreChatSurvey
+import com.nice.cxonechat.ui.R.anim
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
-import com.nice.cxonechat.ui.composable.theme.ChatTheme.images
-import com.nice.cxonechat.ui.customvalues.mergeWithCustomField
 import com.nice.cxonechat.ui.databinding.ActivityMainBinding
 import com.nice.cxonechat.ui.main.ChatStateViewModel
 import com.nice.cxonechat.ui.main.ChatThreadsViewModel
 import com.nice.cxonechat.ui.main.ChatViewModel
-import com.nice.cxonechat.ui.main.ChatViewModel.Dialogs.CustomValues
-import com.nice.cxonechat.ui.main.ChatViewModel.Dialogs.EditThreadName
 import com.nice.cxonechat.ui.main.ChatViewModel.Dialogs.None
 import com.nice.cxonechat.ui.main.ChatViewModel.Dialogs.Survey
 import com.nice.cxonechat.ui.main.ChatViewModel.NavigationState
 import com.nice.cxonechat.ui.main.ChatViewModel.NavigationState.MultiThreadEnabled
 import com.nice.cxonechat.ui.main.ChatViewModel.NavigationState.NavigationFinished
 import com.nice.cxonechat.ui.main.ChatViewModel.NavigationState.SingleThreadCreated
-import com.nice.cxonechat.ui.main.ChatViewModel.State
+import com.nice.cxonechat.ui.main.ChatViewModel.State.CreateSingleThread
 import com.nice.cxonechat.ui.main.ChatViewModel.State.Initial
+import com.nice.cxonechat.ui.main.ChatViewModel.State.SingleThreadCreationFailed
+import com.nice.cxonechat.ui.main.ChatViewModel.State.SingleThreadPreChatSurveyRequired
 import com.nice.cxonechat.ui.model.describe
 import com.nice.cxonechat.ui.util.Ignored
 import com.nice.cxonechat.ui.util.isEmpty
 import com.nice.cxonechat.ui.util.showAlert
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.util.UUID
+import java.util.concurrent.CancellationException
 
 /**
  * Chat container activity.
  */
-@AndroidEntryPoint
 @Public
 @Suppress("TooManyFunctions")
-class ChatActivity :
-    Toolbar.OnMenuItemClickListener,
-    AppCompatActivity() {
-    private var toolbar: Toolbar? = null
-    private val chatViewModel: ChatViewModel by viewModels()
-    private val chatThreadsViewModel: ChatThreadsViewModel by viewModels()
-    private val chatStateViewModel: ChatStateViewModel by viewModels()
+class ChatActivity : AppCompatActivity() {
+    private val chatViewModel: ChatViewModel by viewModel()
+    private val chatThreadsViewModel: ChatThreadsViewModel by viewModel()
+    private val chatStateViewModel: ChatStateViewModel by viewModel()
+    private val closing
+        get() = lifecycle.currentState == DESTROYED
 
     @Suppress("LateinitUsage")
     private lateinit var binding: ActivityMainBinding
@@ -97,49 +99,102 @@ class ChatActivity :
             field?.dismiss()
             field = value
         }
-    private val Int.toPx
-        get() = (this * Resources.getSystem().displayMetrics.density).toInt()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         applyFixesForKeyboardInput()
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        val toolbarById = findViewById<Toolbar>(R.id.my_toolbar)
-        toolbar = toolbarById
-        toolbarById.title = ""
-        setSupportActionBar(this.toolbar)
 
         setupComposableUi()
 
-        toolbarById.inflateMenu(R.menu.default_menu)
-        toolbarById.setOnMenuItemClickListener(this)
+        registerHandler(::handleChatState)
+        registerChatModelStateHandler()
+        registerHandler(::handleErrorStates)
+    }
 
+    private fun registerChatModelStateHandler() {
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                chatViewModel.state.collect { state ->
-                    when (state) {
-                        Initial -> Ignored
-
-                        is NavigationState -> {
-                            if (state is MultiThreadEnabled) {
-                                observeBackgroundThreadUpdates()
-                            }
-                            startFragmentNavigation(state)
-                        }
-
-                        is State.SingleThreadPreChatSurveyRequired -> chatViewModel.showPreChatSurvey(state.survey)
-                        State.SingleThreadCreationReady -> chatViewModel.createThread()
-                        is State.SingleThreadCreationFailed -> showOnThreadCreationFailure(state)
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                var job: Job? = null
+                chatStateViewModel.state.collect {
+                    job = if (it === READY) {
+                        handleChatModelState()
+                    } else {
+                        job?.cancel(CancellationException("State: $it"))
+                        null
                     }
                 }
             }
         }
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                registerChatStateUiHandler()
+    }
+
+    private fun CoroutineScope.handleChatModelState() = launch {
+        chatViewModel.state.collect { state ->
+            when (state) {
+                Initial -> Ignored
+
+                is NavigationState -> {
+                    if (state is MultiThreadEnabled || state is NavigationFinished) {
+                        observeBackgroundThreadUpdates()
+                    }
+                    startFragmentNavigation(state)
+                    if (state is MultiThreadEnabled) {
+                        intent?.handleDeeplink()
+                    }
+                }
+
+                CreateSingleThread -> chatViewModel.createThread()
+                is SingleThreadPreChatSurveyRequired -> chatViewModel.showPreChatSurvey(state.survey)
+                is SingleThreadCreationFailed -> showOnThreadCreationFailure(state)
             }
         }
+    }
+
+    private fun registerHandler(
+        handler: suspend () -> Unit,
+        repeatOnLifecycleState: Lifecycle.State = Lifecycle.State.RESUMED,
+    ) {
+        lifecycleScope.launch {
+            repeatOnLifecycle(repeatOnLifecycleState) {
+                handler()
+            }
+        }
+    }
+
+    private suspend fun handleErrorStates() {
+        chatStateViewModel.chatErrorState.collect {
+            if (it is AuthorizationError) {
+                AlertDialog.Builder(this)
+                    .setMessage(string.chat_state_error_default_message)
+                    .setCancelable(false)
+                    .setNeutralButton(string.chat_state_error_action_close) { _, _ -> finish() }
+                    .setOnDismissListener { finish() }
+                    .create()
+                    .show()
+            } else {
+                chatStateSnackbar = Snackbar.make(
+                    binding.root,
+                    it.message ?: getText(string.chat_state_error_default_message),
+                    Snackbar.LENGTH_SHORT
+                ).also(Snackbar::show)
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                intent?.handleDeeplink()
+            }
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        chatViewModel.close()
     }
 
     /**
@@ -150,7 +205,6 @@ class ChatActivity :
     @Suppress("DEPRECATION")
     private fun applyFixesForKeyboardInput() {
         if (VERSION.SDK_INT >= VERSION_CODES.R) window.setDecorFitsSystemWindows(true)
-        @Suppress("DEPRECATION")
         window.setSoftInputMode(LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
     }
 
@@ -164,37 +218,10 @@ class ChatActivity :
         }
     }
 
-    override fun setTitle(title: CharSequence?) {
-        super.setTitle(title)
-
-        supportActionBar?.title = title
-    }
-
-    private fun setLogo(model: Any?) {
-        val context = this
-        val imageLoader = ImageLoader(context)
-        val target = object : Target {
-            override fun onError(error: Drawable?) {
-                supportActionBar?.setLogo(null)
-            }
-
-            override fun onSuccess(result: Drawable) {
-                supportActionBar?.setDisplayShowHomeEnabled(true)
-                supportActionBar?.setDisplayUseLogoEnabled(true)
-                supportActionBar?.setLogo(result)
-            }
-        }
-        val imageRequest = ImageRequest.Builder(context)
-            .size(25.toPx)
-            .data(model)
-            .target(target)
-            .build()
-        imageLoader.enqueue(imageRequest)
-    }
-
     override fun finish() {
         super.finish()
-        overridePendingTransition(R.anim.dismiss_host, R.anim.dismiss_chat)
+
+        overrideCloseAnimation(anim.dismiss_host, anim.dismiss_chat)
     }
 
     private fun setupComposableUi() {
@@ -202,37 +229,10 @@ class ChatActivity :
             ChatTheme {
                 when (val dialog = chatViewModel.dialogShown.collectAsState().value) {
                     None -> Ignored
-                    CustomValues -> BuildEditCustomValues()
-                    EditThreadName -> EditThreadName()
                     is Survey -> BuildPreChatSurveyDialog(survey = dialog.survey)
                 }
-                setLogo(images.logo)
-                supportActionBar?.setBackgroundDrawable(ColorDrawable(ChatTheme.colors.primary.toArgb()))
             }
         }
-    }
-
-    @Composable
-    private fun BuildEditCustomValues() {
-        EditCustomValuesDialog(
-            title = stringResource(string.edit_custom_field_title),
-            fields = chatViewModel.preChatSurvey?.fields
-                .orEmpty()
-                .mergeWithCustomField(
-                    chatViewModel.customValues
-                ),
-            onCancel = chatViewModel::cancelEditingCustomValues,
-            onConfirm = chatViewModel::confirmEditingCustomValues
-        )
-    }
-
-    @Composable
-    private fun EditThreadName() {
-        EditThreadNameDialog(
-            threadName = chatViewModel.selectedThreadName ?: "",
-            onCancel = chatViewModel::dismissDialog,
-            onAccept = chatViewModel::confirmEditThreadName
-        )
     }
 
     @Composable
@@ -268,7 +268,11 @@ class ChatActivity :
 
     override fun onResume() {
         super.onResume()
-        chatViewModel.reportOnResume()
+        lifecycleScope.launch {
+            chatStateViewModel.state.filter { it == CONNECTED }.firstOrNull()?.also {
+                chatViewModel.reportOnResume()
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -277,7 +281,7 @@ class ChatActivity :
     }
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        if (menu != null) {
+        if (menu != null && chatStateViewModel.state.value == CONNECTED) {
             val navController = findNavController(R.id.nav_host_fragment)
             val isInChat = navController.currentDestination?.id == R.id.chatThreadFragment
             val isMultiThread = chatViewModel.isMultiThreadEnabled
@@ -292,25 +296,32 @@ class ChatActivity :
         return super.onPrepareOptionsMenu(menu)
     }
 
-    override fun onMenuItemClick(item: MenuItem?): Boolean {
-        when (item?.itemId) {
-            R.id.action_custom_values -> editCustomValues()
-            R.id.action_thread_name -> showEditThreadNameDialog()
-        }
-        return true
-    }
-
-    private suspend fun registerChatStateUiHandler() {
+    private suspend fun handleChatState() {
         chatStateViewModel.state.collect { state: ChatState ->
             when (state) {
-                INITIAL -> Ignored
+                // if the chat isn't prepared yet, prepare it.  Hopefully it's been
+                // configured by the provider.
+                INITIAL -> chatViewModel.prepare(applicationContext)
+
+                PREPARING -> chatStateSnackbar = Snackbar.make(
+                    binding.root,
+                    getString(string.preparing_sdk),
+                    Snackbar.LENGTH_INDEFINITE
+                ).setAction(string.chat_state_connecting_action_cancel) {
+                    finish()
+                }.apply(Snackbar::show)
+
+                // if the chat is (or becomes) prepared, then start a connect attempt
+                PREPARED -> if (!closing) {
+                    chatViewModel.connect()
+                }
 
                 CONNECTING -> chatStateSnackbar = Snackbar.make(
                     binding.root,
-                    string.chat_state_connecting,
+                    getString(string.chat_state_connecting),
                     Snackbar.LENGTH_INDEFINITE
                 ).setAction(string.chat_state_connecting_action_cancel) {
-                    finish() // Dirty hack - refactor together with DI
+                    finish()
                 }.apply(Snackbar::show)
 
                 CONNECTED -> chatStateSnackbar = Snackbar.make(
@@ -319,34 +330,79 @@ class ChatActivity :
                     Snackbar.LENGTH_SHORT
                 ).apply(Snackbar::show)
 
+                READY -> chatStateSnackbar = Snackbar.make(
+                    binding.root,
+                    "SDK ready",
+                    Snackbar.LENGTH_SHORT
+                ).apply(Snackbar::show)
+
                 CONNECTION_LOST -> chatStateSnackbar = Snackbar.make(
                     binding.root,
                     string.chat_state_connection_lost,
                     Snackbar.LENGTH_INDEFINITE
                 ).setAction(string.chat_state_connection_lost_action_reconnect) {
-                    chatViewModel.reconnect()
-                }.apply(Snackbar::show)
-
-                CONNECTION_CLOSED -> chatStateSnackbar = Snackbar.make(
-                    binding.root,
-                    string.chat_state_connection_closed,
-                    Snackbar.LENGTH_INDEFINITE
-                ).setAction(string.chat_state_connection_closed_action_restart) {
-                    finish()
+                    chatViewModel.connect()
                 }.apply(Snackbar::show)
             }
         }
     }
 
-    private fun showEditThreadNameDialog() {
-        chatViewModel.editThreadName()
-    }
-
-    private fun editCustomValues() {
-        chatViewModel.startEditingCustomValues()
-    }
-
-    private fun showOnThreadCreationFailure(state: State.SingleThreadCreationFailed) {
+    private fun showOnThreadCreationFailure(state: SingleThreadCreationFailed) {
         showAlert(describe(state.failure), onClick = chatViewModel::dismissThreadCreationFailure)
     }
+
+    private suspend fun Intent.handleDeeplink() {
+        val data = data ?: return
+        withContext(Dispatchers.Default) {
+            data
+                .parseThreadDeeplink()
+                .mapCatching { chatThreadsViewModel.selectThreadById(it) }
+        }
+    }
+
+    companion object {
+        private fun Activity.overrideOpenAnimation(
+            @AnimRes enterAnim: Int,
+            @AnimRes exitAnim: Int,
+        ) {
+            if (VERSION.SDK_INT < VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                @Suppress("DEPRECATION")
+                overridePendingTransition(enterAnim, exitAnim)
+            } else {
+                overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, enterAnim, exitAnim)
+            }
+        }
+
+        /*
+         * This could be defined as a normal method on ChatActivity, but this seems to keep it paired with
+         * overrideCloseAnimation better.
+         */
+        private fun Activity.overrideCloseAnimation(
+            @AnimRes enterAnim: Int,
+            @AnimRes exitAnim: Int,
+        ) {
+            if (VERSION.SDK_INT < VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                @Suppress("DEPRECATION")
+                overridePendingTransition(enterAnim, exitAnim)
+            } else {
+                overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, enterAnim, exitAnim)
+            }
+        }
+
+        /**
+         * Start the [ChatActivity] from a given source activity.
+         *
+         * @param from Activity to use as a base for the new [ChatActivity].
+         */
+        fun startChat(from: Activity) {
+            from.startActivity(Intent(from, ChatActivity::class.java))
+            from.overrideOpenAnimation(anim.present_chat, anim.present_host)
+        }
+    }
+}
+
+private fun Uri.parseThreadDeeplink(): Result<UUID> = runCatching {
+    val threadIdString = getQueryParameter("idOnExternalPlatform")
+    require(!threadIdString.isNullOrEmpty()) { "Invalid threadId in $this" }
+    UUID.fromString(threadIdString)
 }

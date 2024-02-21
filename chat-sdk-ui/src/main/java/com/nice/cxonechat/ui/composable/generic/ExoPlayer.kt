@@ -22,9 +22,12 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource.Factory
 import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.ExoPlayer.Builder
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import com.nice.cxonechat.utilities.TaggingSocketFactory
+import okhttp3.OkHttpClient
 
 /**
  * Builds instance of [ExoPlayer] and set it up using [DefaultDataSource] and [ProgressiveMediaSource].
@@ -37,14 +40,17 @@ internal fun buildProgressivePlayerForUri(context: Context, uri: Uri): ExoPlayer
     Builder(context)
         .build()
         .apply {
-            val defaultDataSourceFactory = DefaultDataSource.Factory(context)
+            val okHttpDataSource = OkHttpDataSource.Factory(
+                OkHttpClient.Builder()
+                    .socketFactory(TaggingSocketFactory)
+                    .build()
+            )
             val dataSourceFactory: Factory = DefaultDataSource.Factory(
                 context,
-                defaultDataSourceFactory
+                okHttpDataSource
             )
             val source = ProgressiveMediaSource.Factory(dataSourceFactory)
                 .createMediaSource(MediaItem.fromUri(uri))
-
             setMediaSource(source)
             prepare()
         }

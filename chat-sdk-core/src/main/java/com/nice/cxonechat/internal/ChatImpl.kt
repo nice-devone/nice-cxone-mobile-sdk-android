@@ -19,17 +19,21 @@ import com.nice.cxonechat.Cancellable
 import com.nice.cxonechat.ChatActionHandler
 import com.nice.cxonechat.ChatEventHandler
 import com.nice.cxonechat.ChatFieldHandler
+import com.nice.cxonechat.ChatStateListener
 import com.nice.cxonechat.ChatThreadsHandler
 import com.nice.cxonechat.event.PageViewEvent
+import com.nice.cxonechat.internal.copy.ConnectionCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.model.ConfigurationInternal
 import com.nice.cxonechat.internal.model.Visitor
 import com.nice.cxonechat.internal.socket.ProxyWebSocketListener
 import com.nice.cxonechat.internal.socket.SocketFactory
 import com.nice.cxonechat.internal.socket.WebSocketSpec
+import com.nice.cxonechat.internal.socket.WebsocketLogging
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.thread.CustomField
 import okhttp3.WebSocket
 import retrofit2.Callback
+import java.util.concurrent.atomic.AtomicReference
 
 internal class ChatImpl(
     override var connection: Connection,
@@ -37,18 +41,19 @@ internal class ChatImpl(
     private val socketFactory: SocketFactory,
     override val configuration: ConfigurationInternal,
     private val callback: Callback<Void>,
+    override val chatStateListener: ChatStateListener?,
 ) : ChatWithParameters {
 
     override val socketListener: ProxyWebSocketListener = socketFactory.createProxyListener()
-    override val socket: WebSocket
-        get() = socketSession
+    override val socket: WebSocket?
+        get() = socketSession.get()
 
     override var fields = listOf<CustomField>()
     override val environment get() = entrails.environment
 
     private val actions = ChatActionHandlerImpl(this)
 
-    private var socketSession: WebSocket = socketFactory.create(socketListener)
+    private val socketSession: AtomicReference<WebSocket?> = AtomicReference(null)
 
     override var lastPageViewed: PageViewEvent? = null
 
@@ -69,8 +74,9 @@ internal class ChatImpl(
         handler = ChatThreadsHandlerImpl(this, configuration.preContactSurvey)
         handler = ChatThreadsHandlerReplayLastEmpty(handler)
         handler = ChatThreadsHandlerConfigProxy(handler, this)
-        handler = ChatThreadsHandlerWelcome(handler, this)
         handler = ChatThreadsHandlerMessages(handler)
+        handler = ChatThreadsHandlerMetadata(handler, this)
+        handler = ChatThreadsHandlerMemoizeHandlers(handler)
         return handler
     }
 
@@ -80,6 +86,7 @@ internal class ChatImpl(
         handler = ChatEventHandlerTokenGuard(handler, this)
         handler = ChatEventHandlerVisitGuard(handler, this)
         handler = ChatEventHandlerTimeOnPage(handler, this)
+        handler = ChatEventHandlerThreading(handler, this)
         return handler
     }
 
@@ -93,11 +100,25 @@ internal class ChatImpl(
     }
 
     override fun close() {
-        socketSession.close(WebSocketSpec.CLOSE_NORMAL_CODE, null)
+        socketSession.getAndSet(null)?.close(WebSocketSpec.CLOSE_NORMAL_CODE, null)
     }
 
-    override fun reconnect(): Cancellable {
-        socketSession = socketFactory.create(socketListener)
+    @Deprecated("Deprecated in Chat", replaceWith = ReplaceWith("connect()"))
+    override fun reconnect() = connect()
+
+    override fun connect(): Cancellable {
+        socketSession.set(
+            WebsocketLogging(
+                socket = socketFactory.create(socketListener),
+                logger = entrails.logger,
+            )
+        )
         return Cancellable.noop
+    }
+
+    override fun setUserName(firstName: String, lastName: String) {
+        if (!configuration.isAuthorizationEnabled) {
+            connection = connection.asCopyable().copy(firstName = firstName, lastName = lastName)
+        }
     }
 }

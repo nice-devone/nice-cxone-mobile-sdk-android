@@ -40,6 +40,25 @@ internal data class Space(
     val chipSpace: Dp = medium,
     val chipPadding: PaddingValues = PaddingValues(vertical = medium, horizontal = large),
     val menuElementHeight: Dp = 100.dp,
+    val titleBarLogoSize: Dp = 24.dp, // per android recommendations
+    val titleBarLogoPadding: Float = 2f, // per android recommendations this is in Pixels, not Dp.
+
+    /** how many icons to display in the message window. */
+    val smallAttachmentCount: Int = 4,
+    /** size of icons in the message window. */
+    val smallAttachmentSize: Dp = 44.dp,
+    /** padding around icons in the message window. */
+    val smallAttachmentPadding: PaddingValues = PaddingValues(small),
+
+    /** size of icons in the attachment sharing dialog. */
+    val largeAttachmentSize: Dp = 60.dp,
+    /** padding around icons in the attachment sharing dialog. */
+    val largeAttachmentPadding: PaddingValues = PaddingValues(small),
+
+    /** selected frame stroke width. */
+    val selectedFrameWidth: Dp = 3.dp,
+    /** unselected frame stroke width. */
+    val unselectedFrameWidth: Dp = 1.dp,
 )
 
 internal val LocalSpace = staticCompositionLocalOf {

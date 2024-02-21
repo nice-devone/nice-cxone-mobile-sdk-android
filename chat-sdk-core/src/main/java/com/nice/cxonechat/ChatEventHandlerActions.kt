@@ -15,6 +15,7 @@
 
 package com.nice.cxonechat
 
+import com.nice.cxonechat.ChatEventHandler.OnEventErrorListener
 import com.nice.cxonechat.ChatEventHandler.OnEventSentListener
 import com.nice.cxonechat.analytics.ActionMetadata
 import com.nice.cxonechat.event.ChatWindowOpenEvent
@@ -46,7 +47,8 @@ object ChatEventHandlerActions {
      * window.
      *
      * @param date date of the event.
-     * @param listener listener to be notified after the event has been sent.
+     * @param listener an optional listener to be notified after the event has been sent.
+     * @param errorListener an optional error listener to be notified about errors encountered when event is handled.
      * @see ChatEventHandler.trigger
      */
     @JvmOverloads
@@ -55,7 +57,8 @@ object ChatEventHandlerActions {
     fun ChatEventHandler.chatWindowOpen(
         date: Date = Date(),
         listener: OnEventSentListener? = null,
-    ) = trigger(ChatWindowOpenEvent(date), listener)
+        errorListener: OnEventErrorListener? = null,
+    ) = trigger(ChatWindowOpenEvent(date), listener, errorListener)
 
     /**
      * Send a conversion event to the analytics server.
@@ -70,7 +73,8 @@ object ChatEventHandlerActions {
      * @param value application-specific value of the conversion.  Typically this will
      * be the sale or subscription price.
      * @param date date of the conversion event.
-     * @param listener listener to be notified after the event has been sent.
+     * @param listener an optional listener to be notified after the event has been sent.
+     * @param errorListener an optional error listener to be notified about errors encountered when event is handled.
      * @see ChatEventHandler.trigger
      */
     @JvmOverloads
@@ -81,7 +85,8 @@ object ChatEventHandlerActions {
         value: Number,
         date: Date = Date(),
         listener: OnEventSentListener? = null,
-    ) = trigger(ConversionEvent(type, value, date), listener)
+        errorListener: OnEventErrorListener? = null,
+    ) = trigger(ConversionEvent(type, value, date), listener, errorListener)
 
     /**
      * Send an arbitrary custom analytics event to the analytics server.
@@ -90,7 +95,8 @@ object ChatEventHandlerActions {
      * visitor event.
      *
      * @param data data to be sent in the custom event.  Must be json encodable.
-     * @param listener listener to be notified after the event has been sent.
+     * @param listener an optional listener to be notified after the event has been sent.
+     * @param errorListener an optional error listener to be notified about errors encountered when event is handled.
      * @see ChatEventHandler.trigger
      */
     @JvmOverloads
@@ -99,7 +105,8 @@ object ChatEventHandlerActions {
     fun ChatEventHandler.customVisitor(
         data: Any,
         listener: OnEventSentListener? = null,
-    ) = trigger(CustomVisitorEvent(data), listener)
+        errorListener: OnEventErrorListener? = null,
+    ) = trigger(CustomVisitorEvent(data), listener, errorListener)
 
     /**
      * send a page viewed event to the server.
@@ -122,7 +129,8 @@ object ChatEventHandlerActions {
      * Examples might include "com.nice.cxonechat.sample://category/cellphones" or
      * "/details/4568".
      * @param date date of the event.
-     * @param listener listener to be notified after the event has been sent.
+     * @param listener an optional listener to be notified after the event has been sent.
+     * @param errorListener an optional error listener to be notified about errors encountered when event is handled.
      * @see ChatEventHandler.trigger
      */
     @JvmOverloads
@@ -133,7 +141,8 @@ object ChatEventHandlerActions {
         uri: String,
         date: Date = Date(),
         listener: OnEventSentListener? = null,
-    ) = trigger(PageViewEvent(title, uri, date), listener)
+        errorListener: OnEventErrorListener? = null,
+    ) = trigger(PageViewEvent(title, uri, date), listener, errorListener)
 
     /**
      * send a page view ended event to the server when a previously viewed page
@@ -149,7 +158,8 @@ object ChatEventHandlerActions {
      * Examples might include "com.nice.cxonechat.sample://category/cellphones" or
      * "/details/4568".
      * @param date date of the event.
-     * @param listener listener to be notified after the event has been sent.
+     * @param listener an optional listener to be notified after the event has been sent.
+     * @param errorListener an optional error listener to be notified about errors encountered when event is handled.
      * @see ChatEventHandler.trigger
      */
     @JvmOverloads
@@ -160,7 +170,8 @@ object ChatEventHandlerActions {
         uri: String,
         date: Date = Date(),
         listener: OnEventSentListener? = null,
-    ) = trigger(PageViewEndedEvent(title, uri, date), listener)
+        errorListener: OnEventErrorListener? = null,
+    ) = trigger(PageViewEndedEvent(title, uri, date), listener, errorListener)
 
     /**
      * Send a proactive action click event to the analytics.
@@ -170,7 +181,8 @@ object ChatEventHandlerActions {
      *
      * @param data [ActionMetadata] provided in [ChatActionHandler.onPopup] listener.
      * @param date date of the event.
-     * @param listener listener to be notified after the event has been sent.
+     * @param listener an optional listener to be notified after the event has been sent.
+     * @param errorListener an optional error listener to be notified about errors encountered when event is handled.
      * @see ChatEventHandler.trigger
      */
     @JvmOverloads
@@ -180,7 +192,8 @@ object ChatEventHandlerActions {
         data: ActionMetadata,
         date: Date = Date(),
         listener: OnEventSentListener? = null,
-    ) = trigger(ProactiveActionClickEvent(data, date), listener)
+        errorListener: OnEventErrorListener? = null,
+    ) = trigger(ProactiveActionClickEvent(data, date), listener, errorListener)
 
     /**
      * Send a proactive action display event to the analytics.
@@ -190,7 +203,8 @@ object ChatEventHandlerActions {
      *
      * @param data [ActionMetadata] provided in [ChatActionHandler.onPopup] listener.
      * @param date date of the event.
-     * @param listener listener to be notified after the event has been sent.
+     * @param listener an optional listener to be notified after the event has been sent.
+     * @param errorListener an optional error listener to be notified about errors encountered when event is handled.
      * @see ChatEventHandler.trigger
      */
     @JvmOverloads
@@ -200,7 +214,8 @@ object ChatEventHandlerActions {
         data: ActionMetadata,
         date: Date = Date(),
         listener: OnEventSentListener? = null,
-    ) = trigger(ProactiveActionDisplayEvent(data, date), listener)
+        errorListener: OnEventErrorListener? = null,
+    ) = trigger(ProactiveActionDisplayEvent(data, date), listener, errorListener)
 
     /**
      * Send a proactive action failure event to the analytics.
@@ -212,7 +227,8 @@ object ChatEventHandlerActions {
      *
      * @param data [ActionMetadata] provided in [ChatActionHandler.onPopup] listener.
      * @param date date of the event.
-     * @param listener listener to be notified after the event has been sent.
+     * @param listener an optional listener to be notified after the event has been sent.
+     * @param errorListener an optional error listener to be notified about errors encountered when event is handled.
      * @see ChatEventHandler.trigger
      */
     @JvmOverloads
@@ -222,7 +238,8 @@ object ChatEventHandlerActions {
         data: ActionMetadata,
         date: Date = Date(),
         listener: OnEventSentListener? = null,
-    ) = trigger(ProactiveActionFailureEvent(data, date), listener)
+        errorListener: OnEventErrorListener? = null,
+    ) = trigger(ProactiveActionFailureEvent(data, date), listener, errorListener)
 
     /**
      * Send a proactive action success event to the analytics.
@@ -233,7 +250,8 @@ object ChatEventHandlerActions {
      *
      * @param data [ActionMetadata] provided in [ChatActionHandler.onPopup] listener.
      * @param date date of the event.
-     * @param listener listener to be notified after the event has been sent.
+     * @param listener an optional listener to be notified after the event has been sent.
+     * @param errorListener an optional error listener to be notified about errors encountered when event is handled.
      * @see ChatEventHandler.trigger
      */
     @JvmOverloads
@@ -243,19 +261,22 @@ object ChatEventHandlerActions {
         data: ActionMetadata,
         date: Date = Date(),
         listener: OnEventSentListener? = null,
-    ) = trigger(ProactiveActionSuccessEvent(data, date), listener)
+        errorListener: OnEventErrorListener? = null,
+    ) = trigger(ProactiveActionSuccessEvent(data, date), listener, errorListener)
 
     /**
      * Refresh the authentication token associated with the chat.
      *
-     * @param listener listener to be notified after the event has been sent.
+     * @param listener an optional listener to be notified after the event has been sent.
+     * @param errorListener an optional error listener to be notified about errors encountered when event is handled.
      * @see ChatEventHandler.trigger
      */
     @JvmOverloads
     @JvmStatic
     fun ChatEventHandler.refresh(
         listener: OnEventSentListener? = null,
-    ) = trigger(RefreshToken, listener)
+        errorListener: OnEventErrorListener? = null,
+    ) = trigger(RefreshToken, listener, errorListener)
 
     /**
      * Trigger event specified in agent console or elsewhere as per your
@@ -263,7 +284,8 @@ object ChatEventHandlerActions {
      * representative for more information.
      *
      * @param id ID of event to trigger per representative instructions.
-     * @param listener listener to be notified after the event has been sent.
+     * @param listener an optional listener to be notified after the event has been sent.
+     * @param errorListener an optional error listener to be notified about errors encountered when event is handled.
      * @see ChatEventHandler.trigger
      */
     @JvmOverloads
@@ -271,5 +293,6 @@ object ChatEventHandlerActions {
     fun ChatEventHandler.event(
         id: UUID,
         listener: OnEventSentListener? = null,
-    ) = trigger(TriggerEvent(id), listener)
+        errorListener: OnEventErrorListener? = null,
+    ) = trigger(TriggerEvent(id), listener, errorListener)
 }

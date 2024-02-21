@@ -22,6 +22,7 @@ import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import com.nice.cxonechat.message.Action
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.message.Media
@@ -31,12 +32,15 @@ import com.nice.cxonechat.message.MessageDirection
 import com.nice.cxonechat.message.MessageDirection.ToAgent
 import com.nice.cxonechat.message.MessageDirection.ToClient
 import com.nice.cxonechat.message.MessageMetadata
+import com.nice.cxonechat.message.MessageStatus
+import com.nice.cxonechat.message.MessageStatus.SENDING
 import com.nice.cxonechat.ui.composable.conversation.model.ConversationUiState
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import java.util.Date
 import java.util.UUID
+import com.nice.cxonechat.ui.composable.conversation.model.Message as UiMessage
 
 // Shared preview methods
 
@@ -45,6 +49,8 @@ internal fun previewTextMessage(
     text: String,
     direction: MessageDirection = ToAgent,
     createdAt: Date = Date(),
+    readAt: Date? = null,
+    attachments: Iterable<Attachment> = listOf<Attachment>().asIterable()
 ): Message.Text =
     PreviewTextMessage(
         direction = direction,
@@ -61,17 +67,21 @@ internal fun previewTextMessage(
         },
         text = text,
         createdAt = createdAt,
+        attachments = attachments,
+        metadata = PreviewMetadata(
+            readAt = readAt
+        )
     )
 
 @Stable
 internal data class PreviewTextMessage(
     override val direction: MessageDirection,
-    override val author: MessageAuthor,
+    override val author: MessageAuthor?,
     override val text: String,
     override val fallbackText: String? = null,
     override val id: UUID = UUID.randomUUID(),
     override val threadId: UUID = UUID.randomUUID(),
-    override val metadata: MessageMetadata = PreviewMetadata,
+    override val metadata: MessageMetadata = PreviewMetadata(),
     override val createdAt: Date = Date(),
     override val attachments: Iterable<Attachment> = emptyList(),
 ) : Message.Text()
@@ -84,11 +94,11 @@ internal data class PreviewRichLinkMessage(
     val mediaUrl: String,
     val mediaMimeType: String,
     override val direction: MessageDirection = ToClient,
-    override val author: MessageAuthor = PreviewAuthor("FirstName", "LastName"),
+    override val author: MessageAuthor? = PreviewAuthor("FirstName", "LastName"),
     override val fallbackText: String? = null,
     override val id: UUID = UUID.randomUUID(),
     override val threadId: UUID = UUID.randomUUID(),
-    override val metadata: MessageMetadata = PreviewMetadata,
+    override val metadata: MessageMetadata = PreviewMetadata(),
     override val createdAt: Date = Date(),
     override val attachments: Iterable<Attachment> = emptyList(),
     override val media: Media = object : Media {
@@ -138,14 +148,74 @@ internal data class PreviewReplyButton(
     override val description: String? = null
 }
 
+internal object PreviewAttachments {
+    val image = object : Attachment {
+        override val url: String = "https://http.cat/203"
+        override val friendlyName: String = "cat_no_content.jpeg"
+        override val mimeType: String = "image/jpeg"
+    }
+
+    val movie = object : Attachment {
+        override val url: String = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+        override val friendlyName: String = "example.webm"
+        override val mimeType: String = "video/mp4"
+    }
+
+    val sound = object : Attachment {
+        override val url: String = "https://http.cat/204"
+        override val friendlyName: String = "cat_no_content.mp3"
+        override val mimeType: String = "audio/mp3"
+    }
+
+    val pdf = object : Attachment {
+        override val url: String = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+        override val friendlyName: String = "dummy.pdf"
+        override val mimeType: String = "application/pdf"
+    }
+
+    val choices = listOf(image, movie, sound, pdf)
+
+    val attachments: Sequence<Attachment>
+        get() = generateSequence(choices[0]) { index ->
+            choices[(choices.indexOf(index) + 1) % choices.count()]
+        }
+
+    fun with(count: Int): Iterable<Attachment> = attachments.take(count).toList()
+}
+
+internal data class AttachmentProvider(
+    override val values: Sequence<Attachment> = PreviewAttachments.choices.asSequence(),
+) : PreviewParameterProvider<Attachment>
+
 @Immutable
-internal object PreviewMetadata : MessageMetadata {
-    override val readAt: Date? = null
+internal class PreviewMetadata(
+    override val seenAt: Date? = null,
+    override val readAt: Date? = null,
+    override val status: MessageStatus = SENDING,
+) : MessageMetadata
+
+@Composable
+internal fun PreviewMessageItemBase(
+    message: UiMessage,
+    showSender: Boolean = true,
+    onAttachmentClicked: (Attachment) -> Unit = {},
+    onMoreClicked: (List<Attachment>, String) -> Unit = { _, _ -> },
+    onShare: (Collection<Attachment>) -> Unit = {},
+) {
+    PreviewMessageItemBase {
+        MessageItem(
+            message = message,
+            showSender = showSender,
+            onAttachmentClicked = onAttachmentClicked,
+            onMoreClicked = onMoreClicked,
+            onShare = onShare
+        )
+    }
 }
 
 @Composable
 internal fun PreviewMessageItemBase(
-    content: @Composable LazyItemScope.() -> Unit,
+    content: @Composable LazyItemScope.() -> Unit
 ) {
     ChatTheme {
         Surface {
@@ -159,7 +229,11 @@ internal fun PreviewMessageItemBase(
 }
 
 @Stable
-internal fun previewUiState(messages: List<Message> = emptyList()) = ConversationUiState(
+internal fun previewUiState(
+    messages: List<Message> = emptyList(),
+    isMultiThreaded: Boolean = true,
+    hasQuestions: Boolean = true,
+) = ConversationUiState(
     threadName = flowOf("Preview Thread"),
     sdkMessages = MutableStateFlow(messages),
     typingIndicator = flowOf(true),
@@ -168,4 +242,9 @@ internal fun previewUiState(messages: List<Message> = emptyList()) = Conversatio
     canLoadMore = MutableStateFlow(true),
     onStartTyping = {},
     onStopTyping = {},
+    onAttachmentClicked = {},
+    onMoreClicked = { _, _ -> },
+    onShare = {},
+    isMultiThreaded = isMultiThreaded,
+    hasQuestions = hasQuestions,
 )

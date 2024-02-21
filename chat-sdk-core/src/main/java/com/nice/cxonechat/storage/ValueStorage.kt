@@ -75,7 +75,7 @@ internal interface ValueStorage {
      * Authorized user id.
      * Default value is null.
      */
-    var customerId: UUID?
+    var customerId: String?
 
     /**
      * Connection session id.

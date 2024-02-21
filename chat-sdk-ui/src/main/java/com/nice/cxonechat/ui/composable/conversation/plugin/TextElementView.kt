@@ -20,13 +20,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
+import com.nice.cxonechat.message.TextFormat.Html
+import com.nice.cxonechat.message.TextFormat.Markdown
+import com.nice.cxonechat.message.TextFormat.Plain
 import com.nice.cxonechat.ui.composable.conversation.MessageItem
 import com.nice.cxonechat.ui.composable.conversation.PreviewMessageItemBase
 import com.nice.cxonechat.ui.composable.conversation.model.Message
 import com.nice.cxonechat.ui.composable.conversation.model.PluginElement.Text
-import com.nice.cxonechat.ui.composable.conversation.model.PluginElement.Text.Format.Html
-import com.nice.cxonechat.ui.composable.conversation.model.PluginElement.Text.Format.Markdown
-import com.nice.cxonechat.ui.composable.conversation.model.PluginElement.Text.Format.Plain
 import com.nice.cxonechat.ui.composable.generic.HtmlText
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import dev.jeziellago.compose.markdowntext.MarkdownText
@@ -43,22 +43,29 @@ internal fun TextElementView(text: Text, modifier: Modifier = Modifier) {
 @Composable
 @Preview
 private fun PreviewText(@PreviewParameter(TextPreviewProvider::class) message: Message) {
-    PreviewMessageItemBase {
-        MessageItem(message = message)
-    }
+    PreviewMessageItemBase(
+        message = message,
+        showSender = true,
+    )
 }
 
 @Composable
 @Preview
 private fun PreviewAllText() {
     PreviewMessageItemBase {
-        PluginPreviewProvider().text.forEach {
-            MessageItem(message = it)
+        MessagePreviewProvider().text.forEach {
+            MessageItem(
+                message = it,
+                showSender = true,
+                onAttachmentClicked = {},
+                onMoreClicked = { _, _ -> },
+                onShare = {},
+            )
         }
     }
 }
 
-private class TextPreviewProvider: PluginPreviewProvider() {
+private class TextPreviewProvider: MessagePreviewProvider() {
     override val values: Sequence<Message>
         get() = text.asSequence()
 }

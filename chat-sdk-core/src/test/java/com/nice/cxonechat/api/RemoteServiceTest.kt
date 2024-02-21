@@ -128,7 +128,7 @@ internal class RemoteServiceTest {
         }
 
         val client = builder.build()
-        val upload = AttachmentUploadModel("content", "mime", "name")
+        val upload = AttachmentUploadModel("content", "mime", "name.txt")
         client.uploadFile(upload, "0", "channelId").execute()
         client.uploadFile(upload, "0", "channelId").execute()
 

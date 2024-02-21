@@ -23,21 +23,18 @@ import com.nice.cxonechat.sample.data.models.Product
 import com.nice.cxonechat.sample.data.operations.add
 import com.nice.cxonechat.sample.data.operations.update
 import com.nice.cxonechat.sample.network.DummyJsonService.Companion.dummyJsonService
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
-import javax.inject.Singleton
+import org.koin.core.annotation.Single
 
 /**
  * Repository for the Store.  Maintains the list of products, the shoppers cart, and user name information.
  *
  * @param context Application Context for preferences access.
  */
-@Singleton
-class StoreRepository @Inject constructor(
-    @ApplicationContext
+@Single
+class StoreRepository(
     val context: Context
 ) {
     private val productsCache = MutableStateFlow<Pair<String, List<Product>>?>(null)

@@ -23,5 +23,6 @@ internal inline fun <T> awaitResult(
     } finally {
         if (bodyResult is Cancellable) bodyResult.cancel()
     }
+    @Suppress("UNCHECKED_CAST")
     return result as T
 }

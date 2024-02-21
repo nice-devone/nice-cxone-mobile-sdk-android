@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.AppBarDefaults
+import androidx.compose.material.BottomAppBar
 import androidx.compose.material.FabPosition
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.FloatingActionButtonDefaults
@@ -50,12 +51,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import coil.ImageLoader
 import coil.compose.AsyncImage
+import kotlinx.coroutines.Dispatchers
 
 @Composable
 internal fun ChatTheme.Scaffold(
@@ -92,10 +96,10 @@ internal fun ChatTheme.TopBar(
     modifier: Modifier = Modifier,
     logo: Any? = images.logo,
     navigationIcon: @Composable (() -> Unit)? = null,
-    actions: @Composable RowScope.() -> Unit = {},
     backgroundColor: Color = colors.primary,
     contentColor: Color = colors.onPrimary,
     elevation: Dp = AppBarDefaults.TopAppBarElevation,
+    actions: @Composable RowScope.() -> Unit = {},
 ) {
     TopAppBar(
         title = {
@@ -111,7 +115,27 @@ internal fun ChatTheme.TopBar(
 }
 
 @Composable
+internal fun ChatTheme.BottomBar(
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = colors.primary,
+    contentColor: Color = colors.onPrimary,
+    elevation: Dp = AppBarDefaults.BottomAppBarElevation,
+    content: @Composable RowScope.() -> Unit
+) {
+    BottomAppBar(
+        modifier = modifier,
+        backgroundColor = backgroundColor,
+        contentColor = contentColor,
+        elevation = elevation,
+        content = content
+    )
+}
+
+@Composable
 private fun ChatTheme.TopBarTitle(logo: Any?, title: String) {
+    val size = space.titleBarLogoSize
+    val padding = Dp(space.titleBarLogoPadding / LocalContext.current.resources.displayMetrics.density)
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -119,10 +143,10 @@ private fun ChatTheme.TopBarTitle(logo: Any?, title: String) {
             AsyncImage(
                 model = logo,
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .size(space.clickableSize)
-                    .padding(space.small),
+                    .size(size)
+                    .padding(padding),
                 contentDescription = null,
+                imageLoader = ImageLoader.Builder(LocalContext.current).interceptorDispatcher(Dispatchers.IO).build(),
                 placeholder = if (LocalInspectionMode.current) { // Default mipmap has issues in preview.
                     painterResource(id = drawable.ic_dialog_map)
                 } else {

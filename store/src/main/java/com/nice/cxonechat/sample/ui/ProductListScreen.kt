@@ -15,6 +15,7 @@
 
 package com.nice.cxonechat.sample.ui
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
@@ -37,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -57,7 +59,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import coil.compose.AsyncImage
 import com.nice.cxonechat.sample.R.string
-import com.nice.cxonechat.sample.StoreViewModel
 import com.nice.cxonechat.sample.data.models.Product
 import com.nice.cxonechat.sample.extensions.asCurrency
 import com.nice.cxonechat.sample.extensions.bold
@@ -65,6 +66,9 @@ import com.nice.cxonechat.sample.previewproviders.ProductsParameterProvider
 import com.nice.cxonechat.sample.ui.theme.AppTheme
 import com.nice.cxonechat.sample.ui.theme.AppTheme.space
 import com.nice.cxonechat.sample.ui.theme.ScreenWithScaffold
+import com.nice.cxonechat.sample.viewModel.AnalyticsHandler.PageInfo
+import com.nice.cxonechat.sample.viewModel.StoreViewModel
+import com.nice.cxonechat.sample.viewModel.UiState
 
 /**
  * The Product List Screen displaying a list of available products.
@@ -81,7 +85,11 @@ object ProductListScreen : Screen {
 
     private fun routeTo(category: String = defaultCategory) = "products/$category"
 
-    override fun navigation(navGraphBuilder: NavGraphBuilder, navHostController: NavHostController, viewModel: StoreViewModel) {
+    override fun navigation(
+        navGraphBuilder: NavGraphBuilder,
+        navHostController: NavHostController,
+        viewModel: StoreViewModel,
+    ) {
         navGraphBuilder.composable(
             route = routeFormat,
             arguments = listOf(
@@ -94,23 +102,21 @@ object ProductListScreen : Screen {
             val context = LocalContext.current
             val category = navBackStackEntry.category
             var products by remember { mutableStateOf<List<Product>>(listOf()) }
-            var attempt by remember { mutableStateOf(0) }
+            var attempt by remember { mutableIntStateOf(0) }
             var error by rememberSaveable { mutableStateOf<String?>(null) }
             val cart = viewModel.storeRepository.cart.collectAsState().value
+            val uiState = viewModel.uiState.collectAsState().value
 
-            viewModel.SendPageView("products?$category", "/products/$category")
+            // setup to generate page views, but only if no dialog is displayed.
+            viewModel.analyticsHandler.SendPageView(pageInfoForState(uiState, category), uiState, error)
 
-            LaunchedEffect(category, attempt) {
-                viewModel
-                    .storeRepository
-                    .getProducts(category)
-                    .onSuccess {
-                        products = it
-                    }
-                    .onFailure {
-                        error = it.localizedMessage ?: context.getString(string.unknown_error)
-                    }
-            }
+            LoadCategories(
+                viewModel = viewModel,
+                category = category,
+                attempt = attempt,
+                onError = { error = it },
+                onSuccess = { products = it }
+            )
 
             Screen(
                 products,
@@ -125,16 +131,40 @@ object ProductListScreen : Screen {
                 },
             )
 
-            when {
-                error != null ->
-                    ErrorAlert(
-                        message = error ?: context.getString(string.unknown_error),
-                        onDismiss = { (context as? Activity)?.finishAffinity() }
-                    ) {
-                        error = null
-                        attempt += 1
-                    }
+            error?.let { message ->
+                ErrorAlert(
+                    message = message,
+                    onDismiss = { (context as? Activity)?.finishAffinity() }
+                ) {
+                    error = null
+                    attempt += 1
+                }
             }
+        }
+    }
+
+    private fun pageInfoForState(state: UiState, category: String) = if (state.isInDialog) {
+        null
+    } else {
+        PageInfo("products?$category", "/products/$category")
+    }
+
+    @Composable
+    private fun LoadCategories(
+        viewModel: StoreViewModel,
+        category: String,
+        attempt: Int,
+        onError: (String?) -> Unit,
+        onSuccess: (List<Product>) -> Unit
+    ) {
+        LaunchedEffect(category, attempt) {
+            viewModel
+                .storeRepository
+                .getProducts(category)
+                .onSuccess(onSuccess)
+                .onFailure {
+                    onError(it.localizedMessage)
+                }
         }
     }
 
@@ -155,6 +185,9 @@ object ProductListScreen : Screen {
         onUiSettings: () -> Unit,
         onSdkSettings: () -> Unit,
         onLogout: () -> Unit,
+        @SuppressLint(
+            "ComposableLambdaParameterNaming" // This isn't intended to be a re-usable composable
+        )
         showCart: @Composable RowScope.() -> Unit,
     ) {
         AppTheme.ScreenWithScaffold(
