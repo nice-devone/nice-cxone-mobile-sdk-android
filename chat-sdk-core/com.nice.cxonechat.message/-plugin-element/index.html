@@ -1,0 +1,280 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>PluginElement</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+<a class="library-name--link" href="../../../index.html">
+                            cxone-chat-sdk
+                    </a>            </div>
+            <div class="library-version">1.3.0-SNAPSHOT
+            </div>
+        </div>
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":chat-sdk-core:dokkaHtmlPartial/release">androidJvm</button>
+        </div>
+    </div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
+    </div>
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="chat-sdk-core::com.nice.cxonechat.message/PluginElement///PointingToDeclaration//2108048670">
+  <div class="breadcrumbs"><a href="../../index.html">chat-sdk-core</a><span class="delimiter">/</span><a href="../index.html">com.nice.cxonechat.message</a><span class="delimiter">/</span><span class="current">PluginElement</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Plugin</span><wbr><span><span>Element</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">sealed </span><span class="token keyword">class </span><a href="index.html">PluginElement</a></div><p class="paragraph">Elements provided with Messages with a <a href="../-message/-plugin/index.html">Plugin</a>. Plugins are enclosed and highly variable, though SDK redefines them in a few aggregating structures. These structures are:</p><ul><li><p class="paragraph"><a href="-menu/index.html">Menu</a> (also referenced as Gallery)</p></li><li><p class="paragraph"><a href="-text-and-buttons/index.html">TextAndButtons</a></p></li><li><p class="paragraph"><a href="-quick-replies/index.html">QuickReplies</a></p></li><li><p class="paragraph"><a href="-inactivity-popup/index.html">InactivityPopup</a></p></li><li><p class="paragraph"><a href="-custom/index.html">Custom</a></p></li></ul><p class="paragraph">All of these are parsed ahead of time for integrator's convenience. Whenever none of these use-cases fits your needs, use <a href="-custom/index.html">Custom</a> type from which you can extract properties defined by your company or representative.</p><h4 class="">See also</h4><div class="table"><div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-message/-plugin/index.html"><span>Message.</span><wbr><span>Plugin</span></a></div></span></div><div></div></div></div></div><h4 class="">Inheritors</h4><div class="table"><div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-menu/index.html">Menu</a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-file/index.html">File</a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-title/index.html">Title</a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-subtitle/index.html">Subtitle</a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-text/index.html">Text</a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-button/index.html">Button</a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-text-and-buttons/index.html">TextAndButtons</a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-quick-replies/index.html">QuickReplies</a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-inactivity-popup/index.html">InactivityPopup</a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-countdown/index.html">Countdown</a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-custom/index.html">Custom</a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-gallery/index.html">Gallery</a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="-satisfaction-survey/index.html">SatisfactionSurvey</a></div></span></div><div></div></div></div></div></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="TYPE">
+        <h2 class="">Types</h2>
+        <div class="table"><a data-name="-756120695%2FClasslikes%2F2108048670" anchor-label="Button" id="-756120695%2FClasslikes%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-button/index.html"><span><span>Button</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-756120695%2FClasslikes%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">class </span><a href="-button/index.html">Button</a> : <a href="index.html">PluginElement</a></div><div class="brief "><p class="paragraph">Button component. Buttons should report <a href="-button/postback.html">postback</a>s when clicking the button. Postback might contain a <a href="-button/deep-link.html">deepLink</a> which is extracted for convenience.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1824724118%2FClasslikes%2F2108048670" anchor-label="Countdown" id="1824724118%2FClasslikes%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-countdown/index.html"><span><span>Countdown</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1824724118%2FClasslikes%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">class </span><a href="-countdown/index.html">Countdown</a> : <a href="index.html">PluginElement</a></div><div class="brief "><p class="paragraph">Countdown component. Countdowns should affect whether are interactive components active. Interactive components might be <a href="-custom/index.html">Custom</a> or <a href="-button/index.html">Button</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1129442262%2FClasslikes%2F2108048670" anchor-label="Custom" id="-1129442262%2FClasslikes%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-custom/index.html"><span><span>Custom</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1129442262%2FClasslikes%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">class </span><a href="-custom/index.html">Custom</a> : <a href="index.html">PluginElement</a></div><div class="brief "><p class="paragraph">Custom component defined by the integrator. All variables supplied to the custom action is deserialized as <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-map/index.html">Map</a>. If the <a href="-custom/variables.html">variables</a> are invalid, from integrator's point of view, then they should use <a href="-custom/fallback-text.html">fallbackText</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-941881601%2FClasslikes%2F2108048670" anchor-label="File" id="-941881601%2FClasslikes%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-file/index.html"><span><span>File</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-941881601%2FClasslikes%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">class </span><a href="-file/index.html">File</a> : <a href="index.html">PluginElement</a></div><div class="brief "><p class="paragraph">File of any type defined by <a href="-file/mime-type.html">mimeType</a>. This class doesn't carry any guarantees of the file existing on the remote server, if you need to know whether it exists use HEAD request on the url.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-988073963%2FClasslikes%2F2108048670" anchor-label="Gallery" id="-988073963%2FClasslikes%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-gallery/index.html"><span><span>Gallery</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-988073963%2FClasslikes%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">class </span><a href="-gallery/index.html">Gallery</a> : <a href="index.html">PluginElement</a></div><div class="brief "><p class="paragraph">Gallery component which bundles together other components, which should be displayed together in one context. Gallery is the only component which can contain a collection of all other <a href="index.html">PluginElement</a>s.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-734118321%2FClasslikes%2F2108048670" anchor-label="InactivityPopup" id="-734118321%2FClasslikes%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-inactivity-popup/index.html"><span>Inactivity</span><wbr><span><span>Popup</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-734118321%2FClasslikes%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">class </span><a href="-inactivity-popup/index.html">InactivityPopup</a> : <a href="index.html">PluginElement</a></div><div class="brief "><p class="paragraph">Inactivity popups are presented to the user when agent or system on behalf of agent detects inactivity of the user. They are supported by a <a href="-inactivity-popup/countdown.html">countdown</a> which might be shown to the user and <a href="-inactivity-popup/buttons.html">buttons</a> to take action to stop the countdown or something else.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1241613188%2FClasslikes%2F2108048670" anchor-label="Menu" id="-1241613188%2FClasslikes%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-menu/index.html"><span><span>Menu</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1241613188%2FClasslikes%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">class </span><a href="-menu/index.html">Menu</a> : <a href="index.html">PluginElement</a></div><div class="brief "><p class="paragraph">Menu plugin also references as <code class="lang-kotlin">Gallery</code> in some reference documents. These elements are highly variable and there's no guarantee that all of the elements will be present at any given time. Though at least one element should be present at any given time.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1481716480%2FClasslikes%2F2108048670" anchor-label="QuickReplies" id="-1481716480%2FClasslikes%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-quick-replies/index.html"><span>Quick</span><wbr><span><span>Replies</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1481716480%2FClasslikes%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">class </span><a href="-quick-replies/index.html">QuickReplies</a> : <a href="index.html">PluginElement</a></div><div class="brief "><p class="paragraph">Quick replies component. Might be presented with optional <a href="-quick-replies/text.html">text</a>. This component might be provided in cases where users are prompted with a satisfaction prompt or similar.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1807370443%2FClasslikes%2F2108048670" anchor-label="SatisfactionSurvey" id="-1807370443%2FClasslikes%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-satisfaction-survey/index.html"><span>Satisfaction</span><wbr><span><span>Survey</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1807370443%2FClasslikes%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">class </span><a href="-satisfaction-survey/index.html">SatisfactionSurvey</a> : <a href="index.html">PluginElement</a></div><div class="brief "><p class="paragraph">Satisfaction survey component which can be presented to user as a call to action to fill out a survey (via deeplink in the <a href="-satisfaction-survey/button.html">button</a>).</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="461742819%2FClasslikes%2F2108048670" anchor-label="Subtitle" id="461742819%2FClasslikes%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-subtitle/index.html"><span><span>Subtitle</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="461742819%2FClasslikes%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">class </span><a href="-subtitle/index.html">Subtitle</a> : <a href="index.html">PluginElement</a></div><div class="brief "><p class="paragraph">Subtitle text component. Subtitle is usually provided with large aggregating components.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="310317166%2FClasslikes%2F2108048670" anchor-label="Text" id="310317166%2FClasslikes%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-text/index.html"><span><span>Text</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="310317166%2FClasslikes%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">class </span><a href="-text/index.html">Text</a> : <a href="index.html">PluginElement</a></div><div class="brief "><p class="paragraph">Regular text component. Contextually can be of a different form, such as html or markdown. It's up to the integrator to format or strip the text's format if they do not wish to use formatted text.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="674141604%2FClasslikes%2F2108048670" anchor-label="TextAndButtons" id="674141604%2FClasslikes%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-text-and-buttons/index.html"><span>Text</span><wbr><span>And</span><wbr><span><span>Buttons</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="674141604%2FClasslikes%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">class </span><a href="-text-and-buttons/index.html">TextAndButtons</a> : <a href="index.html">PluginElement</a></div><div class="brief "><p class="paragraph">Component containing <a href="-text/index.html">Text</a> and <a href="-button/index.html">Button</a> elements. You should always expect at least one button, but more often might encounter multiple buttons as choices for the user.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="907910479%2FClasslikes%2F2108048670" anchor-label="Title" id="907910479%2FClasslikes%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-title/index.html"><span><span>Title</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="907910479%2FClasslikes%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">class </span><a href="-title/index.html">Title</a> : <a href="index.html">PluginElement</a></div><div class="brief "><p class="paragraph">Title text component. Title is usually provided with large aggregating components.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2024 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

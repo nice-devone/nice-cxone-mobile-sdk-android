@@ -1,0 +1,299 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>Chat</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+<a class="library-name--link" href="../../../index.html">
+                            cxone-chat-sdk
+                    </a>            </div>
+            <div class="library-version">1.3.0-SNAPSHOT
+            </div>
+        </div>
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":chat-sdk-core:dokkaHtmlPartial/release">androidJvm</button>
+        </div>
+    </div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
+    </div>
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="chat-sdk-core::com.nice.cxonechat/Chat///PointingToDeclaration//2108048670">
+  <div class="breadcrumbs"><a href="../../index.html">chat-sdk-core</a><span class="delimiter">/</span><a href="../index.html">com.nice.cxonechat</a><span class="delimiter">/</span><span class="current">Chat</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>Chat</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">interface </span><a href="index.html">Chat</a> : <a href="https://developer.android.com/reference/kotlin/java/lang/AutoCloseable.html">AutoCloseable</a></div><p class="paragraph">Current chat instance. Client is not limited to a single instance of any given chat. They can create (or rather <a href="../-chat-builder/build.html">build</a>) as many instances as they like. They are though advised that creating <i>CONFLICTING</i> (or identical) instances with the same configuration may lead to unexpected consequences.</p><p class="paragraph">After creating an instance via <a href="../-chat-builder/build.html">build</a>, the customer is automatically authorized if the authorization is enabled and the customer was not previously authorized, otherwise reconnects the customer. The created chat instance also starts listening for the authorization and updates customer details after customer authorization. The time it takes to reach the device is undefined.</p><p class="paragraph">Moreover, it starts listening to events that modify welcome messages. Therefore, a welcome message is only available after we receive the given event and requires no actions from the client side. The time it takes to reach the device is undefined.</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="-1677494251%2FProperties%2F2108048670" anchor-label="chatMode" id="-1677494251%2FProperties%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="chat-mode.html"><span>chat</span><wbr><span><span>Mode</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1677494251%2FProperties%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">val </span><a href="chat-mode.html">chatMode</a><span class="token operator">: </span><a href="../-chat-mode/index.html">ChatMode</a></div><div class="brief "><p class="paragraph">Current mode of the chat.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="900955732%2FProperties%2F2108048670" anchor-label="configuration" id="900955732%2FProperties%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="configuration.html"><span><span>configuration</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="900955732%2FProperties%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">val </span><a href="configuration.html">configuration</a><span class="token operator">: </span><a href="../../com.nice.cxonechat.state/-configuration/index.html">Configuration</a></div><div class="brief "><p class="paragraph">Current options of the channel as received from the backend. It will remain unchanged while this <a href="index.html">Chat</a> instance exists.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="993663767%2FProperties%2F2108048670" anchor-label="environment" id="993663767%2FProperties%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="environment.html"><span><span>environment</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="993663767%2FProperties%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">val </span><a href="environment.html">environment</a><span class="token operator">: </span><a href="../../com.nice.cxonechat.state/-environment/index.html">Environment</a></div><div class="brief "><p class="paragraph">Current environment provided by the <a href="../-socket-factory-configuration/index.html">SocketFactoryConfiguration</a>. It will remain unchanged for the duration while this object exists.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-714251017%2FProperties%2F2108048670" anchor-label="fields" id="-714251017%2FProperties%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="fields.html"><span><span>fields</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-714251017%2FProperties%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">val </span><a href="fields.html">fields</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-collection/index.html">Collection</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../../com.nice.cxonechat.thread/-custom-field/index.html">CustomField</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Current collection of global customer <a href="../../com.nice.cxonechat.thread/-custom-field/index.html">CustomField</a>s set in SDK. Instance provided by the method won't be updated if the <a href="../../com.nice.cxonechat.thread/-custom-field/index.html">CustomField</a>s collection is updated in the <a href="index.html">Chat</a>, it should be considered as a snapshot of current state. Values can be updated from backend, after <a href="../-chat-threads-handler/refresh.html">ChatThreadsHandler.refresh</a> call.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="-674705939%2FFunctions%2F2108048670" anchor-label="actions" id="-674705939%2FFunctions%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="actions.html"><span><span>actions</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-674705939%2FFunctions%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="actions.html"><span class="token function">actions</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-chat-action-handler/index.html">ChatActionHandler</a></div><div class="brief "><p class="paragraph">Returns new instance of an action handler for this <a href="index.html">Chat</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1337587858%2FFunctions%2F2108048670" anchor-label="close" id="1337587858%2FFunctions%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="close.html"><span><span>close</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1337587858%2FFunctions%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="close.html"><span class="token function">close</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Closes the connection to the chat backend and removes all listeners, even those the client forgot to unregister.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-792104288%2FFunctions%2F2108048670" anchor-label="connect" id="-792104288%2FFunctions%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="connect.html"><span><span>connect</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-792104288%2FFunctions%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="connect.html"><span class="token function">connect</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-cancellable/index.html">Cancellable</a></div><div class="brief "><p class="paragraph">Attempts to connect the chat session using existing configuration, the attempt will be made on background thread. Successful connection will be announced to the <a href="../-chat-state-listener/on-connected.html">ChatStateListener.onConnected</a> which was supplied in <a href="../-chat-builder/index.html">ChatBuilder</a>. If there is an issue during/after reconnection the <a href="../-chat-state-listener/on-unexpected-disconnect.html">ChatStateListener.onUnexpectedDisconnect</a> will be called, it is responsibility of application to perform a repeated reconnection attempt, if it is desirable. Reconnect attempts should be performed only if the device is connected to the internet. If the repeated reconnection attempts are made, they should be called with exponential backoff, in order to prevent backend overload.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1275741946%2FFunctions%2F2108048670" anchor-label="customFields" id="-1275741946%2FFunctions%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="custom-fields.html"><span>custom</span><wbr><span><span>Fields</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1275741946%2FFunctions%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="custom-fields.html"><span class="token function">customFields</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-chat-field-handler/index.html">ChatFieldHandler</a></div><div class="brief "><p class="paragraph">Creates new instance to modify global custom fields.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1073507991%2FFunctions%2F2108048670" anchor-label="events" id="1073507991%2FFunctions%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="events.html"><span><span>events</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1073507991%2FFunctions%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="events.html"><span class="token function">events</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-chat-event-handler/index.html">ChatEventHandler</a></div><div class="brief "><p class="paragraph">Creates new instance to interact with this instance.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1911227795%2FFunctions%2F2108048670" anchor-label="reconnect" id="1911227795%2FFunctions%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="reconnect.html"><span><span>reconnect</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1911227795%2FFunctions%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="reconnect.html"><span class="token function"><strike>reconnect</strike></span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-cancellable/index.html">Cancellable</a></div><div class="brief "><p class="paragraph">Attempts to restart the chat session using existing configuration, the attempt will be made on background thread. Successful connection will be announced to the <a href="../-chat-state-listener/on-connected.html">ChatStateListener.onConnected</a> which was supplied in <a href="../-chat-builder/index.html">ChatBuilder</a>. If there is an issue during/after reconnection the <a href="../-chat-state-listener/on-unexpected-disconnect.html">ChatStateListener.onUnexpectedDisconnect</a> will be called, it is responsibility of application to perform a repeated reconnection attempt, if it is desirable. Reconnect attempts should be performed only if the device is connected to the internet. If the repeated reconnection attempts are made, they should be called with exponential backoff, in order to prevent backend overload.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1459810738%2FFunctions%2F2108048670" anchor-label="setDeviceToken" id="-1459810738%2FFunctions%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-device-token.html"><span>set</span><wbr><span>Device</span><wbr><span><span>Token</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1459810738%2FFunctions%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="set-device-token.html"><span class="token function">setDeviceToken</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">token<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Sets device token (notification push token) to this instance and transmits it to the server. It's not guaranteed that the token is delivered to the server though. Therefore, clients are strongly advised to call this method every time they receive new tokens and reconnect to this instance.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-398198185%2FFunctions%2F2108048670" anchor-label="setUserName" id="-398198185%2FFunctions%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-user-name.html"><span>set</span><wbr><span>User</span><wbr><span><span>Name</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-398198185%2FFunctions%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="set-user-name.html"><span class="token function">setUserName</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">firstName<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">lastName<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Attempts to change username if the channel configuration allows setting of the username. All subsequent events sent from chat will have new value filled out.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="660379929%2FFunctions%2F2108048670" anchor-label="signOut" id="660379929%2FFunctions%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="sign-out.html"><span>sign</span><wbr><span><span>Out</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="660379929%2FFunctions%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="sign-out.html"><span class="token function">signOut</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Signs out the user, clears all stored values and closes the connection. Client doesn't need to call <a href="close.html">close</a> explicitly.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1287093441%2FFunctions%2F2108048670" anchor-label="threads" id="1287093441%2FFunctions%2F2108048670" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core:dokkaHtmlPartial/release" data-filterable-set=":chat-sdk-core:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="threads.html"><span><span>threads</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1287093441%2FFunctions%2F2108048670"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword"></span><span class="token keyword">fun </span><a href="threads.html"><span class="token function">threads</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-chat-threads-handler/index.html">ChatThreadsHandler</a></div><div class="brief "><p class="paragraph">Creates new instance to observe and interact with <a href="../../com.nice.cxonechat.thread/-chat-thread/index.html">Threads</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2024 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
