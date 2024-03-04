@@ -9,10 +9,13 @@ This is the main published module, it is released as an android multi-flavor lib
 `com.nice.cxone:chat-core`.
 
 ### Adding the dependency
+
 If you want to use published artifact you will have to include our public maven/gradle github repository into your project.
-For details see [Github documentation on using published packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-gradle-registry#using-a-published-package).
+For details
+see [Github documentation on using published packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-gradle-registry#using-a-published-package).
 
 In section where you define repositories used in your project (in our case it is settings.gradle) add this part:
+
 ```groovy
     def localProperties = new Properties()
     try {
@@ -32,26 +35,36 @@ In section where you define repositories used in your project (in our case it is
         }
     }
 ```
+
 Then either add properties `github.user` and `github.key` to your local.properties
 e.g.:
+
 ```
 github.user=myuser
 github.key=github_my_token
 ```
+
 or set system variables `GPR_USERNAME` and `GPR_TOKEN`.
 You can use any uprivilidged valid token, since the package are public.
 
 Then you can the dependency simply by adding:
+
 ```groovy
-    implementation "com.nice.cxone:chat-sdk-core:1.2.0"
+    implementation "com.nice.cxone:chat-sdk-core:1.3.0"
 ```
+
 ### Additional information
+
 Visit [documentation][docs] for more information about SDK API.
 
 You can also find a simplified example of possible SDK usage in [case studies](docs/case-studies.md)
 documentation.
 
+We offer a brief how-to guide for integration [here][implementation].
+
 [docs]: https://help.nice-incontact.com/content/acd/digital/mobilesdk/android/getstartedandroid.htm
+[API]: https://help.nice-incontact.com/mobilesdk/Android1.3/dist/index.html
+[implementation]: docs/implementation.md
 
 ## CXOne Chat UI
 
