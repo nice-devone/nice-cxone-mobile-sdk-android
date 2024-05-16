@@ -24,8 +24,8 @@ internal class ChannelsConfigurationTests {
 
     @Test
     fun testParsing() {
-        assertEquals(configuration.contactCustomFields.size, 5)
-        assertEquals(configuration.customerCustomFields.size, 4)
+        assertEquals(configuration.contactCustomFields?.size, 5)
+        assertEquals(configuration.customerCustomFields?.size, 4)
     }
 
     @Test
