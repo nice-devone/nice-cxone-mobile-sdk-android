@@ -27,7 +27,7 @@ internal data class EventContactInboxAssigneeChanged(
     val data: Data,
 ) {
 
-    val agent get() = data.inboxAssignee.toAgent()
+    val agent get() = data.inboxAssignee?.toAgent()
     val formerAgent get() = data.previousInboxAssignee?.toAgent()
     val case get() = data.case
 
@@ -41,7 +41,7 @@ internal data class EventContactInboxAssigneeChanged(
         @SerializedName("case")
         val case: Contact,
         @SerializedName("inboxAssignee")
-        val inboxAssignee: AgentModel,
+        val inboxAssignee: AgentModel?,
         @SerializedName("previousInboxAssignee")
         val previousInboxAssignee: AgentModel?,
     )
