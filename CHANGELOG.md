@@ -1,6 +1,11 @@
 <a name="unreleased"></a>
 ## [Unreleased]
 
+## [1.3.1]
+### Bug Fixes
+- EventContactInboxAssigneeChanged.agent is nullable
+- Fix for compatibility with backend API changes
+
 ## [1.3.0]
 ### Bug Fixes
 - Set CustomerId type to String
@@ -193,7 +198,8 @@
     - failure
   - typing start/end
 
-[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.3.0...HEAD
+[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.3.1...HEAD
+[1.3.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.3.0...1.3.1
 [1.3.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.2.1...1.3.0
 [1.2.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.2.1...1.2.0
 [1.2.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.1.0...1.2.0
