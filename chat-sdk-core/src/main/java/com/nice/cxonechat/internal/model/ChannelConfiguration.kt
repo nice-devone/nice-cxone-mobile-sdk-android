@@ -29,10 +29,10 @@ internal data class ChannelConfiguration(
     val preContactForm: PreContactFormModel?,
 
     @SerializedName("caseCustomFields")
-    val contactCustomFields: List<CustomFieldPolyType>,
+    val contactCustomFields: List<CustomFieldPolyType>?,
 
     @SerializedName("endUserCustomFields")
-    val customerCustomFields: List<CustomFieldPolyType>,
+    val customerCustomFields: List<CustomFieldPolyType>?,
 ) {
     data class Settings(
         @SerializedName("hasMultipleThreadsPerEndUser")
@@ -47,7 +47,7 @@ internal data class ChannelConfiguration(
         isProactiveChatEnabled = settings.isProactiveChatEnabled,
         isAuthorizationEnabled = isAuthorizationEnabled,
         preContactSurvey = preContactForm?.toPreContactSurvey(channelId),
-        contactCustomFields = contactCustomFields.mapNotNull(FieldDefinitionImpl::invoke).asSequence(),
-        customerCustomFields = customerCustomFields.mapNotNull(FieldDefinitionImpl::invoke).asSequence(),
+        contactCustomFields = contactCustomFields.orEmpty().mapNotNull(FieldDefinitionImpl::invoke).asSequence(),
+        customerCustomFields = customerCustomFields.orEmpty().mapNotNull(FieldDefinitionImpl::invoke).asSequence(),
     )
 }
