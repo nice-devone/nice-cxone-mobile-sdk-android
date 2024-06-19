@@ -46,6 +46,7 @@ sealed class CXOneException : Exception {
  * Some examples of invalid states might be:
  * * calling [ChatInstanceProvider.connect] on an unprepared provider;
  * * calling [ChatInstanceProvider.prepare] on a prepared or connected provider;
+ * * calling [ChatThreadHandler.endContact] on a channel that is not set to Live Chat.
  *
  * Further details are available in the exception description.
  */

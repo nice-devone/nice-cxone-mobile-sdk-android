@@ -20,101 +20,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
-import com.nice.cxonechat.message.Action
 import com.nice.cxonechat.message.Attachment
-import com.nice.cxonechat.message.Media
 import com.nice.cxonechat.message.Message
-import com.nice.cxonechat.message.MessageAuthor
-import com.nice.cxonechat.message.MessageDirection
-import com.nice.cxonechat.message.MessageDirection.ToAgent
-import com.nice.cxonechat.message.MessageDirection.ToClient
-import com.nice.cxonechat.message.MessageMetadata
-import com.nice.cxonechat.message.MessageStatus
-import com.nice.cxonechat.message.MessageStatus.SENDING
 import com.nice.cxonechat.ui.composable.conversation.model.ConversationUiState
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
-import java.util.Date
-import java.util.UUID
 import com.nice.cxonechat.ui.composable.conversation.model.Message as UiMessage
 
 // Shared preview methods
-
-@Stable
-internal fun previewTextMessage(
-    text: String,
-    direction: MessageDirection = ToAgent,
-    createdAt: Date = Date(),
-    readAt: Date? = null,
-    attachments: Iterable<Attachment> = listOf<Attachment>().asIterable()
-): Message.Text =
-    PreviewTextMessage(
-        direction = direction,
-        author = if (direction == ToAgent) {
-            PreviewAuthor(
-                "Client",
-                "Preview",
-            )
-        } else {
-            PreviewAuthor(
-                "Agent",
-                "Preview",
-            )
-        },
-        text = text,
-        createdAt = createdAt,
-        attachments = attachments,
-        metadata = PreviewMetadata(
-            readAt = readAt
-        )
-    )
-
-@Stable
-internal data class PreviewTextMessage(
-    override val direction: MessageDirection,
-    override val author: MessageAuthor?,
-    override val text: String,
-    override val fallbackText: String? = null,
-    override val id: UUID = UUID.randomUUID(),
-    override val threadId: UUID = UUID.randomUUID(),
-    override val metadata: MessageMetadata = PreviewMetadata(),
-    override val createdAt: Date = Date(),
-    override val attachments: Iterable<Attachment> = emptyList(),
-) : Message.Text()
-
-@Stable
-internal data class PreviewRichLinkMessage(
-    override val title: String,
-    override val url: String,
-    val mediaFileName: String,
-    val mediaUrl: String,
-    val mediaMimeType: String,
-    override val direction: MessageDirection = ToClient,
-    override val author: MessageAuthor? = PreviewAuthor("FirstName", "LastName"),
-    override val fallbackText: String? = null,
-    override val id: UUID = UUID.randomUUID(),
-    override val threadId: UUID = UUID.randomUUID(),
-    override val metadata: MessageMetadata = PreviewMetadata(),
-    override val createdAt: Date = Date(),
-    override val attachments: Iterable<Attachment> = emptyList(),
-    override val media: Media = object : Media {
-        override val fileName: String = mediaFileName
-        override val url: String = mediaUrl
-        override val mimeType: String = mediaMimeType
-    },
-) : Message.RichLink()
-
-@Stable
-internal data class PreviewAuthor(
-    override val firstName: String,
-    override val lastName: String,
-    override val imageUrl: String? = null,
-    override val id: String = UUID.randomUUID().toString(),
-) : MessageAuthor()
 
 @Stable
 internal fun previewAudioState(): AudioRecordingUiState {
@@ -129,23 +45,6 @@ internal fun previewAudioState(): AudioRecordingUiState {
         },
         isRecordingFlow = isRecordingFlow
     )
-}
-
-@Stable
-internal data class PreviewReplyButton(
-    private val previewText: String,
-    private val mediaUrl: String? = null,
-) : Action.ReplyButton {
-    override val text = previewText
-    override val postback: String? = null
-    override val media: Media? = mediaUrl?.let {
-        object : Media {
-            override val fileName: String = "filename"
-            override val url: String = it
-            override val mimeType: String = "unknown/unknown"
-        }
-    }
-    override val description: String? = null
 }
 
 internal object PreviewAttachments {
@@ -187,13 +86,6 @@ internal data class AttachmentProvider(
     override val values: Sequence<Attachment> = PreviewAttachments.choices.asSequence(),
 ) : PreviewParameterProvider<Attachment>
 
-@Immutable
-internal class PreviewMetadata(
-    override val seenAt: Date? = null,
-    override val readAt: Date? = null,
-    override val status: MessageStatus = SENDING,
-) : MessageMetadata
-
 @Composable
 internal fun PreviewMessageItemBase(
     message: UiMessage,
@@ -229,14 +121,21 @@ internal fun PreviewMessageItemBase(
 }
 
 @Stable
+@Suppress(
+    "LongParameterList" // Preview function
+)
 internal fun previewUiState(
     messages: List<Message> = emptyList(),
     isMultiThreaded: Boolean = true,
     hasQuestions: Boolean = true,
+    isArchived: Boolean = false,
+    positionInQueue: Int? = null,
+    isLiveChat: Boolean = true,
 ) = ConversationUiState(
     threadName = flowOf("Preview Thread"),
     sdkMessages = MutableStateFlow(messages),
     typingIndicator = flowOf(true),
+    positionInQueue = flowOf(positionInQueue),
     sendMessage = {},
     loadMore = {},
     canLoadMore = MutableStateFlow(true),
@@ -247,4 +146,6 @@ internal fun previewUiState(
     onShare = {},
     isMultiThreaded = isMultiThreaded,
     hasQuestions = hasQuestions,
+    isArchived = MutableStateFlow(isArchived),
+    isLiveChat = isLiveChat,
 )

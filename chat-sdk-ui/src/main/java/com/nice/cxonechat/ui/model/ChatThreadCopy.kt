@@ -34,6 +34,8 @@ internal data class ChatThreadCopy(
     override val threadAgent: Agent?,
     override val threadName: String?,
     override val threadState: ChatThreadState,
+    override val positionInQueue: Int?,
+    override val hasOnlineAgent: Boolean,
 ) : ChatThread() {
     companion object {
         @Suppress("LongParameterList")
@@ -46,6 +48,8 @@ internal data class ChatThreadCopy(
             threadAgent: Agent? = this.threadAgent,
             threadName: String? = this.threadName,
             threadState: ChatThreadState = this.threadState,
+            positionInQueue: Int? = this.positionInQueue,
+            hasOnlineAgent: Boolean = this.hasOnlineAgent,
         ): ChatThreadCopy = ChatThreadCopy(
             canAddMoreMessages = canAddMoreMessages,
             fields = fields,
@@ -55,6 +59,8 @@ internal data class ChatThreadCopy(
             threadAgent = threadAgent,
             threadName = threadName,
             threadState = threadState,
+            positionInQueue = positionInQueue,
+            hasOnlineAgent = hasOnlineAgent,
         )
     }
 }

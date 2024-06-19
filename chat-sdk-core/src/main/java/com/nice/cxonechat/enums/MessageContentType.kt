@@ -24,8 +24,4 @@ internal enum class MessageContentType(val value: String) {
     /** The message is only sending text. */
     @SerializedName("TEXT")
     Text("TEXT"),
-
-    /** The message is sending a custom plugin to be displayed. */
-    @SerializedName("PLUGIN")
-    Plugin("PLUGIN")
 }

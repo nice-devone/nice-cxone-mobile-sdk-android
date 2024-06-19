@@ -16,18 +16,20 @@
 package com.nice.cxonechat
 
 import android.content.Context
-import com.nice.cxonechat.ChatState.CONNECTED
-import com.nice.cxonechat.ChatState.CONNECTING
-import com.nice.cxonechat.ChatState.CONNECTION_LOST
-import com.nice.cxonechat.ChatState.INITIAL
-import com.nice.cxonechat.ChatState.PREPARED
-import com.nice.cxonechat.ChatState.PREPARING
-import com.nice.cxonechat.ChatState.READY
+import com.nice.cxonechat.ChatState.Connected
+import com.nice.cxonechat.ChatState.Connecting
+import com.nice.cxonechat.ChatState.ConnectionLost
+import com.nice.cxonechat.ChatState.Initial
+import com.nice.cxonechat.ChatState.Offline
+import com.nice.cxonechat.ChatState.Prepared
+import com.nice.cxonechat.ChatState.Preparing
+import com.nice.cxonechat.ChatState.Ready
 import com.nice.cxonechat.exceptions.InvalidStateException
 import com.nice.cxonechat.exceptions.RuntimeChatException
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerNoop
 import com.nice.cxonechat.log.LoggerScope
+import com.nice.cxonechat.log.debug
 import com.nice.cxonechat.log.scope
 import com.nice.cxonechat.log.warning
 import com.nice.cxonechat.state.containsField
@@ -171,7 +173,7 @@ class ChatInstanceProvider private constructor(
         val cancellable: Cancellable? = null,
     )
 
-    private var state = ChatStateInternal(INITIAL)
+    private var state = ChatStateInternal(Initial)
 
     /** Current chat state. */
     val chatState: ChatState
@@ -219,12 +221,12 @@ class ChatInstanceProvider private constructor(
     @Throws(InvalidStateException::class)
     @JvmOverloads
     fun prepare(context: Context, newConfig: SocketFactoryConfiguration? = null) = scope("prepare") {
-        if (state.state == PREPARED) {
+        if (state.state == Prepared) {
             warning("Ignoring prepare in PREPARED state")
             return@scope
         }
 
-        assertState(INITIAL) {
+        assertState(Initial) {
             "ChatInstanceProvider.prepare called in an incorrect state ($chatState). " +
                     "It is only valid from the INITIAL state."
         }
@@ -255,19 +257,19 @@ class ChatInstanceProvider private constructor(
             .build { result: Result<Chat> ->
                 result.onSuccess { newChat ->
                     chat = newChat
-                    advanceState(PREPARED)
+                    advanceState(Prepared)
                     deviceToken?.let { chat?.setDeviceToken(it) }
                 }.onFailure {
                     warning("Failed to prepare Chat", it)
                     chat = null
-                    advanceState(INITIAL)
+                    advanceState(Initial)
                 }
             }
             .also {
                 // if build is synchronous, the chat will have already advanced
                 // to PREPARED, so just skip PREPARING.
                 if (it != Cancellable.noop) {
-                    advanceState(PREPARING, it)
+                    advanceState(Preparing, it)
                 }
             }
     }
@@ -280,14 +282,14 @@ class ChatInstanceProvider private constructor(
      */
     @Throws(InvalidStateException::class)
     fun connect() = scope("connect") {
-        if (state.state == CONNECTED) {
+        if (state.state == Connected) {
             warning("Ignoring connect in CONNECTED state")
             return@scope
         }
 
-        assertState({ setOf(PREPARED, CONNECTION_LOST).contains(it) }) {
+        assertState({ setOf(Prepared, ConnectionLost).contains(it) }) {
             "ChatInstanceProvider.connect called in invalid state ($chatState). " +
-                    "It is only allowed when the connection is either PREPARED or LOST_CONNECTION."
+                    "It is only allowed when the connection is either PREPARED, LOST_CONNECTION, or OFFLINE."
         }
 
         doConnect()
@@ -299,7 +301,7 @@ class ChatInstanceProvider private constructor(
 
             if (cancellable != Cancellable.noop) {
                 // if connect is synchronous skip CONNECTING state
-                advanceState(CONNECTING, cancellable = cancellable, cancel = false)
+                advanceState(Connecting, cancellable = cancellable, cancel = false)
             }
         }
     }
@@ -315,7 +317,7 @@ class ChatInstanceProvider private constructor(
         replaceWith = ReplaceWith("connect()")
     )
     fun reconnect() {
-        assertState(CONNECTION_LOST) {
+        assertState(ConnectionLost) {
             "ChatInstanceProvider.reconnect called in invalid state ($chatState). " +
                     "It is only allowed after when the connection has been closed by the server. "
         }
@@ -328,12 +330,12 @@ class ChatInstanceProvider private constructor(
      *
      * After `close()` is called, only usage of [Chat.events] is allowed.
      *
-     * The [state] is moved to [PREPARED].
+     * The [state] is moved to [Prepared].
      */
     fun close() {
         chat?.close()
 
-        advanceState(PREPARED)
+        advanceState(Prepared)
     }
 
     /**
@@ -342,13 +344,14 @@ class ChatInstanceProvider private constructor(
      */
     fun cancel() {
         when (chatState) {
-            INITIAL -> Unit
-            PREPARING -> advanceState(INITIAL)
-            PREPARED -> Unit
-            CONNECTING -> advanceState(PREPARED)
-            CONNECTED -> Unit
-            CONNECTION_LOST -> advanceState(PREPARED)
-            READY -> Unit
+            Initial -> Unit
+            Preparing -> advanceState(Initial)
+            Prepared -> Unit
+            Connecting -> advanceState(Prepared)
+            Connected -> Unit
+            ConnectionLost -> advanceState(Prepared)
+            Offline -> advanceState(Prepared)
+            Ready -> Unit
         }
     }
 
@@ -363,7 +366,7 @@ class ChatInstanceProvider private constructor(
             chat?.signOut()
             chat = null
 
-            advanceState(INITIAL)
+            advanceState(Initial)
         }
     }
 
@@ -451,12 +454,13 @@ class ChatInstanceProvider private constructor(
 
     @JvmSynthetic
     internal fun advanceState(next: ChatState, cancellable: Cancellable? = null, cancel: Boolean = true) {
+        debug("advanceState: $chatState -> $next")
         if (chatState != next) {
             if (cancel) {
                 state.cancellable?.cancel()
             }
 
-            if (next in setOf(PREPARING, CONNECTING)) {
+            if (next in setOf(Preparing, Connecting)) {
                 assert(cancellable != null) {
                     "Internal error: advanceState($next) requires a cancellable."
                 }
@@ -491,15 +495,19 @@ class ChatInstanceProvider private constructor(
     //
 
     override fun onConnected() {
-        advanceState(CONNECTED)
+        advanceState(Connected)
     }
 
     override fun onReady() {
-        advanceState(READY)
+        if (requireNotNull(chat).isChatAvailable) {
+            advanceState(Ready)
+        } else {
+            advanceState(Offline)
+        }
     }
 
     override fun onUnexpectedDisconnect() {
-        advanceState(CONNECTION_LOST)
+        advanceState(ConnectionLost)
     }
 
     override fun onChatRuntimeException(exception: RuntimeChatException) {

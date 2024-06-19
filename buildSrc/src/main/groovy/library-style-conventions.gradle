@@ -27,7 +27,7 @@ detekt {
 }
 
 dependencies {
-    detektPlugins "io.gitlab.arturbosch.detekt:detekt-formatting:$detektVersion"
-    detektPlugins "io.gitlab.arturbosch.detekt:detekt-rules-libraries:$detektVersion"
+    detektPlugins libs.detekt.formatting
+    detektPlugins libs.detekt.rules.libraries
     detektPlugins project(":cxone-detekt-rules")
 }

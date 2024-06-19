@@ -6,8 +6,10 @@ import com.nice.cxonechat.internal.Threading
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.state.Environment
 import com.nice.cxonechat.storage.ValueStorage
+import okhttp3.OkHttpClient
 
 internal class ChatEntrailsMock(
+    override val sharedClient: OkHttpClient,
     override val storage: ValueStorage,
     override val service: RemoteService,
     override val logger: Logger,

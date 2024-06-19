@@ -94,7 +94,7 @@ internal interface ValueStorage {
      * Persisted deviceToken.
      * Default value is empty string.
      */
-    var deviceToken: String
+    var deviceToken: String?
 
     fun clearStorage()
 }

@@ -21,8 +21,14 @@ import androidx.lifecycle.viewModelScope
 import com.nice.cxonechat.Chat
 import com.nice.cxonechat.ChatEventHandlerActions.chatWindowOpen
 import com.nice.cxonechat.ChatInstanceProvider
-import com.nice.cxonechat.ChatMode.MULTI_THREAD
-import com.nice.cxonechat.ChatMode.SINGLE_THREAD
+import com.nice.cxonechat.ChatMode
+import com.nice.cxonechat.ChatMode.LiveChat
+import com.nice.cxonechat.ChatMode.MultiThread
+import com.nice.cxonechat.ChatMode.SingleThread
+import com.nice.cxonechat.ChatState.Offline
+import com.nice.cxonechat.log.Logger
+import com.nice.cxonechat.log.LoggerScope
+import com.nice.cxonechat.log.error
 import com.nice.cxonechat.prechat.PreChatSurvey
 import com.nice.cxonechat.ui.data.flow
 import com.nice.cxonechat.ui.domain.SelectedThreadRepository
@@ -47,6 +53,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.launch
 import org.koin.android.annotation.KoinViewModel
+import com.nice.cxonechat.ui.main.ChatViewModel.NavigationState.Offline as NavigationOffline
 
 @Suppress("TooManyFunctions")
 @KoinViewModel
@@ -54,7 +61,8 @@ internal class ChatViewModel(
     private val valueStorage: ValueStorage,
     private val selectedThreadRepository: SelectedThreadRepository,
     private val chatProvider: ChatInstanceProvider,
-) : ViewModel() {
+    private val logger: Logger,
+) : ViewModel(), LoggerScope by LoggerScope<ChatViewModel>(logger) {
     private val chat: Chat
         get() = requireNotNull(chatProvider.chat)
 
@@ -72,8 +80,8 @@ internal class ChatViewModel(
     private val showDialog = MutableStateFlow<Dialogs>(None)
     val dialogShown = showDialog.asStateFlow()
 
-    val isMultiThreadEnabled: Boolean
-        get() = chat.chatMode == MULTI_THREAD
+    val chatMode: ChatMode
+        get() = chat.chatMode
 
     val state
         get() = internalState
@@ -89,9 +97,9 @@ internal class ChatViewModel(
         internalState.value = NavigationFinished
     }
 
-    internal fun dismissThreadCreationFailure() {
+    internal fun refreshThreadState(reset: Boolean = false) {
         viewModelScope.launch {
-            internalState.value = resolveCurrentState()
+            internalState.value = resolveCurrentState(reset)
         }
     }
 
@@ -121,12 +129,17 @@ internal class ChatViewModel(
         }
     }
 
-    private suspend fun resolveCurrentState(): State {
-        if (internalState.value == NavigationFinished) return NavigationFinished
+    private suspend fun resolveCurrentState(reset: Boolean = false): State {
+        if (internalState.value === NavigationFinished && !reset) return NavigationFinished
 
-        return when (chat.chatMode) {
-            MULTI_THREAD -> MultiThreadEnabled
-            SINGLE_THREAD -> singleThreadChatState()
+        return when {
+            chatProvider.chatState === Offline -> NavigationOffline
+            chat.chatMode === MultiThread -> MultiThreadEnabled
+            listOf(SingleThread, LiveChat).contains(chat.chatMode) -> singleThreadChatState()
+            else -> {
+                error("Invalid chatMode/chatState combination: ${chat.chatMode}/${chatProvider.chatState}")
+                NavigationOffline
+            }
         }
     }
 
@@ -154,10 +167,14 @@ internal class ChatViewModel(
         val flow = threads.flow
         threads.refresh()
 
-        return flow.first().firstOrNull()?.let {
-            selectedThreadRepository.chatThreadHandler = threads.thread(it)
-            true
-        } ?: false
+        return flow.first()
+            .filterNot { LiveChat === chatMode && !it.canAddMoreMessages }
+            .firstOrNull()
+            ?.let {
+                selectedThreadRepository.chatThreadHandler = threads.thread(it)
+                true
+            }
+            ?: false
     }
 
     private suspend fun setCustomFields() {
@@ -196,6 +213,11 @@ internal class ChatViewModel(
      * Definition of navigation states for the view model.
      */
     sealed interface NavigationState : State {
+        /**
+         * Navigtation should display an offline indication.
+         */
+        data object Offline : NavigationState
+
         /**
          * Navigation should be directed to multi-thread flow.
          */

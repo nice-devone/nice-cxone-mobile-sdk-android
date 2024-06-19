@@ -18,5 +18,5 @@ plugins {
 }
 
 dependencies {
-    dokkaHtmlPlugin "org.jetbrains.dokka:kotlin-as-java-plugin:$dokkaVersion"
+    dokkaHtmlPlugin libs.dokka
 }

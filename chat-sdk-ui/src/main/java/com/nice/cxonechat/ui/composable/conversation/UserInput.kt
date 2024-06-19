@@ -42,11 +42,12 @@ import androidx.compose.material.LocalTextStyle
 import androidx.compose.material.OutlinedButton
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons.AutoMirrored
 import androidx.compose.material.icons.Icons.Outlined
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.MicNone
-import androidx.compose.material.icons.outlined.Send
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -76,9 +77,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.message.OutboundMessage
 import com.nice.cxonechat.ui.R.string
-import com.nice.cxonechat.ui.composable.conversation.InputSelector.ATTACHMENT
-import com.nice.cxonechat.ui.composable.conversation.InputSelector.AUDIO
-import com.nice.cxonechat.ui.composable.conversation.InputSelector.NONE
+import com.nice.cxonechat.ui.composable.conversation.InputSelector.Attachment
+import com.nice.cxonechat.ui.composable.conversation.InputSelector.Audio
+import com.nice.cxonechat.ui.composable.conversation.InputSelector.None
 import com.nice.cxonechat.ui.composable.conversation.model.ConversationUiState
 import com.nice.cxonechat.ui.composable.generic.AttachmentPickerDialog
 import com.nice.cxonechat.ui.composable.generic.AudioRecordingDialog
@@ -92,9 +93,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private enum class InputSelector {
-    NONE,
-    ATTACHMENT,
-    AUDIO
+    None,
+    Attachment,
+    Audio
 }
 
 /**
@@ -118,16 +119,16 @@ private enum class InputSelector {
 internal fun UserInput(
     conversationUiState: ConversationUiState,
     audioRecordingUiState: AudioRecordingUiState,
-    onAttachmentTypeSelection: (mimeType: String) -> Unit,
+    onAttachmentTypeSelection: (mimeType: Collection<String>) -> Unit,
     modifier: Modifier = Modifier,
     resetScroll: () -> Unit = {},
 ) {
     val isAudioRecording = audioRecordingUiState.isRecordingFlow.collectAsState().value
-    var currentInputSelector by rememberSaveable { mutableStateOf(NONE) }
-    val dismissKeyboard = { currentInputSelector = NONE }
+    var currentInputSelector by rememberSaveable { mutableStateOf(None) }
+    val dismissKeyboard = { currentInputSelector = None }
 
     // Intercept back navigation if there's an InputSelector visible
-    if (currentInputSelector != NONE) {
+    if (currentInputSelector != None) {
         BackHandler(onBack = dismissKeyboard)
     }
 
@@ -189,11 +190,11 @@ internal fun UserInput(
                             }
                         },
                         // Only show the keyboard if there's no input selector and text field has focus
-                        keyboardShown = currentInputSelector == NONE && textFieldFocusState,
+                        keyboardShown = currentInputSelector == None && textFieldFocusState,
                         // Close extended selector if text field receives focus
                         onTextFieldFocused = { focused ->
                             if (focused) {
-                                currentInputSelector = NONE
+                                currentInputSelector = None
                                 resetScroll()
                             } else {
                                 signalStoppedTyping()
@@ -333,8 +334,8 @@ private fun UserInputSelector(
         ChatTheme.SelectableIconButton(
             icon = Outlined.Add,
             description = stringResource(string.title_attachment_picker),
-            selected = currentInputSelector == ATTACHMENT
-        ) { onSelectorChange(ATTACHMENT) }
+            selected = currentInputSelector == Attachment
+        ) { onSelectorChange(Attachment) }
         SmallSpacer()
         AudioRecorderButton(isAudioRecording, onAudioRecordToggle, onSelectorChange)
         val border = if (!sendMessageEnabled) {
@@ -369,9 +370,9 @@ private fun AudioRecorderButton(
             val toggleChangeResult = onAudioRecordToggle()
             if (!toggleChangeResult) context.toastAudioRecordToggleFailure(isAudioRecording)
             if (!toggle && isAudioRecording && toggleChangeResult) {
-                onSelectorChange(AUDIO)
+                onSelectorChange(Audio)
             } else {
-                onSelectorChange(NONE) // Failed to start audio recording
+                onSelectorChange(None) // Failed to start audio recording
             }
         }
     }
@@ -393,7 +394,7 @@ private fun SendButton(
         contentPadding = PaddingValues(8.dp)
     ) {
         Icon(
-            imageVector = Outlined.Send,
+            imageVector = AutoMirrored.Outlined.Send,
             contentDescription = stringResource(string.text_send)
         )
     }
@@ -428,21 +429,21 @@ private fun ChatTheme.InputSelectorToggleButton(
 @Composable
 private fun SelectorExpanded(
     audioRecordingUiState: AudioRecordingUiState,
-    onAttachmentTypeSelection: (mimeType: String) -> Unit,
+    onAttachmentTypeSelection: (mimeType: Collection<String>) -> Unit,
     currentSelector: InputSelector,
     onCloseRequested: () -> Unit,
     onSelectorChange: (InputSelector) -> Unit,
 ) {
-    if (currentSelector == NONE) return
+    if (currentSelector == None) return
 
     Surface(elevation = 8.dp) {
         when (currentSelector) {
-            ATTACHMENT -> AttachmentPickerDialog(onCloseRequested, onAttachmentTypeSelection)
-            AUDIO -> AudioRecordingDialog(
+            Attachment -> AttachmentPickerDialog(onCloseRequested, onAttachmentTypeSelection)
+            Audio -> AudioRecordingDialog(
                 audioRecordingUiState = audioRecordingUiState.copy(onDismiss = {
                     onCloseRequested()
                     audioRecordingUiState.onDismiss()
-                    onSelectorChange(NONE)
+                    onSelectorChange(None)
                 })
             )
 

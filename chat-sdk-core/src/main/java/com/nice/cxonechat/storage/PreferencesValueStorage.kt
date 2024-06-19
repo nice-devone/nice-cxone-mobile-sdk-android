@@ -18,6 +18,7 @@ package com.nice.cxonechat.storage
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import androidx.security.crypto.EncryptedSharedPreferences
 import com.nice.cxonechat.internal.serializer.Default
 import com.nice.cxonechat.storage.ValueStorage.VisitDetails
 import java.util.Date
@@ -82,16 +83,26 @@ internal class PreferencesValueStorage(private val sharedPreferences: SharedPref
             putString(PREF_WELCOME_MESSAGE, value)
         }
 
-    override var deviceToken: String
-        get() = sharedPreferences.getStringOrEmpty(PREF_DEVICE_TOKEN)
+    override var deviceToken: String?
+        get() = sharedPreferences.getString(PREF_DEVICE_TOKEN, null)
         set(value) = sharedPreferences.edit {
             putString(PREF_DEVICE_TOKEN, value)
         }
 
-    constructor(context: Context) : this(context.getSharedPreferences("$PREFIX.storage", Context.MODE_PRIVATE))
+    constructor(context: Context) : this(
+        EncryptedSharedPreferences.create(
+            PREFERENCE_FILE,
+            PREFERENCE_KEY_ALIAS,
+            context,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+        )
+    )
 
     override fun clearStorage() {
-        sharedPreferences.edit()?.clear()?.apply()
+        sharedPreferences.edit {
+            clear()
+        }
     }
 
     private fun SharedPreferences.getStringOrEmpty(
@@ -104,13 +115,14 @@ internal class PreferencesValueStorage(private val sharedPreferences: SharedPref
     ): UUID? = getString(key, defValue)?.let(UUID::fromString)
 
     private companion object {
-        private const val PREFIX = "com.nice.cxonechat"
-        private const val PREF_AUTH_TOKEN: String = "$PREFIX.share_sdk_auth_token"
-        private const val PREF_AUTH_TOKEN_EXP_DATE: String = "$PREFIX.share_sdk_auth_token_exp_date"
-        private const val PREF_VISITOR_ID: String = "$PREFIX.share_visitor_id"
-        private const val PREF_CUSTOMER_ID: String = "$PREFIX.share_customer_id"
-        private const val PREF_VISIT_DETAILS: String = "$PREFIX.share_visit_details"
-        private const val PREF_WELCOME_MESSAGE: String = "$PREFIX.share_welcome_message"
-        private const val PREF_DEVICE_TOKEN: String = "$PREFIX.device_token"
+        private const val PREFERENCE_FILE = "com.nice.cxonechat.secure"
+        private const val PREFERENCE_KEY_ALIAS = "com.nice.cxonechat.secure"
+        private const val PREF_AUTH_TOKEN: String = "share_sdk_auth_token"
+        private const val PREF_AUTH_TOKEN_EXP_DATE: String = "share_sdk_auth_token_exp_date"
+        private const val PREF_VISITOR_ID: String = "share_visitor_id"
+        private const val PREF_CUSTOMER_ID: String = "share_customer_id"
+        private const val PREF_VISIT_DETAILS: String = "share_visit_details"
+        private const val PREF_WELCOME_MESSAGE: String = "share_welcome_message"
+        private const val PREF_DEVICE_TOKEN: String = "device_token"
     }
 }

@@ -27,19 +27,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.nice.cxonechat.message.Attachment
-import com.nice.cxonechat.message.Message.QuickReplies
-import com.nice.cxonechat.message.MessageAuthor
-import com.nice.cxonechat.message.MessageDirection
-import com.nice.cxonechat.message.MessageDirection.ToClient
-import com.nice.cxonechat.message.MessageMetadata
 import com.nice.cxonechat.ui.composable.conversation.model.Action
 import com.nice.cxonechat.ui.composable.conversation.model.Message.QuickReply
+import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
-import java.util.Date
-import java.util.UUID
-import com.nice.cxonechat.message.Action as SdkAction
 
 @Composable
 internal fun QuickReplyMessage(
@@ -64,24 +56,7 @@ internal fun QuickReplyMessage(
 @Composable
 private fun QuickReplyMessagePreview() {
     PreviewMessageItemBase(
-        message = QuickReply(
-            message = object : QuickReplies() {
-                override val title: String = "This is a quick reply card"
-                override val actions: Iterable<SdkAction> = listOf(
-                    PreviewReplyButton("Some text"),
-                    PreviewReplyButton("Random cat", "https://http.cat/203")
-                )
-                override val id: UUID = UUID.randomUUID()
-                override val threadId: UUID = UUID.randomUUID()
-                override val createdAt: Date = Date()
-                override val direction: MessageDirection = ToClient
-                override val metadata: MessageMetadata = PreviewMetadata()
-                override val author: MessageAuthor? = PreviewAuthor("first", "last")
-                override val attachments: Iterable<Attachment> = emptyList()
-                override val fallbackText: String = "Fallback"
-            },
-            sendMessage = {}
-        ),
+        message = QuickReply(PreviewMessageProvider.QuickReply()) {},
         showSender = true,
     )
 }

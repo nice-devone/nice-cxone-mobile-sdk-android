@@ -30,8 +30,12 @@ import com.nice.cxonechat.event.AnalyticsEvent
 import com.nice.cxonechat.event.AnalyticsEvent.Destination
 import com.nice.cxonechat.internal.RemoteServiceBuilder
 import com.nice.cxonechat.internal.model.AttachmentUploadModel
+import com.nice.cxonechat.internal.model.AvailabilityStatus.Offline
+import com.nice.cxonechat.internal.model.AvailabilityStatus.Online
+import com.nice.cxonechat.internal.model.ChannelAvailability
 import com.nice.cxonechat.model.makeConnection
 import com.nice.cxonechat.tool.MockInterceptor
+import io.kotest.matchers.shouldBe
 import okhttp3.Protocol.HTTP_2
 import okhttp3.RequestBody
 import okhttp3.ResponseBody.Companion.toResponseBody
@@ -69,6 +73,42 @@ internal class RemoteServiceTest {
                 }.toString()
             }
         }
+
+    @Test
+    fun getChannelAvailabilityOnline() {
+        val client = builder.build()
+
+        recorder.addResponse {
+            code(200)
+            message("")
+            body("""{"status":"online"}""".toResponseBody())
+        }
+
+        client.getChannelAvailability(brandId = "BrandId", channelId = "ChannelId").execute().let { response ->
+            response.body() shouldBe ChannelAvailability(status = Online)
+        }
+    }
+
+    @Test
+    fun getChannelAvailabilityOffline() {
+        val client = builder.build()
+
+        recorder.addResponse {
+            code(200)
+            message("")
+            body("""{"status":"offline"}""".toResponseBody())
+        }
+
+        client.getChannelAvailability(brandId = "BrandId", channelId = "ChannelId").execute().let { response ->
+            response.body() shouldBe ChannelAvailability(status = Offline)
+        }
+    }
+
+    @Test
+    fun testAvailabilityStatus() {
+        Online.isOnline shouldBe true
+        Offline.isOnline shouldBe false
+    }
 
     @Test
     fun postEventContents() {

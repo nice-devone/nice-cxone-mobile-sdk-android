@@ -1,26 +1,2 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="6" by="lint 8.1.2" type="baseline" client="gradle" dependencies="false" name="AGP (8.1.2)" variant="all" version="8.1.2">
-
-    <issue
-        id="SyntheticAccessor"
-        message="Access to `private` method `getViewModel` of class `StoreActivity` requires synthetic accessor"
-        errorLine1="                        viewModel.chatSettingsHandler.setAuthorization(ChatAuthorization(codeVerifier, accessToken))"
-        errorLine2="                        ~~~~~~~~~">
-        <location
-            file="src/main/java/com/nice/cxonechat/sample/StoreActivity.kt"
-            line="177"
-            column="25"/>
-    </issue>
-
-    <issue
-        id="SyntheticAccessor"
-        message="Access to `private` method `onConnected` of class `StoreViewModel` requires synthetic accessor"
-        errorLine1="                ChatState.PREPARED -> onConnected()"
-        errorLine2="                                      ~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/nice/cxonechat/sample/viewModel/StoreViewModel.kt"
-            line="214"
-            column="39"/>
-    </issue>
-
-</issues>
+<issues format="6" by="lint 8.1.2" type="baseline" client="gradle" dependencies="false" name="AGP (8.1.2)" variant="all" version="8.1.2"/>

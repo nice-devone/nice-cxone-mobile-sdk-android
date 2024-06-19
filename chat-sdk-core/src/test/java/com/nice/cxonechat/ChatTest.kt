@@ -17,16 +17,18 @@
 
 package com.nice.cxonechat
 
-import com.nice.cxonechat.ChatMode.MULTI_THREAD
-import com.nice.cxonechat.ChatMode.SINGLE_THREAD
+import com.nice.cxonechat.ChatMode.LiveChat
+import com.nice.cxonechat.ChatMode.MultiThread
+import com.nice.cxonechat.ChatMode.SingleThread
 import com.nice.cxonechat.enums.ErrorType.ConsumerReconnectionFailed
 import com.nice.cxonechat.enums.ErrorType.TokenRefreshingFailed
 import com.nice.cxonechat.exceptions.RuntimeChatException
+import com.nice.cxonechat.internal.ChatImpl
 import com.nice.cxonechat.internal.model.ChannelConfiguration
+import com.nice.cxonechat.internal.model.ConfigurationInternal
 import com.nice.cxonechat.internal.model.Visitor
 import com.nice.cxonechat.internal.socket.WebSocketSpec
 import com.nice.cxonechat.server.ServerResponse
-import com.nice.cxonechat.state.Configuration
 import com.nice.cxonechat.tool.nextString
 import io.mockk.confirmVerified
 import io.mockk.every
@@ -181,27 +183,46 @@ internal class ChatTest : AbstractChatTest() {
 
     @Test
     fun chatMode_multithreaded() {
-        val mockConfiguration: Configuration = mockk {
+        val mockConfiguration: ConfigurationInternal = mockk {
             every { hasMultipleThreadsPerEndUser } returns true
+            every { isLiveChat } returns false
+            every { isOnline } returns true
         }
-        val mockChat: Chat = mockk {
+        val mockChat: ChatImpl = mockk {
             every { configuration } returns mockConfiguration
             every { chatMode } answers { callOriginal() }
         }
 
-        assertEquals(mockChat.chatMode, MULTI_THREAD)
+        assertEquals(mockChat.chatMode, MultiThread)
     }
 
     @Test
     fun chatMode_singlethreaded() {
-        val mockConfiguration: Configuration = mockk {
+        val mockConfiguration: ConfigurationInternal = mockk {
             every { hasMultipleThreadsPerEndUser } returns false
+            every { isLiveChat } returns false
+            every { isOnline } returns true
         }
-        val mockChat: Chat = mockk {
+        val mockChat: ChatImpl = mockk {
             every { configuration } returns mockConfiguration
             every { chatMode } answers { callOriginal() }
         }
 
-        assertEquals(mockChat.chatMode, SINGLE_THREAD)
+        assertEquals(mockChat.chatMode, SingleThread)
+    }
+
+    @Test
+    fun chatMode_liveChat() {
+        val mockConfiguration: ConfigurationInternal = mockk {
+            every { hasMultipleThreadsPerEndUser } returns false
+            every { isLiveChat } returns true
+            every { isOnline } returns true
+        }
+        val mockChat: ChatImpl = mockk {
+            every { configuration } returns mockConfiguration
+            every { chatMode } answers { callOriginal() }
+        }
+
+        assertEquals(mockChat.chatMode, LiveChat)
     }
 }

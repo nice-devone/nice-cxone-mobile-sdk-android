@@ -51,27 +51,27 @@ internal data class EventCaseStatusChanged(
 
     internal enum class CaseStatus {
         @SerializedName("new")
-        NEW,
+        New,
 
         @SerializedName("open")
-        OPEN,
+        Open,
 
         @SerializedName("pending")
-        PENDING,
+        Pending,
 
         @SerializedName("escalated")
-        ESCALATED,
+        Escalated,
 
         @SerializedName("resolved")
-        RESOLVED,
+        Resolved,
 
         /**
          * This state is terminal.
          */
         @SerializedName("closed")
-        CLOSED,
+        Closed,
 
         @SerializedName("trashed")
-        TRASHED
+        Trashed
     }
 }

@@ -44,14 +44,14 @@
     <string-array name="attachment_type_labels">
         <item>Pick Image</item>
         <item>Pick Video</item>
-        <item>Pick PDF Document</item>
+        <item>Pick Document</item>
         <item>Pick Audio</item>
     </string-array>
     <string-array name="attachment_type_mimetypes">
-        <item>image/*</item>
-        <item>video/*</item>
-        <item>application/pdf</item>
-        <item>audio/*</item>
+        <item>image(\/.+)?</item>
+        <item>video(\/.+)?</item>
+        <item>application(\/.+)?</item>
+        <item>audio(\/.+)?</item>
     </string-array>
 
     <string name="warning_thread_creation_forbidden">Chat configuration only allows usage of one thread. Please use existing thread to continue.</string>
@@ -132,4 +132,25 @@
     <string name="select_items">Select Items</string>
     <string name="preparing">Preparing</string>
     <string name="prepare_attachments_failure">Unable to prepare attachments for sharing, please try again later</string>
+    <string name="offline">Offline</string>
+    <string name="offline_banner">We are offline.</string>
+    <string name="offline_message">Please try again later.</string>
+    <string name="position_in_queue_next">All agents are currently busy.\nYou are next in queue.</string>
+    <string name="position_in_queue_ordinal">All agents are currently busy.\nYou are {0,ordinal} in queue.</string>
+    <string name="position_in_queue_cardinal">All agents are currently busy.\nYou are %1$d in queue.</string>
+    <string name="label_thread_archived">This conversation was archived</string>
+
+    <string name="attachment_upload_failure">Attachment upload failure</string>
+    <string name="attachment_not_supported">Selected attachment type is not supported for upload by this application.</string>
+    <string name="attachment_too_large">Selected attachment is too large. Current maximum size is %1$d MB.</string>
+    <string name="attachment_read_error">Unable to read selected attachment.</string>
+
+    <string name="action_end_conversation">End conversation</string>
+
+    <string name="livechat_conversation_closed_message">You have chatted with:</string>
+    <string name="livechat_new_chat">Start a new chat</string>
+    <string name="livechat_show_transcript">Back to conversation</string>
+    <string name="livechat_close_chat">Close the chat</string>
+    <string name="label_livechat_thread_archived">This conversation was closed.</string>
+    <string name="livechat_conversation_options">Conversation options</string>
 </resources>

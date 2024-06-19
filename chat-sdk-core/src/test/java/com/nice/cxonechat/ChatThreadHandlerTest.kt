@@ -20,6 +20,7 @@
 
 package com.nice.cxonechat
 
+import com.nice.cxonechat.exceptions.InvalidStateException
 import com.nice.cxonechat.internal.ChatWithParameters
 import com.nice.cxonechat.internal.copy.AgentCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
@@ -29,7 +30,6 @@ import com.nice.cxonechat.internal.model.ChatThreadMutable.Companion.asMutable
 import com.nice.cxonechat.internal.model.CustomFieldInternal
 import com.nice.cxonechat.internal.model.CustomFieldPolyType.Text
 import com.nice.cxonechat.internal.model.MessageModel
-import com.nice.cxonechat.internal.model.network.EventCaseStatusChanged.CaseStatus.CLOSED
 import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.model.makeAgent
 import com.nice.cxonechat.model.makeChatThread
@@ -48,7 +48,6 @@ import org.junit.Test
 import java.util.Date
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
@@ -91,6 +90,28 @@ internal class ChatThreadHandlerTest : AbstractChatTest() {
         val name = "newName!"
         assertSendText(ServerRequest.UpdateThread(connection, chatThread.asCopyable().copy(threadName = name)), id.toString()) {
             thread.setName(name)
+        }
+    }
+
+    @Test(expected = InvalidStateException::class)
+    fun endContactThrows() {
+        assertSendsNothing {
+            thread.endContact()
+        }
+    }
+
+    @Test
+    fun endContactSendsExpectedMessage() {
+        isLiveChat = true
+
+        val chat = buildChat()
+
+        val threads = chat.threads()
+        val currentThread = chatThread.asCopyable().copy(contactId = TestContactId)
+        val thread = threads.thread(currentThread)
+
+        assertSendText(ServerRequest.EndContact(connection, currentThread)) {
+            thread.endContact()
         }
     }
 
@@ -397,18 +418,6 @@ internal class ChatThreadHandlerTest : AbstractChatTest() {
         val expected = chatThread.asCopyable().copy(threadAgent = threadAgent)
         val actual = testCallback(::get) {
             sendServerMessage(ServerResponse.TypingEnded(expected, agent))
-        }
-        assertEquals(expected, actual)
-    }
-
-    @Test
-    fun get_observes_case_closed() {
-        val expected = chatThread.asCopyable().copy(
-            canAddMoreMessages = false
-        )
-        assertNotEquals<ChatThread>(chatThread, expected)
-        val actual = testCallback(::get) {
-            sendServerMessage(ServerResponse.CaseStatusChanged(chatThread.snapshot(), CLOSED))
         }
         assertEquals(expected, actual)
     }

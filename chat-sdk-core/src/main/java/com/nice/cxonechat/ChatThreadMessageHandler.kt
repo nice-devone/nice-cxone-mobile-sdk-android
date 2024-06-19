@@ -95,6 +95,8 @@ interface ChatThreadMessageHandler {
      * @param listener listener to be notified when the message has been sent.
      * @throws InvalidParameterException if the message is empty, ie., has no attachment,
      * message, or postback.
+     * @throws IllegalStateException in case the [com.nice.cxonechat.thread.ChatThread.canAddMoreMessages] is false
+     * and application tries to send a new message to such thread.
      */
     fun send(message: OutboundMessage, listener: OnMessageTransferListener? = null)
 

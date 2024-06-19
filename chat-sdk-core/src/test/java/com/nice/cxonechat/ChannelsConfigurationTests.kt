@@ -1,42 +1,105 @@
 package com.nice.cxonechat
 
 import com.google.gson.Gson
+import com.google.gson.JsonParser
+import com.nice.cxonechat.internal.model.AvailabilityStatus.Offline
+import com.nice.cxonechat.internal.model.AvailabilityStatus.Online
 import com.nice.cxonechat.internal.model.ChannelConfiguration
-import com.nice.cxonechat.internal.model.ConfigurationInternal
 import com.nice.cxonechat.internal.serializer.Default
+import com.nice.cxonechat.state.Configuration.Feature.LiveChatLogoHidden
+import com.nice.cxonechat.state.Configuration.Feature.ProactiveChatEnabled
+import com.nice.cxonechat.state.Configuration.Feature.RecoverLiveChatDoesNotFail
 import com.nice.cxonechat.state.FieldDefinition.Hierarchy
+import junit.framework.TestCase.assertTrue
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 
 internal class ChannelsConfigurationTests {
     private val channelConfigurationData: String by lazy {
         requireNotNull(ResourceHelper.loadString("channelconfiguration.json"))
     }
-    private val serializer: Gson by lazy {
-        Default.serializer
+
+    private fun configuration(
+        isLiveChat: Boolean = false,
+        isOnline: Boolean = true,
+    ) = JsonParser.parseString(channelConfigurationData).asJsonObject.apply {
+        addProperty("isLiveChat", isLiveChat)
+        with(getAsJsonObject("availability")) {
+            addProperty("status", if (isOnline) "online" else "offline")
+        }
     }
-    private val configuration: ChannelConfiguration by lazy {
-        requireNotNull(serializer.fromJson(channelConfigurationData, ChannelConfiguration::class.java))
-    }
-    private val published: ConfigurationInternal by lazy {
-        configuration.toConfiguration(channelId)
+        .let(Gson()::toJson)
+        .let { Default.serializer.fromJson(it, ChannelConfiguration::class.java) }
+
+    @Test
+    fun testLiveChatRelatedParsing() {
+        listOf(
+            true to true,
+            true to false,
+            false to true,
+            false to false
+        ).forEach { (isLiveChat, isOnline) ->
+            val configuration = configuration(isLiveChat = isLiveChat, isOnline = isOnline)
+
+            assertEquals(isLiveChat, configuration.isLiveChat)
+            assertEquals(if (isOnline) Online else Offline, configuration.availability.status)
+        }
     }
 
     @Test
     fun testParsing() {
-        assertEquals(configuration.contactCustomFields?.size, 5)
-        assertEquals(configuration.customerCustomFields?.size, 4)
+        val configuration = configuration()
+
+        assertEquals(5, configuration.contactCustomFields?.size)
+        assertEquals(4, configuration.customerCustomFields?.size)
+        with(configuration.settings.fileRestrictions) {
+            assertEquals(40, allowedFileSize)
+            assertEquals(11, allowedFileTypes.size)
+            assertTrue(isAttachmentsEnabled)
+        }
+        assertFalse(configuration.isLiveChat)
+        assertEquals(Online, configuration.availability.status)
+        with(configuration.settings.features) {
+            assertEquals(this["liveChatLogoHidden"], false)
+            assertEquals(this["isProactiveChatEnabled"], true)
+        }
     }
 
     @Test
     fun testPublication() {
-        assertEquals(published.contactCustomFields.count(), 5)
-        assertEquals(published.customerCustomFields.count(), 4)
+        val published = configuration().toConfiguration(channelId)
+
+        assertEquals(5, published.contactCustomFields.count())
+        assertEquals(4, published.customerCustomFields.count())
+        with(published.fileRestrictions) {
+            assertEquals(40, allowedFileSize)
+            assertEquals(10, allowedFileTypes.size)
+            assertTrue(isAttachmentsEnabled)
+        }
+    }
+
+    @Test
+    fun testHasFeature() {
+        val published = configuration().toConfiguration(channelId)
+
+        // This is false in the test data.
+        assertFalse(published.hasFeature("liveChatLogoHidden"))
+        assertFalse(published.hasFeature(LiveChatLogoHidden))
+
+        // This is true in the test data.
+        assertTrue(published.hasFeature("isProactiveChatEnabled"))
+        assertTrue(published.hasFeature(ProactiveChatEnabled))
+
+        // This is missing in the test data and should default to true.
+        assertTrue(published.hasFeature("isRecoverLivechatDoesNotFailEnabled"))
+        assertTrue(published.hasFeature(RecoverLiveChatDoesNotFail))
     }
 
     @Suppress("NestedBlockDepth") // verifying hierarchic data just looks better with nested when
     @Test
     fun testHierarchicPublication() {
+        val published = configuration().toConfiguration(channelId)
         val hier = published.contactCustomFields.firstOrNull { it.fieldId == "hie2" } as Hierarchy
 
         with(hier.values.toList()) {

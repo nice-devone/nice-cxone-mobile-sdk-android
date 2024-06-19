@@ -12,6 +12,10 @@ internal class MockServer {
     }
     val proxyListener: ProxyWebSocketListener = ProxyWebSocketListener()
 
+    fun open() {
+        proxyListener.onOpen(socket, mockk())
+    }
+
     fun sendServerMessage(text: String) {
         proxyListener.onMessage(socket, text)
     }

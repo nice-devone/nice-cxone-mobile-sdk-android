@@ -27,7 +27,7 @@ internal class MessageMetadataStatusTest {
     @Test
     fun message_is_sent_by_default() {
         val defaultMessage: Message = makeMessage()
-        assertEquals(MessageStatus.SENT, defaultMessage.metadata.status)
+        assertEquals(MessageStatus.Sent, defaultMessage.metadata.status)
     }
 
     @Test
@@ -39,7 +39,7 @@ internal class MessageMetadataStatusTest {
                 )
             )
         )
-        assertEquals(MessageStatus.SEEN, messageSeen.metadata.status)
+        assertEquals(MessageStatus.Seen, messageSeen.metadata.status)
     }
 
     @Test
@@ -52,7 +52,7 @@ internal class MessageMetadataStatusTest {
                 )
             )
         )
-        assertEquals(MessageStatus.READ, messageSeenAndRead.metadata.status)
+        assertEquals(MessageStatus.Read, messageSeenAndRead.metadata.status)
         val messageRead: Message = makeMessage(
             model = makeMessageModel(
                 userStatistics = makeUserStatistics(
@@ -60,6 +60,6 @@ internal class MessageMetadataStatusTest {
                 )
             )
         )
-        assertEquals(MessageStatus.READ, messageRead.metadata.status)
+        assertEquals(MessageStatus.Read, messageRead.metadata.status)
     }
 }

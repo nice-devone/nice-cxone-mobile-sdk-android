@@ -50,7 +50,16 @@ abstract class ChatThread {
     /** Custom fields attached to this thread. */
     abstract val fields: List<CustomField>
 
+    /** Position in queue if this is a Live Chat. Always zero if this is not a live chat. */
+    abstract val positionInQueue: Int?
+
+    /** Is any agent online? Always true if this is not a live chat. */
+    abstract val hasOnlineAgent: Boolean
+
     /** Whether there are more messages to load in the thread. */
     val hasMoreMessagesToLoad: Boolean
         get() = scrollToken.isNotEmpty()
+
+    /** Id of the current active contact for the thread. */
+    internal open val contactId: String? = null
 }

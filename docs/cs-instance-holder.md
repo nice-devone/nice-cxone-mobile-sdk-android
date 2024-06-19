@@ -70,6 +70,9 @@ class ChatActivity : AppCompatActivity(R.layout.activity_chat), ChatInstanceProv
                 "Chat SDK is ready",
                 Snackbar.LENGTH_SHORT
             ).apply(Snackbar::show)
+            OFFLINE -> { // This state can happen only for the LiveChat mode of the channel.
+                // Show UI informing user that the Chat is not available, because the service is offline
+            }
             CONNECTION_LOST -> chatStateSnackbar = Snackbar.make(
                 Window.DecorView.RootView,
                 "Chat SDK connection lost",
@@ -78,7 +81,12 @@ class ChatActivity : AppCompatActivity(R.layout.activity_chat), ChatInstanceProv
                 reconnectJob?.cancel()
                 reconnectJob = chatInstanceProvider.chat.reconnect()
             }.apply(Snackbar::show)
+            else -> Log.v(TAG, "ChatState: $state")
         }
+    }
+    
+    companion object {
+        private const val TAG = "ChatActivity"
     }
 }
 ```

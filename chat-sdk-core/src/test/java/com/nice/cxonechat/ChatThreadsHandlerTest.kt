@@ -2,15 +2,18 @@
 
 package com.nice.cxonechat
 
-import com.nice.cxonechat.FakeChatStateListener.ChatStateConnection.READY
+import com.nice.cxonechat.FakeChatStateListener.ChatStateConnection.Ready
 import com.nice.cxonechat.internal.model.ChannelConfiguration
+import com.nice.cxonechat.internal.model.ChatThreadMutable.Companion.asMutable
 import com.nice.cxonechat.internal.model.CustomFieldPolyType.Text
-import com.nice.cxonechat.internal.model.network.EventCaseStatusChanged.CaseStatus.CLOSED
+import com.nice.cxonechat.internal.model.network.EventCaseStatusChanged.CaseStatus.Closed
+import com.nice.cxonechat.model.makeAgent
 import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.model.makeMessageModel
 import com.nice.cxonechat.server.ServerRequest
 import com.nice.cxonechat.server.ServerResponse
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.thread.ChatThreadState.Loaded
 import com.nice.cxonechat.thread.ChatThreadState.Received
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -47,23 +50,28 @@ internal class ChatThreadsHandlerTest : AbstractChatTest() {
 
     @Test
     fun threads_notifies_withInitialList() {
-        val expected = List(2) { makeChatThread(threadState = Received) }
-
+        val initial = List(2) { makeChatThread(threadState = Received) }
+        val message = makeMessageModel(threadIdOnExternalPlatform = initial[0].id)
+        val agentModel = makeAgent()
+        val expected = listOf(
+            initial[0].copy(threadAgent = agentModel.toAgent(), messages = listOfNotNull(message.toMessage()), threadState = Loaded),
+            initial[1]
+        ).map {
+            it.asMutable()
+        }
+        connect()
         // verify that the metadata is loaded when the list is received
         assertSendTexts(
             ServerRequest.FetchThreadList(connection),
-            ServerRequest.LoadThreadMetadata(connection, expected[0]),
-            ServerRequest.LoadThreadMetadata(connection, expected[1])
+            ServerRequest.LoadThreadMetadata(connection, initial[0]),
+            ServerRequest.LoadThreadMetadata(connection, initial[1])
         ) {
             // Multithread threads should start in READY state.
-            assertEquals(READY, chatStateListener.connection)
+            assertEquals(Ready, chatStateListener.connection)
             val actual = testCallback(::threads) {
-                sendServerMessage(ServerResponse.ThreadListFetched(expected))
+                sendServerMessage(ServerResponse.ThreadListFetched(initial))
                 sendServerMessage(
-                    ServerResponse.ThreadMetadataLoaded(message = makeMessageModel(threadIdOnExternalPlatform = expected[0].id))
-                )
-                sendServerMessage(
-                    ServerResponse.ThreadMetadataLoaded(message = makeMessageModel(threadIdOnExternalPlatform = expected[1].id))
+                    ServerResponse.ThreadMetadataLoaded(agent = agentModel, message = message)
                 )
             }
             assertEquals(expected, actual)
@@ -90,9 +98,10 @@ internal class ChatThreadsHandlerTest : AbstractChatTest() {
         val expected = initial.toMutableList().also {
             it[0] = it[0].copy(canAddMoreMessages = false)
         }
+        assertEquals(true, initial[0].canAddMoreMessages)
         val actual = testCallback(::threads) {
             sendServerMessage(ServerResponse.ThreadListFetched(initial))
-            sendServerMessage(ServerResponse.CaseStatusChanged(expected[0], CLOSED))
+            sendServerMessage(ServerResponse.CaseStatusChanged(expected[0], Closed))
         }
         assertNotEquals(expected, initial)
         assertEquals(expected, actual)

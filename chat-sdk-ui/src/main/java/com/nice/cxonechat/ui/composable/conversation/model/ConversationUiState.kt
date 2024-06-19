@@ -20,7 +20,6 @@ import androidx.compose.runtime.Stable
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.message.OutboundMessage
 import com.nice.cxonechat.ui.composable.conversation.model.Message.ListPicker
-import com.nice.cxonechat.ui.composable.conversation.model.Message.Plugin
 import com.nice.cxonechat.ui.composable.conversation.model.Message.QuickReply
 import com.nice.cxonechat.ui.composable.conversation.model.Message.RichLink
 import com.nice.cxonechat.ui.composable.conversation.model.Message.Text
@@ -42,6 +41,7 @@ import com.nice.cxonechat.message.Message as SdkMessage
  * @param sdkMessages Flow of messages for the active conversation, it is expected that the flow will be updated if
  * [sendMessage] is invoked.
  * @property typingIndicator Flow indicating that the agent handling the conversation is typing.
+ * @property positionInQueue Flow of current position in queue.
  * @property sendMessage An action which will be invoked if the user wants to post a new message to the conversation, or
  * if he has interacted with an element which generates a message.
  * @property loadMore An action which will be called when more messages can be displayed/loaded.
@@ -55,6 +55,8 @@ import com.nice.cxonechat.message.Message as SdkMessage
  * intended for testing.
  * @property isMultiThreaded true iff the channel is configured for multiple threads.
  * @property hasQuestions true iff there is a prechat questionnaire for the channel.
+ * @property isArchived Flow indicating if the thread was archived.
+ * @property isLiveChat true iff the channel is configured as live chat.
  */
 @Suppress(
     "LongParameterList", // POJO class
@@ -64,6 +66,7 @@ internal data class ConversationUiState(
     internal val threadName: Flow<String?>,
     private val sdkMessages: Flow<List<SdkMessage>>,
     internal val typingIndicator: Flow<Boolean>,
+    internal val positionInQueue: Flow<Int?>,
     internal val sendMessage: (OutboundMessage) -> Unit,
     internal val loadMore: () -> Unit,
     internal val canLoadMore: StateFlow<Boolean>,
@@ -75,6 +78,8 @@ internal data class ConversationUiState(
     private val backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
     internal val isMultiThreaded: Boolean,
     internal val hasQuestions: Boolean,
+    internal val isArchived: StateFlow<Boolean>,
+    internal val isLiveChat: Boolean,
 ) {
     @Stable
     internal fun messages(context: Context): Flow<List<Section>> = sdkMessages
@@ -99,7 +104,6 @@ internal data class ConversationUiState(
         is SdkMessage.RichLink -> RichLink(this)
         is SdkMessage.ListPicker -> ListPicker(this, sendMessage)
         is SdkMessage.QuickReplies -> QuickReply(this, sendMessage)
-        is SdkMessage.Plugin -> Plugin(this, sendMessage)
         else -> Unsupported(this)
     }
 }

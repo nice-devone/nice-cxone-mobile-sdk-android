@@ -21,7 +21,6 @@ import com.nice.cxonechat.internal.model.MessageDirectionModel.ToClient
 import com.nice.cxonechat.internal.model.network.MessagePolyContent
 import com.nice.cxonechat.internal.model.network.MessagePolyContent.ListPicker
 import com.nice.cxonechat.internal.model.network.MessagePolyContent.Noop
-import com.nice.cxonechat.internal.model.network.MessagePolyContent.Plugin
 import com.nice.cxonechat.internal.model.network.MessagePolyContent.QuickReplies
 import com.nice.cxonechat.internal.model.network.MessagePolyContent.RichLink
 import com.nice.cxonechat.internal.model.network.MessagePolyContent.Text
@@ -65,7 +64,6 @@ internal data class MessageModel(
         }
 
     fun toMessage() = when (messageContent) {
-        is Plugin -> MessagePlugin(this)
         is Text -> MessageText(this)
         is QuickReplies -> MessageQuickReplies(this)
         is ListPicker -> MessageListPicker(this)

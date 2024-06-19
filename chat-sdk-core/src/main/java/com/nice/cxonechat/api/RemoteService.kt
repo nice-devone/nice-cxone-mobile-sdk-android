@@ -18,6 +18,7 @@ package com.nice.cxonechat.api
 import com.nice.cxonechat.api.model.AttachmentUploadResponse
 import com.nice.cxonechat.event.AnalyticsEvent
 import com.nice.cxonechat.internal.model.AttachmentUploadModel
+import com.nice.cxonechat.internal.model.ChannelAvailability
 import com.nice.cxonechat.internal.model.ChannelConfiguration
 import com.nice.cxonechat.internal.model.Visitor
 import retrofit2.Call
@@ -46,6 +47,14 @@ internal interface RemoteService {
         @Path("channelId")
         channelId: String,
     ): Call<ChannelConfiguration?>
+
+    @GET("1.0/brand/{brandId}/channel/{channelId}/availability")
+    fun getChannelAvailability(
+        @Path("brandId")
+        brandId: String,
+        @Path("channelId")
+        channelId: String
+    ): Call<ChannelAvailability>
 
     @POST("/web-analytics/1.0/tenants/{brandId}/visitors/{visitorId}/events")
     fun postEvent(

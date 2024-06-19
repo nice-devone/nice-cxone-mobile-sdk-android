@@ -41,6 +41,8 @@ internal data class ChatTypography(
         fontWeight = FontWeight.Normal,
         textAlign = TextAlign.Center
     ),
+    val offlineBanner: TextStyle = Typography.h6,
+    val offlineMessage: TextStyle = Typography.body1,
 )
 
 internal val LocalChatTypography = staticCompositionLocalOf {

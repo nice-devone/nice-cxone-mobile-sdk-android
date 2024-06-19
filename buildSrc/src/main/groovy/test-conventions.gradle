@@ -14,9 +14,10 @@
  */
 
 dependencies {
-    testImplementation "io.github.diareuse:strucut:[1,2["
-    testImplementation "io.mockk:mockk:1.13.8"
-    testImplementation "junit:junit:4.13.2"
-    testImplementation "org.jetbrains.kotlin:kotlin-reflect"
-    testImplementation "org.jetbrains.kotlin:kotlin-test-junit"
+    testImplementation libs.strucut
+    testImplementation libs.mockk
+    testImplementation libs.junit
+    testImplementation libs.kotlin.reflection
+    testImplementation libs.kotlin.test.junit
+    testImplementation libs.kotest.assertions.core
 }

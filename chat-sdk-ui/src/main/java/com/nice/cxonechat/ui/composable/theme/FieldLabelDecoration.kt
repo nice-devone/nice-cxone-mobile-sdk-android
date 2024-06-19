@@ -44,7 +44,7 @@ internal fun ChatTheme.FieldLabelDecoration(
 ) {
     val labelColor = TextFieldDefaults
         .textFieldColors()
-        .labelColor(enabled = true, error = isError, interactionSource = MutableInteractionSource())
+        .labelColor(enabled = true, error = isError, interactionSource = remember(::MutableInteractionSource))
         .value
 
     Box(modifier = modifier) {

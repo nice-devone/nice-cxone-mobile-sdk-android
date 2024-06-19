@@ -21,13 +21,13 @@ package com.nice.cxonechat
 @Public
 enum class ChatState {
     /** Not yet configured enough to connect. */
-    INITIAL,
+    Initial,
 
     /**
      * In the process of preparing the chat by performing initial configuration
      * checks fetching the channel configuration.
      */
-    PREPARING,
+    Preparing,
 
     /**
      * The chat is "prepared" but no web socket is open.
@@ -37,26 +37,31 @@ enum class ChatState {
      * [Chat.connect], but chat functionality via [Chat.threads] is
      * unavailable.
      */
-    PREPARED,
+    Prepared,
 
     /** In the process of connecting the websocket. */
-    CONNECTING,
+    Connecting,
 
     /**
      * A websocket connection has been established.
      *
-     * In the CONNECTED state it is acceptable to generate analytics events via
+     * In the `Connected` state it is acceptable to generate analytics events via
      * [[ChatEventHandlerActions]] or to access chat functionality available via
      * [Chat.threads].
      */
-    CONNECTED,
+    Connected,
 
     /**
      * A chat state was recovered (if there was anything to recover).
      * If there were any thread/s recovered, then this fact should have signaled via listener.
      */
-    READY,
+    Ready,
+
+    /**
+     * Chat services are currently offline.
+     */
+    Offline,
 
     /** the connection was involuntarily lost. */
-    CONNECTION_LOST,
+    ConnectionLost,
 }

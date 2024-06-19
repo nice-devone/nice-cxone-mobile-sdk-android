@@ -20,13 +20,14 @@ import android.content.Context
 import com.nice.cxonechat.ChatBuilder.OnChatBuiltResultCallback
 import com.nice.cxonechat.ChatInstanceProvider.DeviceTokenProvider
 import com.nice.cxonechat.ChatInstanceProvider.Listener
-import com.nice.cxonechat.ChatState.CONNECTED
-import com.nice.cxonechat.ChatState.CONNECTING
-import com.nice.cxonechat.ChatState.CONNECTION_LOST
-import com.nice.cxonechat.ChatState.INITIAL
-import com.nice.cxonechat.ChatState.PREPARED
-import com.nice.cxonechat.ChatState.PREPARING
-import com.nice.cxonechat.ChatState.READY
+import com.nice.cxonechat.ChatState.Connected
+import com.nice.cxonechat.ChatState.Connecting
+import com.nice.cxonechat.ChatState.ConnectionLost
+import com.nice.cxonechat.ChatState.Initial
+import com.nice.cxonechat.ChatState.Offline
+import com.nice.cxonechat.ChatState.Prepared
+import com.nice.cxonechat.ChatState.Preparing
+import com.nice.cxonechat.ChatState.Ready
 import com.nice.cxonechat.exceptions.InvalidCustomFieldValue
 import com.nice.cxonechat.exceptions.InvalidStateException
 import com.nice.cxonechat.exceptions.RuntimeChatException
@@ -75,6 +76,7 @@ internal class ChatInstanceProviderTest {
             Cancellable.noop
         },
         logger: Logger = mockk(relaxed = true),
+        isOnline: Boolean = true,
         onConnected: (ChatStateListener?) -> Cancellable = { Cancellable.noop },
     ): Pair<ChatInstanceProvider, ChatBuilder> {
         val builder = mockk<ChatBuilder> {
@@ -89,15 +91,17 @@ internal class ChatInstanceProviderTest {
                 builder
             }
             every { setDeviceToken(any()) } returns this
-            every { build(resultCallback = any()) } answers { call ->
+            every { build(resultCallback = any()) } answers { _ ->
                 val onDone = arg<OnChatBuiltResultCallback?>(0)
                 val chat = mockk<Chat>(relaxUnitFun = true) {
                     every { connect() } answers { onConnected(listener) }
                     every { configuration } answers {
                         mockk {
                             every { isAuthorizationEnabled } returns false
+                            every { this@mockk.isOnline } returns isOnline
                         }
                     }
+                    every { isChatAvailable } returns isOnline
                 }
 
                 onBuilt(chat, onDone)
@@ -123,7 +127,7 @@ internal class ChatInstanceProviderTest {
     fun initialStateIsInitial() {
         assertEquals(
             ChatInstanceProvider.create(null).chatState,
-            INITIAL
+            Initial
         )
     }
 
@@ -263,7 +267,7 @@ internal class ChatInstanceProviderTest {
         }
 
         assertNotSame(chat, provider.chat)
-        assertEquals(PREPARED, provider.chatState)
+        assertEquals(Prepared, provider.chatState)
     }
 
     @SuppressLint("CheckResult")
@@ -310,7 +314,7 @@ internal class ChatInstanceProviderTest {
         verify(ordering = ORDERED) {
             builder.build(resultCallback = any())
             listener.onChatChanged(any())
-            listener.onChatStateChanged(PREPARED)
+            listener.onChatStateChanged(Prepared)
         }
     }
 
@@ -323,18 +327,18 @@ internal class ChatInstanceProviderTest {
         provider.onUnexpectedDisconnect()
         provider.cancel()
 
-        assertEquals(PREPARED, provider.chatState)
+        assertEquals(Prepared, provider.chatState)
     }
 
     @Test
     fun initialIgnoresCancel() {
         val (provider) = provider(null)
 
-        assertEquals(INITIAL, provider.chatState)
+        assertEquals(Initial, provider.chatState)
 
         provider.cancel()
 
-        assertEquals(INITIAL, provider.chatState)
+        assertEquals(Initial, provider.chatState)
     }
 
     @Test
@@ -343,11 +347,11 @@ internal class ChatInstanceProviderTest {
 
         provider.prepare(applicationContext)
 
-        assertEquals(PREPARED, provider.chatState)
+        assertEquals(Prepared, provider.chatState)
 
         provider.cancel()
 
-        assertEquals(PREPARED, provider.chatState)
+        assertEquals(Prepared, provider.chatState)
     }
 
     @Test
@@ -358,11 +362,11 @@ internal class ChatInstanceProviderTest {
         provider.connect()
         provider.onConnected()
 
-        assertEquals(CONNECTED, provider.chatState)
+        assertEquals(Connected, provider.chatState)
 
         provider.cancel()
 
-        assertEquals(CONNECTED, provider.chatState)
+        assertEquals(Connected, provider.chatState)
     }
 
     @SuppressLint("CheckResult")
@@ -396,7 +400,7 @@ internal class ChatInstanceProviderTest {
     fun connectThrowsInInitial() {
         val (provider) = provider(null)
 
-        assertEquals(INITIAL, provider.chatState)
+        assertEquals(Initial, provider.chatState)
 
         provider.connect()
     }
@@ -410,7 +414,7 @@ internal class ChatInstanceProviderTest {
 
         provider.prepare(applicationContext)
 
-        assertEquals(PREPARING, provider.chatState)
+        assertEquals(Preparing, provider.chatState)
 
         provider.connect()
     }
@@ -455,7 +459,7 @@ internal class ChatInstanceProviderTest {
         provider.onConnected()
 
         verify {
-            listener.onChatStateChanged(CONNECTED)
+            listener.onChatStateChanged(Connected)
         }
     }
 
@@ -472,7 +476,7 @@ internal class ChatInstanceProviderTest {
         provider.onReady()
 
         verify {
-            listener.onChatStateChanged(READY)
+            listener.onChatStateChanged(Ready)
         }
     }
 
@@ -489,7 +493,7 @@ internal class ChatInstanceProviderTest {
         provider.onUnexpectedDisconnect()
 
         verify {
-            listener.onChatStateChanged(CONNECTION_LOST)
+            listener.onChatStateChanged(ConnectionLost)
         }
     }
 
@@ -524,7 +528,7 @@ internal class ChatInstanceProviderTest {
             chat.close()
         }
 
-        assertEquals(PREPARED, provider.chatState)
+        assertEquals(Prepared, provider.chatState)
     }
 
     @Test
@@ -554,14 +558,14 @@ internal class ChatInstanceProviderTest {
 
         provider.prepare(applicationContext)
 
-        assertEquals(PREPARING, provider.chatState)
+        assertEquals(Preparing, provider.chatState)
 
         provider.cancel()
 
         verify {
             cancellable.cancel()
         }
-        assertEquals(INITIAL, provider.chatState)
+        assertEquals(Initial, provider.chatState)
     }
 
     @Test
@@ -577,7 +581,7 @@ internal class ChatInstanceProviderTest {
         provider.prepare(applicationContext)
         provider.connect()
 
-        assertEquals(CONNECTING, provider.chatState)
+        assertEquals(Connecting, provider.chatState)
 
         provider.cancel()
 
@@ -585,14 +589,14 @@ internal class ChatInstanceProviderTest {
             cancellable.cancel()
         }
 
-        assertEquals(PREPARED, provider.chatState)
+        assertEquals(Prepared, provider.chatState)
     }
 
     @Test(expected = InvalidStateException::class)
     fun reconnectThrowsInInitial() {
         val (provider) = provider(null)
 
-        assertEquals(INITIAL, provider.chatState)
+        assertEquals(Initial, provider.chatState)
 
         @Suppress("DEPRECATION")
         provider.reconnect()
@@ -607,7 +611,7 @@ internal class ChatInstanceProviderTest {
 
         provider.prepare(applicationContext)
 
-        assertEquals(PREPARING, provider.chatState)
+        assertEquals(Preparing, provider.chatState)
 
         @Suppress("DEPRECATION")
         provider.reconnect()
@@ -621,7 +625,7 @@ internal class ChatInstanceProviderTest {
 
         provider.prepare(applicationContext)
 
-        assertEquals(PREPARED, provider.chatState)
+        assertEquals(Prepared, provider.chatState)
 
         @Suppress("DEPRECATION")
         provider.reconnect()
@@ -637,7 +641,7 @@ internal class ChatInstanceProviderTest {
         provider.prepare(applicationContext)
         provider.connect()
 
-        assertEquals(CONNECTING, provider.chatState)
+        assertEquals(Connecting, provider.chatState)
 
         @Suppress("DEPRECATION")
         provider.reconnect()
@@ -653,7 +657,7 @@ internal class ChatInstanceProviderTest {
         provider.connect()
         provider.onConnected()
 
-        assertEquals(CONNECTED, provider.chatState)
+        assertEquals(Connected, provider.chatState)
         @Suppress("DEPRECATION")
         provider.reconnect()
     }
@@ -670,15 +674,15 @@ internal class ChatInstanceProviderTest {
         provider.onConnected()
         provider.onUnexpectedDisconnect()
 
-        assertEquals(CONNECTION_LOST, provider.chatState)
+        assertEquals(ConnectionLost, provider.chatState)
         @Suppress("DEPRECATION")
         provider.reconnect()
 
-        assertEquals(CONNECTING, provider.chatState)
+        assertEquals(Connecting, provider.chatState)
 
         provider.onConnected()
 
-        assertEquals(CONNECTED, provider.chatState)
+        assertEquals(Connected, provider.chatState)
     }
 
     @Test
@@ -764,9 +768,9 @@ internal class ChatInstanceProviderTest {
             every { cancel() } just Runs
         }
 
-        provider.advanceState(CONNECTING, cancellable, false)
+        provider.advanceState(Connecting, cancellable, false)
 
-        provider.advanceState(CONNECTED)
+        provider.advanceState(Connected)
 
         verify {
             cancellable.cancel()
@@ -779,8 +783,8 @@ internal class ChatInstanceProviderTest {
             val provider = ChatInstanceProvider.create(null)
             var thrown = false
 
-            if (state == INITIAL) {
-                provider.advanceState(CONNECTION_LOST)
+            if (state == Initial) {
+                provider.advanceState(ConnectionLost)
             }
 
             @Suppress("SwallowedException")
@@ -790,7 +794,7 @@ internal class ChatInstanceProviderTest {
                 thrown = true
             }
 
-            if (setOf(CONNECTING, PREPARING).contains(state)) {
+            if (setOf(Connecting, Preparing).contains(state)) {
                 assertTrue(thrown, "Missing expected exception for null cancellable in $state")
             } else {
                 assertFalse(thrown, "Unexpected exception for null cancellable in $state")
@@ -804,8 +808,8 @@ internal class ChatInstanceProviderTest {
             val provider = ChatInstanceProvider.create(null)
             var thrown = false
 
-            if (state == INITIAL) {
-                provider.advanceState(CONNECTION_LOST)
+            if (state == Initial) {
+                provider.advanceState(ConnectionLost)
             }
 
             @Suppress("SwallowedException")
@@ -815,7 +819,7 @@ internal class ChatInstanceProviderTest {
                 thrown = true
             }
 
-            if (setOf(CONNECTING, PREPARING).contains(state)) {
+            if (setOf(Connecting, Preparing).contains(state)) {
                 assertFalse(thrown, "Unexpected exception for disallowed cancellable in $state")
             } else {
                 assertTrue(thrown, "Missing expected exception for disallowed cancellable in $state")
@@ -830,11 +834,28 @@ internal class ChatInstanceProviderTest {
             every { onChatStateChanged(any()) } just Runs
         }.also(provider::addListener)
 
-        provider.advanceState(CONNECTED)
+        provider.advanceState(Connected)
 
         verify {
-            listener.onChatStateChanged(CONNECTED)
+            listener.onChatStateChanged(Connected)
         }
+    }
+
+    @Test
+    fun connectHandlesOffline() {
+        val (provider) = provider(socketFactoryConfiguration, isOnline = false) {
+            it?.onReady()
+            Cancellable.noop
+        }
+
+        provider.prepare(applicationContext)
+        provider.connect()
+
+        assertEquals(Offline, provider.chatState)
+
+        provider.cancel()
+
+        assertEquals(Prepared, provider.chatState)
     }
 
     companion object {

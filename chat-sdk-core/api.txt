@@ -28,10 +28,12 @@ package com.nice.cxonechat {
     method public com.nice.cxonechat.Cancellable connect();
     method public com.nice.cxonechat.ChatFieldHandler customFields();
     method public com.nice.cxonechat.ChatEventHandler events();
+    method public com.nice.cxonechat.Cancellable getChannelAvailability(kotlin.jvm.functions.Function1<? super java.lang.Boolean,kotlin.Unit> callback);
     method public default com.nice.cxonechat.ChatMode getChatMode();
     method public com.nice.cxonechat.state.Configuration getConfiguration();
     method public com.nice.cxonechat.state.Environment getEnvironment();
     method public java.util.Collection<com.nice.cxonechat.thread.CustomField> getFields();
+    method public boolean isChatAvailable();
     method @Deprecated public com.nice.cxonechat.Cancellable reconnect();
     method public void setDeviceToken(String? token);
     method public void setUserName(String firstName, String lastName);
@@ -41,6 +43,7 @@ package com.nice.cxonechat {
     property public abstract com.nice.cxonechat.state.Configuration configuration;
     property public abstract com.nice.cxonechat.state.Environment environment;
     property public abstract java.util.Collection<com.nice.cxonechat.thread.CustomField> fields;
+    property public abstract boolean isChatAvailable;
   }
 
   @com.nice.cxonechat.Public public interface ChatActionHandler extends java.lang.AutoCloseable {
@@ -223,20 +226,22 @@ package com.nice.cxonechat {
   @com.nice.cxonechat.Public public enum ChatMode {
     method public static com.nice.cxonechat.ChatMode valueOf(String value) throws java.lang.IllegalArgumentException, java.lang.NullPointerException;
     method public static com.nice.cxonechat.ChatMode[] values();
-    enum_constant public static final com.nice.cxonechat.ChatMode MULTI_THREAD;
-    enum_constant public static final com.nice.cxonechat.ChatMode SINGLE_THREAD;
+    enum_constant public static final com.nice.cxonechat.ChatMode LiveChat;
+    enum_constant public static final com.nice.cxonechat.ChatMode MultiThread;
+    enum_constant public static final com.nice.cxonechat.ChatMode SingleThread;
   }
 
   @com.nice.cxonechat.Public public enum ChatState {
     method public static com.nice.cxonechat.ChatState valueOf(String value) throws java.lang.IllegalArgumentException, java.lang.NullPointerException;
     method public static com.nice.cxonechat.ChatState[] values();
-    enum_constant public static final com.nice.cxonechat.ChatState CONNECTED;
-    enum_constant public static final com.nice.cxonechat.ChatState CONNECTING;
-    enum_constant public static final com.nice.cxonechat.ChatState CONNECTION_LOST;
-    enum_constant public static final com.nice.cxonechat.ChatState INITIAL;
-    enum_constant public static final com.nice.cxonechat.ChatState PREPARED;
-    enum_constant public static final com.nice.cxonechat.ChatState PREPARING;
-    enum_constant public static final com.nice.cxonechat.ChatState READY;
+    enum_constant public static final com.nice.cxonechat.ChatState Connected;
+    enum_constant public static final com.nice.cxonechat.ChatState Connecting;
+    enum_constant public static final com.nice.cxonechat.ChatState ConnectionLost;
+    enum_constant public static final com.nice.cxonechat.ChatState Initial;
+    enum_constant public static final com.nice.cxonechat.ChatState Offline;
+    enum_constant public static final com.nice.cxonechat.ChatState Prepared;
+    enum_constant public static final com.nice.cxonechat.ChatState Preparing;
+    enum_constant public static final com.nice.cxonechat.ChatState Ready;
   }
 
   @com.nice.cxonechat.Public public interface ChatStateListener {
@@ -279,6 +284,7 @@ package com.nice.cxonechat {
 
   @com.nice.cxonechat.Public public interface ChatThreadHandler {
     method public com.nice.cxonechat.ChatFieldHandler customFields();
+    method public void endContact();
     method public com.nice.cxonechat.ChatThreadEventHandler events();
     method public com.nice.cxonechat.thread.ChatThread get();
     method @CheckResult public com.nice.cxonechat.Cancellable get(com.nice.cxonechat.ChatThreadHandler.OnThreadUpdatedListener listener);
@@ -578,14 +584,6 @@ package com.nice.cxonechat.message {
     property public abstract String title;
   }
 
-  @com.nice.cxonechat.Public public abstract static class Message.Plugin extends com.nice.cxonechat.message.Message {
-    ctor public Message.Plugin();
-    method public abstract com.nice.cxonechat.message.PluginElement? getElement();
-    method public abstract String? getPostback();
-    property public abstract com.nice.cxonechat.message.PluginElement? element;
-    property public abstract String? postback;
-  }
-
   @com.nice.cxonechat.Public public abstract static class Message.QuickReplies extends com.nice.cxonechat.message.Message {
     ctor public Message.QuickReplies();
     method public abstract Iterable<com.nice.cxonechat.message.Action> getActions();
@@ -643,11 +641,11 @@ package com.nice.cxonechat.message {
   @com.nice.cxonechat.Public public enum MessageStatus {
     method public static com.nice.cxonechat.message.MessageStatus valueOf(String value) throws java.lang.IllegalArgumentException, java.lang.NullPointerException;
     method public static com.nice.cxonechat.message.MessageStatus[] values();
-    enum_constant public static final com.nice.cxonechat.message.MessageStatus FAILED_TO_DELIVER;
-    enum_constant public static final com.nice.cxonechat.message.MessageStatus READ;
-    enum_constant public static final com.nice.cxonechat.message.MessageStatus SEEN;
-    enum_constant public static final com.nice.cxonechat.message.MessageStatus SENDING;
-    enum_constant public static final com.nice.cxonechat.message.MessageStatus SENT;
+    enum_constant public static final com.nice.cxonechat.message.MessageStatus FailedToDeliver;
+    enum_constant public static final com.nice.cxonechat.message.MessageStatus Read;
+    enum_constant public static final com.nice.cxonechat.message.MessageStatus Seen;
+    enum_constant public static final com.nice.cxonechat.message.MessageStatus Sending;
+    enum_constant public static final com.nice.cxonechat.message.MessageStatus Sent;
   }
 
   @com.nice.cxonechat.Public public interface OutboundMessage {
@@ -671,131 +669,6 @@ package com.nice.cxonechat.message {
     method public operator com.nice.cxonechat.message.OutboundMessage create(Iterable<? extends com.nice.cxonechat.message.ContentDescriptor> attachments, optional String message, optional String? postback);
     method public operator com.nice.cxonechat.message.OutboundMessage create(String message);
     method public operator com.nice.cxonechat.message.OutboundMessage create(String message, optional String? postback);
-  }
-
-  @com.nice.cxonechat.Public public abstract sealed class PluginElement {
-  }
-
-  @com.nice.cxonechat.Public public abstract static class PluginElement.Button extends com.nice.cxonechat.message.PluginElement {
-    ctor public PluginElement.Button();
-    method public abstract String? getDeepLink();
-    method public abstract boolean getDisplayInApp();
-    method public abstract String? getPostback();
-    method public abstract String getText();
-    property public abstract String? deepLink;
-    property public abstract boolean displayInApp;
-    property public abstract String? postback;
-    property public abstract String text;
-  }
-
-  @com.nice.cxonechat.Public public abstract static class PluginElement.Countdown extends com.nice.cxonechat.message.PluginElement {
-    ctor public PluginElement.Countdown();
-    method public abstract java.util.Date getEndsAt();
-    method public abstract boolean isExpired();
-    property public abstract java.util.Date endsAt;
-    property public abstract boolean isExpired;
-  }
-
-  @com.nice.cxonechat.Public public abstract static class PluginElement.Custom extends com.nice.cxonechat.message.PluginElement {
-    ctor public PluginElement.Custom();
-    method public abstract String? getFallbackText();
-    method public abstract java.util.Map<java.lang.String,java.lang.Object> getVariables();
-    property public abstract String? fallbackText;
-    property public abstract java.util.Map<java.lang.String,java.lang.Object> variables;
-  }
-
-  @com.nice.cxonechat.Public public abstract static class PluginElement.File extends com.nice.cxonechat.message.PluginElement {
-    ctor public PluginElement.File();
-    method public abstract String getMimeType();
-    method public abstract String getName();
-    method public abstract String getUrl();
-    property public abstract String mimeType;
-    property public abstract String name;
-    property public abstract String url;
-  }
-
-  @com.nice.cxonechat.Public public abstract static class PluginElement.Gallery extends com.nice.cxonechat.message.PluginElement {
-    ctor public PluginElement.Gallery();
-    method public abstract Iterable<com.nice.cxonechat.message.PluginElement> getElements();
-    property public abstract Iterable<com.nice.cxonechat.message.PluginElement> elements;
-  }
-
-  @com.nice.cxonechat.Public public abstract static class PluginElement.InactivityPopup extends com.nice.cxonechat.message.PluginElement {
-    ctor public PluginElement.InactivityPopup();
-    method public abstract Iterable<com.nice.cxonechat.message.PluginElement.Button> getButtons();
-    method public abstract com.nice.cxonechat.message.PluginElement.Countdown getCountdown();
-    method public abstract com.nice.cxonechat.message.PluginElement.Subtitle? getSubtitle();
-    method public abstract Iterable<com.nice.cxonechat.message.PluginElement.Text> getTexts();
-    method public abstract com.nice.cxonechat.message.PluginElement.Title getTitle();
-    property public abstract Iterable<com.nice.cxonechat.message.PluginElement.Button> buttons;
-    property public abstract com.nice.cxonechat.message.PluginElement.Countdown countdown;
-    property public abstract com.nice.cxonechat.message.PluginElement.Subtitle? subtitle;
-    property public abstract Iterable<com.nice.cxonechat.message.PluginElement.Text> texts;
-    property public abstract com.nice.cxonechat.message.PluginElement.Title title;
-  }
-
-  @com.nice.cxonechat.Public public abstract static class PluginElement.Menu extends com.nice.cxonechat.message.PluginElement {
-    ctor public PluginElement.Menu();
-    method public abstract Iterable<com.nice.cxonechat.message.PluginElement.Button> getButtons();
-    method public abstract Iterable<com.nice.cxonechat.message.PluginElement.File> getFiles();
-    method public abstract Iterable<com.nice.cxonechat.message.PluginElement.Subtitle> getSubtitles();
-    method public abstract Iterable<com.nice.cxonechat.message.PluginElement.Text> getTexts();
-    method public abstract Iterable<com.nice.cxonechat.message.PluginElement.Title> getTitles();
-    property public abstract Iterable<com.nice.cxonechat.message.PluginElement.Button> buttons;
-    property public abstract Iterable<com.nice.cxonechat.message.PluginElement.File> files;
-    property public abstract Iterable<com.nice.cxonechat.message.PluginElement.Subtitle> subtitles;
-    property public abstract Iterable<com.nice.cxonechat.message.PluginElement.Text> texts;
-    property public abstract Iterable<com.nice.cxonechat.message.PluginElement.Title> titles;
-  }
-
-  @com.nice.cxonechat.Public public abstract static class PluginElement.QuickReplies extends com.nice.cxonechat.message.PluginElement {
-    ctor public PluginElement.QuickReplies();
-    method public abstract Iterable<com.nice.cxonechat.message.PluginElement.Button> getButtons();
-    method public abstract com.nice.cxonechat.message.PluginElement.Text? getText();
-    property public abstract Iterable<com.nice.cxonechat.message.PluginElement.Button> buttons;
-    property public abstract com.nice.cxonechat.message.PluginElement.Text? text;
-  }
-
-  @com.nice.cxonechat.Public public abstract static class PluginElement.SatisfactionSurvey extends com.nice.cxonechat.message.PluginElement {
-    ctor public PluginElement.SatisfactionSurvey();
-    method public abstract com.nice.cxonechat.message.PluginElement.Button getButton();
-    method public abstract String? getPostback();
-    method public abstract com.nice.cxonechat.message.PluginElement.Text? getText();
-    property public abstract com.nice.cxonechat.message.PluginElement.Button button;
-    property public abstract String? postback;
-    property public abstract com.nice.cxonechat.message.PluginElement.Text? text;
-  }
-
-  @com.nice.cxonechat.Public public abstract static class PluginElement.Subtitle extends com.nice.cxonechat.message.PluginElement {
-    ctor public PluginElement.Subtitle();
-    method public abstract String getText();
-    property public abstract String text;
-  }
-
-  @com.nice.cxonechat.Public public abstract static class PluginElement.Text extends com.nice.cxonechat.message.PluginElement {
-    ctor public PluginElement.Text();
-    method public abstract com.nice.cxonechat.message.TextFormat getFormat();
-    method public abstract String getText();
-    method @Deprecated public abstract boolean isHtml();
-    method @Deprecated public abstract boolean isMarkdown();
-    property public abstract com.nice.cxonechat.message.TextFormat format;
-    property @Deprecated public abstract boolean isHtml;
-    property @Deprecated public abstract boolean isMarkdown;
-    property public abstract String text;
-  }
-
-  @com.nice.cxonechat.Public public abstract static class PluginElement.TextAndButtons extends com.nice.cxonechat.message.PluginElement {
-    ctor public PluginElement.TextAndButtons();
-    method public abstract Iterable<com.nice.cxonechat.message.PluginElement.Button> getButtons();
-    method public abstract com.nice.cxonechat.message.PluginElement.Text getText();
-    property public abstract Iterable<com.nice.cxonechat.message.PluginElement.Button> buttons;
-    property public abstract com.nice.cxonechat.message.PluginElement.Text text;
-  }
-
-  @com.nice.cxonechat.Public public abstract static class PluginElement.Title extends com.nice.cxonechat.message.PluginElement {
-    ctor public PluginElement.Title();
-    method public abstract String getText();
-    property public abstract String text;
   }
 
   @com.nice.cxonechat.Public public enum TextFormat {
@@ -866,15 +739,31 @@ package com.nice.cxonechat.state {
     method public default kotlin.sequences.Sequence<com.nice.cxonechat.state.FieldDefinition> getAllCustomFields();
     method public kotlin.sequences.Sequence<com.nice.cxonechat.state.FieldDefinition> getContactCustomFields();
     method public kotlin.sequences.Sequence<com.nice.cxonechat.state.FieldDefinition> getCustomerCustomFields();
+    method public com.nice.cxonechat.state.FileRestrictions getFileRestrictions();
     method public boolean getHasMultipleThreadsPerEndUser();
+    method public default boolean hasFeature(com.nice.cxonechat.state.Configuration.Feature feature);
+    method public boolean hasFeature(String feature);
     method public boolean isAuthorizationEnabled();
+    method public boolean isLiveChat();
+    method public boolean isOnline();
     method public boolean isProactiveChatEnabled();
     property public default kotlin.sequences.Sequence<com.nice.cxonechat.state.FieldDefinition> allCustomFields;
     property public abstract kotlin.sequences.Sequence<com.nice.cxonechat.state.FieldDefinition> contactCustomFields;
     property public abstract kotlin.sequences.Sequence<com.nice.cxonechat.state.FieldDefinition> customerCustomFields;
+    property public abstract com.nice.cxonechat.state.FileRestrictions fileRestrictions;
     property public abstract boolean hasMultipleThreadsPerEndUser;
     property public abstract boolean isAuthorizationEnabled;
+    property public abstract boolean isLiveChat;
+    property public abstract boolean isOnline;
     property public abstract boolean isProactiveChatEnabled;
+  }
+
+  @com.nice.cxonechat.Public public enum Configuration.Feature {
+    method public static com.nice.cxonechat.state.Configuration.Feature valueOf(String value) throws java.lang.IllegalArgumentException, java.lang.NullPointerException;
+    method public static com.nice.cxonechat.state.Configuration.Feature[] values();
+    enum_constant public static final com.nice.cxonechat.state.Configuration.Feature LiveChatLogoHidden;
+    enum_constant public static final com.nice.cxonechat.state.Configuration.Feature ProactiveChatEnabled;
+    enum_constant public static final com.nice.cxonechat.state.Configuration.Feature RecoverLiveChatDoesNotFail;
   }
 
   @com.nice.cxonechat.Public public interface Connection {
@@ -941,6 +830,22 @@ package com.nice.cxonechat.state {
     method @com.nice.cxonechat.Public @kotlin.jvm.Throws(exceptionClasses=UndefinedCustomField::class) public static void validate(kotlin.sequences.Sequence<? extends com.nice.cxonechat.state.FieldDefinition>, java.util.Map<java.lang.String,java.lang.String> values) throws com.nice.cxonechat.exceptions.UndefinedCustomField;
   }
 
+  @com.nice.cxonechat.Public public interface FileRestrictions {
+    method public int getAllowedFileSize();
+    method public java.util.List<com.nice.cxonechat.state.FileRestrictions.AllowedFileType> getAllowedFileTypes();
+    method public boolean isAttachmentsEnabled();
+    property public abstract int allowedFileSize;
+    property public abstract java.util.List<com.nice.cxonechat.state.FileRestrictions.AllowedFileType> allowedFileTypes;
+    property public abstract boolean isAttachmentsEnabled;
+  }
+
+  @com.nice.cxonechat.Public public static interface FileRestrictions.AllowedFileType {
+    method public String getDescription();
+    method public String getMimeType();
+    property public abstract String description;
+    property public abstract String mimeType;
+  }
+
   @com.nice.cxonechat.Public public interface HierarchyNode<T> {
     method public kotlin.sequences.Sequence<com.nice.cxonechat.state.HierarchyNode<T>> getChildren();
     method public String getLabel();
@@ -1004,8 +909,10 @@ package com.nice.cxonechat.thread {
     method public abstract boolean getCanAddMoreMessages();
     method public abstract java.util.List<com.nice.cxonechat.thread.CustomField> getFields();
     method public final boolean getHasMoreMessagesToLoad();
+    method public abstract boolean getHasOnlineAgent();
     method public abstract java.util.UUID getId();
     method public abstract java.util.List<com.nice.cxonechat.message.Message> getMessages();
+    method public abstract Integer? getPositionInQueue();
     method public abstract String getScrollToken();
     method public abstract com.nice.cxonechat.thread.Agent? getThreadAgent();
     method public abstract String? getThreadName();
@@ -1013,8 +920,10 @@ package com.nice.cxonechat.thread {
     property public abstract boolean canAddMoreMessages;
     property public abstract java.util.List<com.nice.cxonechat.thread.CustomField> fields;
     property public final boolean hasMoreMessagesToLoad;
+    property public abstract boolean hasOnlineAgent;
     property public abstract java.util.UUID id;
     property public abstract java.util.List<com.nice.cxonechat.message.Message> messages;
+    property public abstract Integer? positionInQueue;
     property public abstract String scrollToken;
     property public abstract com.nice.cxonechat.thread.Agent? threadAgent;
     property public abstract String? threadName;
@@ -1040,4 +949,3 @@ package com.nice.cxonechat.thread {
   }
 
 }
-

@@ -1,6 +1,28 @@
 <a name="unreleased"></a>
 ## [Unreleased]
 
+## [2.0.0]
+
+### Bug Fixes
+- Thread updates are delivered to all listeners
+
+### Code Refactoring
+- BREAKING CHANGE Enum case name consistency
+
+### Dependency Change
+- Bump androidx.core:core-ktx from 1.13.0 to 1.13.1
+- Update com.squareup.retrofit2 2.9.0 -> 2.10.0
+### Features
+- BREAKING CHANGE Deprecate legacy plugins
+- BREAKING CHANGE Add LiveChat support
+- Sdk doesn't allow messaging to archived thread
+- Add support for autolinking in text messages
+- Align Single-threaded Channel Behavior with iOS implementation
+- File upload restrictions are now published by the SDK
+- SDK enforces published file restrictions
+- Update DeviceFingerprint
+- Handle EventInS3 meta-event
+
 ## [1.3.1]
 ### Bug Fixes
 - EventContactInboxAssigneeChanged.agent is nullable
@@ -198,10 +220,11 @@
     - failure
   - typing start/end
 
-[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.3.1...HEAD
+[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.0.0...HEAD
+[2.0.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.3.1...2.0.0
 [1.3.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.3.0...1.3.1
 [1.3.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.2.1...1.3.0
-[1.2.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.2.1...1.2.0
+[1.2.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.2.0...1.2.1
 [1.2.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.1.0...1.2.0
 [1.1.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.0.1...1.1.0
 [1.0.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.0.0...1.0.1

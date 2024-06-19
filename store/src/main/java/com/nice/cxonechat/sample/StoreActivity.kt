@@ -165,7 +165,7 @@ class StoreActivity : ComponentActivity(), UiStateContext {
     override fun loginWithAmazon() = logger.scope("loginWithAmazon") {
         val (codeVerifier, codeChallenge) = PKCE.generateCodeVerifier()
 
-        requestContext.registerListener(LoggingAuthorizeListener(codeVerifier, this))
+        requestContext.registerListener(LoggingAuthorizeListener(codeVerifier, storeViewModel, this))
 
         AuthorizationManager.authorize(
             AuthorizeRequest.Builder(requestContext)
@@ -178,6 +178,7 @@ class StoreActivity : ComponentActivity(), UiStateContext {
 
     private inner class LoggingAuthorizeListener(
         private val codeVerifier: String,
+        private val storeViewModel: StoreViewModel,
         logger: Logger,
     ) : AuthorizeListener(), LoggerScope by LoggerScope<AuthorizeListener>(logger) {
         override fun onSuccess(result: AuthorizeResult?) = scope("onSuccess") {

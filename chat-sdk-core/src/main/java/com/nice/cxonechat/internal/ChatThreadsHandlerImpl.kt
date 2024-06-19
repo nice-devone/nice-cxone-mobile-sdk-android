@@ -16,11 +16,11 @@
 package com.nice.cxonechat.internal
 
 import com.nice.cxonechat.Cancellable
+import com.nice.cxonechat.ChatMode.LiveChat
 import com.nice.cxonechat.ChatThreadHandler
 import com.nice.cxonechat.ChatThreadsHandler
 import com.nice.cxonechat.enums.EventType
 import com.nice.cxonechat.enums.EventType.ThreadListFetched
-import com.nice.cxonechat.event.FetchThreadEvent
 import com.nice.cxonechat.internal.model.ChatThreadInternal
 import com.nice.cxonechat.internal.model.ChatThreadMutable
 import com.nice.cxonechat.internal.model.ChatThreadMutable.Companion.asMutable
@@ -45,9 +45,7 @@ internal class ChatThreadsHandlerImpl(
     override val preChatSurvey: PreChatSurvey?,
 ) : ChatThreadsHandler {
 
-    override fun refresh() {
-        chat.events().trigger(FetchThreadEvent)
-    }
+    override fun refresh() = Unit
 
     override fun create(
         customFields: Map<String, String>,
@@ -82,7 +80,9 @@ internal class ChatThreadsHandlerImpl(
             threads.asSequence()
                 .filter(event::inThread)
                 .forEach { thread ->
-                    CaseStatusChangedHandlerActions.handleCaseClosed(thread, event) { listener.onThreadsUpdated(threads) }
+                    CaseStatusChangedHandlerActions.handleCaseClosed(thread, event) { _ ->
+                        listener.onThreadsUpdated(threads)
+                    }
                 }
         }
 
@@ -92,13 +92,13 @@ internal class ChatThreadsHandlerImpl(
         )
     }
 
-    override fun thread(thread: ChatThread): ChatThreadHandler = createHandler(ChatThreadMutable.from(thread))
+    override fun thread(thread: ChatThread): ChatThreadHandler = createHandler(thread)
 
     // ---
 
     private fun createHandler(
         thread: ChatThread,
-        addWelcomeHandler: Boolean = false,
+        isThreadCreated: Boolean = false,
     ): ChatThreadHandler {
         val mutableThread = thread as? ChatThreadMutable ?: ChatThreadMutable.from(thread)
         var handler: ChatThreadHandler
@@ -108,7 +108,9 @@ internal class ChatThreadsHandlerImpl(
         handler = ChatThreadHandlerAgentUpdate(handler, chat, mutableThread)
         handler = ChatThreadHandlerAgentTyping(handler, chat)
         handler = ChatThreadHandlerMessageReadByAgent(handler, chat, mutableThread)
-        if (addWelcomeHandler) handler = ChatThreadHandlerWelcome(handler, chat, mutableThread)
+        if (chat.chatMode === LiveChat) handler = ChatThreadHandlerLiveChat(handler, chat, mutableThread, isThreadCreated)
+        if (isThreadCreated) handler = ChatThreadHandlerWelcome(handler, chat, mutableThread)
+        handler = ChatThreadHandlerAggregatingListener(handler)
         return handler
     }
 

@@ -68,7 +68,7 @@ internal class ValueStorage(
     }
 
     enum class StringKey(val value: Key<String>) {
-        CUSTOMER_CUSTOM_VALUES_KEY(stringPreferencesKey(PREF_CUSTOM_VALUES)),
-        REQUESTED_PERMISSIONS_KEY(stringPreferencesKey(PREF_REQUESTED_PERMISSIONS))
+        CustomerCustomValuesKey(stringPreferencesKey(PREF_CUSTOM_VALUES)),
+        RequestedPermissionsKey(stringPreferencesKey(PREF_REQUESTED_PERMISSIONS))
     }
 }

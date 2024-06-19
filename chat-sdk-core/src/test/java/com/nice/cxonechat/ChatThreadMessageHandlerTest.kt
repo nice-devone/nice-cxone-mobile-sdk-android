@@ -17,16 +17,9 @@
 
 package com.nice.cxonechat
 
-import android.util.Base64
-import android.webkit.MimeTypeMap
 import com.nice.cxonechat.ChatThreadMessageHandler.OnMessageTransferListener
-import com.nice.cxonechat.api.model.AttachmentUploadResponse
 import com.nice.cxonechat.exceptions.InvalidParameterException
-import com.nice.cxonechat.exceptions.InvalidStateException
-import com.nice.cxonechat.exceptions.RuntimeChatException
-import com.nice.cxonechat.internal.model.AttachmentModel
-import com.nice.cxonechat.internal.model.AttachmentUploadModel
-import com.nice.cxonechat.message.ContentDescriptor
+import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.message.OutboundMessage
 import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.model.makeMessage
@@ -34,23 +27,11 @@ import com.nice.cxonechat.server.ServerRequest
 import com.nice.cxonechat.server.ServerResponse
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.tool.nextString
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.mockkStatic
-import io.mockk.verify
-import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Test
-import retrofit2.Call
-import retrofit2.Response
-import java.io.IOException
 import java.util.UUID
-import kotlin.io.encoding.ExperimentalEncodingApi
-import kotlin.random.Random
-import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertSame
-import kotlin.test.assertTrue
-import kotlin.io.encoding.Base64 as KotlinBase64
+import kotlin.test.fail
 
 internal class ChatThreadMessageHandlerTest : AbstractChatTest() {
 
@@ -60,6 +41,10 @@ internal class ChatThreadMessageHandlerTest : AbstractChatTest() {
     override fun prepare() {
         super.prepare()
         thread = makeChatThread(messages = listOf(makeMessage()), id = TestUUIDValue)
+        setupMessages(thread)
+    }
+
+    private fun setupMessages(thread: ChatThread) {
         messages = chat.threads().thread(thread).messages()
     }
 
@@ -164,139 +149,9 @@ internal class ChatThreadMessageHandlerTest : AbstractChatTest() {
         }
     }
 
-    private fun mockMimeTypeMap() = mockk<MimeTypeMap> {
-        every { getExtensionFromMimeType(mimeType) } returns "wtf"
-    }.also {
-        mockkStatic(MimeTypeMap::class)
-        every { MimeTypeMap.getSingleton() } returns it
-    }
-
     @Test(expected = InvalidParameterException::class)
     fun send_empty_message_throws() {
         messages.send(OutboundMessage(""))
-    }
-
-    @OptIn(ExperimentalEncodingApi::class)
-    @Test
-    fun send_attachments_sendsExpectedMessage() {
-        val bytes = Random.nextBytes(32)
-        val postback = nextString()
-        val expected = KotlinBase64.encode(bytes)
-        val attachments = listOf(AttachmentModel("url", "friendlyName", mimeType = mimeType))
-        val call: Call<AttachmentUploadResponse?> = mockCall { AttachmentUploadResponse("url") }
-        val filename = "filename"
-        val upload = contentDescriptor(bytes, filename)
-        val mimeTypeMap = mockMimeTypeMap()
-
-        mockAndroidBase64()
-
-        every { service.uploadFile(any(), any(), any()) } returns call
-
-        assertSendText(
-            ServerRequest.SendMessage(
-                connection = connection,
-                thread = thread,
-                storage = storage,
-                message = expected,
-                attachments = attachments,
-                postback = postback
-            )
-        ) {
-            messages.send(OutboundMessage(listOf(upload), expected, postback))
-        }
-
-        val model = AttachmentUploadModel(upload)
-
-        verify {
-            Base64.encodeToString(eq(bytes), eq(0))
-            mimeTypeMap.getExtensionFromMimeType(mimeType)
-            service.uploadFile(model, connection.brandId.toString(), connection.channelId)
-        }
-    }
-
-    @OptIn(ExperimentalEncodingApi::class)
-    @Test
-    fun send_attachment_notifies_about_failure_in_response() {
-        val expected = nextString()
-        val filename = nextString()
-        val postback = nextString()
-        val bytes = KotlinBase64.decode(expected)
-
-        mockAndroidBase64()
-
-        assertSendText(
-            ServerRequest.SendMessage(
-                connection = connection,
-                thread = thread,
-                storage = storage,
-                message = expected,
-                attachments = emptyList(),
-                postback = postback
-            )
-        ) {
-            val upload = contentDescriptor(bytes, filename)
-            every { service.uploadFile(any(), any(), any()) } returns mockk {
-                every { execute() } returns Response.error(418, "I am a teapot!".toResponseBody())
-            }
-            messages.send(OutboundMessage(listOf(upload), expected, postback))
-        }
-        val exception = chatStateListener.onChatRuntimeExceptions.last()
-        assertTrue(
-            exception is RuntimeChatException.AttachmentUploadError,
-            "Expected exception of type ${RuntimeChatException.AttachmentUploadError::class.simpleName} but was " +
-                    "${exception::class.simpleName}"
-        )
-        assertEquals(filename, exception.attachmentName)
-        assertTrue(
-            exception.cause is InvalidStateException,
-            "Expected exception cause of type ${InvalidStateException::class.simpleName} but was " +
-                    "${exception.cause?.javaClass?.kotlin?.simpleName}"
-        )
-    }
-
-    @OptIn(ExperimentalEncodingApi::class)
-    @Test
-    fun send_attachment_notifies_about_failure_in_network_call() {
-        val expected = nextString()
-        val filename = nextString()
-        val postback = nextString()
-        val bytes = KotlinBase64.decode(expected)
-
-        mockAndroidBase64()
-
-        val ioException = IOException("This is a test")
-        assertSendText(
-            ServerRequest.SendMessage(
-                connection = connection,
-                thread = thread,
-                storage = storage,
-                message = expected,
-                attachments = emptyList(),
-                postback = postback
-            )
-        ) {
-            val upload = contentDescriptor(bytes, filename)
-            every { service.uploadFile(any(), any(), any()) } returns mockk {
-                every { execute() } throws ioException
-            }
-            messages.send(OutboundMessage(listOf(upload), expected, postback))
-        }
-        val exception = chatStateListener.onChatRuntimeExceptions.last()
-        assertTrue(
-            exception is RuntimeChatException.AttachmentUploadError,
-            "Expected exception of type ${RuntimeChatException.AttachmentUploadError::class.simpleName} but was " +
-                    "${exception::class.simpleName}"
-        )
-        assertEquals(filename, exception.attachmentName)
-        assertEquals(ioException, exception.cause)
-    }
-
-    @OptIn(ExperimentalEncodingApi::class)
-    private fun mockAndroidBase64() {
-        // since android.* classes aren't implemented for unit tests, mock out Base64 conversion
-        // to just return a fixed string
-        mockkStatic(Base64::class)
-        every { Base64.encodeToString(any(), any()) } answers { KotlinBase64.encode(arg<ByteArray>(0)) }
     }
 
     @Test
@@ -330,10 +185,17 @@ internal class ChatThreadMessageHandlerTest : AbstractChatTest() {
         assertSame(processedId, result)
     }
 
-    companion object {
-        private const val mimeType = "application/wtf"
-
-        private fun contentDescriptor(bytes: ByteArray, filename: String) =
-            ContentDescriptor(bytes, "application/wtf", filename, "friendlyName")
+    @Test(
+        expected = IllegalStateException::class
+    )
+    fun send_text_to_archived_thread_throws() {
+        super.prepare()
+        thread = thread.asCopyable().copy(canAddMoreMessages = false)
+        setupMessages(thread)
+        assert(!thread.canAddMoreMessages)
+        testCallback { trigger ->
+            messages.send(OutboundMessage("message1"), OnMessageTransferListener(onSent = trigger))
+        }
+        fail("messages.send() should throw ISE")
     }
 }

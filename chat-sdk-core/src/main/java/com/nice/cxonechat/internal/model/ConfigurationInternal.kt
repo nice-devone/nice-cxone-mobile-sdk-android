@@ -18,6 +18,7 @@ package com.nice.cxonechat.internal.model
 import com.nice.cxonechat.prechat.PreChatSurvey
 import com.nice.cxonechat.state.Configuration
 import com.nice.cxonechat.state.FieldDefinitionList
+import com.nice.cxonechat.state.FileRestrictions
 
 internal data class ConfigurationInternal(
     override val hasMultipleThreadsPerEndUser: Boolean,
@@ -26,6 +27,10 @@ internal data class ConfigurationInternal(
     internal val preContactSurvey: PreChatSurvey?,
     override val contactCustomFields: FieldDefinitionList,
     override val customerCustomFields: FieldDefinitionList,
+    override val fileRestrictions: FileRestrictions,
+    override val isLiveChat: Boolean,
+    override val isOnline: Boolean,
+    private val features: Map<String, Boolean>,
 ) : Configuration {
     override fun toString() = "Configuration(" +
             "hasMultipleThreadsPerEndUser=$hasMultipleThreadsPerEndUser, " +
@@ -33,6 +38,12 @@ internal data class ConfigurationInternal(
             "isAuthorizationEnabled=$isAuthorizationEnabled, " +
             "preContactSurvey=$preContactSurvey, " +
             "contactCustomFields=${contactCustomFields.joinToString()}, " +
-            "customerCustomFields=${customerCustomFields.joinToString()}" +
+            "customerCustomFields=${customerCustomFields.joinToString()}, " +
+            "fileRestrictions=$fileRestrictions, " +
+            "isLiveChat=$isLiveChat " +
+            "isOnline=$isOnline" +
+            "features=$features" +
             ")"
+
+    override fun hasFeature(feature: String) = features[feature] != false
 }

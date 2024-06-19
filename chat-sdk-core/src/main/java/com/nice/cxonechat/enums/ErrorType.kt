@@ -52,5 +52,8 @@ internal enum class ErrorType(val value: String) {
     @SerializedName("SendingOfflineMessageFailed")
     SendingOfflineMessageFailed("SendingOfflineMessageFailed"),
 
+    @SerializedName("MetadataLoadFailed")
     MetadataLoadFailed("MetadataLoadFailed"),
+
+    S3EventLoadFailed("S3EventLoadFailed"),
 }

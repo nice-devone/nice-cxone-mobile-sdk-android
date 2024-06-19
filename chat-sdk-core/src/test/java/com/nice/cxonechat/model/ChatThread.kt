@@ -18,6 +18,8 @@ internal fun makeChatThread(
     scrollToken: String = "",
     fields: List<CustomField> = emptyList(),
     threadState: ChatThreadState = Ready,
+    positionInQueue: Int? = null,
+    hasOnlineAgent: Boolean = true,
 ) = ChatThreadInternal(
     id = id,
     threadName = threadName,
@@ -27,4 +29,6 @@ internal fun makeChatThread(
     scrollToken = scrollToken,
     fields = fields,
     threadState = threadState,
+    positionInQueue = positionInQueue,
+    hasOnlineAgent = hasOnlineAgent
 )

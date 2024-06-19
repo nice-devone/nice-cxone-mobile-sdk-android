@@ -17,6 +17,7 @@ package com.nice.cxonechat.internal.serializer
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonParseException
 import com.google.gson.JsonSyntaxException
 import com.google.gson.TypeAdapter
 import com.google.gson.stream.JsonReader
@@ -28,10 +29,13 @@ import com.nice.cxonechat.internal.model.network.MessagePolyContent
 import com.nice.cxonechat.internal.model.network.MessagePolyElement
 import com.nice.cxonechat.internal.model.network.PolyAction
 import com.nice.cxonechat.util.DateTime
+import com.nice.cxonechat.util.IsoDate
 import com.nice.cxonechat.util.timestampToDate
 import com.nice.cxonechat.util.toTimestamp
 import java.io.IOException
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 import java.util.UUID
 import kotlin.math.roundToLong
 
@@ -39,7 +43,6 @@ internal object Default {
 
     private val messageContentAdapter = RuntimeTypeAdapterFactory.of(MessagePolyContent::class.java, "type")
         .registerSubtype(MessagePolyContent.Text::class.java, "TEXT")
-        .registerSubtype(MessagePolyContent.Plugin::class.java, "PLUGIN")
         .registerSubtype(MessagePolyContent.QuickReplies::class.java, "QUICK_REPLIES")
         .registerSubtype(MessagePolyContent.ListPicker::class.java, "LIST_PICKER")
         .registerSubtype(MessagePolyContent.RichLink::class.java, "RICH_LINK")
@@ -76,6 +79,7 @@ internal object Default {
         .registerTypeAdapter(UUID::class.java, LenientUUIDTypeAdapter())
         .registerTypeAdapter(Date::class.java, DateTypeAdapter())
         .registerTypeAdapter(DateTime::class.java, DateTimeTypeAdapter())
+        .registerTypeAdapter(IsoDate::class.java, IsoDateTypeAdapter())
         .create()
 
     private class DateTypeAdapter : TypeAdapter<Date>() {
@@ -122,6 +126,32 @@ internal object Default {
         }
 
         override fun read(reader: JsonReader): DateTime? = fallback.read(reader)?.let(::DateTime)
+    }
+
+    private class IsoDateTypeAdapter : TypeAdapter<IsoDate>() {
+        override fun write(out: JsonWriter?, value: IsoDate?) {
+            if (value == null) {
+                out?.nullValue()
+            } else {
+                out?.value(dateFormatter.format(value.date))
+            }
+        }
+
+        override fun read(reader: JsonReader?): IsoDate? {
+            return if (reader?.peek() == null) {
+                return null
+            } else {
+                with(reader.nextString()) {
+                    dateFormatter.parse(this) ?: throw JsonParseException("Unable to parse date:$this")
+                }.let(::IsoDate)
+            }
+        }
+
+        companion object {
+            val dateFormatter by lazy {
+                SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss'Z'", Locale.US)
+            }
+        }
     }
 
     /**

@@ -6,9 +6,9 @@ plugins {
     id "koin-conventions"
     id "android-test-conventions"
     id "application-style-conventions"
-    id 'com.google.gms.google-services'
-    id "com.google.firebase.appdistribution"
-    id 'com.google.firebase.crashlytics'
+    alias (libs.plugins.google.services)
+    alias (libs.plugins.firebase.appdistribution)
+    alias (libs.plugins.firebase.crashlytics)
 }
 
 def storeVersion = branchVersion(version, project)
@@ -52,7 +52,7 @@ android {
 
     sourceSets {
         main {
-            assets.srcDirs += rootProject.file("shared")
+            assets.srcDirs += rootProject.file("shared/assets")
             java.srcDirs += new File(buildDir, "generated/ksp/main/kotlin")
         }
     }
@@ -79,30 +79,26 @@ android.applicationVariants.all { variant ->
 }
 
 dependencies {
-    def retrofitVersion = "2.9.0"
-    implementation "com.squareup.retrofit2:retrofit:$retrofitVersion"
-    implementation "com.squareup.retrofit2:converter-gson:$retrofitVersion"
+    implementation libs.retrofit
+    implementation libs.retrofit.gson
 
     // Initializer<T>
-    implementation "androidx.lifecycle:lifecycle-common:2.7.0"
-    implementation "androidx.startup:startup-runtime:1.1.1"
+    implementation libs.androidx.lifecycle.common
+    implementation libs.androidx.startup
 
     // GoDaddy color picker
-    def colorPickerVersion = "0.7.0"
-    implementation "com.godaddy.android.colorpicker:compose-color-picker-android:$colorPickerVersion"
+    implementation libs.colorpicker
 
     // Firebase
-    implementation platform('com.google.firebase:firebase-bom:32.7.1')
-    implementation 'com.google.firebase:firebase-messaging'
-    implementation 'com.google.firebase:firebase-messaging-ktx'
+    implementation platform(libs.firebase.bom)
+    implementation libs.firebase.messaging
 
     // Extended Emoji Support
-    def emojiVersion = "1.4.0"
-    implementation "androidx.emoji2:emoji2:$emojiVersion"
-    implementation "androidx.emoji2:emoji2-bundled:$emojiVersion"
+    implementation libs.androidx.emoji2
+    implementation libs.androidx.emoji.bundled
 
     // AsyncImage
-    implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation libs.coil.compose
 
     // CXOne Chat SDK
     implementation project(":chat-sdk-core")
@@ -111,11 +107,11 @@ dependencies {
     implementation project(':logger-android')
 
     // Crashlytics
-    implementation("com.google.firebase:firebase-crashlytics-ktx")
+    implementation(libs.firebase.crashlytics.ktx)
 
     // LoginWithAmazon
     implementation fileTree(include: ['*.jar', '*.aar'], dir: rootProject.file("libs"))
 
     // Immutable annotations
-    implementation "com.google.code.findbugs:jsr305:3.0.2"
+    implementation libs.findbugs
 }

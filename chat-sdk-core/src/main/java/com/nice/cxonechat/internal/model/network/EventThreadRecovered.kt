@@ -28,10 +28,13 @@ internal data class EventThreadRecovered(
 
     private val data get() = postback.data
     val agent get() = data.inboxAssignee?.toAgent()
-    val messages get() = data.messages.mapNotNull(MessageModel::toMessage)
+    val messages get() = data.messages.orEmpty().mapNotNull(MessageModel::toMessage)
     val thread get() = data.thread
         .toChatThread()
-        .copy(fields = postback.data.contact?.customFields.orEmpty().map(CustomFieldModel::toCustomField))
+        .copy(
+            fields = postback.data.contact?.customFields.orEmpty().map(CustomFieldModel::toCustomField),
+            contactId = data.contact?.id,
+        )
     val scrollToken get() = data.messagesScrollToken
     val customerCustomFields get() = data.customer?.customFields.orEmpty().map(CustomFieldModel::toCustomField)
 
@@ -40,7 +43,7 @@ internal data class EventThreadRecovered(
 
     data class Data(
         @SerializedName("messages")
-        val messages: List<MessageModel>,
+        val messages: List<MessageModel>?,
         @SerializedName("inboxAssignee")
         val inboxAssignee: AgentModel?,
         @SerializedName("thread")
@@ -50,6 +53,6 @@ internal data class EventThreadRecovered(
         @SerializedName("customer")
         val customer: CustomFieldsData? = null,
         @SerializedName("contact", alternate = ["consumerContact"])
-        val contact: CustomFieldsData? = null,
+        val contact: ContactFieldData? = null,
     )
 }

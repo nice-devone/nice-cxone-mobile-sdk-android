@@ -78,4 +78,10 @@ internal class ChatThreadHandlerLogging(
             handler
         }
     }
+
+    override fun endContact() = scope("endContact") {
+        duration {
+            origin.endContact()
+        }
+    }
 }

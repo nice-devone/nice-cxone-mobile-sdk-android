@@ -23,4 +23,8 @@ internal class ChatThreadingImpl(
     override fun connect(): Cancellable = origin.entrails.threading.background {
         origin.connect()
     }
+
+    override fun getChannelAvailability(callback: (Boolean) -> Unit): Cancellable = origin.entrails.threading.background {
+        origin.getChannelAvailability(callback)
+    }
 }

@@ -35,14 +35,17 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import com.google.android.material.snackbar.Snackbar
+import com.nice.cxonechat.ChatMode.LiveChat
+import com.nice.cxonechat.ChatMode.MultiThread
 import com.nice.cxonechat.ChatState
-import com.nice.cxonechat.ChatState.CONNECTED
-import com.nice.cxonechat.ChatState.CONNECTING
-import com.nice.cxonechat.ChatState.CONNECTION_LOST
-import com.nice.cxonechat.ChatState.INITIAL
-import com.nice.cxonechat.ChatState.PREPARED
-import com.nice.cxonechat.ChatState.PREPARING
-import com.nice.cxonechat.ChatState.READY
+import com.nice.cxonechat.ChatState.Connected
+import com.nice.cxonechat.ChatState.Connecting
+import com.nice.cxonechat.ChatState.ConnectionLost
+import com.nice.cxonechat.ChatState.Initial
+import com.nice.cxonechat.ChatState.Offline
+import com.nice.cxonechat.ChatState.Prepared
+import com.nice.cxonechat.ChatState.Preparing
+import com.nice.cxonechat.ChatState.Ready
 import com.nice.cxonechat.Public
 import com.nice.cxonechat.exceptions.RuntimeChatException.AuthorizationError
 import com.nice.cxonechat.prechat.PreChatSurvey
@@ -59,8 +62,8 @@ import com.nice.cxonechat.ui.main.ChatViewModel.NavigationState
 import com.nice.cxonechat.ui.main.ChatViewModel.NavigationState.MultiThreadEnabled
 import com.nice.cxonechat.ui.main.ChatViewModel.NavigationState.NavigationFinished
 import com.nice.cxonechat.ui.main.ChatViewModel.NavigationState.SingleThreadCreated
+import com.nice.cxonechat.ui.main.ChatViewModel.State
 import com.nice.cxonechat.ui.main.ChatViewModel.State.CreateSingleThread
-import com.nice.cxonechat.ui.main.ChatViewModel.State.Initial
 import com.nice.cxonechat.ui.main.ChatViewModel.State.SingleThreadCreationFailed
 import com.nice.cxonechat.ui.main.ChatViewModel.State.SingleThreadPreChatSurveyRequired
 import com.nice.cxonechat.ui.model.describe
@@ -78,6 +81,7 @@ import kotlinx.coroutines.withContext
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.UUID
 import java.util.concurrent.CancellationException
+import com.nice.cxonechat.ui.main.ChatViewModel.NavigationState.Offline as NavigationOffline
 
 /**
  * Chat container activity.
@@ -119,7 +123,7 @@ class ChatActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 var job: Job? = null
                 chatStateViewModel.state.collect {
-                    job = if (it === READY) {
+                    job = if (listOf(Ready, Offline).contains(it)) {
                         handleChatModelState()
                     } else {
                         job?.cancel(CancellationException("State: $it"))
@@ -133,8 +137,7 @@ class ChatActivity : AppCompatActivity() {
     private fun CoroutineScope.handleChatModelState() = launch {
         chatViewModel.state.collect { state ->
             when (state) {
-                Initial -> Ignored
-
+                State.Initial -> Ignored
                 is NavigationState -> {
                     if (state is MultiThreadEnabled || state is NavigationFinished) {
                         observeBackgroundThreadUpdates()
@@ -246,6 +249,7 @@ class ChatActivity : AppCompatActivity() {
 
     private fun startFragmentNavigation(state: NavigationState) {
         val navigationStart = when (state) {
+            NavigationOffline -> R.navigation.offline
             MultiThreadEnabled -> R.navigation.threads
             SingleThreadCreated -> R.navigation.chat
             NavigationFinished -> return
@@ -269,7 +273,7 @@ class ChatActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         lifecycleScope.launch {
-            chatStateViewModel.state.filter { it == CONNECTED }.firstOrNull()?.also {
+            chatStateViewModel.state.filter { it == Connected }.firstOrNull()?.also {
                 chatViewModel.reportOnResume()
             }
         }
@@ -281,15 +285,17 @@ class ChatActivity : AppCompatActivity() {
     }
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        if (menu != null && chatStateViewModel.state.value == CONNECTED) {
+        if (menu != null && chatStateViewModel.state.value == Connected) {
             val navController = findNavController(R.id.nav_host_fragment)
-            val isInChat = navController.currentDestination?.id == R.id.chatThreadFragment
-            val isMultiThread = chatViewModel.isMultiThreadEnabled
+            val isInChat = navController.currentDestination?.id == R.id.offlineFragment
+            val isMultiThread = chatViewModel.chatMode === MultiThread
+            val isLiveChat = chatViewModel.chatMode === LiveChat
             val hasQuestions = chatViewModel.preChatSurvey?.fields?.isEmpty() == false
 
             with(menu) {
                 findItem(R.id.action_thread_name)?.isVisible = isInChat && isMultiThread
                 findItem(R.id.action_custom_values)?.isVisible = isInChat && hasQuestions
+                findItem(R.id.action_end_contact)?.isVisible = isInChat && isLiveChat
             }
         }
 
@@ -301,9 +307,9 @@ class ChatActivity : AppCompatActivity() {
             when (state) {
                 // if the chat isn't prepared yet, prepare it.  Hopefully it's been
                 // configured by the provider.
-                INITIAL -> chatViewModel.prepare(applicationContext)
+                Initial -> chatViewModel.prepare(applicationContext)
 
-                PREPARING -> chatStateSnackbar = Snackbar.make(
+                Preparing -> chatStateSnackbar = Snackbar.make(
                     binding.root,
                     getString(string.preparing_sdk),
                     Snackbar.LENGTH_INDEFINITE
@@ -312,11 +318,11 @@ class ChatActivity : AppCompatActivity() {
                 }.apply(Snackbar::show)
 
                 // if the chat is (or becomes) prepared, then start a connect attempt
-                PREPARED -> if (!closing) {
+                Prepared -> if (!closing) {
                     chatViewModel.connect()
                 }
 
-                CONNECTING -> chatStateSnackbar = Snackbar.make(
+                Connecting -> chatStateSnackbar = Snackbar.make(
                     binding.root,
                     getString(string.chat_state_connecting),
                     Snackbar.LENGTH_INDEFINITE
@@ -324,19 +330,25 @@ class ChatActivity : AppCompatActivity() {
                     finish()
                 }.apply(Snackbar::show)
 
-                CONNECTED -> chatStateSnackbar = Snackbar.make(
+                Connected -> chatStateSnackbar = Snackbar.make(
                     binding.root,
                     string.chat_state_connected,
                     Snackbar.LENGTH_SHORT
                 ).apply(Snackbar::show)
 
-                READY -> chatStateSnackbar = Snackbar.make(
+                Ready -> chatStateSnackbar = Snackbar.make(
                     binding.root,
                     "SDK ready",
                     Snackbar.LENGTH_SHORT
                 ).apply(Snackbar::show)
 
-                CONNECTION_LOST -> chatStateSnackbar = Snackbar.make(
+                Offline -> chatStateSnackbar = Snackbar.make(
+                    binding.root,
+                    "SDK OFFLINE",
+                    Snackbar.LENGTH_SHORT
+                )
+
+                ConnectionLost -> chatStateSnackbar = Snackbar.make(
                     binding.root,
                     string.chat_state_connection_lost,
                     Snackbar.LENGTH_INDEFINITE
@@ -348,7 +360,7 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun showOnThreadCreationFailure(state: SingleThreadCreationFailed) {
-        showAlert(describe(state.failure), onClick = chatViewModel::dismissThreadCreationFailure)
+        showAlert(describe(state.failure), onClick = chatViewModel::refreshThreadState)
     }
 
     private suspend fun Intent.handleDeeplink() {

@@ -110,15 +110,6 @@ internal object ServerRequestAssertions {
         }
     }
 
-    fun String.verifyStoreVisitor() = apply {
-        verifyStructureOf(this) {
-            eventBaseline(action = ChatWindowEvent)
-            legacyPayload(type = "StoreVisitor") {
-                fingerprint("browserFingerprint")
-            }
-        }
-    }
-
     fun String.verifyExecuteTrigger() = apply {
         verifyStructureOf(this) {
             eventBaseline(action = ChatWindowEvent)
@@ -186,21 +177,37 @@ internal object ServerRequestAssertions {
         }
     }
 
-    fun String.verifyRecoverThread() = apply {
+    fun String.verifyRecoverThread(threadId: Any?, payloadType: String = "RecoverThread") = apply {
         verifyStructureOf(this) {
             eventBaseline(action = ChatWindowEvent)
-            payload(type = "RecoverThread") {
-                thread()
+            payload(type = payloadType) {
+                if (threadId != null) {
+                    thread()
+                } else {
+                    emptyThread()
+                }
             }
         }
     }
 
-    fun String.verifySendOutbound() = apply {
+    fun String.verifyEndContact() = apply {
+        verifyStructureOf(this) {
+            eventBaseline(action = ChatWindowEvent)
+            legacyPayload(type = "EndContact") {
+                thread()
+                prop("contact") {
+                    prop("id")
+                }
+            }
+        }
+    }
+
+    fun String.verifySendOutbound(deviceToken: String? = null) = apply {
         verifyStructureOf(this) {
             eventBaseline(action = ChatWindowEvent)
             legacyPayload(type = EventType.SendOutbound.value) {
                 message {
-                    fingerprint("browserFingerprint")
+                    fingerprint("browserFingerprint", deviceToken)
                 }
             }
         }
@@ -276,20 +283,15 @@ internal object ServerRequestAssertions {
     }
 
     private fun StructScope.fingerprint(
-        type: String = "deviceFingerprint"
+        type: String = "deviceFingerprint",
+        deviceToken: String? = null,
     ) {
         prop(type) {
-            prop("deviceToken")
-            prop("browser")
-            prop("browserVersion")
+            if (deviceToken != null) prop("deviceToken")
             prop("country")
-            prop("ip")
             prop("language")
-            prop("location")
             prop("applicationType")
             prop("os")
-            prop("osVersion")
-            prop("deviceType")
         }
     }
 
@@ -304,6 +306,10 @@ internal object ServerRequestAssertions {
         prop("thread") {
             prop("idOnExternalPlatform")
         }
+    }
+
+    private fun StructScope.emptyThread() {
+        prop("thread")
     }
 
     private fun StructScope.accessToken() {

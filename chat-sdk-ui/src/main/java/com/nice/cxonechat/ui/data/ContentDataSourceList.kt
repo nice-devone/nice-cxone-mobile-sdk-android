@@ -15,8 +15,11 @@
 
 package com.nice.cxonechat.ui.data
 
+import android.app.ActivityManager
+import android.app.ActivityManager.MemoryInfo
 import android.content.Context
 import android.net.Uri
+import com.nice.cxonechat.ChatInstanceProvider
 import com.nice.cxonechat.message.ContentDescriptor
 import org.koin.core.annotation.Single
 
@@ -25,6 +28,7 @@ import org.koin.core.annotation.Single
  * to process an content URI for attachment.
  *
  * @param context for content resolving
+ * @param chatInstanceProvider Provider of Chat instance
  * @param imageContentDataSource [ContentDataSource] for images
  * @param documentContentDataSource [ContentDataSource] for videos and pdf
  * documents and other attachments that are treated as raw data
@@ -33,6 +37,7 @@ import org.koin.core.annotation.Single
 @Single
 internal class ContentDataSourceList(
     private val context: Context,
+    private val chatInstanceProvider: ChatInstanceProvider,
     imageContentDataSource: ImageContentDataSource,
     documentContentDataSource: DocumentContentDataSource,
     audioContentDataSource: MediaStoreAudioContentDataSource,
@@ -43,18 +48,77 @@ internal class ContentDataSourceList(
         audioContentDataSource,
     )
 
+    private val availableMemory
+        get() = runCatching {
+            MemoryInfo()
+                .also(context.getSystemService(ActivityManager::class.java)::getMemoryInfo)
+                .availMem
+        }
+
+    private val allowedFileSize
+        get() = runCatching {
+            requireNotNull(
+                chatInstanceProvider
+                    .chat
+                    ?.configuration
+                    ?.fileRestrictions
+                    ?.allowedFileSize
+                    ?.times(1024L * 1024L)
+            )
+        }
+
     /**
      * Search available data sources for one that can handle the requested uri.
+     * The requested uri, is first validated if it matches file size restrictions.
      *
      * @param uri attachment URI to process
-     * @return [ContentDescriptor] for attachment upload if an appropriate data source
-     * was found.  null if no data source could be found
+     * @return [ContentRequestResult.Success] for attachment upload if an appropriate data source
+     * was found. [ContentRequestResult.Error] if no data source could be found, data was too large or there was error
+     * during it's retrieval.
      */
-    suspend fun descriptorForUri(uri: Uri): ContentDescriptor? {
-        val mimeType = context.contentResolver.getType(uri) ?: return null
+    @Suppress(
+        "ReturnCount"
+    )
+    suspend fun descriptorForUri(uri: Uri): ContentRequestResult {
+        if (!checkFileSize(uri)) return ContentRequestResult.ContentTooLarge
+        val dataSource = getDatasourceForContent(uri) ?: return ContentRequestResult.UnsupportedContentType
+        return dataSource.descriptorForUri(uri)?.let(ContentRequestResult::Success) ?: ContentRequestResult.ErrorRetrievingContent
+    }
 
-        return dataSources
-                .firstOrNull { it.acceptsMimeType(mimeType) }
-                ?.descriptorForUri(uri)
+    private fun checkFileSize(uri: Uri): Boolean {
+        val allowedFileSizeResult = allowedFileSize
+        val maxSize = if (allowedFileSizeResult.isFailure) {
+            availableMemory
+        } else {
+            runCatching { minOf(availableMemory.getOrThrow(), allowedFileSizeResult.getOrThrow()) }
+        }
+        val fileSize = getFileSize(uri)
+        return fileSize.isFailure || maxSize.isFailure || fileSize.getOrThrow() <= maxSize.getOrThrow()
+    }
+
+    private fun getFileSize(uri: Uri) = runCatching {
+        requireNotNull(
+            context
+                .contentResolver
+                .openFileDescriptor(uri, "r")
+                ?.use { fd ->
+                    fd.statSize
+                }
+        )
+    }
+
+    private fun getDatasourceForContent(uri: Uri): ContentDataSource? {
+        val mimeType = context.contentResolver.getType(uri) ?: return null
+        return dataSources.firstOrNull { dataSource -> dataSource.acceptsMimeType(mimeType) }
+    }
+
+    sealed interface ContentRequestResult {
+        @JvmInline
+        value class Success(val content: ContentDescriptor) : ContentRequestResult
+
+        sealed interface Error : ContentRequestResult
+        data object ContentTooLarge : Error
+        data object UnsupportedContentType : Error
+        data object ErrorRetrievingContent : Error
     }
 }

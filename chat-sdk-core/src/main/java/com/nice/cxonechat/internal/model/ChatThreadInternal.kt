@@ -31,8 +31,10 @@ internal data class ChatThreadInternal(
     override val scrollToken: String = "",
     override val fields: List<CustomField> = emptyList(),
     override val threadState: ChatThreadState,
+    override val positionInQueue: Int? = null,
+    override val hasOnlineAgent: Boolean = true,
+    override val contactId: String? = null,
 ) : ChatThread() {
-
     override fun toString() = buildString {
         append("ChatThread(id=")
         append(id)
@@ -50,6 +52,12 @@ internal data class ChatThreadInternal(
         append(fields)
         append("', state=")
         append(threadState)
+        append(", positionInQueue=")
+        append(positionInQueue)
+        append(", hasOnlineAgent=")
+        append(hasOnlineAgent)
+        append(", contactId=")
+        append(contactId)
         append(")")
     }
 }

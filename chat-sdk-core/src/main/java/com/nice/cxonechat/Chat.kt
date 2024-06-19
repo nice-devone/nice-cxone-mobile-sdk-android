@@ -15,8 +15,8 @@
 
 package com.nice.cxonechat
 
-import com.nice.cxonechat.ChatMode.MULTI_THREAD
-import com.nice.cxonechat.ChatMode.SINGLE_THREAD
+import com.nice.cxonechat.ChatMode.MultiThread
+import com.nice.cxonechat.ChatMode.SingleThread
 import com.nice.cxonechat.state.Configuration
 import com.nice.cxonechat.state.Environment
 import com.nice.cxonechat.thread.ChatThread
@@ -40,7 +40,8 @@ import com.nice.cxonechat.thread.CustomField
  * */
 @Public
 @Suppress(
-    "ComplexInterface"
+    "ComplexInterface",
+    "TooManyFunctions",
 )
 interface Chat : AutoCloseable {
 
@@ -68,7 +69,21 @@ interface Chat : AutoCloseable {
      * Current mode of the chat.
      */
     val chatMode: ChatMode
-        get() = if (configuration.hasMultipleThreadsPerEndUser) MULTI_THREAD else SINGLE_THREAD
+        get() = when {
+            configuration.isLiveChat -> ChatMode.LiveChat
+            configuration.hasMultipleThreadsPerEndUser -> MultiThread
+            else -> SingleThread
+        }
+
+    /**
+     * Last known channel availability.
+     */
+    val isChatAvailable: Boolean
+
+    /**
+     * Determine if a chat is available.
+     */
+    fun getChannelAvailability(callback: (Boolean) -> Unit): Cancellable
 
     /**
      * Sets device token (notification push token) to this instance and transmits it

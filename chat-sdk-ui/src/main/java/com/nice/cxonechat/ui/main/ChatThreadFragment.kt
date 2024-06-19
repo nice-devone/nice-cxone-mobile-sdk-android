@@ -31,6 +31,7 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.ActivityResultRegistry
 import androidx.activity.result.contract.ActivityResultContracts.GetContent
+import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.annotation.StringRes
@@ -38,6 +39,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -46,7 +49,9 @@ import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle.State
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
@@ -58,10 +63,12 @@ import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.conversation.AudioPlayerDialog
 import com.nice.cxonechat.ui.composable.conversation.AudioRecordingUiState
 import com.nice.cxonechat.ui.composable.conversation.ChatConversation
+import com.nice.cxonechat.ui.composable.conversation.EndConversationDialog
 import com.nice.cxonechat.ui.composable.conversation.SelectAttachmentsDialog
 import com.nice.cxonechat.ui.composable.conversation.model.ConversationUiState
 import com.nice.cxonechat.ui.composable.generic.ImageViewerDialogCard
 import com.nice.cxonechat.ui.composable.generic.VideoViewerDialogCard
+import com.nice.cxonechat.ui.composable.theme.Alert
 import com.nice.cxonechat.ui.composable.theme.BusySpinner
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.customvalues.mergeWithCustomField
@@ -71,13 +78,20 @@ import com.nice.cxonechat.ui.domain.AttachmentSharingRepository
 import com.nice.cxonechat.ui.main.ChatThreadViewModel.Dialogs.AudioPlayer
 import com.nice.cxonechat.ui.main.ChatThreadViewModel.Dialogs.CustomValues
 import com.nice.cxonechat.ui.main.ChatThreadViewModel.Dialogs.EditThreadName
+import com.nice.cxonechat.ui.main.ChatThreadViewModel.Dialogs.EndContact
+import com.nice.cxonechat.ui.main.ChatThreadViewModel.Dialogs.ErrorAttachmentNotSupported
+import com.nice.cxonechat.ui.main.ChatThreadViewModel.Dialogs.ErrorAttachmentTooLarge
+import com.nice.cxonechat.ui.main.ChatThreadViewModel.Dialogs.ErrorUnableToReadAttachment
 import com.nice.cxonechat.ui.main.ChatThreadViewModel.Dialogs.ImageViewer
 import com.nice.cxonechat.ui.main.ChatThreadViewModel.Dialogs.None
 import com.nice.cxonechat.ui.main.ChatThreadViewModel.Dialogs.SelectAttachments
 import com.nice.cxonechat.ui.main.ChatThreadViewModel.Dialogs.VideoPlayer
 import com.nice.cxonechat.ui.main.ChatThreadViewModel.OnPopupActionState.ReceivedOnPopupAction
-import com.nice.cxonechat.ui.main.ChatThreadViewModel.ReportOnPopupAction.FAILURE
-import com.nice.cxonechat.ui.main.ChatThreadViewModel.ReportOnPopupAction.SUCCESS
+import com.nice.cxonechat.ui.main.ChatThreadViewModel.ReportOnPopupAction.Failure
+import com.nice.cxonechat.ui.main.ChatThreadViewModel.ReportOnPopupAction.Success
+import com.nice.cxonechat.ui.model.EndConversationChoice.CLOSE_CHAT
+import com.nice.cxonechat.ui.model.EndConversationChoice.NEW_CONVERSATION
+import com.nice.cxonechat.ui.model.EndConversationChoice.SHOW_TRANSCRIPT
 import com.nice.cxonechat.ui.storage.ValueStorage
 import com.nice.cxonechat.ui.util.checkPermissions
 import com.nice.cxonechat.ui.util.contentDescription
@@ -92,7 +106,9 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import org.json.JSONTokener
 import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.util.UUID
 
 /**
  * Fragment presenting UI of one concrete chat thread (conversation).
@@ -104,6 +120,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class ChatThreadFragment : Fragment() {
 
     private val chatViewModel: ChatThreadViewModel by viewModel()
+    private val chatModel: ChatViewModel by activityViewModel()
 
     private val audioViewModel: AudioRecordingViewModel by viewModel()
 
@@ -239,28 +256,19 @@ class ChatThreadFragment : Fragment() {
     private fun DialogView() {
         when (val dialog = chatViewModel.dialogShown.collectAsState(None).value) {
             None -> Unit
-            CustomValues -> EditCustomValuesDialog(
-                title = stringResource(string.edit_custom_field_title),
-                fields = chatViewModel
-                    .preChatSurvey
-                    ?.fields
-                    .orEmpty()
-                    .mergeWithCustomField(
-                        chatViewModel.customValues
-                    ),
-                onCancel = chatViewModel::cancelEditingCustomValues,
-                onConfirm = chatViewModel::confirmEditingCustomValues
-            )
+            CustomValues -> CustomValuesDialog()
             EditThreadName -> EditThreadNameDialog(
                 threadName = chatViewModel.selectedThreadName.orEmpty(),
                 onCancel = chatViewModel::dismissDialog,
                 onAccept = chatViewModel::confirmEditThreadName
             )
+
             is AudioPlayer -> AudioPlayerDialog(
                 url = dialog.url,
                 title = dialog.title,
                 onCancel = chatViewModel::dismissDialog,
             )
+
             is SelectAttachments -> SelectAttachmentsDialog(
                 attachments = dialog.attachments,
                 title = dialog.title.orEmpty(),
@@ -280,6 +288,23 @@ class ChatThreadFragment : Fragment() {
                 title = dialog.title,
                 onDismiss = chatViewModel::dismissDialog
             )
+
+            ErrorAttachmentNotSupported -> ErrorDialog(
+                title = stringResource(id = string.attachment_upload_failure),
+                message = stringResource(id = string.attachment_not_supported),
+            )
+
+            ErrorAttachmentTooLarge -> ErrorDialog(
+                title = stringResource(id = string.attachment_upload_failure),
+                message = stringResource(id = string.attachment_too_large, chatViewModel.maxAttachmentSize),
+            )
+
+            ErrorUnableToReadAttachment -> ErrorDialog(
+                title = stringResource(id = string.attachment_upload_failure),
+                message = stringResource(id = string.attachment_read_error)
+            )
+
+            EndContact -> EndContactDialog()
         }
 
         if (chatViewModel.preparingToShare.collectAsState().value) {
@@ -287,11 +312,70 @@ class ChatThreadFragment : Fragment() {
         }
     }
 
+    @Composable
+    private fun EndContactDialog() {
+        ChatTheme {
+            ChatTheme.EndConversationDialog(
+                assignedAgent = chatViewModel.chatMetadata.collectAsState(initial = null).value?.agent,
+                onDismiss = chatViewModel::dismissDialog,
+                onUserSelection = {
+                    when (it) {
+                        SHOW_TRANSCRIPT -> {
+                            // no-op required
+                        }
+
+                        NEW_CONVERSATION -> chatModel.refreshThreadState(true)
+                        CLOSE_CHAT -> requireActivity().finish()
+                    }
+                }
+            )
+        }
+    }
+
+    @Composable
+    private fun ErrorDialog(
+        title: String,
+        message: String,
+    ) {
+        ChatTheme.Alert(
+            title = title,
+            message = message,
+            dismissLabel = stringResource(id = string.ok),
+            onDismiss = chatViewModel::dismissDialog
+        )
+    }
+
+    @Composable
+    private fun CustomValuesDialog() {
+        EditCustomValuesDialog(
+            title = stringResource(string.edit_custom_field_title),
+            fields = chatViewModel
+                .preChatSurvey
+                ?.fields
+                .orEmpty()
+                .mergeWithCustomField(
+                    chatViewModel.customValues
+                ),
+            onCancel = chatViewModel::cancelEditingCustomValues,
+            onConfirm = chatViewModel::confirmEditingCustomValues
+        )
+    }
+
     @OptIn(ExperimentalComposeUiApi::class)
     @Composable
     private fun ContentView(threadNameFlow: Flow<String?>) {
-        LaunchedEffect(key1 = chatViewModel) {
-            chatViewModel.refresh()
+        val lifecycleState by LocalLifecycleOwner.current.lifecycle.currentStateFlow.collectAsState()
+
+        /** Key to force refresh if the selected thread has changed. */
+        val threadId by remember {
+            chatViewModel.chatThreadHandler.map { it.get().id }
+        }.collectAsState(NIL_UUID)
+        if (lifecycleState === State.RESUMED) {
+            LaunchedEffect(lifecycleState, threadId) {
+                if (threadId !== NIL_UUID) {
+                    chatViewModel.refresh()
+                }
+            }
         }
 
         ChatTheme {
@@ -300,6 +384,7 @@ class ChatThreadFragment : Fragment() {
                     threadName = threadNameFlow,
                     sdkMessages = chatViewModel.messages,
                     typingIndicator = chatViewModel.agentState,
+                    positionInQueue = chatViewModel.positionInQueue,
                     sendMessage = chatViewModel::sendMessage,
                     loadMore = chatViewModel::loadMore,
                     canLoadMore = chatViewModel.canLoadMore,
@@ -309,7 +394,9 @@ class ChatThreadFragment : Fragment() {
                     onMoreClicked = ::onMoreClicked,
                     onShare = ::onShare,
                     isMultiThreaded = chatViewModel.isMultiThreadEnabled,
+                    isLiveChat = chatViewModel.isLiveChat,
                     hasQuestions = chatViewModel.hasQuestions,
+                    isArchived = chatViewModel.isArchived,
                 ),
                 audioRecordingState = AudioRecordingUiState(
                     uriFlow = audioViewModel.recordedUriFlow,
@@ -318,9 +405,13 @@ class ChatThreadFragment : Fragment() {
                     onApprove = chatViewModel::sendAttachment,
                     onAudioRecordToggle = ::onTriggerRecording
                 ),
-                onAttachmentTypeSelection = activityLauncher::getContent,
+                onAttachmentTypeSelection = {
+                    activityLauncher.getDocument(it.toTypedArray())
+                },
                 onEditThreadName = ::showEditThreadName,
                 onEditThreadValues = ::showEditCustomValues,
+                onEndContact = ::endContact,
+                displayEndConversation = chatViewModel::showEndContactDialog,
                 modifier = Modifier.semantics {
                     testTagsAsResourceId = true // Enabled for UI test automation
                 }
@@ -334,6 +425,10 @@ class ChatThreadFragment : Fragment() {
 
     private fun showEditCustomValues() {
         chatViewModel.startEditingCustomValues()
+    }
+
+    private fun endContact() {
+        chatViewModel.endContact()
     }
 
     private fun onMoreClicked(attachments: List<Attachment>, title: String) {
@@ -429,12 +524,12 @@ class ChatThreadFragment : Fragment() {
         actionTextView.setOnClickListener {
             chatViewModel.reportOnPopupActionClicked(action)
             // TODO build intent for the actionUrl
-            chatViewModel.reportOnPopupAction(SUCCESS, action)
+            chatViewModel.reportOnPopupAction(Success, action)
             snackbar.dismiss()
         }
 
         closeButton.setOnClickListener {
-            chatViewModel.reportOnPopupAction(FAILURE, action)
+            chatViewModel.reportOnPopupAction(Failure, action)
             snackbar.dismiss()
         }
 
@@ -488,6 +583,9 @@ class ChatThreadFragment : Fragment() {
 
     companion object {
         internal const val SENDER_ID = "1"
+
+        private val NIL_UUID = UUID(0, 0)
+
         internal val requiredRecordAudioPermissions = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
             setOf(Manifest.permission.RECORD_AUDIO)
         } else {
@@ -515,9 +613,15 @@ class ChatThreadFragment : Fragment() {
         private val registry: ActivityResultRegistry
     ) : DefaultLifecycleObserver {
         private var getContent: ActivityResultLauncher<String>? = null
+        private var getDocument: ActivityResultLauncher<Array<String>>? = null
 
         override fun onCreate(owner: LifecycleOwner) {
-            getContent = registry.register("key", owner, GetContent()) { uri ->
+            getContent = registry.register("com.nice.cxonechat.ui.content", owner, GetContent()) { uri ->
+                val safeUri = uri ?: return@register
+
+                chatViewModel.sendAttachment(safeUri)
+            }
+            getDocument = registry.register("com.nice.cxonechat.ui.document", owner, OpenDocument()) { uri ->
                 val safeUri = uri ?: return@register
 
                 chatViewModel.sendAttachment(safeUri)
@@ -525,17 +629,22 @@ class ChatThreadFragment : Fragment() {
         }
 
         /**
-         * start a foreign activity to find an attachment with the indicated mime type
+         * start a foreign activity to find an attachment with the indicated mime types
          *
-         * [mimeType] is one of the strings contained in the string-array resource
-         * attachment_type_mimetypes.
+         * [mimeTypes] is one of the strings supplied by the chat instance.
          *
          * Note that this will work for finding existing resources, but not for opening
          * the camera for photos or videos.
          *
-         * @param mimeType attachment type to find.
+         * @param mimeTypes attachment types to find.
          *
          */
-        fun getContent(mimeType: String) = getContent?.launch(mimeType)
+        fun getDocument(mimeTypes: Array<String>) {
+            if (mimeTypes.size == 1) {
+                getContent?.launch(mimeTypes[0])
+            } else {
+                getDocument?.launch(mimeTypes)
+            }
+        }
     }
 }

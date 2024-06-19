@@ -32,21 +32,6 @@ internal sealed class MessagePolyContent {
         )
     }
 
-    data class Plugin(
-        @SerializedName("fallback")
-        val fallbackText: String?,
-        @SerializedName("payload")
-        val payload: Payload,
-    ) : MessagePolyContent() {
-
-        data class Payload(
-            @SerializedName("postback")
-            val postback: String?,
-            @SerializedName("elements")
-            val elements: List<MessagePolyElement>,
-        )
-    }
-
     data class QuickReplies(
         @SerializedName("fallbackText")
         val fallbackText: String,

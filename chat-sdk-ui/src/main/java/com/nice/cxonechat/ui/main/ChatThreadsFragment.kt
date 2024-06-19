@@ -27,11 +27,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.DismissValue.DismissedToStart
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
@@ -40,7 +38,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.rememberDismissState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -51,22 +48,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow.Companion.Ellipsis
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle.State
 import androidx.navigation.fragment.findNavController
-import coil.compose.AsyncImage
 import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.prechat.PreChatSurvey
 import com.nice.cxonechat.state.FieldDefinition
@@ -79,7 +74,7 @@ import com.nice.cxonechat.thread.CustomField
 import com.nice.cxonechat.ui.PreChatSurveyDialog
 import com.nice.cxonechat.ui.R.array
 import com.nice.cxonechat.ui.R.string
-import com.nice.cxonechat.ui.composable.generic.forwardingPainter
+import com.nice.cxonechat.ui.composable.generic.AgentAvatar
 import com.nice.cxonechat.ui.composable.theme.Alert
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
@@ -104,7 +99,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
-import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.UUID
 import kotlin.random.Random
 
@@ -280,29 +274,15 @@ private fun ChatThreadView(thread: Thread, onThreadSelected: (Thread) -> Unit) {
                 .padding(start = space.medium)
         ) {
             Text(thread.name, style = chatTypography.threadListName)
-            Text(thread.lastMessage, style = chatTypography.threadListLastMessage)
+            Text(
+                thread.lastMessage,
+                style = chatTypography.threadListLastMessage,
+                maxLines = 2,
+                overflow = Ellipsis
+            )
         }
         DetailsChevron()
     }
-}
-
-@Composable
-private fun AgentAvatar(url: String = "") {
-    val placeholder = forwardingPainter(
-        painter = rememberVectorPainter(image = Icons.Outlined.AccountCircle),
-        colorFilter = ColorFilter.tint(colors.onBackground)
-    )
-
-    AsyncImage(
-        model = url.ifBlank { null },
-        placeholder = placeholder,
-        fallback = placeholder,
-        contentDescription = null,
-        modifier = Modifier
-            .size(space.agentImageSize)
-            .clip(CircleShape),
-        alignment = Alignment.Center,
-    )
 }
 
 @Composable
@@ -376,7 +356,7 @@ private fun ChatThreadsStateAlert(
 }
 
 @Immutable
-private data class PreviewAgent(
+internal data class PreviewAgent(
     override val id: Int,
     override val inContactId: UUID? = null,
     override val emailAddress: String?,
@@ -418,6 +398,8 @@ private data class PreviewThread(
     override val scrollToken: String = "",
     override val fields: List<CustomField> = listOf(),
     override val threadState: ChatThreadState = Ready,
+    override val positionInQueue: Int? = null,
+    override val hasOnlineAgent: Boolean = true,
 ) : ChatThread() {
     companion object {
         var nextThreadIndex: Int = 1
