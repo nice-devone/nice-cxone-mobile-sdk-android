@@ -24,19 +24,19 @@ import com.nice.cxonechat.Public
 enum class MessageStatus {
     /**
      * Status which can be used by UI implementation, for message passed to SDK, but not yet confirmed
-     * as [SENT].
+     * as [Sent].
      */
-    SENDING,
+    Sending,
 
     /** Default state of message when it has been processed by the SDK and sent to backend. */
-    SENT,
+    Sent,
 
     /** Status which can be used by UI implementation. */
-    FAILED_TO_DELIVER,
+    FailedToDeliver,
 
     /** Status reported when the message is reported as delivered/seen on backend. */
-    SEEN,
+    Seen,
 
     /** Status reported when the message is reported as read. */
-    READ,
+    Read,
 }

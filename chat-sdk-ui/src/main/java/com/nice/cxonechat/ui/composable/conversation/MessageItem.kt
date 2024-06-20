@@ -15,7 +15,6 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -30,28 +29,27 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.message.MessageDirection.ToAgent
-import com.nice.cxonechat.message.MessageDirection.ToClient
-import com.nice.cxonechat.message.MessageStatus.FAILED_TO_DELIVER
-import com.nice.cxonechat.message.MessageStatus.READ
-import com.nice.cxonechat.message.MessageStatus.SEEN
-import com.nice.cxonechat.message.MessageStatus.SENDING
-import com.nice.cxonechat.message.MessageStatus.SENT
+import com.nice.cxonechat.message.MessageStatus.FailedToDeliver
+import com.nice.cxonechat.message.MessageStatus.Read
+import com.nice.cxonechat.message.MessageStatus.Seen
+import com.nice.cxonechat.message.MessageStatus.Sending
+import com.nice.cxonechat.message.MessageStatus.Sent
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.conversation.model.Message
 import com.nice.cxonechat.ui.composable.conversation.model.Message.ListPicker
-import com.nice.cxonechat.ui.composable.conversation.model.Message.Plugin
 import com.nice.cxonechat.ui.composable.conversation.model.Message.QuickReply
 import com.nice.cxonechat.ui.composable.conversation.model.Message.RichLink
 import com.nice.cxonechat.ui.composable.conversation.model.Message.Text
 import com.nice.cxonechat.ui.composable.conversation.model.Message.Unsupported
 import com.nice.cxonechat.ui.composable.conversation.model.Message.WithAttachments
+import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider
+import com.nice.cxonechat.ui.composable.generic.AutoLinkedText
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatShapes
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.SmallSpacer
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun LazyItemScope.MessageItem(
     message: Message,
@@ -71,7 +69,7 @@ internal fun LazyItemScope.MessageItem(
         modifier = modifier
             .fillParentMaxWidth()
             .wrapContentWidth(align = alignment)
-            .animateItemPlacement(),
+            .animateItem(),
     ) {
         Column(horizontalAlignment = alignment) {
             if (showAgentSender) {
@@ -106,11 +104,11 @@ internal fun LazyItemScope.MessageItem(
 private fun MessageStatus(message: Message) {
     Text(
         when (message.status) {
-            SENDING -> stringResource(string.status_sending)
-            SENT -> stringResource(string.status_sent)
-            FAILED_TO_DELIVER -> stringResource(string.status_failed)
-            SEEN -> stringResource(string.status_received)
-            READ -> stringResource(string.status_read)
+            Sending -> stringResource(string.status_sending)
+            Sent -> stringResource(string.status_sent)
+            FailedToDeliver -> stringResource(string.status_failed)
+            Seen -> stringResource(string.status_received)
+            Read -> stringResource(string.status_read)
         },
         style = chatTypography.chatStatus,
     )
@@ -131,10 +129,10 @@ private fun MessageContent(
             modifier = padding,
         )
 
-        is Text -> Text(
+        is Text -> AutoLinkedText(
             text = message.text,
             modifier = padding,
-            style = chatTypography.chatMessage
+            style = chatTypography.chatMessage,
         )
         is WithAttachments -> AttachmentMessage(
             message,
@@ -146,7 +144,6 @@ private fun MessageContent(
         is ListPicker -> ListPickerMessage(message, modifier = padding)
         is RichLink -> RichLinkMessage(message = message, modifier = padding)
         is QuickReply -> QuickReplyMessage(message, modifier = padding)
-        is Plugin -> PluginMessage(message, modifier = padding)
     }
 }
 
@@ -154,7 +151,7 @@ private fun MessageContent(
 @Composable
 private fun PreviewContentTextMessage() {
     PreviewMessageItemBase(
-        message = Text(previewTextMessage("Text message", direction = ToClient)),
+        message = Text(PreviewMessageProvider.Text()),
         showSender = true,
     )
 }
@@ -163,7 +160,7 @@ private fun PreviewContentTextMessage() {
 @Composable
 private fun PreviewContentUnsupported() {
     PreviewMessageItemBase(
-        message = Unsupported(previewTextMessage("Unused")),
+        message = Unsupported(PreviewMessageProvider.Text()),
         showSender = true,
     )
 }

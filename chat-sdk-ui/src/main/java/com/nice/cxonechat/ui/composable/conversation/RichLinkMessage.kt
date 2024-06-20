@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.nice.cxonechat.ui.composable.conversation.model.Message.RichLink
+import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider
 import com.nice.cxonechat.ui.composable.generic.PresetAsyncImage
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.util.openWithAndroid
@@ -53,15 +54,7 @@ internal fun RichLinkMessage(message: RichLink, modifier: Modifier = Modifier) {
 @Composable
 private fun PreviewMessageRichLink() {
     PreviewMessageItemBase(
-        message = RichLink(
-            message = PreviewRichLinkMessage(
-                title = "Random cat",
-                url = "https://nice.com",
-                mediaUrl = "https://thecatapi.com/api/images/get?format=src&type=jpeg",
-                mediaMimeType = "image/jpeg",
-                mediaFileName = "Preview Image"
-            )
-        ),
+        message = RichLink(PreviewMessageProvider.RichLink()),
         showSender = true,
     )
 }

@@ -15,7 +15,22 @@
 
 package com.nice.cxonechat.ui.composable.theme
 
+import android.content.res.Configuration
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement.spacedBy
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.Public
 
 /** A set of colors to be applied in either dark or light mode. */
@@ -54,6 +69,12 @@ interface ThemeColors {
     /** Color for customer text. */
     val customerText: Color
 
+    /** background color for position in queue panel. */
+    val positionInQueueBackground: Color
+
+    /** foreground color for position in queue panel. */
+    val positionInQueueForeground: Color
+
     companion object {
         /**
          * Create a set of colors for either dark or light mode.  Two sets, one for dark and
@@ -69,7 +90,8 @@ interface ThemeColors {
          * @param agentText Color for agent text.
          * @param customerBackground Background color for customer bubbles.
          * @param customerText Color for customer text.
-         * @return Returns a properly constructed [ThemeColors] object.
+         * @param positionInQueueBackground color for position in queue panel.
+         * @param positionInQueueForeground color for position in queue panel.
          */
         @Public
         @JvmStatic
@@ -86,6 +108,8 @@ interface ThemeColors {
             agentText: Color,
             customerBackground: Color,
             customerText: Color,
+            positionInQueueBackground: Color? = null,
+            positionInQueueForeground: Color? = null,
         ): ThemeColors = ThemeColorsImpl(
             primary = primary,
             onPrimary = onPrimary,
@@ -97,6 +121,8 @@ interface ThemeColors {
             agentText = agentText,
             customerBackground = customerBackground,
             customerText = customerText,
+            positionInQueueBackground = positionInQueueBackground ?: onBackground.copy(alpha = 0.80f),
+            positionInQueueForeground = positionInQueueForeground ?: background.copy(alpha = 0.80f),
         )
     }
 }
@@ -113,4 +139,55 @@ internal data class ThemeColorsImpl(
     override val agentText: Color,
     override val customerBackground: Color,
     override val customerText: Color,
+    override val positionInQueueBackground: Color,
+    override val positionInQueueForeground: Color,
 ) : ThemeColors
+
+@Composable
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+private fun PreviewThemeColorsNight() {
+    ThemeColorsList()
+}
+
+@Composable
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+private fun PreviewThemeColors() {
+    ThemeColorsList()
+}
+
+@Composable
+private fun ThemeColorsList() {
+    ChatTheme {
+        val colors = listOf(
+            "primary" to ChatTheme.colors.primary,
+            "onPrimary" to ChatTheme.colors.onPrimary,
+            "background" to ChatTheme.colors.background,
+            "onBackground" to ChatTheme.colors.onBackground,
+            "secondary" to ChatTheme.colors.secondary,
+            "onSecondary" to ChatTheme.colors.onSecondary,
+        )
+        Surface {
+            Column(
+                verticalArrangement = spacedBy(8.dp),
+                modifier = Modifier.padding(8.dp)
+            ) {
+                colors.forEach { (label, color) ->
+                    Row(
+                        modifier = Modifier.padding(4.dp)
+                    ) {
+                        Text(
+                            text = label,
+                            modifier = Modifier.padding(end = 8.dp),
+                        )
+                        Spacer(
+                            modifier = Modifier
+                                .border(2.dp, Color.Gray)
+                                .background(color = color)
+                                .size(24.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}

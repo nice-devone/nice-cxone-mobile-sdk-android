@@ -28,6 +28,7 @@ internal data class MessageContent(
      * */
     @SerializedName("type")
     val type: MessageContentType,
+
     /**
      * Message contents sent to the remote agent/server.
      * It can have various elements depending on [MessageContentType]

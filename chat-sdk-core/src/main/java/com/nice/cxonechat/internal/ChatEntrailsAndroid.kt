@@ -33,7 +33,7 @@ internal class ChatEntrailsAndroid(
     context: Context,
     factory: SocketFactory,
     config: SocketFactoryConfiguration,
-    sharedClient: OkHttpClient,
+    override val sharedClient: OkHttpClient,
     override val logger: Logger,
 ) : ChatEntrails {
 

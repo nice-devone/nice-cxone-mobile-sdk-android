@@ -21,16 +21,15 @@ import com.nice.cxonechat.ChatThreadEventHandler
 import com.nice.cxonechat.ChatThreadHandler
 import com.nice.cxonechat.ChatThreadHandler.OnThreadUpdatedListener
 import com.nice.cxonechat.ChatThreadMessageHandler
-import com.nice.cxonechat.enums.EventType.CaseStatusChanged
 import com.nice.cxonechat.enums.EventType.ThreadRecovered
 import com.nice.cxonechat.enums.EventType.ThreadUpdated
-import com.nice.cxonechat.event.thread.RecoverThreadEvent
+import com.nice.cxonechat.event.RecoverThreadEvent
 import com.nice.cxonechat.event.thread.UpdateThreadEvent
+import com.nice.cxonechat.exceptions.InvalidStateException
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.updateWith
 import com.nice.cxonechat.internal.model.ChatThreadMutable
 import com.nice.cxonechat.internal.model.CustomFieldInternal.Companion.updateWith
-import com.nice.cxonechat.internal.model.network.EventCaseStatusChanged
 import com.nice.cxonechat.internal.model.network.EventThreadRecovered
 import com.nice.cxonechat.internal.model.network.EventThreadUpdated
 import com.nice.cxonechat.internal.socket.EventCallback.Companion.addCallback
@@ -56,15 +55,12 @@ internal class ChatThreadHandlerImpl(
         val onUpdated = chat.socketListener.addCallback<EventThreadUpdated>(ThreadUpdated) {
             listener.onUpdated(thread)
         }
-        val onArchived = chat.socketListener.addCallback<EventCaseStatusChanged>(CaseStatusChanged) { event ->
-            CaseStatusChangedHandlerActions.handleCaseClosed(thread, event, listener::onUpdated)
-        }
-        return Cancellable(onRecovered, onUpdated, onArchived)
+        return Cancellable(onRecovered, onUpdated)
     }
 
     override fun refresh() {
         if (thread.threadState != Pending) {
-            events().trigger(RecoverThreadEvent)
+            chat.events().trigger(RecoverThreadEvent(thread.id))
         }
     }
 
@@ -103,7 +99,9 @@ internal class ChatThreadHandlerImpl(
     override fun messages(): ChatThreadMessageHandler {
         var handler: ChatThreadMessageHandler
         handler = ChatThreadMessageHandlerImpl(chat, this)
+        handler = ChatThreadArchivedMessageHandler(handler, this)
         handler = ChatThreadMessageHandlerProxy(handler, thread)
+        handler = ChatThreadMessageHandlerAttachmentVerification(handler, chat)
         handler = ChatThreadMessageHandlerThreading(handler, chat)
         return handler
     }
@@ -115,6 +113,10 @@ internal class ChatThreadHandlerImpl(
         handler = ChatThreadEventHandlerArchival(handler, chat, thread)
         handler = ChatThreadEventHandlerThreading(handler, chat)
         return handler
+    }
+
+    override fun endContact() {
+        throw InvalidStateException("endContact is only valid for live chat channels")
     }
 
     override fun customFields(): ChatFieldHandler = ChatFieldHandlerThread(chat, this, thread)

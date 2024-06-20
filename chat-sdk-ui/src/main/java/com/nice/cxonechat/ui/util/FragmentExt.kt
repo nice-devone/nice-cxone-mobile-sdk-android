@@ -29,7 +29,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.storage.ValueStorage
-import com.nice.cxonechat.ui.storage.ValueStorage.StringKey.REQUESTED_PERMISSIONS_KEY
+import com.nice.cxonechat.ui.storage.ValueStorage.StringKey.RequestedPermissionsKey
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
@@ -100,7 +100,7 @@ internal suspend fun Fragment.checkPermissions(
                 onAcceptListener = { onAcceptPermissionRequest(missingPermissions) }
             )
         } else {
-            val requestedPermissions = valueStorage.getString(REQUESTED_PERMISSIONS_KEY)
+            val requestedPermissions = valueStorage.getString(RequestedPermissionsKey)
                 .firstOrNull()
                 .orEmpty()
                 .split(", ")
@@ -108,7 +108,7 @@ internal suspend fun Fragment.checkPermissions(
             if (missingPermissionsSet.intersect(requestedPermissions).isEmpty()) {
                 // Permission are requested for the first time
                 valueStorage.setString(
-                    REQUESTED_PERMISSIONS_KEY,
+                    RequestedPermissionsKey,
                     requestedPermissions.union(missingPermissionsSet).joinToString(", ")
                 )
                 onAcceptPermissionRequest(missingPermissions)

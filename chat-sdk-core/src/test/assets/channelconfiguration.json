@@ -11,17 +11,21 @@
             "isCreditCardMaskingEnabled": false,
             "isCoBrowsingEnabled": true,
             "isProactiveChatEnabled": true,
+            "isWebAnalyticsEnabled": true,
             "areMembersNotificationsEnabled": true,
             "isFeatureGroupChatEnabled": false,
             "isEngagementMapperEnabled": false,
             "isFeatureDefaultTranslationsEnabled": true,
             "isFeatureImproveVisitorInactivityTrackingEnabled": true,
-            "displayChatWindowInCoBrowsing": false,
-            "useWebSdkInChatWindow": true,
-            "sendLargeEventsThroughS3": false,
-            "useWebSdkSession": false,
-            "useWebSdkMessage": false,
-            "useWebSdkCustomer": false
+            "displayChatWindowInCoBrowsing": true,
+            "sendLargeEventsThroughS3": true,
+            "isFeatureAdaptiveCardsEnabled": true,
+            "useLoaderForChatWindow": true,
+            "chatWindowDragging": false,
+            "translationKeyForContactCustomField": false,
+            "disableAttachmentOnDfoChat": false,
+            "featureCustomFieldsSupportForAutocompleteAttribute": false,
+            "chatRedesign": false
         },
         "pushNotifications": {
             "pinpointProjectId": "cdd1c177628345dcadcdfb2f29a4fc8c",
@@ -30,21 +34,75 @@
             "isActive": true,
             "deeplink": ""
         },
+        "fileRestrictions": {
+            "allowedFileSize": "40",
+            "allowedFileTypes": [
+                {
+                    "mimeType": "application/pdf",
+                    "description": ".pdf"
+                },
+                {
+                    "mimeType": "application/msword",
+                    "description": ".doc"
+                },
+                {
+                    "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    "description": ".docx"
+                },
+                {
+                    "mimeType": "application/vnd.ms-excel",
+                    "description": ".xls"
+                },
+                {
+                    "mimeType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                    "description": ".pptx"
+                },
+                {
+                    "mimeType": "video/*",
+                    "description": "videos"
+                },
+                {
+                    "mimeType": "application/vnd.ms-powerpoint",
+                    "description": ".ppt"
+                },
+                {
+                    "mimeType": "image/*",
+                    "description": "images"
+                },
+                {
+                    "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "description": ".xlsx"
+                },
+                {
+                    "mimeType": "audio/*",
+                    "description": "audio files"
+                },
+                {
+                    "mimeType": "audio",
+                    "description": "Invalid specification of audio files"
+                }
+            ],
+            "isAttachmentsEnabled": true
+        },
         "liveChatLogoHidden": false,
         "isCreditCardMaskingEnabled": false,
         "isCoBrowsingEnabled": true,
         "isProactiveChatEnabled": true,
+        "isWebAnalyticsEnabled": true,
         "areMembersNotificationsEnabled": true,
         "isFeatureGroupChatEnabled": false,
         "isEngagementMapperEnabled": false,
         "isFeatureDefaultTranslationsEnabled": true,
         "isFeatureImproveVisitorInactivityTrackingEnabled": true,
-        "displayChatWindowInCoBrowsing": false,
-        "useWebSdkInChatWindow": true,
-        "sendLargeEventsThroughS3": false,
-        "useWebSdkSession": false,
-        "useWebSdkMessage": false,
-        "useWebSdkCustomer": false,
+        "displayChatWindowInCoBrowsing": true,
+        "sendLargeEventsThroughS3": true,
+        "isFeatureAdaptiveCardsEnabled": true,
+        "useLoaderForChatWindow": true,
+        "chatWindowDragging": false,
+        "translationKeyForContactCustomField": false,
+        "disableAttachmentOnDfoChat": false,
+        "featureCustomFieldsSupportForAutocompleteAttribute": false,
+        "chatRedesign": false,
         "liveChatShowOfflineForm": false,
         "liveChatOfflineForm": {
             "isEnabled": false,
@@ -56,7 +114,7 @@
         "liveChatTranscriptChannelId": "",
         "hasPageViews": true,
         "hasMultipleThreadsPerEndUser": true,
-        "liveChatAllowAudioNotification": true,
+        "liveChatAllowAudioNotification": false,
         "isGroupChatAllowed": false,
         "canCustomerInviteToGroupChat": false,
         "canAgentInviteToGroupChat": false,
@@ -72,7 +130,7 @@
         "endChat": "End chat",
         "beginButton": "Begin Conversation",
         "ending": "Ending ...",
-        "replyBoxPlaceholder": "Write here, press<enter> to send",
+        "replyBoxPlaceholder": "Write here, press ENTER to send",
         "chattedWith": "You chatted with {name}",
         "startNewChat": "Start a new chat",
         "yourNameLabel": "Your name",
@@ -99,7 +157,7 @@
         "pleaseSelect": "Please select...",
         "change": "Change",
         "tryAgainButton": "Try Again",
-        "allAgentsForQueueAreBusy": "All our agents dedicated to your queue are currently busy. There {queue, plural,one {is} other {are}} <strong>{queue, number}</strong> {queue, plural, one {person} other {people} ahead of you in the queue.",
+        "allAgentsForQueueAreBusy": "All our agents dedicated to your queue are currently busy. There {queue, plural,one {is} other {are}} <strong>{queue, number}</strong> {queue, plural, one {person} other {people}} ahead of you in the queue.",
         "caseNumber": "Case #{caseNumber}",
         "done": "Done",
         "dragAndDropDropzone": "Drag & drop files here, to send them",
@@ -178,7 +236,65 @@
         "uploadAttachment": "Upload attachment",
         "send": "Send",
         "chatWindowOpen": "Chat window has opened",
-        "customerChat": "Customer Chat"
+        "customerChat": "Customer Chat",
+        "customFieldTranslation_aria_label_translation_key": "",
+        "customFields.mujPreChatKlic": "",
+        "customFields.mujAriaPreChatKlic": "",
+        "customFields.textTestField": "",
+        "customFields.textTestFieldArial": "",
+        "customFields.emailaddress": "",
+        "customFields.ariaemailaddress": "",
+        "customFields.labelTranslationKey-_123....": "",
+        "customFields.ariaLabelTranslationKey--": "",
+        "customFields.payment_label": "",
+        "customFields.payment_aria_label": "",
+        "customFields.hierarchicaltest_Label_translation_key": "",
+        "customFields.hierarchicaltest_Aria_Label_translation_key": "",
+        "customFields.Country_Label_translation_key": "",
+        "customFields.Country_Aria_Label_translation_key": "",
+        "customFields.India_Label_translation_key": "",
+        "customFields.India_Aria_Label_translation_key": "",
+        "customFields.Karnatak_Label_translation_key": "",
+        "customFields.Karnatak_Aria_Label_translation_key": "",
+        "customFields.Maharashtra_Aria_Label_translation_key": "",
+        "customFields.State_Label_translation_key": "",
+        "customFields.State_Aria_Label_translation_key": "",
+        "customFields.ssFruitDropdown_label": "",
+        "customFields.ssFruitDropdown_aria_label": "",
+        "customFields.coconut_label": "",
+        "customFields.coconut_aria_labe": "",
+        "customFields.text_label": "",
+        "customFields.text_aria_label": "",
+        "customFields.email_label": "",
+        "customFields.email_aria_label": "",
+        "customFields.dropdown_label": "",
+        "customFields.dropdown_aria_label": "",
+        "customFields.mango_label": "",
+        "customFields.mango_aria_label": "",
+        "customFields.hierarchical_label": "",
+        "customFields.hierarchical_aria_label": "",
+        "customFields.country_label": "",
+        "customFields.country_aria_Label": "",
+        "customFields.India_label": "",
+        "customFields.India_aria_label": "",
+        "customFields.Maharashtra_label": "",
+        "customFields.Maharashtra_aria_label": "",
+        "customFields.State_label": "",
+        "customFields.State_aria_label": "",
+        "customFields.ss_name": "",
+        "customFields.ss_name_aria": "",
+        "customFields.ss_email": "",
+        "customFields.ss_email_aria": "",
+        "customFields.fallback_text_label": "",
+        "customFields.fallback_text_aria_label": "",
+        "customFields.fallback_of_fallback_text_label": "",
+        "customFields.fallback_of_fallback_text_aria_label": "",
+        "customFields.text_translation": "",
+        "customFields.text_aria_translation": "",
+        "customFields.text_translation_edit": "",
+        "customFields.text_aria_translation_edit": "",
+        "customFields.case_custom_field_tr_key": "",
+        "customFields.secondFieldKey": ""
     },
     "colors": {
         "buttonColor": "#faac4b",

@@ -47,6 +47,11 @@ dependencyResolutionManagement {
             }
         }
     }
+    versionCatalogs {
+        create("libs") {
+            version("androidGradlePluginVersion", "$androidGradlePluginVersion")
+        }
+    }
 }
 
 rootProject.name = "cxone-chat-sdk"

@@ -18,7 +18,6 @@ package com.nice.cxonechat.internal
 import com.nice.cxonechat.Cancellable
 import com.nice.cxonechat.enums.ErrorType
 import com.nice.cxonechat.enums.ErrorType.ArchivingThreadFailed
-import com.nice.cxonechat.enums.ErrorType.RecoveringLivechatFailed
 import com.nice.cxonechat.enums.ErrorType.RecoveringThreadFailed
 import com.nice.cxonechat.enums.ErrorType.SendingMessageFailed
 import com.nice.cxonechat.enums.ErrorType.SendingOfflineMessageFailed
@@ -42,7 +41,6 @@ internal class ChatServerErrorReporting(private val origin: ChatWithParameters) 
 
     private val callbacks = Cancellable(
         socketListener.addErrorCallback(SendingMessageFailed),
-        socketListener.addErrorCallback(RecoveringLivechatFailed),
         socketListener.addErrorCallback(RecoveringThreadFailed),
         socketListener.addErrorCallback(SendingOutboundFailed),
         socketListener.addErrorCallback(UpdatingThreadFailed),

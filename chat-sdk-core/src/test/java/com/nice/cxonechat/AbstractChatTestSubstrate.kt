@@ -4,7 +4,10 @@ import androidx.annotation.CallSuper
 import com.nice.cxonechat.api.RemoteService
 import com.nice.cxonechat.enums.CXOneEnvironment
 import com.nice.cxonechat.internal.ChatEntrails
+import com.nice.cxonechat.internal.model.AvailabilityStatus.Online
+import com.nice.cxonechat.internal.model.ChannelAvailability
 import com.nice.cxonechat.internal.model.ChannelConfiguration
+import com.nice.cxonechat.internal.model.ChannelConfiguration.FileRestrictions
 import com.nice.cxonechat.internal.socket.ProxyWebSocketListener
 import com.nice.cxonechat.log.Level
 import com.nice.cxonechat.log.Logger
@@ -17,6 +20,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
+import okhttp3.OkHttpClient
 import okhttp3.WebSocket
 import org.junit.Before
 import retrofit2.Call
@@ -34,17 +38,31 @@ internal abstract class AbstractChatTestSubstrate {
     protected lateinit var socket: WebSocket
     protected lateinit var proxyListener: ProxyWebSocketListener
     protected lateinit var socketServer: MockServer
+    protected var isLiveChat = false
+    protected var chatAvailability = Online
+    protected var features: MutableMap<String, Boolean> = mutableMapOf()
+    protected val httpClient = mockk<OkHttpClient>()
 
     protected open val config: ChannelConfiguration?
         get() = ChannelConfiguration(
             settings = ChannelConfiguration.Settings(
                 hasMultipleThreadsPerEndUser = true,
-                isProactiveChatEnabled = true
+                isProactiveChatEnabled = true,
+                fileRestrictions = FileRestrictions(
+                    10,
+                    listOf(),
+                    false,
+                ),
+                features = features
             ),
             isAuthorizationEnabled = true,
             preContactForm = null,
             customerCustomFields = listOf(),
-            contactCustomFields = listOf()
+            contactCustomFields = listOf(),
+            isLiveChat = isLiveChat,
+            availability = mockk {
+                every { status } answers { chatAvailability }
+            }
         )
 
     @Before
@@ -54,7 +72,7 @@ internal abstract class AbstractChatTestSubstrate {
         proxyListener = socketServer.proxyListener
         storage = mockStorage()
         service = mockService()
-        entrails = ChatEntrailsMock(storage, service, mockLogger(), CXOneEnvironment.EU1.value)
+        entrails = ChatEntrailsMock(httpClient, storage, service, mockLogger(), CXOneEnvironment.EU1.value)
         prepare()
     }
 
@@ -77,7 +95,7 @@ internal abstract class AbstractChatTestSubstrate {
         every { welcomeMessage } returns "welcome"
         every { authToken } returns "token"
         every { authTokenExpDate } returns null
-        every { deviceToken } returns ""
+        every { deviceToken } returns null
     }
 
     fun <T> mockCall(result: () -> T) = mockk<Call<T>> {
@@ -97,6 +115,9 @@ internal abstract class AbstractChatTestSubstrate {
         every { getChannel(any(), any()) } returns mockCall { config }
         @Suppress("UNCHECKED_CAST")
         every { createOrUpdateVisitor(any(), any(), any()) } returns mockCall { null } as Call<Void>
+        every { getChannelAvailability(any(), any()) } returns mockCall {
+            ChannelAvailability(status = chatAvailability)
+        }
     }
 
     protected inline fun <T> testCallback(
@@ -175,6 +196,7 @@ internal abstract class AbstractChatTestSubstrate {
     }
 
     companion object {
+        const val TestContactId = "95vq7qRDsC"
         const val TestUUID = "00000000-0000-0000-0000-000000000000"
         val TestUUIDValue: UUID get() = UUID.fromString(TestUUID)
     }

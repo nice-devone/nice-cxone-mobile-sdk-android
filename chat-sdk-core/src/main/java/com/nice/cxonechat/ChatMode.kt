@@ -21,11 +21,13 @@ enum class ChatMode {
     /**
      * Chat is single-threaded.
      *
-     * Creating and archiving threads is not allowed.  The single thread will be automatically
-     * created if necessary.
+     * Creating and archiving threads is not allowed.
      */
-    SINGLE_THREAD,
+    SingleThread,
 
     /** Chat is multi-threaded. */
-    MULTI_THREAD,
+    MultiThread,
+
+    /** Chat is live chat. */
+    LiveChat,
 }

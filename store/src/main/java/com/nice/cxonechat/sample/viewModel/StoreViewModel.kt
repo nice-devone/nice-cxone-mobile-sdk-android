@@ -139,7 +139,7 @@ class StoreViewModel(
     fun setUserName(userName: UserName) {
         chatSettingsHandler.setUserName(userName)
 
-        if (chatProvider.chatState == ChatState.INITIAL) {
+        if (chatProvider.chatState == ChatState.Initial) {
             chatProvider.prepare(context)
         } else {
             listener.onChatStateChanged(chatProvider.chatState)
@@ -215,9 +215,9 @@ class StoreViewModel(
         override fun onChatStateChanged(chatState: ChatState) {
             // If the chat has now connected, see if we need to send authorization
             when (chatState) {
-                ChatState.INITIAL -> setUiState(Configuration(this@StoreViewModel))
-                ChatState.PREPARING -> setUiState(Preparing(this@StoreViewModel))
-                ChatState.PREPARED -> onConnected()
+                ChatState.Initial -> setUiState(Configuration(this@StoreViewModel))
+                ChatState.Preparing -> setUiState(Preparing(this@StoreViewModel))
+                ChatState.Prepared -> onConnected()
                 else -> Ignored
             }
         }

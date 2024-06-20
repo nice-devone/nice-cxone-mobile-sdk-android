@@ -185,6 +185,9 @@ internal class ChatThreadsViewModel(
     }
 
     internal suspend fun selectThreadById(threadId: UUID) = logger.timedScope("selectThreadById($threadId)") {
+        if (threadId == selectedThreadRepository.chatThreadHandler?.get()?.id) {
+            return@timedScope
+        }
         val flow = threadFlow
         refreshThreads()
         val threadList = flow.first()

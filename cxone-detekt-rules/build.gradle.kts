@@ -16,8 +16,8 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.jetbrains.kotlin.jvm")
-    id("io.gitlab.arturbosch.detekt")
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.detekt)
 }
 
 group = "org.nice.cxonechat.detekt"
@@ -34,14 +34,13 @@ detekt {
 }
 
 dependencies {
-    val detektVersion = project.properties["detektVersion"]
-    compileOnly("io.gitlab.arturbosch.detekt:detekt-api:$detektVersion")
+    compileOnly(libs.detekt.api)
 
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detektVersion")
+    detektPlugins(libs.detekt.formatting)
 
-    testImplementation("io.gitlab.arturbosch.detekt:detekt-test:$detektVersion")
-    testImplementation("io.kotest:kotest-assertions-core:5.5.5")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
+    testImplementation(libs.detekt.test)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.junit.jupiter)
 }
 
 java {

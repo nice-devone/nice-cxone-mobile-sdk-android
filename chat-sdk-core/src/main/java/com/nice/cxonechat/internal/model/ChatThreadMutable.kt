@@ -44,6 +44,12 @@ internal class ChatThreadMutable private constructor(
         get() = thread.fields
     override val threadState: ChatThreadState
         get() = thread.threadState
+    override val positionInQueue: Int?
+        get() = thread.positionInQueue
+    override val hasOnlineAgent: Boolean
+        get() = thread.hasOnlineAgent
+    override val contactId: String?
+        get() = thread.contactId
 
     fun update(thread: ChatThread) {
         this.thread = thread
@@ -58,6 +64,7 @@ internal class ChatThreadMutable private constructor(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is ChatThread) return false
+        if (other is ChatThreadMutable) return this.thread == other.thread
         if (thread != other) return false
         return true
     }

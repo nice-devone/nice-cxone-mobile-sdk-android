@@ -28,7 +28,6 @@ import com.nice.cxonechat.internal.model.AttachmentUploadModel
 import com.nice.cxonechat.internal.model.CustomFieldModel
 import com.nice.cxonechat.message.ContentDescriptor
 import com.nice.cxonechat.message.OutboundMessage
-import com.nice.cxonechat.utilities.isEmpty
 
 internal class ChatThreadMessageHandlerImpl(
     private val chat: ChatWithParameters,

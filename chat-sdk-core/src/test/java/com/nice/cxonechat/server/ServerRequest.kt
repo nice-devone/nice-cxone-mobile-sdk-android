@@ -3,7 +3,9 @@
 package com.nice.cxonechat.server
 
 import com.nice.cxonechat.AbstractChatTestSubstrate.Companion.TestUUIDValue
+import com.nice.cxonechat.enums.EventType.RecoverLivechat
 import com.nice.cxonechat.enums.VisitorEventType
+import com.nice.cxonechat.event.thread.EndContactEvent
 import com.nice.cxonechat.internal.model.AttachmentModel
 import com.nice.cxonechat.internal.model.CustomFieldModel
 import com.nice.cxonechat.internal.model.network.ActionArchiveThread
@@ -17,6 +19,7 @@ import com.nice.cxonechat.internal.model.network.ActionMessage
 import com.nice.cxonechat.internal.model.network.ActionMessageSeenByCustomer
 import com.nice.cxonechat.internal.model.network.ActionOutboundMessage
 import com.nice.cxonechat.internal.model.network.ActionReconnectCustomer
+import com.nice.cxonechat.internal.model.network.ActionRecoverLiveChat
 import com.nice.cxonechat.internal.model.network.ActionRecoverThread
 import com.nice.cxonechat.internal.model.network.ActionRefreshToken
 import com.nice.cxonechat.internal.model.network.ActionSetContactCustomFields
@@ -26,6 +29,7 @@ import com.nice.cxonechat.internal.model.network.ActionUpdateThread
 import com.nice.cxonechat.internal.model.network.VisitorEvent
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyArchiveThread
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyAuthorizeConsumer
+import com.nice.cxonechat.server.ServerRequestAssertions.verifyEndContact
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyExecuteTrigger
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyFetchThreadList
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyLoadMore
@@ -173,12 +177,24 @@ internal object ServerRequest {
         .serialize()
         .verifyFetchThreadList()
 
-    fun RecoverThread(connection: Connection, thread: ChatThread): String = ActionRecoverThread(
+    fun RecoverThread(connection: Connection, thread: ChatThread?): String = ActionRecoverThread(
         connection = connection,
-        thread = thread
+        threadId = thread?.id
     ).copy(eventId = TestUUIDValue)
         .serialize()
-        .verifyRecoverThread()
+        .verifyRecoverThread(thread?.id)
+
+    fun RecoverLiveChatThread(connection: Connection, thread: ChatThread?): String = ActionRecoverLiveChat(
+        connection = connection,
+        threadId = thread?.id
+    ).copy(eventId = TestUUIDValue)
+        .serialize()
+        .verifyRecoverThread(thread?.id, payloadType = RecoverLivechat.value)
+
+    fun EndContact(connection: Connection, thread: ChatThread): String = EndContactEvent
+        .getModel(thread, connection)
+        .serialize()
+        .verifyEndContact()
 
     fun SendOutbound(
         connection: Connection,
@@ -195,7 +211,7 @@ internal object ServerRequest {
         token = storage.authToken
     ).copy(eventId = TestUUIDValue)
         .serialize()
-        .verifySendOutbound()
+        .verifySendOutbound(storage.deviceToken)
 
     object StoreVisitorEvents {
         fun CustomVisitorEvent(data: String, date: Date = Date(0)): VisitorEvent {

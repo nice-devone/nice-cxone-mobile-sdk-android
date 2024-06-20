@@ -1,3 +1,5 @@
+import com.vanniktech.maven.publish.AndroidMultiVariantLibrary
+
 plugins {
     id "android-library-conventions"
     id "android-kotlin-conventions"
@@ -52,16 +54,18 @@ kotlin {
 // Dependant will get matching variant automatically (eg.: buildType:debug will get buildType:debug)
 // Alternatively they can provide transformation mapping.
 mavenPublishing {
-    configure(new com.vanniktech.maven.publish.AndroidMultiVariantLibrary(true, true))
+    configure(new AndroidMultiVariantLibrary(true, true))
 }
 
 dependencies {
-    implementation "androidx.core:core-ktx:1.12.0"
-    implementation 'com.google.code.gson:gson:2.10.1'
-    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
-    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation libs.androidx.ktx
+    implementation libs.security.crypto
+    implementation libs.gson
+    implementation libs.retrofit
+    implementation libs.retrofit.gson
+    implementation libs.okhttp
     implementation project(':utilities')
     api project(':logger')
     implementation project(':logger-android')
+    testImplementation libs.kotest.assertions.core
 }

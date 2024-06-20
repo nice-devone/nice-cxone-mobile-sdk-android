@@ -45,6 +45,9 @@ internal enum class EventType(val value: String) {
     @SerializedName("TokenRefreshed")
     TokenRefreshed("TokenRefreshed"),
 
+    @SerializedName("EndContact")
+    EndContact("EndContact"),
+
     // Message
 
     /** An event to send a message in a chat thread. */
@@ -120,11 +123,25 @@ internal enum class EventType(val value: String) {
     @SerializedName("ThreadUpdated")
     ThreadUpdated("ThreadUpdated"),
 
+    /** Position in queue updated. */
+    @SerializedName("SetPositionInQueue")
+    SetPositionInQueue("SetPositionInQueue"),
+
+    // LiveChat
+
+    /** Event which triggers livechat recover. **/
+    @SerializedName("RecoverLivechat")
+    RecoverLivechat("RecoverLivechat"),
+
+    /** An event received when a live-chat thread data has been recovered. */
+    @SerializedName("LivechatRecovered")
+    LivechatRecovered("LivechatRecovered"),
+
     // Contact
 
     /** An event received when the assigned agent changes for a contact. */
     @SerializedName("CaseInboxAssigneeChanged")
-    ContactInboxAssigneeChanged("CaseInboxAssigneeChanged"),
+    CaseInboxAssigneeChanged("CaseInboxAssigneeChanged"),
 
     @SerializedName("CaseCreated")
     CaseCreated("CaseCreated"), // TODO: Remove?
@@ -166,5 +183,11 @@ internal enum class EventType(val value: String) {
     SendPageViews("SendPageViews"),
 
     @SerializedName("FireProactiveAction")
-    FireProactiveAction("FireProactiveAction")
+    FireProactiveAction("FireProactiveAction"),
+
+    // Meta Events
+
+    /** A meta event sent when the actual event should be retrieved from s3. */
+    @SerializedName("EventInS3")
+    EventInS3("EventInS3"),
 }

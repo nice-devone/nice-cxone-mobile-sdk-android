@@ -15,9 +15,15 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
+import android.content.res.Configuration
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -26,31 +32,34 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
-import androidx.compose.material.Surface
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons.Filled
+import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.nice.cxonechat.message.Message
-import com.nice.cxonechat.message.MessageDirection.ToClient
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nice.cxonechat.ui.R.drawable
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.conversation.model.ConversationUiState
+import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider
 import com.nice.cxonechat.ui.composable.conversation.model.Section
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.Scaffold
 import com.nice.cxonechat.ui.composable.theme.TopBar
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.Calendar
-import java.util.Date
 
 /**
  * Displays [ConversationUiState] messages an input for sending of new messages to the conversation using
@@ -61,21 +70,25 @@ import java.util.Date
  * @param onAttachmentTypeSelection Action invoked when a user has selected what type of file they want to send as attachment.
  * @param onEditThreadName Callback to trigger edit thread name dialog.
  * @param onEditThreadValues Callback to trigger edit thread values dialog.
+ * @param onEndContact Callback to trigger the end of a contact.
+ * @param displayEndConversation Callback to trigger the end of contact dialog.
  * @param modifier Optional [Modifier] for [Scaffold] surrounding the conversation view.
  */
 @Composable
 internal fun ChatConversation(
     conversationState: ConversationUiState,
     audioRecordingState: AudioRecordingUiState,
-    onAttachmentTypeSelection: (mimeType: String) -> Unit,
+    onAttachmentTypeSelection: (mimeType: Collection<String>) -> Unit,
     onEditThreadName: () -> Unit,
     onEditThreadValues: () -> Unit,
+    onEndContact: () -> Unit,
+    displayEndConversation: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scrollState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val messages = conversationState.messages(context).collectAsState(initial = emptyList()).value
+    val messages = conversationState.messages(context).collectAsStateWithLifecycle(initialValue = emptyList()).value
 
     LaunchedEffect(messages) {
         if (scrollState.firstVisibleItemIndex <= 1) { // Only autoscroll if user is on last message
@@ -90,6 +103,8 @@ internal fun ChatConversation(
                 conversationState = conversationState,
                 onEditThreadName = onEditThreadName,
                 onEditThreadValues = onEditThreadValues,
+                onEndContact = onEndContact,
+                displayEndConversation = displayEndConversation,
             )
         }
     ) {
@@ -102,19 +117,63 @@ internal fun ChatConversation(
                 scrollState = scrollState,
                 modifier = Modifier.weight(1f)
             )
-            UserInput(
-                conversationUiState = conversationState,
-                resetScroll = {
-                    scope.launch {
-                        scrollState.scrollToItem(0)
-                    }
-                },
-                modifier = Modifier
-                    .navigationBarsPadding()
-                    .imePadding(),
-                audioRecordingUiState = audioRecordingState,
+            UserInputView(
+                conversationState = conversationState,
+                scope = scope,
+                scrollState = scrollState,
+                audioRecordingState = audioRecordingState,
                 onAttachmentTypeSelection = onAttachmentTypeSelection,
             )
+        }
+    }
+}
+
+@Composable
+private fun UserInputView(
+    conversationState: ConversationUiState,
+    scope: CoroutineScope,
+    scrollState: LazyListState,
+    audioRecordingState: AudioRecordingUiState,
+    onAttachmentTypeSelection: (mimeTypes: Collection<String>) -> Unit,
+) {
+    if (!conversationState.isArchived.collectAsState().value) {
+        UserInput(
+            conversationUiState = conversationState,
+            resetScroll = {
+                scope.launch {
+                    scrollState.scrollToItem(0)
+                }
+            },
+            modifier = Modifier
+                .navigationBarsPadding()
+                .imePadding(),
+            audioRecordingUiState = audioRecordingState,
+            onAttachmentTypeSelection = onAttachmentTypeSelection,
+        )
+    } else {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(ChatTheme.chatColors.chatInfoLabel.background)
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(4.dp)
+            ) {
+                Icon(
+                    imageVector = Filled.Archive,
+                    contentDescription = null,
+                    tint = ChatTheme.chatColors.chatInfoLabel.foreground
+                )
+                Text(
+                    text = stringResource(
+                        if (conversationState.isLiveChat) string.label_livechat_thread_archived else string.label_thread_archived
+                    ),
+                    color = ChatTheme.chatColors.chatInfoLabel.foreground
+                )
+            }
         }
     }
 }
@@ -124,6 +183,8 @@ private fun ChatThreadTopBar(
     conversationState: ConversationUiState,
     onEditThreadName: () -> Unit,
     onEditThreadValues: () -> Unit,
+    onEndContact: () -> Unit,
+    displayEndConversation: () -> Unit,
 ) {
     ChatTheme.TopBar(
         title = conversationState.threadName.collectAsState(null).value?.ifBlank { null }
@@ -145,6 +206,24 @@ private fun ChatThreadTopBar(
                     )
                 }
             }
+            if (conversationState.isLiveChat) {
+                if (conversationState.isArchived.collectAsState().value) {
+                    IconButton(onClick = displayEndConversation) {
+                        Icon(
+                            painter = rememberVectorPainter(image = Filled.MoreVert),
+                            contentDescription = stringResource(id = string.livechat_conversation_options)
+                        )
+                    }
+                } else {
+                    IconButton(onClick = onEndContact) {
+                        Icon(
+                            painter = painterResource(id = drawable.ic_baseline_cancel_24),
+                            tint = ChatTheme.colors.error,
+                            contentDescription = stringResource(id = string.action_end_conversation)
+                        )
+                    }
+                }
+            }
         }
     )
 }
@@ -159,7 +238,7 @@ internal fun MessageListView(
     val isTyping = conversation.typingIndicator.collectAsState(initial = false).value
     val canLoadMore = conversation.canLoadMore.collectAsState().value
 
-    Surface(modifier) {
+    Box(modifier) {
         Column {
             Messages(
                 scrollState = scrollState,
@@ -171,6 +250,15 @@ internal fun MessageListView(
                 onShare = conversation.onShare,
             )
             TypingIndicator(isTyping)
+        }
+
+        conversation.positionInQueue.collectAsState(initial = null).value?.let {
+            PositionInQueue(
+                position = it,
+                modifier = Modifier
+                    .fillMaxWidth(1f)
+                    .padding(top = 8.dp)
+            )
         }
     }
 }
@@ -187,21 +275,13 @@ private fun ColumnScope.TypingIndicator(isTyping: Boolean) {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
 private fun PreviewChat() {
     ChatTheme(true) {
         val scrollState = rememberLazyListState()
-        val firstDate = simpleDate(2022, 2, 12)
-        val secondDate = simpleDate(2023, 1, 13)
-        val messages = listOf(
-            previewTextMessage("Hello", createdAt = firstDate),
-            previewTextMessage("Hello again", createdAt = firstDate),
-            previewTextMessage("Is anyone there?", createdAt = firstDate),
-            previewTextMessage("Hi, how are you?", direction = ToClient, createdAt = secondDate),
-            previewTextMessage("Hi, how are you, again?", direction = ToClient, createdAt = secondDate),
-        ).sortedByDescending(Message::createdAt)
-        val conversation = previewUiState(messages)
+        val messages = PreviewMessageProvider().messages.toList()
+        val conversation = previewUiState(messages, positionInQueue = 4)
         val context = LocalContext.current
         MessageListView(
             messages = conversation.messages(context).collectAsState(initial = emptyList()).value,
@@ -211,25 +291,19 @@ private fun PreviewChat() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun PreviewChatMessageInput() {
-    val messages = listOf(previewTextMessage("Hello"))
-    ChatConversation(
-        conversationState = previewUiState(messages),
-        audioRecordingState = previewAudioState(),
-        onAttachmentTypeSelection = {},
-        onEditThreadName = {},
-        onEditThreadValues = {},
-    )
-}
-
-private fun simpleDate(
-    year: Int,
-    month: Int,
-    date: Int,
-): Date {
-    val cal = Calendar.getInstance()
-    cal.set(year, month, date)
-    return cal.time
+    val messages = PreviewMessageProvider().messages.toList()
+    ChatTheme(darkTheme = true) {
+        ChatConversation(
+            conversationState = previewUiState(messages, positionInQueue = 4),
+            audioRecordingState = previewAudioState(),
+            onAttachmentTypeSelection = {},
+            onEditThreadName = {},
+            onEditThreadValues = {},
+            onEndContact = {},
+            displayEndConversation = {},
+        )
+    }
 }

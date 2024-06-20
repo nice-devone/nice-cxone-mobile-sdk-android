@@ -16,9 +16,9 @@
 package com.nice.cxonechat
 
 import com.nice.cxonechat.FakeChatStateListener.ChatStateConnection
+import com.nice.cxonechat.enums.ErrorType.RecoveringThreadFailed
 import com.nice.cxonechat.internal.model.ChannelConfiguration
 import com.nice.cxonechat.model.makeChatThread
-import com.nice.cxonechat.model.makeMessageModel
 import com.nice.cxonechat.server.ServerRequest
 import com.nice.cxonechat.server.ServerResponse
 import org.junit.Test
@@ -37,23 +37,22 @@ internal class ChatSingleThreadTest : AbstractChatTest() {
     @Test
     fun chat_is_ready_on_no_thread() {
         prepare()
-        assertEquals(ChatStateConnection.INITIAL, chatStateListener.connection)
-        serverResponds(ServerResponse.ThreadListFetched(emptyList()))
-        assertEquals(ChatStateConnection.READY, chatStateListener.connection)
+        connect()
+        serverResponds(ServerResponse.ErrorResponse(RecoveringThreadFailed.value))
+        assertEquals(ChatStateConnection.Ready, chatStateListener.connection)
     }
 
     @Test
     fun chat_attempts_to_recover_thread() {
         val thread = makeChatThread()
         assertSendTexts(
-            ServerRequest.LoadThreadMetadata(connection, thread),
-            ServerRequest.RecoverThread(connection, thread),
+            ServerRequest.ReconnectConsumer(connection),
+            ServerRequest.RecoverThread(connection, null),
         ) {
-            assertEquals(ChatStateConnection.INITIAL, chatStateListener.connection)
-            serverResponds(ServerResponse.ThreadListFetched(listOf(thread)))
-            serverResponds(ServerResponse.ThreadMetadataLoaded(message = makeMessageModel(threadIdOnExternalPlatform = thread.id)))
+            connect()
+            assertEquals(ChatStateConnection.Connected, chatStateListener.connection)
             serverResponds(ServerResponse.ThreadRecovered(thread = thread))
-            assertEquals(ChatStateConnection.READY, chatStateListener.connection)
+            assertEquals(ChatStateConnection.Ready, chatStateListener.connection)
         }
     }
 }

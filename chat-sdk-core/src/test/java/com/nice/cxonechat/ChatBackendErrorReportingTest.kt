@@ -38,10 +38,10 @@ internal class ChatBackendErrorReportingTest : AbstractChatTest() {
     }
 
     @Test
-    fun test_RecoveringLivechatFailed_is_reported() {
+    fun test_RecoveringLivechatFailed_is_not_reported() {
         this serverResponds ServerResponse.ErrorResponse(RecoveringLivechatFailed.value)
-        val last = this.chatStateListener.onChatRuntimeExceptions.last()
-        assertServerCommunicationError(RecoveringLivechatFailed.value, last)
+        val chatStateListener = this.chatStateListener
+        assert(chatStateListener.onChatRuntimeExceptions.isEmpty())
     }
 
     @Test

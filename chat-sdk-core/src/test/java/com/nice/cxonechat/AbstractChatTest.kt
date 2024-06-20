@@ -15,15 +15,16 @@
 
 package com.nice.cxonechat
 
-import com.nice.cxonechat.FakeChatStateListener.ChatStateConnection.CONNECTED
-import com.nice.cxonechat.FakeChatStateListener.ChatStateConnection.INITIAL
-import com.nice.cxonechat.FakeChatStateListener.ChatStateConnection.READY
-import com.nice.cxonechat.FakeChatStateListener.ChatStateConnection.UNEXPECTED_DISCONNECT
+import com.nice.cxonechat.FakeChatStateListener.ChatStateConnection.Connected
+import com.nice.cxonechat.FakeChatStateListener.ChatStateConnection.Initial
+import com.nice.cxonechat.FakeChatStateListener.ChatStateConnection.Ready
+import com.nice.cxonechat.FakeChatStateListener.ChatStateConnection.UnexpectedDisconnect
 import com.nice.cxonechat.exceptions.RuntimeChatException
 import com.nice.cxonechat.internal.ChatWithParameters
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.tool.SocketFactoryMock
 import com.nice.cxonechat.tool.awaitResult
+import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.milliseconds
 
 internal abstract class AbstractChatTest : AbstractChatTestSubstrate() {
@@ -37,36 +38,44 @@ internal abstract class AbstractChatTest : AbstractChatTestSubstrate() {
     protected open val authorization
         get() = Authorization.None
 
+    fun buildChat() = awaitResult(100.milliseconds) { finished ->
+        val factory = SocketFactoryMock(socket, proxyListener)
+        ChatBuilder(entrails, factory)
+            .setAuthorization(authorization)
+            .setDevelopmentMode(true)
+            .setChatStateListener(chatStateListener)
+            .build { result: Result<Chat> ->
+                chat = result.getOrThrow()
+                chat.connect()
+                finished(chat)
+            }
+    }
+
     override fun prepare() {
-        chat = awaitResult(100.milliseconds) { finished ->
-            val factory = SocketFactoryMock(socket, proxyListener)
-            ChatBuilder(entrails, factory)
-                .setAuthorization(authorization)
-                .setDevelopmentMode(true)
-                .setChatStateListener(chatStateListener)
-                .build { result: Result<Chat> ->
-                    chat = result.getOrThrow()
-                    chat.connect()
-                    finished(chat)
-                }
-        }
+        chat = buildChat()
+    }
+
+    fun connect() {
+        assertEquals(Initial, chatStateListener.connection)
+        chat.connect()
+        socketServer.open()
     }
 }
 
 internal class FakeChatStateListener : ChatStateListener {
 
-    var connection: ChatStateConnection = INITIAL
+    var connection: ChatStateConnection = Initial
     val onChatRuntimeExceptions = mutableListOf<RuntimeChatException>()
     override fun onUnexpectedDisconnect() {
-        connection = UNEXPECTED_DISCONNECT
+        connection = UnexpectedDisconnect
     }
 
     override fun onConnected() {
-        connection = CONNECTED
+        connection = Connected
     }
 
     override fun onReady() {
-        connection = READY
+        connection = Ready
     }
 
     override fun onChatRuntimeException(exception: RuntimeChatException) {
@@ -74,9 +83,9 @@ internal class FakeChatStateListener : ChatStateListener {
     }
 
     enum class ChatStateConnection {
-        INITIAL,
-        UNEXPECTED_DISCONNECT,
-        CONNECTED,
-        READY,
+        Initial,
+        UnexpectedDisconnect,
+        Connected,
+        Ready,
     }
 }

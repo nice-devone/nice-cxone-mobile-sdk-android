@@ -12,7 +12,7 @@ detekt {
 }
 
 dependencies {
-    detektPlugins "io.gitlab.arturbosch.detekt:detekt-formatting:$detektVersion"
+    detektPlugins libs.detekt.formatting
     detektPlugins project(":cxone-detekt-rules")
 }
 

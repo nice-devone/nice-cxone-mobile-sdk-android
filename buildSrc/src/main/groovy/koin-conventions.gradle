@@ -1,11 +1,8 @@
 dependencies {
-    def koinVersion = "3.5.1"
-    def koinAndroidVersion = "3.5.0"
-    def koinAnnotationsVersion = "1.3.0"
+    implementation platform(libs.koin.bom)
+    implementation libs.koin.android
+    implementation libs.koin.androidx.compose
 
-    implementation platform("io.insert-koin:koin-bom:$koinVersion")
-    implementation "io.insert-koin:koin-android:$koinAndroidVersion"
-
-    implementation "io.insert-koin:koin-annotations:$koinAnnotationsVersion"
-    ksp "io.insert-koin:koin-ksp-compiler:$koinAnnotationsVersion"
+    implementation libs.koin.annotations
+    ksp libs.koin.compiler
 }

@@ -3,25 +3,25 @@ import io.gitlab.arturbosch.detekt.DetektPlugin
 import io.gitlab.arturbosch.detekt.report.ReportMergeTask
 
 plugins {
-    id "org.jetbrains.kotlin.android" version "$kotlinVersion" apply false
-    id "org.jetbrains.kotlin.jvm" version "$kotlinVersion" apply false
-    id "com.android.library" version "$androidGradlePluginVersion" apply false
-    id "com.android.application" version "$androidGradlePluginVersion" apply false
-    id "org.jetbrains.dokka" version "$dokkaVersion" apply true
-    id "com.vanniktech.maven.publish" version "0.27.0" apply false
-    id "com.google.gms.google-services" version "4.4.1" apply false
-    id "androidx.navigation.safeargs" version "2.7.7" apply false
-    id "io.gitlab.arturbosch.detekt" version "$detektVersion"
-    id "nl.neotech.plugin.rootcoverage" version "1.7.1" apply false
-    id "com.dipien.semantic-version" version "2.0.0" apply false
-    id "com.google.firebase.appdistribution" version "4.0.1" apply false
-    id 'com.google.firebase.crashlytics' version '2.9.9' apply false
-    id "com.google.devtools.ksp" version "1.9.22-1.0.17" apply false
-    id "me.tylerbwong.gradle.metalava" version "0.3.5" apply false
+    alias(libs.plugins.kotlin.android) apply false
+    alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.dokka) apply true
+    alias(libs.plugins.maven.publish) apply false
+    alias(libs.plugins.google.services) apply false
+    alias(libs.plugins.androidx.safeargs) apply false
+    alias(libs.plugins.detekt)
+    alias(libs.plugins.rootcoverage) apply true
+    alias(libs.plugins.semantic.version) apply false
+    alias(libs.plugins.firebase.appdistribution) apply false
+    alias(libs.plugins.firebase.crashlytics) apply false
+    alias(libs.plugins.ksp) apply false
+    alias(libs.plugins.metalava) apply false
 }
 
 group = GROUP
-version = "1.3.1" // Fallback version
+version = "2.0.0" // Fallback version
 
 allprojects {
     group = rootProject.group
@@ -45,12 +45,25 @@ tasks.register('metalavaCheckCompatibility') {
     dependsOn subprojects.collect { it.tasks.matching { it.name == "metalavaCheckCompatibilityRelease" } }
 }
 
-// Disabled until the support for AGP 8 is resolved - https://github.com/NeoTech-Software/Android-Root-Coverage-Plugin/issues/82
-//rootCoverage {
-//    generateXml true
-//    generateHtml false
-//    excludes = ["**/internal/model/**", "com/nice/cxonechat/sample/**", "dagger/**", "hilt*/**"]
-//}
+// This task mirrors the tests that will eventually be performed in various github actions
+// and can be used as a final check before submitting a PR.
+tasks.register('precheck') {
+    // Syntax Checks
+    dependsOn(':chat-sdk-core:check')
+    dependsOn(':chat-sdk-ui:check')
+    dependsOn(':store:check')
+    dependsOn(':store:lintVitalRelease')
+    // Build Check
+    dependsOn(':store:assembleRelease')
+    // API compatibility check
+    dependsOn(':metalavaCheckCompatibility')
+}
+
+rootCoverage {
+    generateXml true
+    generateHtml false
+    excludes = ["**/internal/model/**", "com/nice/cxonechat/sample/**"]
+}
 
 /**
  * Combines base version with branch and replaces all `/` with `-` from the final string.
@@ -78,18 +91,18 @@ static String getGitCurrentBranch(Project project) {
     return branch
 }
 
-task clean(type: Delete) {
-    delete rootProject.buildDir
+tasks.register('clean', Delete) {
+    delete rootProject.layout.buildDirectory
 }
 
-task reportMerge(type: ReportMergeTask) {
+tasks.register('reportMerge', ReportMergeTask) {
     output = rootProject.layout.buildDirectory.file("reports/detekt/merge.sarif")
 }
 
 subprojects {
     afterEvaluate {
-        plugins.withType(DetektPlugin) {
-            tasks.withType(Detekt) { detektTask ->
+        plugins.withType(DetektPlugin).configureEach {
+            tasks.withType(Detekt).configureEach { detektTask ->
                 finalizedBy(reportMerge)
 
                 reportMerge.configure { mergeTask ->

@@ -1,10 +1,16 @@
 package com.nice.cxonechat.internal
 
 import com.nice.cxonechat.Cancellable
-import com.nice.cxonechat.ChatThreadHandler
-import com.nice.cxonechat.thread.ChatThreadState.Loaded
-import com.nice.cxonechat.thread.ChatThreadState.Pending
+import com.nice.cxonechat.enums.ErrorType.RecoveringThreadFailed
+import com.nice.cxonechat.enums.EventType.ThreadRecovered
+import com.nice.cxonechat.event.RecoverThreadEvent
+import com.nice.cxonechat.internal.model.network.EventThreadRecovered
+import com.nice.cxonechat.internal.socket.ErrorCallback.Companion.addErrorCallback
+import com.nice.cxonechat.internal.socket.EventCallback.Companion.addCallback
+import com.nice.cxonechat.internal.socket.SocketConnectionListener
+import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState.Ready
+import okhttp3.WebSocketListener
 
 /**
  * This implementation of [com.nice.cxonechat.Chat] adds behavior which triggers early thread recovery if there is an
@@ -16,58 +22,32 @@ import com.nice.cxonechat.thread.ChatThreadState.Ready
  *
  * @param origin Existing implementation of [ChatWithParameters] used for delegation.
  */
-internal class ChatSingleThread(private val origin: ChatWithParameters) : ChatWithParameters by origin {
+internal class ChatSingleThread(
+    private val origin: ChatWithParameters,
+) : ChatWithParameters by origin,
+    WebSocketListener() {
+    private var thread: ChatThread? = null
 
-    private var recoverCalled: Boolean = false
+    init {
+        origin.socketListener.addListener(SocketConnectionListener(listener = origin.chatStateListener, onConnected = ::recoverThread))
+    }
 
     override fun connect(): Cancellable {
-        origin.connect()
-        recoverCalled = false
-        return tryToRecoverThread()
+        val cancellable = origin.connect()
+        val onSuccess = socketListener.addCallback<EventThreadRecovered>(ThreadRecovered) { event ->
+            thread = event.thread.copy(threadState = Ready)
+            chatStateListener?.onReady()
+        }
+        val onFailure = socketListener.addErrorCallback(RecoveringThreadFailed) {
+            thread = null
+            chatStateListener?.onReady()
+        }
+
+        return Cancellable(cancellable, onSuccess, onFailure)
     }
 
-    /**
-     * Attempts to recover the single thread if it exists and notifies [com.nice.cxonechat.ChatStateListener] once
-     * the task is done.
-     */
-    private fun tryToRecoverThread() = origin.entrails.threading.background {
-        var threadsCancellable: Cancellable? = null
-        val threadsHandler = origin.threads()
-        threadsCancellable = threadsHandler.threads { threadList ->
-            val threadHandler = threadList.firstOrNull()?.let(threadsHandler::thread)
-            val threadState = threadHandler?.get()?.threadState
-            if (threadHandler != null && threadState !== Ready && threadState !== Pending) {
-                recoverThread(threadHandler)
-            } else {
-                // Either there is no thread or the thread is already recovered or it was user created.
-                origin.chatStateListener?.onReady()
-            }
-            // Cleanup after the first thread list update.
-            threadsCancellable?.cancel()
-        }
-        // Assuming that `threadsHandler.refresh` is called as part of the `threads` method.
-    }
-
-    private fun recoverThread(threadHandler: ChatThreadHandler) {
-        var threadHandlerCancellable: Cancellable? = null
-        threadHandlerCancellable = threadHandler.get { thread ->
-            if (thread.threadState === Ready) {
-                // The thread was recovered, signal listener and cleanup.
-                origin.chatStateListener?.onReady()
-                threadHandlerCancellable?.cancel()
-            } else {
-                // The metadata were just loaded, recover the thread.
-                requestRecoverThread(threadHandler)
-            }
-        }
-        // Recover the thread if the metadata are already Loaded.
-        requestRecoverThread(threadHandler)
-    }
-
-    private fun requestRecoverThread(threadHandler: ChatThreadHandler) {
-        if (!recoverCalled && threadHandler.get().threadState === Loaded) {
-            recoverCalled = true
-            threadHandler.refresh()
-        }
+    private fun recoverThread() {
+        origin.chatStateListener?.onConnected()
+        origin.events().trigger(RecoverThreadEvent(null))
     }
 }

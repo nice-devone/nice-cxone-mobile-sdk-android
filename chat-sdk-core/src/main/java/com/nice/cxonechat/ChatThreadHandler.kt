@@ -88,6 +88,13 @@ interface ChatThreadHandler {
     fun customFields(): ChatFieldHandler
 
     /**
+     * Terminate the contact.
+     *
+     * @throws InvalidStateException if the current channel is not a live chat.
+     */
+    fun endContact()
+
+    /**
      * Listener allowing to receive changes to a chat thread.
      * @see get
      */

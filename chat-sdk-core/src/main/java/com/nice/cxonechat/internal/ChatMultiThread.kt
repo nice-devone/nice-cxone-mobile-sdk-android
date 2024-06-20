@@ -1,5 +1,7 @@
 package com.nice.cxonechat.internal
 
+import com.nice.cxonechat.internal.socket.SocketConnectionListener
+
 /**
  * Handle Multi thread chat specific functionality.
  *
@@ -9,8 +11,18 @@ package com.nice.cxonechat.internal
  *
  * @param origin Existing implementation of [ChatWithParameters] used for delegation.
  */
-internal class ChatMultiThread(private val origin: ChatWithParameters) : ChatWithParameters by origin {
-    override fun connect() = origin.connect().also {
-        origin.chatStateListener?.onReady()
+internal class ChatMultiThread(
+    private val origin: ChatWithParameters,
+) : ChatWithParameters by origin {
+
+    init {
+        chatStateListener?.let { listener ->
+            socketListener.addListener(
+                SocketConnectionListener(listener = listener) {
+                    listener.onConnected()
+                    listener.onReady()
+                }
+            )
+        }
     }
 }

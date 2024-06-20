@@ -32,10 +32,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.ui.R.string
-import com.nice.cxonechat.ui.composable.conversation.ContentType.DATE_HEADER
-import com.nice.cxonechat.ui.composable.conversation.ContentType.LOADING
+import com.nice.cxonechat.ui.composable.conversation.ContentType.DateHeader
+import com.nice.cxonechat.ui.composable.conversation.ContentType.Loading
+import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider
 import com.nice.cxonechat.ui.composable.conversation.model.Section
-import com.nice.cxonechat.ui.composable.conversation.plugin.MessagePreviewProvider
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.util.isSameDay
@@ -85,20 +85,20 @@ internal fun ColumnScope.Messages(
 
                 // Display "Today" over today's messages
                 section.createdAt.isSameDay(Date()) ->
-                    item(contentType = DATE_HEADER) {
+                    item(contentType = DateHeader) {
                         DayHeader(dayString = stringResource(string.today), Modifier.animateItemPlacement())
                     }
 
                 // display appropriate date over other messages
                 else ->
-                    item(contentType = DATE_HEADER) {
+                    item(contentType = DateHeader) {
                         DayHeader(dayString = section.createdAtDate, Modifier.animateItemPlacement())
                     }
             }
         }
 
         if (canLoadMore) {
-            item(contentType = LOADING) {
+            item(contentType = Loading) {
                 LoadMore(loadMore)
             }
         }
@@ -109,10 +109,9 @@ internal fun ColumnScope.Messages(
 @Composable
 private fun MessagesPreview() {
     val context = LocalContext.current
-    val section = MessagePreviewProvider()
+    val section = PreviewMessageProvider()
         .values
-        .toList()
-        .groupBy { message -> message.createdAtDate(context) }
+        .groupBy { it.createdAtDate(context) }
         .entries
         .map(::Section)
     val listState = rememberLazyListState()

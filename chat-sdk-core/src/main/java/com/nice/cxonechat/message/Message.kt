@@ -31,7 +31,9 @@ import java.util.UUID
  * are never generated locally as phantoms.
  *
  * @see Message.Text
- * @see Message.Plugin
+ * @see Message.RichLink
+ * @see Message.ListPicker
+ * @see Message.QuickReplies
  */
 @Public
 sealed class Message {
@@ -114,33 +116,6 @@ sealed class Message {
          * libraries to display them, if applicable.
          */
         abstract val text: String
-    }
-
-    /**
-     * Rich content messages, called plugins. These are very often generated
-     * by Agent action in the agent console. Your application can support all
-     * [PluginElement] or just focus on the components that is currently
-     * required by your own specification. Note that new elements can be added
-     * to the backend services for which you need to update the SDK. New
-     * elements, previously undefined are ignored by the SDK until implemented.
-     */
-    @Public
-    abstract class Plugin : Message() {
-
-        /**
-         * Additional information provided alongside with the message. Refer to
-         * information given by a representative to correctly use this parameter.
-         */
-        abstract val postback: String?
-
-        /**
-         * Element provided with this message. If the element **is null**,
-         * then you have received a message with an element that's not supported by
-         * this version. Kindly update the SDK in order to gain support.
-         *
-         * @see PluginElement
-         */
-        abstract val element: PluginElement?
     }
 
     /**
