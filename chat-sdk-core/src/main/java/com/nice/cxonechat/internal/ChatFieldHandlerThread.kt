@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,19 @@
 
 package com.nice.cxonechat.internal
 
-import com.nice.cxonechat.Chat
 import com.nice.cxonechat.ChatFieldHandler
 import com.nice.cxonechat.ChatThreadHandler
 import com.nice.cxonechat.event.thread.SetContactCustomFieldEvent
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.model.ChatThreadMutable
 import com.nice.cxonechat.internal.model.CustomFieldModel
-import com.nice.cxonechat.state.validate
 
 internal class ChatFieldHandlerThread(
-    private val chat: Chat,
     private val handler: ChatThreadHandler,
     private val thread: ChatThreadMutable,
 ) : ChatFieldHandler {
 
     override fun add(fields: Map<String, String>) {
-        chat.configuration.allCustomFields.validate(fields)
         val customFields = fields.map(::CustomFieldModel)
         handler.events().trigger(
             event = SetContactCustomFieldEvent(customFields),

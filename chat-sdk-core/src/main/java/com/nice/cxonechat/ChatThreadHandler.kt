@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -68,6 +68,15 @@ interface ChatThreadHandler {
      * nothing.
      */
     fun refresh()
+
+    /**
+     * Requests that the server archive this thread.
+     *
+     * @param onComplete Callback to be performed when the request has completed.
+     * This routine will be invoked with a success value indicating whether or
+     * not the thread has been successfully archived.
+     */
+    fun archive(onComplete: (Boolean) -> Unit = {})
 
     /**
      * Returns new instance of message handler for this [ChatThread].

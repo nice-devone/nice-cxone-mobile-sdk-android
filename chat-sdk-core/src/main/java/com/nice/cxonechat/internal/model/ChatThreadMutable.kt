@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
 
 package com.nice.cxonechat.internal.model
 
+import com.nice.cxonechat.Cancellable
+import com.nice.cxonechat.Cancellable.Companion.cancel
 import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.thread.Agent
 import com.nice.cxonechat.thread.ChatThread
@@ -24,7 +26,7 @@ import java.util.UUID
 
 internal class ChatThreadMutable private constructor(
     initial: ChatThread,
-) : ChatThread() {
+) : ChatThread(), AutoCloseable {
 
     private var thread = initial
 
@@ -51,6 +53,8 @@ internal class ChatThreadMutable private constructor(
     override val contactId: String?
         get() = thread.contactId
 
+    val resultCallbacks = mutableMapOf<UUID, Cancellable>()
+
     fun update(thread: ChatThread) {
         this.thread = thread
     }
@@ -58,6 +62,13 @@ internal class ChatThreadMutable private constructor(
     operator fun plusAssign(thread: ChatThread) = update(thread)
 
     fun snapshot() = thread
+
+    override fun close() {
+        with(resultCallbacks) {
+            values.cancel()
+            clear()
+        }
+    }
 
     override fun toString(): String = thread.toString()
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,9 @@ package com.nice.cxonechat.internal
 
 import com.nice.cxonechat.Cancellable
 import com.nice.cxonechat.ChatMode.LiveChat
+import com.nice.cxonechat.ChatMode.MultiThread
 import com.nice.cxonechat.ChatThreadHandler
 import com.nice.cxonechat.ChatThreadsHandler
-import com.nice.cxonechat.enums.EventType
-import com.nice.cxonechat.enums.EventType.ThreadListFetched
 import com.nice.cxonechat.internal.model.ChatThreadInternal
 import com.nice.cxonechat.internal.model.ChatThreadMutable
 import com.nice.cxonechat.internal.model.ChatThreadMutable.Companion.asMutable
@@ -38,7 +37,7 @@ import com.nice.cxonechat.state.checkRequired
 import com.nice.cxonechat.state.validate
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState.Pending
-import java.util.UUID
+import com.nice.cxonechat.util.UUIDProvider
 
 internal class ChatThreadsHandlerImpl(
     private val chat: ChatWithParameters,
@@ -61,7 +60,7 @@ internal class ChatThreadsHandlerImpl(
             checkRequired(combinedCustomFieldMap)
         }
 
-        val uuid = UUID.randomUUID()
+        val uuid = UUIDProvider.next()
         val thread = ChatThreadInternal(
             id = uuid,
             fields = combinedCustomFieldMap.map(::CustomFieldInternal),
@@ -72,11 +71,11 @@ internal class ChatThreadsHandlerImpl(
 
     override fun threads(listener: ChatThreadsHandler.OnThreadsUpdatedListener): Cancellable {
         var threads: List<ChatThreadMutable> = emptyList()
-        val threadListFetched = chat.socketListener.addCallback<EventThreadListFetched>(ThreadListFetched) { event ->
+        val threadListFetched = chat.socketListener.addCallback(EventThreadListFetched) { event ->
             threads = event.threads.map { threadData -> threadData.toChatThread().asMutable() }
             listener.onThreadsUpdated(threads)
         }
-        val threadArchived = chat.socketListener.addCallback<EventCaseStatusChanged>(EventType.CaseStatusChanged) { event ->
+        val threadArchived = chat.socketListener.addCallback(EventCaseStatusChanged) { event ->
             threads.asSequence()
                 .filter(event::inThread)
                 .forEach { thread ->
@@ -103,6 +102,9 @@ internal class ChatThreadsHandlerImpl(
         val mutableThread = thread as? ChatThreadMutable ?: ChatThreadMutable.from(thread)
         var handler: ChatThreadHandler
         handler = ChatThreadHandlerImpl(chat, mutableThread)
+        if (chat.chatMode === MultiThread) {
+            handler = ChatThreadHandlerMulti(chat, mutableThread, handler)
+        }
         handler = ChatThreadHandlerMetadata(handler, chat, mutableThread)
         handler = ChatThreadHandlerMessages(handler, chat, mutableThread)
         handler = ChatThreadHandlerAgentUpdate(handler, chat, mutableThread)

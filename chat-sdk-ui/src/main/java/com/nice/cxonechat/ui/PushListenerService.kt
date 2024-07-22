@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -85,14 +85,19 @@ internal class PushListenerService : FirebaseMessagingService() {
             .setSound(defaultSoundUri)
             .setPriority(2)
 
-        message.deepLink?.let {
+        val pendingIntent = message.deepLink?.let {
             PendingIntent.getActivity(
                 this,
                 0,
                 Intent(Intent.ACTION_VIEW, Uri.parse(it)),
                 PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
             )
-        }?.also(notificationBuilder::setContentIntent)
+        }
+        if (pendingIntent != null) {
+            pendingIntent.also(notificationBuilder::setContentIntent)
+        } else {
+            logger.debug("No deep link provided, notification will not be clickable")
+        }
 
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 

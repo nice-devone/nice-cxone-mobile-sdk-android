@@ -1,7 +1,5 @@
-import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
-
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -14,6 +12,8 @@ import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
  * OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
  */
+
+import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
 
 plugins {
     id("android-library-conventions")

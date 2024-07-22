@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import com.nice.cxonechat.event.ChatEvent
 import com.nice.cxonechat.event.PageViewEvent
 import com.nice.cxonechat.event.VisitEvent
 import com.nice.cxonechat.storage.ValueStorage.VisitDetails
+import com.nice.cxonechat.util.UUIDProvider
 import java.util.Date
-import java.util.UUID
 
 internal class ChatEventHandlerVisitGuard(
     private val origin: ChatEventHandler,
@@ -44,7 +44,7 @@ internal class ChatEventHandlerVisitGuard(
 
         // if the existing valid date is null or before now, we need a new visit
         if (details?.validUntil?.before(date) != false) {
-            chat.storage.visitDetails = VisitDetails(UUID.randomUUID(), expires)
+            chat.storage.visitDetails = VisitDetails(UUIDProvider.next(), expires)
 
             // generate a new visit event with the new visit
             origin.trigger(VisitEvent(date))

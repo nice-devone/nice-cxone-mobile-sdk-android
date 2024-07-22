@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package com.nice.cxonechat.internal
 import com.nice.cxonechat.Cancellable
 import com.nice.cxonechat.ChatThreadHandler
 import com.nice.cxonechat.ChatThreadHandler.OnThreadUpdatedListener
-import com.nice.cxonechat.enums.EventType.ThreadMetadataLoaded
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.model.ChatThreadMutable
 import com.nice.cxonechat.internal.model.network.EventThreadMetadataLoaded
@@ -32,7 +31,7 @@ internal class ChatThreadHandlerMetadata(
 ) : ChatThreadHandler by origin {
 
     override fun get(listener: OnThreadUpdatedListener): Cancellable {
-        val cancellable = chat.socketListener.addCallback<EventThreadMetadataLoaded>(ThreadMetadataLoaded) { event ->
+        val cancellable = chat.socketListener.addCallback(EventThreadMetadataLoaded) { event ->
             if (!event.inThread(thread)) return@addCallback
             thread += thread.asCopyable().copy(
                 messages = thread.messages.ifEmpty { listOfNotNull(event.message) },

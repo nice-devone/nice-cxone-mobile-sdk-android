@@ -17,6 +17,7 @@ package com.nice.cxonechat.internal.model.network
 
 import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.EventType
+import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
 import com.nice.cxonechat.util.IsoDate
 import java.util.UUID
 
@@ -45,4 +46,8 @@ internal data class EventInS3(
         @SerializedName("eventType")
         val eventType: EventType
     )
+
+    companion object : ReceivedEvent<EventInS3> {
+        override val type = EventType.EventInS3
+    }
 }

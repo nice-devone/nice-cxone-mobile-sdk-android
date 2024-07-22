@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,6 @@
  */
 
 package com.nice.cxonechat
-
-import com.nice.cxonechat.exceptions.InvalidCustomFieldValue
-import com.nice.cxonechat.exceptions.UndefinedCustomField
 
 /**
  * Handler permitting to add new fields to the instance it was created from.
@@ -35,14 +32,6 @@ interface ChatFieldHandler {
      * The client should always ensure thread (if applicable) exists before making
      * changes to it. Threads are generally created by sending a first message
      * to it.
-     *
-     * @throws InvalidCustomFieldValue if a field in [fields] is invalid for any reason.
-     * @throws UndefinedCustomField if a field in [fields] is not defined by the
-     * channel configuration.
      */
-    @Throws(
-        InvalidCustomFieldValue::class,
-        UndefinedCustomField::class,
-    )
     fun add(fields: Map<String, String>)
 }

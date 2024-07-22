@@ -62,6 +62,7 @@ package com.nice.cxonechat {
     method public default static operator com.nice.cxonechat.ChatBuilder getDefault(android.content.Context context, com.nice.cxonechat.SocketFactoryConfiguration config, optional com.nice.cxonechat.log.Logger logger);
     method public com.nice.cxonechat.ChatBuilder setAuthorization(com.nice.cxonechat.Authorization authorization);
     method public com.nice.cxonechat.ChatBuilder setChatStateListener(com.nice.cxonechat.ChatStateListener listener);
+    method public com.nice.cxonechat.ChatBuilder setCustomerId(String customerId);
     method public com.nice.cxonechat.ChatBuilder setDevelopmentMode(boolean enabled);
     method public com.nice.cxonechat.ChatBuilder setDeviceToken(String token);
     method public com.nice.cxonechat.ChatBuilder setUserName(String first, String last);
@@ -139,7 +140,7 @@ package com.nice.cxonechat {
   }
 
   @com.nice.cxonechat.Public public interface ChatFieldHandler {
-    method @kotlin.jvm.Throws(exceptionClasses={InvalidCustomFieldValue::class, UndefinedCustomField::class}) public void add(java.util.Map<java.lang.String,java.lang.String> fields) throws com.nice.cxonechat.exceptions.InvalidCustomFieldValue, com.nice.cxonechat.exceptions.UndefinedCustomField;
+    method public void add(java.util.Map<java.lang.String,java.lang.String> fields);
   }
 
   @com.nice.cxonechat.Public public final class ChatInstanceProvider implements com.nice.cxonechat.ChatStateListener com.nice.cxonechat.log.LoggerScope {
@@ -152,6 +153,7 @@ package com.nice.cxonechat {
     method public com.nice.cxonechat.Chat? getChat();
     method public com.nice.cxonechat.ChatState getChatState();
     method public com.nice.cxonechat.SocketFactoryConfiguration? getConfiguration();
+    method public String? getCustomerId();
     method public boolean getDevelopmentMode();
     method public com.nice.cxonechat.ChatInstanceProvider.DeviceTokenProvider? getDeviceTokenProvider();
     method public com.nice.cxonechat.log.Logger getIdentity();
@@ -172,6 +174,7 @@ package com.nice.cxonechat {
     property public final com.nice.cxonechat.Chat? chat;
     property public final com.nice.cxonechat.ChatState chatState;
     property public final com.nice.cxonechat.SocketFactoryConfiguration? configuration;
+    property public final String? customerId;
     property public final boolean developmentMode;
     property public final com.nice.cxonechat.ChatInstanceProvider.DeviceTokenProvider? deviceTokenProvider;
     property public com.nice.cxonechat.log.Logger identity;
@@ -187,6 +190,7 @@ package com.nice.cxonechat {
     method public com.nice.cxonechat.ChatInstanceProvider create(com.nice.cxonechat.SocketFactoryConfiguration? configuration, optional com.nice.cxonechat.Authorization? authorization, optional com.nice.cxonechat.UserName? userName, optional boolean developmentMode);
     method public com.nice.cxonechat.ChatInstanceProvider create(com.nice.cxonechat.SocketFactoryConfiguration? configuration, optional com.nice.cxonechat.Authorization? authorization, optional com.nice.cxonechat.UserName? userName, optional boolean developmentMode, optional com.nice.cxonechat.ChatInstanceProvider.DeviceTokenProvider? deviceTokenProvider);
     method public com.nice.cxonechat.ChatInstanceProvider create(com.nice.cxonechat.SocketFactoryConfiguration? configuration, optional com.nice.cxonechat.Authorization? authorization, optional com.nice.cxonechat.UserName? userName, optional boolean developmentMode, optional com.nice.cxonechat.ChatInstanceProvider.DeviceTokenProvider? deviceTokenProvider, optional com.nice.cxonechat.log.Logger logger);
+    method public com.nice.cxonechat.ChatInstanceProvider create(com.nice.cxonechat.SocketFactoryConfiguration? configuration, optional com.nice.cxonechat.Authorization? authorization, optional com.nice.cxonechat.UserName? userName, optional boolean developmentMode, optional com.nice.cxonechat.ChatInstanceProvider.DeviceTokenProvider? deviceTokenProvider, optional com.nice.cxonechat.log.Logger logger, optional String? customerId);
     method public com.nice.cxonechat.ChatInstanceProvider get();
   }
 
@@ -194,12 +198,14 @@ package com.nice.cxonechat {
     method public boolean getAuthenticationRequired();
     method public com.nice.cxonechat.Authorization? getAuthorization();
     method public com.nice.cxonechat.SocketFactoryConfiguration? getConfiguration();
+    method public String? getCustomerId();
     method public boolean getDevelopmentMode();
     method public com.nice.cxonechat.ChatInstanceProvider.DeviceTokenProvider? getDeviceTokenProvider();
     method public com.nice.cxonechat.log.Logger getLogger();
     method public com.nice.cxonechat.UserName? getUserName();
     method public void setAuthorization(com.nice.cxonechat.Authorization?);
     method public void setConfiguration(com.nice.cxonechat.SocketFactoryConfiguration?);
+    method public void setCustomerId(String?);
     method public void setDevelopmentMode(boolean);
     method public void setDeviceTokenProvider(com.nice.cxonechat.ChatInstanceProvider.DeviceTokenProvider?);
     method public void setLogger(com.nice.cxonechat.log.Logger);
@@ -207,6 +213,7 @@ package com.nice.cxonechat {
     property public abstract boolean authenticationRequired;
     property public abstract com.nice.cxonechat.Authorization? authorization;
     property public abstract com.nice.cxonechat.SocketFactoryConfiguration? configuration;
+    property public abstract String? customerId;
     property public abstract boolean developmentMode;
     property public abstract com.nice.cxonechat.ChatInstanceProvider.DeviceTokenProvider? deviceTokenProvider;
     property public abstract com.nice.cxonechat.log.Logger logger;
@@ -264,9 +271,9 @@ package com.nice.cxonechat {
   }
 
   @com.nice.cxonechat.Public public final class ChatThreadEventHandlerActions {
-    method public static void archiveThread(com.nice.cxonechat.ChatThreadEventHandler);
-    method public static void archiveThread(com.nice.cxonechat.ChatThreadEventHandler, optional com.nice.cxonechat.ChatThreadEventHandler.OnEventSentListener? listener);
-    method public static void archiveThread(com.nice.cxonechat.ChatThreadEventHandler, optional com.nice.cxonechat.ChatThreadEventHandler.OnEventSentListener? listener, optional com.nice.cxonechat.ChatThreadEventHandler.OnEventErrorListener? errorListener);
+    method @Deprecated public static void archiveThread(com.nice.cxonechat.ChatThreadEventHandler);
+    method @Deprecated public static void archiveThread(com.nice.cxonechat.ChatThreadEventHandler, optional com.nice.cxonechat.ChatThreadEventHandler.OnEventSentListener? listener);
+    method @Deprecated public static void archiveThread(com.nice.cxonechat.ChatThreadEventHandler, optional com.nice.cxonechat.ChatThreadEventHandler.OnEventSentListener? listener, optional com.nice.cxonechat.ChatThreadEventHandler.OnEventErrorListener? errorListener);
     method public static void loadMetadata(com.nice.cxonechat.ChatThreadEventHandler);
     method public static void loadMetadata(com.nice.cxonechat.ChatThreadEventHandler, optional com.nice.cxonechat.ChatThreadEventHandler.OnEventSentListener? listener);
     method public static void loadMetadata(com.nice.cxonechat.ChatThreadEventHandler, optional com.nice.cxonechat.ChatThreadEventHandler.OnEventSentListener? listener, optional com.nice.cxonechat.ChatThreadEventHandler.OnEventErrorListener? errorListener);
@@ -283,6 +290,7 @@ package com.nice.cxonechat {
   }
 
   @com.nice.cxonechat.Public public interface ChatThreadHandler {
+    method public void archive(optional kotlin.jvm.functions.Function1<? super java.lang.Boolean,kotlin.Unit> onComplete);
     method public com.nice.cxonechat.ChatFieldHandler customFields();
     method public void endContact();
     method public com.nice.cxonechat.ChatThreadEventHandler events();
@@ -407,39 +415,62 @@ package com.nice.cxonechat.event {
   @com.nice.cxonechat.Public public abstract sealed class ChatEvent {
   }
 
-  @com.nice.cxonechat.Public public final class CustomVisitorEvent extends com.nice.cxonechat.event.ChatEvent {
-    ctor public CustomVisitorEvent(Object data);
+  @Deprecated @com.nice.cxonechat.Public public final class CustomVisitorEvent extends com.nice.cxonechat.event.ChatEvent {
+    ctor @Deprecated public CustomVisitorEvent(Object data);
   }
 
-  @com.nice.cxonechat.Public public final class TriggerEvent extends com.nice.cxonechat.event.ChatEvent {
-    ctor public TriggerEvent(java.util.UUID id);
+  @Deprecated @com.nice.cxonechat.Public public final class TriggerEvent extends com.nice.cxonechat.event.ChatEvent {
+    ctor @Deprecated public TriggerEvent(java.util.UUID id);
   }
 
 }
 
 package com.nice.cxonechat.event.thread {
 
-  @com.nice.cxonechat.Public public final class ArchiveThreadEvent extends com.nice.cxonechat.event.thread.ChatThreadEvent {
-    field public static final com.nice.cxonechat.event.thread.ArchiveThreadEvent INSTANCE;
+  @Deprecated @com.nice.cxonechat.Public public final class ArchiveThreadEvent extends com.nice.cxonechat.event.thread.ArchiveThreadEventImpl {
+    property @Deprecated public java.util.UUID eventId;
+    field @Deprecated public static final com.nice.cxonechat.event.thread.ArchiveThreadEvent INSTANCE;
+  }
+
+  public class ArchiveThreadEventImpl extends com.nice.cxonechat.event.thread.ChatThreadEvent {
+    ctor public ArchiveThreadEventImpl(optional java.util.UUID eventId);
+    method public java.util.UUID getEventId();
+    property public java.util.UUID eventId;
   }
 
   @com.nice.cxonechat.Public public abstract sealed class ChatThreadEvent {
   }
 
-  @com.nice.cxonechat.Public public final class LoadThreadMetadataEvent extends com.nice.cxonechat.event.thread.ChatThreadEvent {
-    field public static final com.nice.cxonechat.event.thread.LoadThreadMetadataEvent INSTANCE;
+  @Deprecated @com.nice.cxonechat.Public public final class LoadThreadMetadataEvent extends com.nice.cxonechat.event.thread.LoadThreadMetadataEventImpl {
+    field @Deprecated public static final com.nice.cxonechat.event.thread.LoadThreadMetadataEvent INSTANCE;
   }
 
-  @com.nice.cxonechat.Public public final class MarkThreadReadEvent extends com.nice.cxonechat.event.thread.ChatThreadEvent {
-    field public static final com.nice.cxonechat.event.thread.MarkThreadReadEvent INSTANCE;
+  public class LoadThreadMetadataEventImpl extends com.nice.cxonechat.event.thread.ChatThreadEvent {
+    ctor public LoadThreadMetadataEventImpl();
   }
 
-  @com.nice.cxonechat.Public public final class TypingEndEvent extends com.nice.cxonechat.event.thread.ChatThreadEvent {
-    field public static final com.nice.cxonechat.event.thread.TypingEndEvent INSTANCE;
+  @Deprecated @com.nice.cxonechat.Public public final class MarkThreadReadEvent extends com.nice.cxonechat.event.thread.MarkThreadReadEventImpl {
+    field @Deprecated public static final com.nice.cxonechat.event.thread.MarkThreadReadEvent INSTANCE;
   }
 
-  @com.nice.cxonechat.Public public final class TypingStartEvent extends com.nice.cxonechat.event.thread.ChatThreadEvent {
-    field public static final com.nice.cxonechat.event.thread.TypingStartEvent INSTANCE;
+  public class MarkThreadReadEventImpl extends com.nice.cxonechat.event.thread.ChatThreadEvent {
+    ctor public MarkThreadReadEventImpl();
+  }
+
+  @Deprecated @com.nice.cxonechat.Public public final class TypingEndEvent extends com.nice.cxonechat.event.thread.TypingEndEventImpl {
+    field @Deprecated public static final com.nice.cxonechat.event.thread.TypingEndEvent INSTANCE;
+  }
+
+  public class TypingEndEventImpl extends com.nice.cxonechat.event.thread.ChatThreadEvent {
+    ctor public TypingEndEventImpl();
+  }
+
+  @Deprecated @com.nice.cxonechat.Public public final class TypingStartEvent extends com.nice.cxonechat.event.thread.TypingStartEventImpl {
+    field @Deprecated public static final com.nice.cxonechat.event.thread.TypingStartEvent INSTANCE;
+  }
+
+  public class TypingStartEventImpl extends com.nice.cxonechat.event.thread.ChatThreadEvent {
+    ctor public TypingStartEventImpl();
   }
 
 }
@@ -735,10 +766,10 @@ package com.nice.cxonechat.prechat {
 package com.nice.cxonechat.state {
 
   @com.nice.cxonechat.Public public interface Configuration {
-    method public default boolean allowsFieldId(String fieldId);
-    method public default kotlin.sequences.Sequence<com.nice.cxonechat.state.FieldDefinition> getAllCustomFields();
-    method public kotlin.sequences.Sequence<com.nice.cxonechat.state.FieldDefinition> getContactCustomFields();
-    method public kotlin.sequences.Sequence<com.nice.cxonechat.state.FieldDefinition> getCustomerCustomFields();
+    method @Deprecated public default boolean allowsFieldId(String fieldId);
+    method @Deprecated public default kotlin.sequences.Sequence<com.nice.cxonechat.state.FieldDefinition> getAllCustomFields();
+    method @Deprecated public kotlin.sequences.Sequence<com.nice.cxonechat.state.FieldDefinition> getContactCustomFields();
+    method @Deprecated public kotlin.sequences.Sequence<com.nice.cxonechat.state.FieldDefinition> getCustomerCustomFields();
     method public com.nice.cxonechat.state.FileRestrictions getFileRestrictions();
     method public boolean getHasMultipleThreadsPerEndUser();
     method public default boolean hasFeature(com.nice.cxonechat.state.Configuration.Feature feature);
@@ -747,9 +778,9 @@ package com.nice.cxonechat.state {
     method public boolean isLiveChat();
     method public boolean isOnline();
     method public boolean isProactiveChatEnabled();
-    property public default kotlin.sequences.Sequence<com.nice.cxonechat.state.FieldDefinition> allCustomFields;
-    property public abstract kotlin.sequences.Sequence<com.nice.cxonechat.state.FieldDefinition> contactCustomFields;
-    property public abstract kotlin.sequences.Sequence<com.nice.cxonechat.state.FieldDefinition> customerCustomFields;
+    property @Deprecated public default kotlin.sequences.Sequence<com.nice.cxonechat.state.FieldDefinition> allCustomFields;
+    property @Deprecated public abstract kotlin.sequences.Sequence<com.nice.cxonechat.state.FieldDefinition> contactCustomFields;
+    property @Deprecated public abstract kotlin.sequences.Sequence<com.nice.cxonechat.state.FieldDefinition> customerCustomFields;
     property public abstract com.nice.cxonechat.state.FileRestrictions fileRestrictions;
     property public abstract boolean hasMultipleThreadsPerEndUser;
     property public abstract boolean isAuthorizationEnabled;

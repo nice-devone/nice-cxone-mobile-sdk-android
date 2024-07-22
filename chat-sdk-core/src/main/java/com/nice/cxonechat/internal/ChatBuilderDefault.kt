@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ internal class ChatBuilderDefault(
     private var lastName: String? = null
     private var chatStateListener: ChatStateListener? = null
     private var deviceToken: String? = null
+    private var customerId: String? = null
 
     override fun setAuthorization(authorization: Authorization) = apply {
         this.authorization = authorization
@@ -64,6 +65,10 @@ internal class ChatBuilderDefault(
 
     override fun setDeviceToken(token: String): ChatBuilder = apply {
         deviceToken = token
+    }
+
+    override fun setCustomerId(customerId: String): ChatBuilder = apply {
+        this.customerId = customerId
     }
 
     @Deprecated(
@@ -87,6 +92,13 @@ internal class ChatBuilderDefault(
     }
 
     private fun prepareChatParameters(): ChatParameters {
+        customerId?.let { id ->
+            val currentId = entrails.storage.customerId
+            if (currentId != id) {
+                if (currentId != null) entrails.storage.clearStorage()
+                entrails.storage.customerId = id
+            }
+        }
         var connection = factory.getConfiguration(entrails.storage)
         val firstName = firstName
         val lastName = lastName

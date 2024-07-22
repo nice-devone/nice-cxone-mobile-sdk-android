@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,34 @@
 package com.nice.cxonechat.internal.socket
 
 import com.nice.cxonechat.Cancellable
+import com.nice.cxonechat.enums.ErrorType
 import com.nice.cxonechat.enums.EventType
 import com.nice.cxonechat.internal.serializer.Default.serializer
+import com.nice.cxonechat.internal.socket.ErrorCallback.Companion.addErrorCallback
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
+import java.util.UUID
 
 internal abstract class EventCallback<Event>(
     private val type: EventType,
     private val eventType: Class<Event>,
 ) : WebSocketListener() {
 
+    interface ReceivedEvent<Type : Any> {
+        val type: EventType
+    }
+
+    interface EventWithId {
+        val eventId: UUID
+    }
+
     override fun onMessage(webSocket: WebSocket, text: String) {
         val blueprint: EventBlueprint? = serializer.runCatching {
             fromJson(text, EventBlueprint::class.java)
         }.getOrNull()
         if (blueprint?.anyType === type) {
-            val event: Event? = serializer.fromJson(text, eventType)
-            if (event != null) {
-                onEvent(webSocket, event)
+            serializer.fromJson(text, eventType)?.let {
+                onEvent(webSocket, it)
             }
         }
     }
@@ -49,6 +59,11 @@ internal abstract class EventCallback<Event>(
             override fun onEvent(websocket: WebSocket, event: Event) = callback(websocket, event)
         }
 
+        inline fun <reified Event : Any> ProxyWebSocketListener.addCallback(
+            type: ReceivedEvent<Event>,
+            crossinline callback: WebSocket.(Event) -> Unit,
+        ) = addCallback<Event>(type.type, callback)
+
         inline fun <reified Event> ProxyWebSocketListener.addCallback(
             type: EventType,
             crossinline callback: WebSocket.(Event) -> Unit,
@@ -57,5 +72,24 @@ internal abstract class EventCallback<Event>(
             addListener(listener)
             return Cancellable { removeListener(listener) }
         }
+
+        inline fun <reified Received : ReceivedEvent<Event>, reified Event : EventWithId> ProxyWebSocketListener.acceptResponse(
+            sent: EventWithId,
+            received: ReceivedEvent<Event>,
+            errorType: ErrorType? = null,
+            crossinline failure: (WebSocket.() -> Unit) = {},
+            crossinline success: WebSocket.(Event) -> Unit,
+        ) = Cancellable(
+            addCallback(received) {
+                if (sent.eventId == it.eventId) {
+                    success(it)
+                }
+            },
+            errorType?.let {
+                addErrorCallback(errorType) {
+                    failure()
+                }
+            }
+        )
     }
 }

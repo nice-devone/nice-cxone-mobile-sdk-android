@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -24,12 +24,12 @@ import com.nice.cxonechat.ChatEventHandlerActions.proactiveActionClick
 import com.nice.cxonechat.ChatEventHandlerActions.proactiveActionDisplay
 import com.nice.cxonechat.ChatEventHandlerActions.proactiveActionFailure
 import com.nice.cxonechat.ChatEventHandlerActions.proactiveActionSuccess
+import com.nice.cxonechat.ChatThreadEventHandlerActions.markThreadRead
+import com.nice.cxonechat.ChatThreadEventHandlerActions.typingEnd
+import com.nice.cxonechat.ChatThreadEventHandlerActions.typingStart
 import com.nice.cxonechat.ChatThreadHandler
 import com.nice.cxonechat.ChatThreadMessageHandler.OnMessageTransferListener
 import com.nice.cxonechat.analytics.ActionMetadata
-import com.nice.cxonechat.event.thread.MarkThreadReadEvent
-import com.nice.cxonechat.event.thread.TypingEndEvent
-import com.nice.cxonechat.event.thread.TypingStartEvent
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.message.ContentDescriptor
 import com.nice.cxonechat.message.MessageAuthor
@@ -125,7 +125,7 @@ internal class ChatThreadViewModel(
         }
         .map { collection -> collection.sortedByDescending { message -> message.createdAt } }
         .flowOn(Dispatchers.Default)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val agentState: StateFlow<Boolean> = chatThreadFlow
         .mapLatest { chatThread -> chatThread.threadAgent }
@@ -299,19 +299,19 @@ internal class ChatThreadViewModel(
 
     fun reportThreadRead() {
         viewModelScope.launch {
-            eventHandler.first().trigger(MarkThreadReadEvent)
+            eventHandler.first().markThreadRead()
         }
     }
 
     fun reportTypingStarted() {
         viewModelScope.launch {
-            eventHandler.first().trigger(TypingStartEvent)
+            eventHandler.first().typingStart()
         }
     }
 
     fun reportTypingEnd() {
         viewModelScope.launch {
-            eventHandler.first().trigger(TypingEndEvent)
+            eventHandler.first().typingEnd()
         }
     }
 

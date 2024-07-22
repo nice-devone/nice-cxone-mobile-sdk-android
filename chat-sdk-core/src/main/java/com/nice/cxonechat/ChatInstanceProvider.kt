@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -32,8 +32,6 @@ import com.nice.cxonechat.log.LoggerScope
 import com.nice.cxonechat.log.debug
 import com.nice.cxonechat.log.scope
 import com.nice.cxonechat.log.warning
-import com.nice.cxonechat.state.containsField
-import com.nice.cxonechat.state.validate
 import java.lang.ref.WeakReference
 
 /**
@@ -46,6 +44,7 @@ import java.lang.ref.WeakReference
  * @param deviceTokenProvider Provider of device tokens for push messages, default implementation will
  * disable push notifications.
  * @param logger The [Logger] used by the SDK, default is no-op implementation.
+ * @param customerId Optional customerId of the user.
  * @param chatBuilderProvider **INTERNAL USAGE ONLY** Provides [ChatBuilder].  For internal testing usage only.
  */
 @Suppress(
@@ -60,6 +59,7 @@ class ChatInstanceProvider private constructor(
     developmentMode: Boolean,
     deviceTokenProvider: DeviceTokenProvider?,
     logger: Logger,
+    customerId: String? = null,
     private val chatBuilderProvider: (Context, SocketFactoryConfiguration, Logger) -> ChatBuilder,
 ) : ChatStateListener, LoggerScope by LoggerScope(TAG, logger) {
     /** those interested in ChatInstanceProvider updates. */
@@ -120,6 +120,9 @@ class ChatInstanceProvider private constructor(
 
         /** Current [Logger]. */
         var logger: Logger
+
+        /** Current optional customer id. */
+        var customerId: String?
     }
 
     /** Current configuration. */
@@ -148,6 +151,10 @@ class ChatInstanceProvider private constructor(
 
     override val identity: Logger
         get() = logger
+
+    /** Current optional customerId. */
+    var customerId: String? = customerId
+        private set
 
     /** token provided by deviceTokenProvider. */
     private var deviceToken: String? = null
@@ -253,6 +260,9 @@ class ChatInstanceProvider private constructor(
                     deviceToken = token
                     setDeviceToken(token)
                 }
+            }
+            .apply {
+                customerId?.let(::setCustomerId)
             }
             .build { result: Result<Chat> ->
                 result.onSuccess { newChat ->
@@ -376,19 +386,10 @@ class ChatInstanceProvider private constructor(
      * Note: This routine can be called any time there is a chat object.  If there
      * is no chat object, it will be silently ignored.
      *
-     * @param values Custom values to set.  These will be filtered by the chat's
-     * configured available customerCustomFields.
+     * @param values Custom values to set.
      */
     fun setCustomerValues(values: Map<String, String>) = apply {
-        chat?.run {
-            val customerCustomFields = configuration.customerCustomFields
-            val fields = values.filterKeys(customerCustomFields::containsField)
-
-            runCatching { customerCustomFields.validate(fields) }
-                .onSuccess {
-                    customFields().add(fields)
-                }
-        }
+        chat?.customFields()?.add(values)
     }
 
     /**
@@ -442,6 +443,12 @@ class ChatInstanceProvider private constructor(
                 get() = provider.logger
                 set(value) {
                     provider.logger = value
+                }
+
+            override var customerId: String?
+                get() = provider.customerId
+                set(value) {
+                    provider.customerId = value
                 }
         }
 
@@ -546,6 +553,7 @@ class ChatInstanceProvider private constructor(
          * @param developmentMode True if in development mode to get extra logging.
          * @param deviceTokenProvider Provider of device tokens for push messages.
          * @param logger [Logger] to be used by the ChatInstanceProvider and Chat.
+         * @param customerId Optional, customerId of the user.
          * @return the newly created ChatInstanceProvider singleton.
          */
         @Suppress(
@@ -559,6 +567,7 @@ class ChatInstanceProvider private constructor(
             developmentMode: Boolean = false,
             deviceTokenProvider: DeviceTokenProvider? = null,
             logger: Logger = LoggerNoop,
+            customerId: String? = null,
         ) = create(
             configuration,
             authorization,
@@ -566,6 +575,7 @@ class ChatInstanceProvider private constructor(
             developmentMode,
             deviceTokenProvider,
             logger,
+            customerId,
             ChatBuilder.Companion::invoke,
         )
 
@@ -578,6 +588,7 @@ class ChatInstanceProvider private constructor(
          * @param developmentMode True if in development mode to get extra logging.
          * @param deviceTokenProvider Provider of device tokens for push messages.
          * @param logger [Logger] to be used by the ChatInstanceProvider and Chat.
+         * @param customerId Optional customerId of the user.
          * @param chatBuilderProvider **INTERNAL USAGE ONLY** Provides [ChatBuilder].  For internal testing usage only.
          * @return the newly created ChatInstanceProvider singleton.
          */
@@ -590,6 +601,7 @@ class ChatInstanceProvider private constructor(
             developmentMode: Boolean = false,
             deviceTokenProvider: DeviceTokenProvider? = null,
             logger: Logger = LoggerNoop,
+            customerId: String? = null,
             chatBuilderProvider: (Context, SocketFactoryConfiguration, Logger) -> ChatBuilder,
         ) = ChatInstanceProvider(
             configuration,
@@ -598,6 +610,7 @@ class ChatInstanceProvider private constructor(
             developmentMode,
             deviceTokenProvider,
             logger,
+            customerId,
             chatBuilderProvider,
         ).also {
             instance = it

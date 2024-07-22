@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package com.nice.cxonechat.internal
 import com.nice.cxonechat.Cancellable
 import com.nice.cxonechat.ChatThreadHandler
 import com.nice.cxonechat.ChatThreadHandler.OnThreadUpdatedListener
-import com.nice.cxonechat.enums.EventType.MessageCreated
-import com.nice.cxonechat.enums.EventType.MoreMessagesLoaded
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.updateWith
 import com.nice.cxonechat.internal.model.ChatThreadMutable
@@ -35,7 +33,7 @@ internal class ChatThreadHandlerMessages(
 
     override fun get(listener: OnThreadUpdatedListener): Cancellable {
         val moreMessagesListener = chat.socketListener
-            .addCallback<EventMoreMessagesLoaded>(MoreMessagesLoaded) { event ->
+            .addCallback(EventMoreMessagesLoaded) { event ->
                 if (!event.inThread(thread)) return@addCallback
                 thread += thread.asCopyable().copy(
                     messages = thread.messages.updateWith(event.messages),
@@ -43,7 +41,7 @@ internal class ChatThreadHandlerMessages(
                 )
                 listener.onUpdated(thread)
             }
-        val messageCreated = chat.socketListener.addCallback<EventMessageCreated>(MessageCreated) { event ->
+        val messageCreated = chat.socketListener.addCallback(EventMessageCreated) { event ->
             val message = event.message
             if (!event.inThread(thread) || thread.messages.contains(message)) return@addCallback
             thread += thread.asCopyable().copy(

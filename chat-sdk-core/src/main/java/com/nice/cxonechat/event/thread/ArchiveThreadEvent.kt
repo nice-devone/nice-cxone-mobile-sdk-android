@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,44 @@
 package com.nice.cxonechat.event.thread
 
 import com.nice.cxonechat.Public
+import com.nice.cxonechat.event.thread.ArchiveThreadEvent.eventId
 import com.nice.cxonechat.internal.model.network.ActionArchiveThread
+import com.nice.cxonechat.internal.socket.EventCallback.EventWithId
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.util.UUIDProvider
+import java.util.UUID
 
 /**
  * Event that archives the thread it was invoked upon.
  *
  * Successful thread archivation will trigger thread list refresh.
+ *
+ * @property eventId Unique identifier for event.
  */
 @Public
-object ArchiveThreadEvent : ChatThreadEvent() {
+@Deprecated("Use ChatThreadHandler.archive() instead")
+object ArchiveThreadEvent : ArchiveThreadEventImpl() {
+    override val eventId: UUID
+        get() = UUIDProvider.next()
+}
 
+/**
+ * Event that archives the thread it was invoked upon.
+ *
+ * Successful thread archivation will trigger thread list refresh.
+ *
+ * @property eventId Unique identifier for event.
+ */
+open class ArchiveThreadEventImpl(
+    override val eventId: UUID = UUIDProvider.next()
+) : ChatThreadEvent(), EventWithId {
     override fun getModel(
         thread: ChatThread,
         connection: Connection,
     ): Any = ActionArchiveThread(
         connection = connection,
+        eventId = eventId,
         thread = thread
     )
 

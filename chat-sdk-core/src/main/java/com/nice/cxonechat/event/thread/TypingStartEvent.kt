@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,13 @@ import com.nice.cxonechat.thread.ChatThread
  * Event notifying the agent that the user has started typing.
  */
 @Public
-object TypingStartEvent : ChatThreadEvent() {
+@Deprecated("Use ChatThreadEventHandler.typingStart()")
+object TypingStartEvent : TypingStartEventImpl()
+
+/**
+ * Event notifying the agent that the user has started typing.
+ */
+open class TypingStartEventImpl: ChatThreadEvent() {
 
     override fun getModel(
         thread: ChatThread,

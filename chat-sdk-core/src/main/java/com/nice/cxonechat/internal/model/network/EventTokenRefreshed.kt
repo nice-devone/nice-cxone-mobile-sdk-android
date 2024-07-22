@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 package com.nice.cxonechat.internal.model.network
 
 import com.google.gson.annotations.SerializedName
+import com.nice.cxonechat.enums.EventType.TokenRefreshed
+import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
 
 /** Event received when a token has been successfully refreshed. */
 internal data class EventTokenRefreshed(
@@ -30,4 +32,8 @@ internal data class EventTokenRefreshed(
         @SerializedName("accessToken")
         val accessToken: AccessToken,
     )
+
+    companion object : ReceivedEvent<EventTokenRefreshed> {
+        override val type = TokenRefreshed
+    }
 }

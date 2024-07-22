@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package com.nice.cxonechat.internal
 import com.nice.cxonechat.Authorization
 import com.nice.cxonechat.Cancellable
 import com.nice.cxonechat.enums.ErrorType
-import com.nice.cxonechat.enums.EventType.CustomerAuthorized
-import com.nice.cxonechat.enums.EventType.TokenRefreshed
 import com.nice.cxonechat.event.AuthorizeCustomerEvent
 import com.nice.cxonechat.event.ReconnectCustomerEvent
 import com.nice.cxonechat.exceptions.RuntimeChatException.AuthorizationError
@@ -28,14 +26,14 @@ import com.nice.cxonechat.internal.model.network.EventCustomerAuthorized
 import com.nice.cxonechat.internal.model.network.EventTokenRefreshed
 import com.nice.cxonechat.internal.socket.ErrorCallback.Companion.addErrorCallback
 import com.nice.cxonechat.internal.socket.EventCallback.Companion.addCallback
-import java.util.UUID
+import com.nice.cxonechat.util.UUIDProvider
 
 internal class ChatAuthorization(
     private val origin: ChatWithParameters,
     private val authorization: Authorization,
 ) : ChatWithParameters by origin {
 
-    private val customerAuthorized = socketListener.addCallback<EventCustomerAuthorized>(CustomerAuthorized) { model ->
+    private val customerAuthorized = socketListener.addCallback(EventCustomerAuthorized) { model ->
         val authorizationEnabled = origin.configuration.isAuthorizationEnabled
         connection = connection.asCopyable().copy(
             firstName = if (authorizationEnabled) {
@@ -55,7 +53,7 @@ internal class ChatAuthorization(
         storage.customerId = connection.customerId
     }
 
-    private val tokenRefresh = socketListener.addCallback<EventTokenRefreshed>(TokenRefreshed) { model ->
+    private val tokenRefresh = socketListener.addCallback(EventTokenRefreshed) { model ->
         storage.authToken = model.token
         storage.authTokenExpDate = model.expiresAt
     }
@@ -70,7 +68,7 @@ internal class ChatAuthorization(
 
     init {
         if (storage.customerId == null) {
-            connection = connection.asCopyable().copy(customerId = UUID.randomUUID().toString())
+            connection = connection.asCopyable().copy(customerId = UUIDProvider.next().toString())
         }
         authorizeCustomer()
     }

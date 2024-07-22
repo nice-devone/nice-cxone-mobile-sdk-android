@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import com.nice.cxonechat.ChatActionHandler
 import com.nice.cxonechat.ChatActionHandler.OnPopupActionListener
 import com.nice.cxonechat.analytics.ActionMetadata
 import com.nice.cxonechat.enums.ActionType.CustomPopupBox
-import com.nice.cxonechat.enums.EventType.FireProactiveAction
 import com.nice.cxonechat.internal.model.network.EventProactiveAction
 import com.nice.cxonechat.internal.socket.EventCallback.Companion.addCallback
 
@@ -30,7 +29,7 @@ internal class ChatActionHandlerImpl(
     private var latestParams: ParamsWithMetadata? = null
     private var popupListener: OnPopupActionListener? = null
     private val popupCancellable = chat.socketListener
-        .addCallback<EventProactiveAction>(FireProactiveAction) { model ->
+        .addCallback(EventProactiveAction) { model ->
             val listener = popupListener
             val metadata = model.metadata
             if (model.type != CustomPopupBox) return@addCallback

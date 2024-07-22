@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import com.nice.cxonechat.log.debug
 import com.nice.cxonechat.log.scope
 import com.nice.cxonechat.sample.R.string
 import com.nice.cxonechat.sample.data.models.ChatUserName
+import com.nice.cxonechat.sample.data.models.LoginData
 import com.nice.cxonechat.sample.ui.theme.AppTheme
 import com.nice.cxonechat.sample.ui.theme.AppTheme.space
 import com.nice.cxonechat.sample.ui.theme.Dialog
@@ -50,6 +51,7 @@ import org.koin.java.KoinJavaComponent.inject
  * Display the Login dialog to collect the users first and last name.
  *
  * @param userName Current [UserName] if any.
+ * @param customerId Current customerId if any.
  * @param onAccept Invoked when the user accepts to dismiss the dialog and continue.
  * @param analytics Additional [Composable] content which should be included in the dialog for purpose of tracking
  * analytics data.
@@ -57,7 +59,8 @@ import org.koin.java.KoinJavaComponent.inject
 @Composable
 fun LoginDialog(
     userName: UserName?,
-    onAccept: (UserName) -> Unit,
+    customerId: String?,
+    onAccept: (LoginData) -> Unit,
     @SuppressLint(
         "ComposableLambdaParameterNaming" // This is not intended for actual content.
     )
@@ -65,6 +68,13 @@ fun LoginDialog(
 ) {
     var firstName by rememberSaveable { mutableStateOf(userName?.firstName ?: "") }
     var lastName by rememberSaveable { mutableStateOf(userName?.lastName ?: "") }
+    var suppliedCustomerId by rememberSaveable { mutableStateOf(customerId) }
+    val login = {
+        val newUserName = ChatUserName(lastName = lastName, firstName = firstName)
+        if (newUserName.valid) {
+            onAccept(LoginData(newUserName, suppliedCustomerId))
+        }
+    }
 
     analytics?.invoke()
 
@@ -76,7 +86,7 @@ fun LoginDialog(
             AppTheme.OutlinedButton(
                 stringResource(string.ok),
                 enabled = firstName.isNotBlank() && lastName.isNotBlank(),
-                onClick = { onAccept(ChatUserName(lastName = lastName, firstName = firstName)) },
+                onClick = login,
             )
         }
     ) {
@@ -95,18 +105,21 @@ fun LoginDialog(
                 label = stringResource(string.last_name),
                 value = lastName,
                 requirement = required,
+            ) {
+                lastName = it
+            }
+            AppTheme.TextField(
+                label = stringResource(string.customer_id),
+                value = suppliedCustomerId.orEmpty(),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(
                     onDone = {
                         focusManager.clearFocus()
-                        val newUserName = ChatUserName(lastName = lastName, firstName = firstName)
-                        if (newUserName.valid) {
-                            onAccept(newUserName)
-                        }
+                        login()
                     }
                 )
             ) {
-                lastName = it
+                suppliedCustomerId = it.ifBlank { null }
             }
         }
     }
@@ -120,6 +133,7 @@ private fun LoginDialogPreview() {
 
     LoginDialog(
         userName = null,
+        customerId = null,
         onAccept = { userName ->
             loggerScope.scope("onAccept") {
                 debug("finish: $userName")

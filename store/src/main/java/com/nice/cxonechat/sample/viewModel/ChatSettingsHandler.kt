@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -24,13 +24,13 @@ import com.google.firebase.messaging.ktx.messaging
 import com.nice.cxonechat.Authorization
 import com.nice.cxonechat.ChatInstanceProvider
 import com.nice.cxonechat.ChatInstanceProvider.DeviceTokenProvider
-import com.nice.cxonechat.UserName
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerScope
 import com.nice.cxonechat.log.error
 import com.nice.cxonechat.log.info
 import com.nice.cxonechat.log.scope
 import com.nice.cxonechat.sample.data.models.ChatSettings
+import com.nice.cxonechat.sample.data.models.LoginData
 import com.nice.cxonechat.sample.data.models.SdkConfiguration
 import com.nice.cxonechat.sample.data.models.toChatAuthorization
 import com.nice.cxonechat.sample.data.models.toChatUserName
@@ -70,18 +70,25 @@ class ChatSettingsHandler(
     }
 
     /**
-     * Set the user name for future connections.
+     * Set the login data for future connections.
      *
-     * @param userName New user name to use.
+     * @param loginData New login data to use.
      */
-    fun setUserName(userName: UserName) {
-        val chatUserName = userName.toChatUserName
-        settings
-            ?.copy(userName = chatUserName)
-            ?.let(chatSettingsRepository::use)
-            ?: chatSettingsRepository.clear()
-
-        chatProvider.setUserName(chatUserName)
+    fun setLoginData(loginData: LoginData) {
+        val currentCustomerId = settings?.customerId
+        val chatUserName = loginData.userName.toChatUserName
+        val customerId = loginData.customerId
+        if (currentCustomerId != customerId) {
+            apply(
+                settings = settings?.copy(userName = chatUserName, customerId = customerId)
+            )
+        } else {
+            settings
+                ?.copy(userName = chatUserName)
+                ?.let(chatSettingsRepository::use)
+                ?: chatSettingsRepository.clear()
+            chatProvider.setUserName(chatUserName)
+        }
     }
 
     /**
@@ -107,7 +114,7 @@ class ChatSettingsHandler(
         AuthorizationManager.signOut(context, LoggingSignoutListener())
 
         apply(
-            settings?.copy(authorization = null, userName = null)
+            settings?.copy(authorization = null, userName = null, customerId = null)
         )
     }
 
@@ -125,6 +132,7 @@ class ChatSettingsHandler(
             configuration = settings?.sdkConfiguration?.asSocketFactoryConfiguration
             userName = settings?.userName
             authorization = settings?.authorization
+            customerId = settings?.customerId
             deviceTokenProvider = FirebaseTokenProvider()
         }
     }
