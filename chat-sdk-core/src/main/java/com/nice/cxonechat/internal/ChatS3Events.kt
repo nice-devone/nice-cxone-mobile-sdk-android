@@ -18,7 +18,6 @@ package com.nice.cxonechat.internal
 import com.nice.cxonechat.Cancellable
 import com.nice.cxonechat.Chat
 import com.nice.cxonechat.enums.ErrorType
-import com.nice.cxonechat.enums.EventType
 import com.nice.cxonechat.exceptions.RuntimeChatException.ServerCommunicationError
 import com.nice.cxonechat.internal.model.network.EventInS3
 import com.nice.cxonechat.internal.socket.EventCallback.Companion.addCallback
@@ -41,7 +40,7 @@ internal class ChatS3Events(
     var cancellable: Cancellable? = null
 
     override fun connect(): Cancellable = origin.connect().also {
-        cancellable = origin.socketListener.addCallback<EventInS3>(EventType.EventInS3) { event ->
+        cancellable = origin.socketListener.addCallback(EventInS3) { event ->
             val request = Builder()
                 .url(event.data.s3Object.url)
                 .build()

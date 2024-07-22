@@ -125,13 +125,12 @@ internal class ChatThreadHandlerLiveChat(
             scrollToken = event.scrollToken,
             threadAgent = event.agent ?: thread.threadAgent,
             fields = thread.fields.updateWith(
-                event.thread.fields.filter { chat.configuration.allowsFieldId(it.id) }
+                event.thread.fields
             ),
             threadState = if (event.agent != null) Ready else Loaded
         )
         chat.fields = chat.fields.updateWith(
-            // drop any fields not in the configuration
-            event.customerCustomFields.filter { chat.configuration.allowsFieldId(it.id) }
+            event.customerCustomFields
         )
     }
 

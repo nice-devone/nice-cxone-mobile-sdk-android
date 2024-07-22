@@ -1,6 +1,22 @@
 <a name="unreleased"></a>
 ## [Unreleased]
 
+<a name="2.1.0"></a>
+## [2.1.0]
+### Bug Fixes
+- Prevent duplicate welcome message
+### Dependency Change
+- Update Kotlin 1.9.22 -> 1.9.24
+- Bump retrofit from 2.10.0 to 2.11.0
+- Bump com.google.code.gson:gson from 2.10.1 to 2.11.0
+### Features
+- Live chat documentation update
+- Add support for autolinking in text messages
+- Allow to set customerId
+- Coordinate ArchiveThread and ThreadArchived events
+- Removed custom field validation
+
+<a name="2.0.0"></a>
 ## [2.0.0]
 
 ### Bug Fixes
@@ -23,12 +39,15 @@
 - Update DeviceFingerprint
 - Handle EventInS3 meta-event
 
+<a name="1.3.1"></a>
 ## [1.3.1]
-### Bug Fixes
-- EventContactInboxAssigneeChanged.agent is nullable
-- Fix for compatibility with backend API changes
 
+### Bug Fixes
+- Fixes for 1.3.1
+
+<a name="1.3.0"></a>
 ## [1.3.0]
+
 ### Bug Fixes
 - Set CustomerId type to String
 - Make date formatting thread safe
@@ -147,8 +166,8 @@
 - Fresh Naming in Websocket events
 ### Reverts
 - [chore] Bump androidx.core:core-ktx from 1.9.0 to 1.10.0
-  
-  
+
+
 <a name="1.0.1"></a>
 ## [1.0.1] - 2023-03-07
 
@@ -220,7 +239,8 @@
     - failure
   - typing start/end
 
-[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.0.0...HEAD
+[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.1.0...HEAD
+[2.1.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.0.0...2.1.0
 [2.0.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.3.1...2.0.0
 [1.3.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.3.0...1.3.1
 [1.3.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.2.1...1.3.0

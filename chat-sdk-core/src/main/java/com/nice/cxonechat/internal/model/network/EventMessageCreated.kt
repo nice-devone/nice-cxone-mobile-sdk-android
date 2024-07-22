@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,11 @@
 package com.nice.cxonechat.internal.model.network
 
 import com.google.gson.annotations.SerializedName
+import com.nice.cxonechat.enums.EventType.MessageCreated
 import com.nice.cxonechat.internal.model.Contact
 import com.nice.cxonechat.internal.model.MessageModel
 import com.nice.cxonechat.internal.model.Thread
+import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
 import com.nice.cxonechat.thread.ChatThread
 
 /** Event Received when a message has been successfully sent/created. */
@@ -45,4 +47,8 @@ internal data class EventMessageCreated(
         @SerializedName("message")
         val message: MessageModel,
     )
+
+    companion object : ReceivedEvent<EventMessageCreated> {
+        override val type = MessageCreated
+    }
 }

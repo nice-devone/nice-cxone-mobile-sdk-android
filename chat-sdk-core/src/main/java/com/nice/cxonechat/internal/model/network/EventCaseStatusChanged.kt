@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,16 @@
 package com.nice.cxonechat.internal.model.network
 
 import com.google.gson.annotations.SerializedName
+import com.nice.cxonechat.enums.EventType.CaseStatusChanged
+import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.util.DateTime
+import com.nice.cxonechat.util.UUIDProvider
 import java.util.UUID
 
 internal data class EventCaseStatusChanged(
     @SerializedName("eventId")
-    val eventId: UUID = UUID.randomUUID(),
+    val eventId: UUID = UUIDProvider.next(),
     @SerializedName("createdAt")
     val createdAt: DateTime,
     @SerializedName("data")
@@ -73,5 +76,9 @@ internal data class EventCaseStatusChanged(
 
         @SerializedName("trashed")
         Trashed
+    }
+
+    companion object : ReceivedEvent<EventCaseStatusChanged> {
+        override val type = CaseStatusChanged
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -107,10 +107,12 @@ sealed class UiState private constructor(val isInDialog: Boolean) {
         ) {
             val settings = viewModel.chatSettingsRepository.settings.collectAsState()
             val userName = remember { derivedStateOf { settings.value?.userName } }
+            val customerId = remember { derivedStateOf { settings.value?.customerId } }
 
             LoginDialog(
                 userName = userName.value,
-                onAccept = viewModel::setUserName,
+                customerId = customerId.value,
+                onAccept = viewModel::setLoginData,
             ) {
                 viewModel.analyticsHandler.SendPageView("login", "/login")
             }

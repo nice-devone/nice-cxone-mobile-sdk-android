@@ -22,13 +22,13 @@ comments:
     allowParamOnConstructorProperties: true # IDE requires this to display parameter documentation of data classes.
   UndocumentedPublicClass:
     active: true
-    excludes: ['**/test/**', '**/androidTest/**', '**/*.Spec.kt']
+    excludes: ['**/test/**', '**/testDebug/**', '**/androidTest/**', '**/*.Spec.kt']
   UndocumentedPublicFunction:
     active: true
-    excludes: ['**/test/**', '**/androidTest/**', '**/*.Spec.kt']
+    excludes: ['**/test/**', '**/testDebug/**', '**/androidTest/**', '**/*.Spec.kt']
   UndocumentedPublicProperty:
     active: true
-    excludes: ['**/test/**', '**/androidTest/**', '**/*.Spec.kt']
+    excludes: ['**/test/**', '**/testDebug/**', '**/androidTest/**', '**/*.Spec.kt']
 
 complexity:
   CognitiveComplexMethod:

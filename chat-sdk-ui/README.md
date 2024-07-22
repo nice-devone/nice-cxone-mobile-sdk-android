@@ -5,5 +5,5 @@ the intended target application.
 
 ## Requirements:
 
-This module requires that integrating uses Koin during it's build process and it also has to provide instance of `Logger`
+This module requires that integrating uses Hilt during it's build process and it also has to provide instance of `Logger`
 with `UiQualifier`.

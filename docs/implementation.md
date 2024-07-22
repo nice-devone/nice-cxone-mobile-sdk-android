@@ -198,14 +198,6 @@ fun addReferralUnknown() {
 > If you're unsure if these values will be required, you should consult your CXone representative
 > or local managers depending on your company structure.
 
-> ⚠️ Warning!
-> Supplied values for custom fields are validated when they are supplied to the SDK.
-> Any errors during validation will cause an exception to be thrown.
-> `InvalidCustomFieldValue` exception is thrown when supplied value doesn't match constrains of the field definition,
-> e.g. string not matching e-mail pattern which is supplied for text field definition with flag `isEmail`.
-> `UndefinedCustomField` exception is thrown when invalid `fieldId` id supplied as key of custom field entry in the map of custom field
-> values.
-
 ## Global Events
 
 ### Analytics events

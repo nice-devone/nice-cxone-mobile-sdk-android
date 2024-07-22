@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,10 @@ package com.nice.cxonechat.ui.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nice.cxonechat.Chat
-import com.nice.cxonechat.ChatThreadEventHandlerActions.archiveThread
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerScope
 import com.nice.cxonechat.log.timedScope
 import com.nice.cxonechat.prechat.PreChatSurvey
-import com.nice.cxonechat.state.lookup
-import com.nice.cxonechat.state.validate
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.ui.UiModule
 import com.nice.cxonechat.ui.data.flow
@@ -176,7 +173,7 @@ internal class ChatThreadsViewModel(
     }
 
     internal fun archiveThread(thread: Thread) = logger.timedScope("archiveThread(${thread.id})") {
-        threadsHandler.thread(thread.chatThread).events().archiveThread()
+        threadsHandler.thread(thread.chatThread).archive()
     }
 
     internal fun selectThread(thread: Thread) = logger.timedScope("selectThread(${thread.id})") {
@@ -199,13 +196,8 @@ internal class ChatThreadsViewModel(
     private suspend fun createThreadWorker(response: Sequence<PreChatResponse>) =
         logger.timedScope("createThreadWorker") {
             withContext(Dispatchers.Default) {
-                val customerCustomFields = chat.configuration.customerCustomFields
-                val fields = valueStorage.getCustomerCustomValues().filter {
-                    customerCustomFields.lookup(it.key) != null
-                }
                 val result = runCatching {
-                    customerCustomFields.validate(fields)
-                    chat.customFields().add(fields)
+                    chat.customFields().add(valueStorage.getCustomerCustomValues())
                     selectedThreadRepository.chatThreadHandler = threadsHandler.create(response)
                 }.foldToCreateThreadResult()
 
@@ -228,7 +220,7 @@ internal class ChatThreadsViewModel(
         /**
          * Default state, the thread list should be shown.
          */
-        object Initial : State
+        data object Initial : State
 
         /**
          * Possible state following [createThreadWorker] call.
@@ -241,7 +233,7 @@ internal class ChatThreadsViewModel(
         /**
          * Indication that thread selection was performed.
          */
-        object ThreadSelected : State
+        data object ThreadSelected : State
     }
 
     companion object {

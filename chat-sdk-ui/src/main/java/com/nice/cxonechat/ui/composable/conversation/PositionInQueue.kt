@@ -16,7 +16,6 @@
 package com.nice.cxonechat.ui.composable.conversation
 
 import android.icu.text.MessageFormat
-import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -42,10 +41,7 @@ internal fun PositionInQueue(
     val foreground = ChatTheme.chatColors.positionInQueueForeground
     val formatted = when {
         position == 1 -> stringResource(id = string.position_in_queue_next)
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.N ->
-            MessageFormat(stringResource(id = string.position_in_queue_ordinal), Locale.getDefault()).format(arrayOf(position))
-        else ->
-            stringResource(id = string.position_in_queue_cardinal, position)
+        else -> MessageFormat(stringResource(id = string.position_in_queue_ordinal), Locale.getDefault()).format(arrayOf(position))
     }
 
     Box(

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -37,15 +37,24 @@ interface Configuration {
      * Custom fields defined for supplying of additional information about customer,
      * for example data supplied during a pre-chat survey.
      */
+    @Deprecated(
+        message = "Client side validation of [FieldDefinition]s is no longer supported."
+    )
     val contactCustomFields: FieldDefinitionList
 
     /**
      * Definition of possible custom fields which are usable/valid for all
      * contacts with the customer.
      */
+    @Deprecated(
+        message = "Client side validation of [FieldDefinition]s is no longer supported."
+    )
     val customerCustomFields: FieldDefinitionList
 
     /** Return the list of all available customer fields. */
+    @Deprecated(
+        message = "Client side validation of [FieldDefinition]s is no longer supported."
+    )
     val allCustomFields: FieldDefinitionList
         get() = contactCustomFields + customerCustomFields
 
@@ -65,6 +74,9 @@ interface Configuration {
      * @return Returns true iff [fieldId] is valid with the current configuration, i.e.,
      * is included in either [contactCustomFields] or [customerCustomFields].
      */
+    @Deprecated(
+        message = "Client side validation of [FieldDefinition]s is no longer supported."
+    )
     fun allowsFieldId(fieldId: String): Boolean =
         allCustomFields.containsField(fieldId)
 

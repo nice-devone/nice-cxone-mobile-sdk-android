@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,12 @@ import com.nice.cxonechat.ChatFieldHandler
 import com.nice.cxonechat.event.SetCustomerCustomFieldEvent
 import com.nice.cxonechat.internal.model.CustomFieldInternal
 import com.nice.cxonechat.internal.model.CustomFieldInternal.Companion.updateWith
-import com.nice.cxonechat.state.validate
 
 internal class ChatFieldHandlerGlobal(
     private val chat: ChatWithParameters,
 ) : ChatFieldHandler {
 
     override fun add(fields: Map<String, String>) {
-        chat.configuration.allCustomFields.validate(fields)
         chat.fields = chat.fields.updateWith(
             fields.map(::CustomFieldInternal)
         )

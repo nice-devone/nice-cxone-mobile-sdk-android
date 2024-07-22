@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,13 @@ import com.nice.cxonechat.thread.ChatThread
  * Event notifying agent that the user has stopped typing.
  */
 @Public
-object TypingEndEvent : ChatThreadEvent() {
+@Deprecated("Use ChatThreadEventHandler.typingEnd()")
+object TypingEndEvent : TypingEndEventImpl()
 
+/**
+ * Event notifying agent that the user has stopped typing.
+ */
+open class TypingEndEventImpl: ChatThreadEvent() {
     override fun getModel(
         thread: ChatThread,
         connection: Connection,

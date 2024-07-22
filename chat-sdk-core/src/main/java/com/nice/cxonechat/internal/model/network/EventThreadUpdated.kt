@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.nice.cxonechat.internal.model.network
 
 import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.EventType.ThreadUpdated
+import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
 import com.nice.cxonechat.thread.ChatThread
 import java.util.UUID
 
@@ -29,7 +30,9 @@ internal data class EventThreadUpdated(
         val threadId: UUID
     )
 
-    companion object {
+    companion object: ReceivedEvent<EventThreadUpdated> {
+        override val type = ThreadUpdated
+
         operator fun invoke(thread: ChatThread) = EventThreadUpdated(
             Postback(
                 ThreadUpdated,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,16 @@ import com.nice.cxonechat.thread.ChatThread
 /**
  * Event that marks a thread as read. This event should be triggered every time
  * user visits or interacts with any given thread.
- * */
+ */
 @Public
-object MarkThreadReadEvent : ChatThreadEvent() {
+@Deprecated("Use ChatThreadEventHandler.markThreadRead()")
+object MarkThreadReadEvent : MarkThreadReadEventImpl()
+
+/**
+ * Event that marks a thread as read. This event should be triggered every time
+ * user visits or interacts with any given thread.
+ */
+open class MarkThreadReadEventImpl: ChatThreadEvent() {
 
     override fun getModel(
         thread: ChatThread,

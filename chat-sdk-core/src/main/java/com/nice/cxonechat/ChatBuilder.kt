@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -77,6 +77,15 @@ interface ChatBuilder {
      * Sets optional device token of for purpose of receiving push messages.
      */
     fun setDeviceToken(token: String): ChatBuilder
+
+    /**
+     * Sets optional customerId.
+     * If the customerId is specified, and it differs from the previous one, the chat will
+     * reset any persistent data.
+     * If no customerId is specified, the chat will use the persisted one, if none is available it will be acquired
+     * from the server once the chat user is authorized.
+     */
+    fun setCustomerId(customerId: String): ChatBuilder
 
     /**
      * Build an instance of chat asynchronously.

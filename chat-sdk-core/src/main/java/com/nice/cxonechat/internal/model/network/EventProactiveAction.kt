@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,9 @@ import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.analytics.ActionMetadata
 import com.nice.cxonechat.analytics.ActionMetadataInternal
 import com.nice.cxonechat.enums.ActionType
+import com.nice.cxonechat.enums.EventType
 import com.nice.cxonechat.internal.model.CustomFieldModel
+import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
 import java.util.UUID
 
 internal data class EventProactiveAction(
@@ -91,4 +93,8 @@ internal data class EventProactiveAction(
         @SerializedName("customFields")
         val customFields: List<CustomFieldModel>? = null,
     )
+
+    companion object : ReceivedEvent<EventProactiveAction> {
+        override val type = EventType.FireProactiveAction
+    }
 }

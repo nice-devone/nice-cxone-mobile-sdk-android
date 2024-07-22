@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,12 @@
 package com.nice.cxonechat.internal.model.network
 
 import com.google.gson.annotations.SerializedName
+import com.nice.cxonechat.enums.EventType.CaseInboxAssigneeChanged
 import com.nice.cxonechat.internal.model.AgentModel
 import com.nice.cxonechat.internal.model.Brand
 import com.nice.cxonechat.internal.model.ChannelIdentifier
 import com.nice.cxonechat.internal.model.Contact
+import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
 import com.nice.cxonechat.thread.ChatThread
 
 internal data class EventContactInboxAssigneeChanged(
@@ -45,4 +47,8 @@ internal data class EventContactInboxAssigneeChanged(
         @SerializedName("previousInboxAssignee")
         val previousInboxAssignee: AgentModel?,
     )
+
+    companion object : ReceivedEvent<EventContactInboxAssigneeChanged> {
+        override val type = CaseInboxAssigneeChanged
+    }
 }

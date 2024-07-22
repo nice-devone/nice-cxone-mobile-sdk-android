@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import androidx.compose.runtime.Stable
 import androidx.lifecycle.AndroidViewModel
 import com.nice.cxonechat.ChatInstanceProvider
 import com.nice.cxonechat.ChatState
-import com.nice.cxonechat.UserName
 import com.nice.cxonechat.exceptions.RuntimeChatException
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerScope
@@ -30,6 +29,7 @@ import com.nice.cxonechat.log.error
 import com.nice.cxonechat.log.scope
 import com.nice.cxonechat.log.warning
 import com.nice.cxonechat.sample.data.models.ChatSettings
+import com.nice.cxonechat.sample.data.models.LoginData
 import com.nice.cxonechat.sample.data.repository.ChatSettingsRepository
 import com.nice.cxonechat.sample.data.repository.SdkConfigurationListRepository
 import com.nice.cxonechat.sample.data.repository.StoreRepository
@@ -132,12 +132,12 @@ class StoreViewModel(
     }
 
     /**
-     * Set the user name for future connections.
+     * Set the login data for future connections.
      *
-     * @param userName New user name to use.
+     * @param loginData New login data to use.
      */
-    fun setUserName(userName: UserName) {
-        chatSettingsHandler.setUserName(userName)
+    fun setLoginData(loginData: LoginData) {
+        chatSettingsHandler.setLoginData(loginData)
 
         if (chatProvider.chatState == ChatState.Initial) {
             chatProvider.prepare(context)

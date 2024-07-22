@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import com.google.gson.stream.JsonToken.NUMBER
 import com.google.gson.stream.JsonWriter
 import com.nice.cxonechat.internal.model.CustomFieldPolyType
 import com.nice.cxonechat.internal.model.network.MessagePolyContent
-import com.nice.cxonechat.internal.model.network.MessagePolyElement
 import com.nice.cxonechat.internal.model.network.PolyAction
 import com.nice.cxonechat.util.DateTime
 import com.nice.cxonechat.util.IsoDate
@@ -47,21 +46,6 @@ internal object Default {
         .registerSubtype(MessagePolyContent.ListPicker::class.java, "LIST_PICKER")
         .registerSubtype(MessagePolyContent.RichLink::class.java, "RICH_LINK")
         .registerDefault(MessagePolyContent.Noop)
-    private val messageElementAdapter = RuntimeTypeAdapterFactory.of(MessagePolyElement::class.java, "type")
-        .registerSubtype(MessagePolyElement.Menu::class.java, "MENU")
-        .registerSubtype(MessagePolyElement.File::class.java, "FILE")
-        .registerSubtype(MessagePolyElement.Title::class.java, "TITLE")
-        .registerSubtype(MessagePolyElement.Subtitle::class.java, "SUBTITLE")
-        .registerSubtype(MessagePolyElement.Text::class.java, "TEXT")
-        .registerSubtype(MessagePolyElement.DeeplinkButton::class.java, "BUTTON")
-        .registerSubtype(MessagePolyElement.IFrameButton::class.java, "IFRAME_BUTTON")
-        .registerSubtype(MessagePolyElement.TextAndButtons::class.java, "TEXT_AND_BUTTONS")
-        .registerSubtype(MessagePolyElement.QuickReplies::class.java, "QUICK_REPLIES")
-        .registerSubtype(MessagePolyElement.InactivityPopup::class.java, "INACTIVITY_POPUP")
-        .registerSubtype(MessagePolyElement.Countdown::class.java, "COUNTDOWN")
-        .registerSubtype(MessagePolyElement.Custom::class.java, "CUSTOM")
-        .registerSubtype(MessagePolyElement.SatisfactionSurvey::class.java, "SATISFACTION_SURVEY")
-        .registerDefault(MessagePolyElement.Noop)
     private val customFieldTypeAdapter = RuntimeTypeAdapterFactory.of(CustomFieldPolyType::class.java, "type")
         .registerSubtype(CustomFieldPolyType.Text::class.java, "text")
         .registerSubtype(CustomFieldPolyType.Email::class.java, "email")
@@ -73,7 +57,6 @@ internal object Default {
 
     val serializer: Gson = GsonBuilder()
         .registerTypeAdapterFactory(messageContentAdapter)
-        .registerTypeAdapterFactory(messageElementAdapter)
         .registerTypeAdapterFactory(customFieldTypeAdapter)
         .registerTypeAdapterFactory(actionAdapter)
         .registerTypeAdapter(UUID::class.java, LenientUUIDTypeAdapter())
@@ -149,7 +132,7 @@ internal object Default {
 
         companion object {
             val dateFormatter by lazy {
-                SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss'Z'", Locale.US)
+                SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.US)
             }
         }
     }

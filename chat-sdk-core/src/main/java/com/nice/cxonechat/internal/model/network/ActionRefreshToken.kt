@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,14 @@ import com.nice.cxonechat.enums.EventAction
 import com.nice.cxonechat.enums.EventAction.ChatWindowEvent
 import com.nice.cxonechat.enums.EventType.RefreshToken
 import com.nice.cxonechat.state.Connection
+import com.nice.cxonechat.util.UUIDProvider
 import java.util.UUID
 
 internal data class ActionRefreshToken(
     @SerializedName("action")
     val action: EventAction = ChatWindowEvent,
     @SerializedName("eventId")
-    val eventId: UUID = UUID.randomUUID(),
+    val eventId: UUID = UUIDProvider.next(),
     @SerializedName("payload")
     val payload: LegacyPayload<AccessPayload>,
 ) {
