@@ -18,6 +18,7 @@ package com.nice.cxonechat.internal
 import com.nice.cxonechat.Cancellable
 import com.nice.cxonechat.ChatMode.LiveChat
 import com.nice.cxonechat.ChatMode.MultiThread
+import com.nice.cxonechat.ChatMode.SingleThread
 import com.nice.cxonechat.ChatThreadHandler
 import com.nice.cxonechat.ChatThreadsHandler
 import com.nice.cxonechat.internal.model.ChatThreadInternal
@@ -74,6 +75,9 @@ internal class ChatThreadsHandlerImpl(
         val threadListFetched = chat.socketListener.addCallback(EventThreadListFetched) { event ->
             threads = event.threads.map { threadData -> threadData.toChatThread().asMutable() }
             listener.onThreadsUpdated(threads)
+        }
+        if (chat.chatMode === SingleThread) {
+            return threadListFetched
         }
         val threadArchived = chat.socketListener.addCallback(EventCaseStatusChanged) { event ->
             threads.asSequence()
