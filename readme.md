@@ -50,7 +50,7 @@ You can use any uprivilidged valid token, since the package are public.
 Then you can the dependency simply by adding:
 
 ```groovy
-    implementation "com.nice.cxone:chat-sdk-core:1.3.1"
+    implementation "com.nice.cxone:chat-sdk-core:2.1.1"
 ```
 
 ### Additional information
