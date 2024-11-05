@@ -18,6 +18,17 @@ or Chat SDK reinitialization the transcript history is cleared for the client.
 As part of the connect operation it will attempt to recover an existing thread, if it's `canAddMoreMessages` 
 property is true, indicating the thread is still active, otherwise, a new thread must be created.
 
+> [!IMPORTANT]
+> It is important for proper functioning of the Live Chat that the channel has gone through the required [setup](https://help.nice-incontact.com/content/acd/digital/chat/setuplivechat.htm)
+> including the [routing setup](https://help.nice-incontact.com/content/acd/digital/chat/setuplivechat.htm#ConfigureRoutingandQueues) 
+
+> [!NOTE]
+> For testing of the Live Chat channel one of the agents assigned to the routing queue **must be online**, otherwise the whole channel is considered **offline** and will be reported
+> as such.
+> Once the agent comes online, there can be **several minutes delay** before the channel is reported as online due to the design of the backend system.
+> The SDK caches the channel state (in-memory) for **one minute** and will not attempt to reconnect to the server until the cache expires and the channel is still reported as online.
+> Expectation is that the agents have set operation hours for the channel (e.g.: 9 AM - 5 PM) and the channel is not available outside of these hours and therefore the channel state won't be updated often.
+
 ## Example
 
 >This case study builds on the information in [CS: Instance Holder][cs-instance-holder], so you should familiarize yourself

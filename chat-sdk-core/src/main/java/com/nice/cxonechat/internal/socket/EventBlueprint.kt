@@ -15,21 +15,24 @@
 
 package com.nice.cxonechat.internal.socket
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.EventType
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal data class EventBlueprint(
-    @SerializedName("eventType")
+    @SerialName("eventType")
     val type: EventType?,
-    @SerializedName("postback")
+    @SerialName("postback")
     val postback: Postback?
 ) {
 
     val anyType
         get() = type ?: postback?.type
 
+    @Serializable
     data class Postback(
-        @SerializedName("eventType")
+        @SerialName("eventType")
         val type: EventType?
     )
 }

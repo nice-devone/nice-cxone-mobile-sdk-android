@@ -22,12 +22,11 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.material.ContentAlpha
-import androidx.compose.material.LocalContentColor
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons.Outlined
 import androidx.compose.material.icons.outlined.Downloading
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -43,7 +42,7 @@ import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvide
 import com.nice.cxonechat.ui.composable.generic.forwardingPainter
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatShapes
-import com.nice.cxonechat.ui.composable.theme.ChatTheme.colors
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 
 @Composable
@@ -56,8 +55,8 @@ internal fun Chip(
     selected: Boolean = false,
     onSelected: () -> Unit,
 ) {
-    val color = colors.primary
-    val disabledColor = color.copy(alpha = ContentAlpha.disabled)
+    val color = colorScheme.primary
+    val disabledColor = colorScheme.onSurface.copy(alpha = 0.38f)
 
     Surface(
         color = if (enabled || selected) color else disabledColor,

@@ -32,6 +32,8 @@ import com.nice.cxonechat.sample.utilities.logging.FirebaseLogger
 import com.nice.cxonechat.ui.UiModule.Companion.chatUiModule
 import com.nice.cxonechat.utilities.TaggingSocketFactory
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import okhttp3.logging.HttpLoggingInterceptor.Level.BASIC
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 import org.koin.ksp.generated.module
@@ -40,6 +42,18 @@ import org.koin.ksp.generated.module
  * Host application, initializes customized Emoji and Firebase.
  */
 class StoreApplication : Application(), ImageLoaderFactory {
+    private val okHttpClient by lazy {
+        OkHttpClient
+            .Builder()
+            .socketFactory(TaggingSocketFactory)
+            .addInterceptor(
+                HttpLoggingInterceptor().apply {
+                    level = BASIC
+                }
+            )
+            .build()
+    }
+
     override fun onCreate() {
         super.onCreate()
 
@@ -90,11 +104,7 @@ class StoreApplication : Application(), ImageLoaderFactory {
 
     override fun newImageLoader(): ImageLoader {
         return ImageLoader.Builder(this)
-            .okHttpClient(
-                OkHttpClient.Builder()
-                    .socketFactory(TaggingSocketFactory)
-                    .build()
-            )
+            .okHttpClient(okHttpClient)
             .build()
     }
 }

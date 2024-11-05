@@ -35,10 +35,10 @@ internal class ChatActionHandlerImpl(
             if (model.type != CustomPopupBox) return@addCallback
             val variables = model.variables
             if (listener == null) {
-                latestParams = ParamsWithMetadata(variables.orEmpty(), metadata)
+                latestParams = ParamsWithMetadata(variables, metadata)
                 return@addCallback
             }
-            if (variables != null) listener.onShowPopup(variables, metadata)
+            listener.onShowPopup(variables, metadata)
             latestParams = null
         }
 

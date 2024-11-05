@@ -13,7 +13,7 @@
  * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
  */
 
-import com.vanniktech.maven.publish.JavaLibrary
+import com.vanniktech.maven.publish.KotlinJvm
 import com.vanniktech.maven.publish.JavadocJar
 
 plugins {
@@ -28,10 +28,10 @@ plugins {
 
 mavenPublishing {
     configure(
-        JavaLibrary(
-        javadocJar = JavadocJar.Javadoc(),
-        // whether to publish a sources jar
-        sourcesJar = true,
-    )
+        KotlinJvm(
+            javadocJar = JavadocJar.Dokka("dokkaHtml"),
+            // whether to publish a sources jar
+            sourcesJar = true,
+        )
     )
 }

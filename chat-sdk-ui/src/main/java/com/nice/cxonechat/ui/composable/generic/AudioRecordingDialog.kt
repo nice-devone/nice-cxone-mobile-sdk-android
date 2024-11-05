@@ -23,15 +23,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.AlertDialog
-import androidx.compose.material.Button
-import androidx.compose.material.Icon
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons.AutoMirrored
 import androidx.compose.material.icons.Icons.Outlined
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material.icons.outlined.Send
 import androidx.compose.material.icons.outlined.Stop
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
@@ -102,7 +103,7 @@ private fun DialogContent(
 private fun ConfirmButton(uri: Uri, onApprove: (Uri) -> Unit) {
     OutlinedButton(onClick = { onApprove(uri) }) {
         Row {
-            Icon(Outlined.Send, stringResource(string.send_audio_message_content_description))
+            Icon(AutoMirrored.Outlined.Send, stringResource(string.send_audio_message_content_description))
             SmallSpacer()
             Text(stringResource(string.text_send))
         }

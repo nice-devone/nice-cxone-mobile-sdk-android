@@ -15,15 +15,23 @@
 
 package com.nice.cxonechat.ui.util
 
+import android.app.Activity
+import android.app.Activity.OVERRIDE_TRANSITION_CLOSE
+import android.app.Activity.OVERRIDE_TRANSITION_OPEN
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build.VERSION
+import android.os.Build.VERSION_CODES
 import android.provider.Settings
+import android.view.WindowManager.LayoutParams
+import androidx.annotation.AnimRes
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle.State
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -35,21 +43,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
 /**
- * Launch [repeatOnLifecycle] with supplied parameters using [Fragment.getViewLifecycleOwner]'s [lifecycleScope].
- *
- * @param state State on which the supplied [block] should be repeated, default is [State.RESUMED].
- * @param block Suspend function which should be launched in [androidx.lifecycle.LifecycleOwner.repeatOnLifecycle].
- */
-internal fun Fragment.repeatOnViewOwnerLifecycle(
-    state: State = State.RESUMED,
-    block: suspend CoroutineScope.() -> Unit,
-) {
-    viewLifecycleOwner.lifecycleScope.launch {
-        viewLifecycleOwner.repeatOnLifecycle(state, block)
-    }
-}
-
-/**
  * Display dialog informing user that permission is required in order to provide functionality with supplied
  * rationale about details.
  * If user accepts the dialog is dismissed and the [onAcceptListener] is called.
@@ -57,8 +50,8 @@ internal fun Fragment.repeatOnViewOwnerLifecycle(
  * @param rationale String resource with the rationale.
  * @param onAcceptListener Action which is called when user clicks the positive button.
  */
-internal fun Fragment.showRationale(@StringRes rationale: Int, onAcceptListener: () -> Unit) {
-    MaterialAlertDialogBuilder(requireContext())
+internal fun Context.showRationale(@StringRes rationale: Int, onAcceptListener: () -> Unit) {
+    MaterialAlertDialogBuilder(this)
         .setTitle(getString(R.string.permission_requested))
         .setMessage(rationale)
         .setNegativeButton(R.string.cancel, null)
@@ -81,14 +74,14 @@ internal fun Fragment.showRationale(@StringRes rationale: Int, onAcceptListener:
  *
  * @return `true` if all permissions were already granted, otherwise `false`.
  */
-internal suspend fun Fragment.checkPermissions(
+internal suspend fun Activity.checkPermissions(
     valueStorage: ValueStorage,
     permissions: Iterable<String>,
     @StringRes rationale: Int,
     onAcceptPermissionRequest: (Array<String>) -> Unit,
 ): Boolean {
     val missingPermissionsSet = permissions.filterNot { permission ->
-        ContextCompat.checkSelfPermission(requireContext(), permission) == PackageManager.PERMISSION_GRANTED
+        ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
     }.toSet()
     val missingPermissions = missingPermissionsSet.toTypedArray()
     val result = missingPermissions.isEmpty()
@@ -117,11 +110,77 @@ internal suspend fun Fragment.checkPermissions(
                 // Since the permissions can't be requested directly again, redirect user to the app settings.
                 showRationale(rationale) {
                     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                    intent.data = Uri.fromParts("package", requireContext().packageName, null)
+                    intent.data = Uri.fromParts("package", packageName, null)
                     startActivity(intent)
                 }
             }
         }
     }
     return result
+}
+
+/**
+ * This is workaround for issue when keyboard is shown window content pans under the toolbar and keyboard overlaps
+ * window contents.
+ * There should be a better solution.
+ */
+@Suppress("DEPRECATION")
+internal fun Activity.applyFixesForKeyboardInput() {
+    if (VERSION.SDK_INT >= VERSION_CODES.R) window.setDecorFitsSystemWindows(true)
+    window.setSoftInputMode(LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+}
+
+internal fun Activity.overrideOpenAnimation(
+    @AnimRes enterAnim: Int,
+    @AnimRes exitAnim: Int,
+) {
+    if (VERSION.SDK_INT < VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        @Suppress("DEPRECATION")
+        overridePendingTransition(enterAnim, exitAnim)
+    } else {
+        overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, enterAnim, exitAnim)
+    }
+}
+
+/*
+ * This could be defined as a normal method on ChatActivity, but this seems to keep it paired with
+ * overrideCloseAnimation better.
+ */
+internal fun Activity.overrideCloseAnimation(
+    @AnimRes enterAnim: Int,
+    @AnimRes exitAnim: Int,
+) {
+    if (VERSION.SDK_INT < VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        @Suppress("DEPRECATION")
+        overridePendingTransition(enterAnim, exitAnim)
+    } else {
+        overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, enterAnim, exitAnim)
+    }
+}
+
+internal fun Activity.checkNotificationPermissions(permission: String, @StringRes rationale: Int, requestPermission: (String) -> Unit) {
+    val isPermissionGranted = ContextCompat.checkSelfPermission(
+        applicationContext,
+        permission
+    ) == PackageManager.PERMISSION_GRANTED
+    when {
+        isPermissionGranted -> Ignored
+        shouldShowRequestPermissionRationale(permission) -> showRationale(rationale) { requestPermission(permission) }
+        else -> requestPermission(permission)
+    }
+}
+
+/**
+ * Launch [repeatOnLifecycle] with supplied parameters using [LifecycleOwner]'s [lifecycleScope].
+ *
+ * @param state State on which the supplied [block] should be repeated, default is [State.RESUMED].
+ * @param block Suspend function which should be launched in [androidx.lifecycle.LifecycleOwner.repeatOnLifecycle].
+ */
+internal fun LifecycleOwner.repeatOnOwnerLifecycle(
+    state: State = State.RESUMED,
+    block: suspend CoroutineScope.() -> Unit,
+) {
+    lifecycleScope.launch {
+        repeatOnLifecycle(state, block)
+    }
 }

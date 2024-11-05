@@ -15,11 +15,13 @@
 
 package com.nice.cxonechat.internal.model
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal data class SelectorModel(
-    @SerializedName("name")
+    @SerialName("name")
     val name: String,
-    @SerializedName("value")
+    @SerialName("value")
     val label: String,
 )

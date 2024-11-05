@@ -28,12 +28,12 @@ import java.util.Date
  */
 internal class VisitEvent(
     internal val date: Date = Date()
-) : ChatEvent() {
+) : ChatEvent<AnalyticsEvent>() {
 
     override fun getModel(
         connection: Connection,
         storage: ValueStorage,
-    ): Any = AnalyticsEvent(
+    ) = AnalyticsEvent(
         VisitorVisit,
         storage = storage,
         date = date

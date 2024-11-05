@@ -23,26 +23,28 @@ import androidx.compose.ui.text.style.TextAlign
 
 @Immutable
 internal data class ChatTypography(
-    val threadListName: TextStyle = Typography.body1.copy(fontWeight = FontWeight.Bold),
-    val threadListLastMessage: TextStyle = Typography.body2,
-    val chatAgentName: TextStyle = Typography.subtitle1,
-    val chatMessage: TextStyle = Typography.body1,
-    val chatStatus: TextStyle = Typography.caption,
-    val chatAttachmentCaption: TextStyle = Typography.caption,
-    val chatAttachmentMessage: TextStyle = Typography.subtitle2,
-    val chatDayHeader: TextStyle = Typography.subtitle1,
-    val chatLoadMoreCaption: TextStyle = Typography.caption,
-    val dialogTitle: TextStyle = Typography.h6,
-    val chatCardTitle: TextStyle = Typography.subtitle1.copy(
+    val threadListName: TextStyle = Typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+    val threadListLastMessage: TextStyle = Typography.bodyMedium,
+    val chatAgentName: TextStyle = Typography.titleMedium,
+    val chatMessage: TextStyle = Typography.bodyLarge,
+    val chatStatus: TextStyle = Typography.bodySmall,
+    val chatAttachmentCaption: TextStyle = Typography.bodySmall,
+    val chatAttachmentMessage: TextStyle = Typography.titleSmall,
+    val chatDayHeader: TextStyle = Typography.titleMedium,
+    val chatLoadMoreCaption: TextStyle = Typography.bodySmall,
+    val dialogTitle: TextStyle = Typography.titleLarge,
+    val dialogBody: TextStyle = Typography.bodyMedium,
+    val chatCardTitle: TextStyle = Typography.titleMedium.copy(
         fontWeight = FontWeight.Bold,
         textAlign = TextAlign.Center
     ),
-    val chatCardSubtitle: TextStyle = Typography.subtitle1.copy(
+    val chatCardSubtitle: TextStyle = Typography.titleMedium.copy(
         fontWeight = FontWeight.Normal,
         textAlign = TextAlign.Center
     ),
-    val offlineBanner: TextStyle = Typography.h6,
-    val offlineMessage: TextStyle = Typography.body1,
+    val offlineBanner: TextStyle = Typography.titleLarge,
+    val offlineMessage: TextStyle = Typography.bodyLarge,
+    val surveyListItem: TextStyle = Typography.bodySmall,
 )
 
 internal val LocalChatTypography = staticCompositionLocalOf {

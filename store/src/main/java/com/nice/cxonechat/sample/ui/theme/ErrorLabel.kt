@@ -15,10 +15,10 @@
 
 package com.nice.cxonechat.sample.ui.theme
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Text
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -44,11 +44,10 @@ fun AppTheme.ErrorLabel(label: String?, error: String?) {
         error != null ->
             Text(
                 label?.let { stringResource(string.error_validation_label, it, error) } ?: error,
-                Modifier.background(colors.background),
-                color = colors.error
+                color = colorScheme.error
             )
         label != null ->
-            Text(label, Modifier.background(colors.background))
+            Text(label)
     }
 }
 
@@ -56,13 +55,14 @@ fun AppTheme.ErrorLabel(label: String?, error: String?) {
 @Composable
 private fun ErrorLabelPreview() {
     AppTheme {
-        Column(
-            Modifier
-                .background(AppTheme.colors.onBackground)
-                .padding(8.dp)
-        ) {
-            AppTheme.ErrorLabel(label = "Label", error = "Error")
-            AppTheme.ErrorLabel(label = "Label", error = null)
+        Surface {
+            Column(
+                Modifier
+                    .padding(8.dp)
+            ) {
+                AppTheme.ErrorLabel(label = "Label", error = "Error")
+                AppTheme.ErrorLabel(label = "Label", error = null)
+            }
         }
     }
 }

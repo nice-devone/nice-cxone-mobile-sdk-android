@@ -15,7 +15,10 @@
 
 package com.nice.cxonechat.storage
 
-import com.google.gson.annotations.SerializedName
+import com.nice.cxonechat.internal.serializer.DateAsNumber
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.util.Date
 import java.util.UUID
 
@@ -24,11 +27,13 @@ import java.util.UUID
  */
 @Suppress("ComplexInterface")
 internal interface ValueStorage {
+    @Serializable
     data class VisitDetails(
-        @SerializedName("visitId")
+        @SerialName("visitId")
+        @Contextual
         val visitId: UUID = UUID.randomUUID(),
-        @SerializedName("validUntil")
-        val validUntil: Date = Date(Date().time + 30 * 60 * 1000)
+        @SerialName("validUntil")
+        val validUntil: DateAsNumber = Date(Date().time + 30 * 60 * 1000)
     )
 
     /**

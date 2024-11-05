@@ -19,8 +19,8 @@ import com.nice.cxonechat.exceptions.InternalError
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.storage.ValueStorage
 
-internal open class LocalEvent: ChatEvent() {
-    override fun getModel(connection: Connection, storage: ValueStorage): Any {
+internal open class LocalEvent: ChatEvent<Nothing>() {
+    override fun getModel(connection: Connection, storage: ValueStorage): Nothing {
         throw InternalError("$this can not be serialized by getModel.")
     }
 }

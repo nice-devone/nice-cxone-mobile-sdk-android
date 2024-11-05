@@ -20,23 +20,23 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.material.Card
-import androidx.compose.material.DismissDirection
-import androidx.compose.material.DismissState
-import androidx.compose.material.DismissValue
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.FixedThreshold
-import androidx.compose.material.Icon
-import androidx.compose.material.Text
-import androidx.compose.material.ThresholdConfig
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.rememberDismissState
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxState
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -47,17 +47,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ChatTheme.SwipeToDismiss(
-    dismissState: DismissState,
+    dismissState: SwipeToDismissBoxState,
     icon: ImageVector,
     contentDescription: String,
     modifier: Modifier = Modifier,
-    directions: Set<DismissDirection> = setOf(DismissDirection.EndToStart),
-    dismissThresholds: (DismissDirection) -> ThresholdConfig = {
-        FixedThreshold(Space().dismissThreshold)
-    },
+    directions: Set<SwipeToDismissBoxValue> = setOf(SwipeToDismissBoxValue.EndToStart),
     background: @Composable RowScope.() -> Unit = {
         SwipeToDismissBackground(
             dismissState = dismissState,
@@ -65,42 +62,45 @@ internal fun ChatTheme.SwipeToDismiss(
             contentDescription = contentDescription
         )
     },
-    content: @Composable RowScope.() -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
-    androidx.compose.material.SwipeToDismiss(
+    SwipeToDismissBox(
         state = dismissState,
         modifier = modifier,
-        directions = directions,
-        dismissThresholds = dismissThresholds,
-        background = background,
-    ) {
-        // Wrap the row content in a card or the dismiss background bleeds through
-        // the content when swiping.
-        Card(shape = shapes.medium.copy(CornerSize(0.dp))) {
-            content()
+        enableDismissFromStartToEnd = directions.contains(SwipeToDismissBoxValue.StartToEnd),
+        enableDismissFromEndToStart = directions.contains(SwipeToDismissBoxValue.EndToStart),
+        backgroundContent = background,
+        content = {
+            // Wrap the row content in a card or the dismiss background bleeds through
+            // the content when swiping.
+            Card(shape = shapes.medium.copy(CornerSize(0.dp))) {
+                content()
+            }
         }
-    }
+    )
 }
 
-@ExperimentalMaterialApi
+@ExperimentalMaterial3Api
 @Composable
 internal fun ChatTheme.SwipeToDismissBackground(
-    dismissState: DismissState,
+    dismissState: SwipeToDismissBoxState,
     icon: ImageVector,
     contentDescription: String,
 ) {
     // Don't draw background if there's no swipe happening
-    dismissState.dismissDirection ?: return
+    dismissState.dismissDirection
 
     val color by animateColorAsState(
         when (dismissState.targetValue) {
-            DismissValue.Default -> colors.background
+            SwipeToDismissBoxValue.Settled -> colorScheme.background
             else -> Color.Red
-        }
+        },
+        label = "color"
     )
     val alignment = Alignment.CenterEnd
     val scale by animateFloatAsState(
-        if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f
+        if (dismissState.targetValue == SwipeToDismissBoxValue.Settled) 0.75f else 1f,
+        label = "scale"
     )
 
     Box(
@@ -118,14 +118,14 @@ internal fun ChatTheme.SwipeToDismissBackground(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 private fun SwipeToDismissPreview() {
-    val dismissState = rememberDismissState()
+    val dismissState = rememberSwipeToDismissBoxState()
 
     ChatTheme {
-        Card(backgroundColor = Color.Yellow) {
+        Card(colors = CardDefaults.cardColors(containerColor = Color.Yellow)) {
             ChatTheme.SwipeToDismiss(
                 dismissState = dismissState,
                 icon = Icons.Default.Delete,
@@ -133,7 +133,7 @@ private fun SwipeToDismissPreview() {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Card(
-                    backgroundColor = ChatTheme.colors.background,
+                    colors = CardDefaults.cardColors(containerColor = ChatTheme.colorScheme.background),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(

@@ -25,7 +25,7 @@ import com.nice.cxonechat.storage.ValueStorage
  * This can be requested at any point, but is generally recommended to at or before
  * expiration of given token.
  * */
-internal object RefreshToken : ChatEvent() {
+internal object RefreshToken : ChatEvent<ActionRefreshToken>() {
 
     override fun getModel(
         connection: Connection,

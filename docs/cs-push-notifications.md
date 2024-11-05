@@ -117,5 +117,5 @@ by passing `null` to the `setDeviceToken()` method.
 
 [Firebase Cloud Messaging]: https://firebase.google.com/docs/cloud-messaging
 [Set up a Firebase Cloud Messaging client app on Android]: https://firebase.google.com/docs/cloud-messaging/android/client
-[Set Up]: https://help.nice-incontact.com/content/acd/digital/mobilesdk/android/getstartedandroid.htm?tocpath=MobileSDK|CXone Mobile SDK|Get Started with CXone Mobile SDK for Android|_____0#
+[Set Up]: https://help.nice-incontact.com/content/acd/digital/mobilesdk/setupadvancedfeatures.htm?tocpath=Digital%20Experience%7CDigital%20Experience%20%7CDigital%20Channels%7CChat%20Channels%7CCXone%20Mobile%20SDK%7C_____1#PushNotifications
 [Firebase guide - Set up the SDK]: https://firebase.google.com/docs/cloud-messaging/android/client#set_up_the_sdk

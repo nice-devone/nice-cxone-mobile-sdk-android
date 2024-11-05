@@ -23,14 +23,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons.AutoMirrored
 import androidx.compose.material.icons.Icons.Filled
 import androidx.compose.material.icons.Icons.Outlined
 import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.outlined.ChatBubble
+import androidx.compose.material3.Card
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -42,11 +42,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.nice.cxonechat.thread.Agent
 import com.nice.cxonechat.ui.R
+import com.nice.cxonechat.ui.composable.PreviewAgent
 import com.nice.cxonechat.ui.composable.generic.AgentAvatar
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.IconMultiButton
 import com.nice.cxonechat.ui.composable.theme.Space
-import com.nice.cxonechat.ui.main.PreviewAgent
 import com.nice.cxonechat.ui.model.EndConversationChoice
 import com.nice.cxonechat.ui.model.EndConversationChoice.CLOSE_CHAT
 import com.nice.cxonechat.ui.model.EndConversationChoice.NEW_CONVERSATION
@@ -108,7 +108,7 @@ internal fun ChatTheme.EndConversationDialog(
 private fun AgentName(agentName: String, space: Space) {
     Text(
         text = agentName,
-        style = ChatTheme.typography.h6,
+        style = ChatTheme.typography.titleLarge,
         modifier = Modifier.padding(bottom = space.large),
     )
 }

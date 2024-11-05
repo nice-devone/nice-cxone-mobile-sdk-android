@@ -33,7 +33,7 @@ internal abstract class ErrorCallback(
 ) : WebSocketListener() {
 
     override fun onMessage(webSocket: WebSocket, text: String) {
-        val errorMessage: ErrorModel? = serializer.runCatching { fromJson(text, ErrorModel::class.java) }.getOrNull()
+        val errorMessage: ErrorModel? = serializer.runCatching { decodeFromString<ErrorModel>(text) }.getOrNull()
         if (errorMessage?.error?.errorCode == errorType) {
             onError(webSocket)
         }

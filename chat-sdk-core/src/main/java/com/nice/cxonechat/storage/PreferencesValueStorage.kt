@@ -21,6 +21,7 @@ import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import com.nice.cxonechat.internal.serializer.Default
 import com.nice.cxonechat.storage.ValueStorage.VisitDetails
+import kotlinx.serialization.encodeToString
 import java.util.Date
 import java.util.UUID
 
@@ -60,10 +61,10 @@ internal class PreferencesValueStorage(private val sharedPreferences: SharedPref
 
     override var visitDetails: VisitDetails?
         get() = sharedPreferences.getString(PREF_VISIT_DETAILS, null)?.let {
-            Default.serializer.fromJson(it, VisitDetails::class.java)
+            Default.serializer.decodeFromString(it)
         }
         set(value) = sharedPreferences.edit {
-            putString(PREF_VISIT_DETAILS, value?.let { Default.serializer.toJson(it) })
+            putString(PREF_VISIT_DETAILS, value?.let { Default.serializer.encodeToString(it) })
         }
 
     override val visitId: UUID

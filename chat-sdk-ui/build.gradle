@@ -22,6 +22,7 @@ plugins {
     id "android-test-conventions"
     id "android-library-style-conventions"
     id 'androidx.navigation.safeargs.kotlin'
+    id "org.jetbrains.kotlin.plugin.serialization"
 }
 
 android {
@@ -50,9 +51,6 @@ android {
 }
 
 dependencies {
-    // GSON is used for parsing of payload in Plugin Custom messages
-    implementation libs.gson
-
     // Handling of push notification sent via FCM
     implementation platform(libs.firebase.bom)
     implementation libs.firebase.messaging
@@ -78,4 +76,7 @@ dependencies {
 
     // Immutable annotations
     implementation libs.findbugs
+
+    // Kotlinx serialization
+    implementation libs.kotlinx.serialization.json
 }

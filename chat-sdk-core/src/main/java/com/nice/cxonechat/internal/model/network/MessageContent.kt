@@ -15,10 +15,12 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.MessageContentType
 import com.nice.cxonechat.enums.MessageContentType.Text
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal data class MessageContent(
     /**
      * This message's type. It can have various types on
@@ -26,7 +28,7 @@ internal data class MessageContent(
      *
      * @see MessageContentType
      * */
-    @SerializedName("type")
+    @SerialName("type")
     val type: MessageContentType,
 
     /**
@@ -36,7 +38,7 @@ internal data class MessageContent(
      *
      * @see MessageContentType
      * */
-    @SerializedName("payload")
+    @SerialName("payload")
     val payload: MessagePayload,
 
     /**
@@ -48,7 +50,7 @@ internal data class MessageContent(
      * should then send a message containing original [com.nice.cxonechat.message.Action.ReplyButton.postback],
      * so an automatic backend process can react to that selection.
      */
-    @SerializedName("postback")
+    @SerialName("postback")
     val postback: String? = null,
 ) {
 

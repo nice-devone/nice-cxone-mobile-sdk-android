@@ -1,6 +1,33 @@
 <a name="unreleased"></a>
 ## [Unreleased]
 
+<a name="2.2.0"></a>
+## [2.2.0]
+
+### Bug Fixes
+- Allow reconnect in offline state
+- Fix ProGuard/R8 issues
+  - Updated consumer-rules.pro to prevent minification of several problematic methods
+  - Added rules to the internal SDK minification
+- SDK awaits for authorization
+  - [!NOTE]
+    Event sending may be delayed until server confirms user authorization to use Chat service,
+    sending of events prior to this could lead to loss of such events.
+### Dependency Change
+- Bump kotlin from 2.0.0 to 2.0.10
+- Replace GSON with kotlinx.serialization
+- Removed unused dependencies from the utilities module
+### Features
+- Enable application LargeHeap for attachment upload
+  - This allows upload of larger attachments on devices with sufficient RAM
+- Enhance AuthorizeCustomer event
+- Mobile SDK sends new headers for internal analytics
+- Deprecate inContactId and emailAddress from Agent
+  - Values for these fields are now always empty
+- Update agent model
+  - Added nickName field
+  - imageUrl field now provides the public image url
+
 <a name="2.1.1"></a>
 ## [2.1.1]
 ### Bug Fixes
@@ -244,7 +271,8 @@
     - failure
   - typing start/end
 
-[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.1.1...HEAD
+[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.2.0...HEAD
+[2.2.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.1.1...2.2.0
 [2.1.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.1.0...2.1.1
 [2.1.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.0.0...2.1.0
 [2.0.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.3.1...2.0.0

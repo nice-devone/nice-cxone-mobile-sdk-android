@@ -16,6 +16,7 @@
 package com.nice.cxonechat.sample.data.repository
 
 import android.content.Context
+import androidx.annotation.Keep
 import com.nice.cxonechat.sample.data.models.UISettingsModel
 import com.nice.cxonechat.sample.data.models.UISettingsModel.Colors
 import com.nice.cxonechat.ui.composable.theme.ChatThemeDetails
@@ -76,6 +77,7 @@ class UISettingsRepository(
      * Load any available saved UI Settings.  Default settings will be applied if no saved
      * settings are located.
      */
+    @Keep // Remove once the  DE-117407 is resolved
     fun load() = super.load(context).also {
         UISettingsState.value = (it ?: UISettingsModel()).apply {
             applyToChatSdk()

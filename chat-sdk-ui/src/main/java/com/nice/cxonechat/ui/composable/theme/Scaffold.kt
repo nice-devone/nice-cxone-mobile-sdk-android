@@ -27,22 +27,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.material.AppBarDefaults
-import androidx.compose.material.BottomAppBar
-import androidx.compose.material.FabPosition
-import androidx.compose.material.FloatingActionButton
-import androidx.compose.material.FloatingActionButtonDefaults
-import androidx.compose.material.FloatingActionButtonElevation
-import androidx.compose.material.Icon
-import androidx.compose.material.ScaffoldState
-import androidx.compose.material.SnackbarHost
-import androidx.compose.material.SnackbarHostState
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.FloatingActionButtonElevation
+import androidx.compose.material3.Icon
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -60,45 +59,42 @@ import androidx.compose.ui.unit.Dp
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
+import androidx.compose.material3.Scaffold as M3Scaffold
 
 @Composable
 internal fun ChatTheme.Scaffold(
     modifier: Modifier = Modifier,
-    scaffoldState: ScaffoldState = rememberScaffoldState(),
     topBar: @Composable () -> Unit = {},
     bottomBar: @Composable () -> Unit = {},
-    snackbarHost: @Composable (SnackbarHostState) -> Unit = { SnackbarHost(it) },
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     floatingActionButton: @Composable () -> Unit = {},
     floatingActionButtonPosition: FabPosition = FabPosition.End,
-    isFloatingActionButtonDocked: Boolean = false,
-    backgroundColor: Color = colors.background,
-    contentColor: Color = colors.onBackground,
+    backgroundColor: Color = colorScheme.background,
+    contentColor: Color = colorScheme.onBackground,
     content: @Composable (PaddingValues) -> Unit,
 ) {
-    androidx.compose.material.Scaffold(
+    M3Scaffold(
         modifier = modifier,
-        scaffoldState = scaffoldState,
         topBar = topBar,
         bottomBar = bottomBar,
-        snackbarHost = snackbarHost,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = floatingActionButton,
         floatingActionButtonPosition = floatingActionButtonPosition,
-        isFloatingActionButtonDocked = isFloatingActionButtonDocked,
-        backgroundColor = backgroundColor,
+        containerColor = backgroundColor,
         contentColor = contentColor,
         content = content,
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ChatTheme.TopBar(
     title: String,
     modifier: Modifier = Modifier,
     logo: Any? = images.logo,
-    navigationIcon: @Composable (() -> Unit)? = null,
-    backgroundColor: Color = colors.primary,
-    contentColor: Color = colors.onPrimary,
-    elevation: Dp = AppBarDefaults.TopAppBarElevation,
+    navigationIcon: @Composable () -> Unit = { },
+    containerColor: Color = colorScheme.primary,
+    contentColor: Color = colorScheme.onPrimary,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     TopAppBar(
@@ -108,25 +104,26 @@ internal fun ChatTheme.TopBar(
         modifier = modifier,
         navigationIcon = navigationIcon,
         actions = actions,
-        backgroundColor = backgroundColor,
-        contentColor = contentColor,
-        elevation = elevation,
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = containerColor,
+            navigationIconContentColor = contentColor,
+            titleContentColor = contentColor,
+            actionIconContentColor = contentColor,
+        ),
     )
 }
 
 @Composable
 internal fun ChatTheme.BottomBar(
     modifier: Modifier = Modifier,
-    backgroundColor: Color = colors.primary,
-    contentColor: Color = colors.onPrimary,
-    elevation: Dp = AppBarDefaults.BottomAppBarElevation,
+    backgroundColor: Color = colorScheme.primary,
+    contentColor: Color = colorScheme.onPrimary,
     content: @Composable RowScope.() -> Unit
 ) {
     BottomAppBar(
         modifier = modifier,
-        backgroundColor = backgroundColor,
+        containerColor = backgroundColor,
         contentColor = contentColor,
-        elevation = elevation,
         content = content
     )
 }
@@ -167,8 +164,8 @@ internal fun ChatTheme.Fab(
     modifier: Modifier = Modifier,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     shape: Shape = shapes.small.copy(CornerSize(percent = 50)),
-    backgroundColor: Color = colors.primary,
-    contentColor: Color = colors.onPrimary,
+    containerColor: Color = colorScheme.primary,
+    contentColor: Color = colorScheme.onPrimary,
     elevation: FloatingActionButtonElevation = FloatingActionButtonDefaults.elevation(),
 ) {
     FloatingActionButton(
@@ -176,19 +173,20 @@ internal fun ChatTheme.Fab(
         modifier = modifier,
         interactionSource = interactionSource,
         shape = shape,
-        backgroundColor = backgroundColor,
+        containerColor = containerColor,
         contentColor = contentColor,
         elevation = elevation,
     ) {
         Icon(
             painter = icon,
             contentDescription = contentDescription?.let { stringResource(id = it) },
-            tint = colors.onPrimary
+            tint = colorScheme.onPrimary
         )
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
+@ExperimentalMaterial3Api
+@Preview
 @Composable
 private fun ScaffoldPreview() {
     ChatTheme {
@@ -207,8 +205,8 @@ private fun ScaffoldPreview() {
                     .padding(it)
                     .fillMaxWidth()
                     .fillMaxHeight()
-                    .background(ChatTheme.colors.background),
-                contentColor = ChatTheme.colors.onBackground
+                    .background(ChatTheme.colorScheme.background),
+                contentColor = ChatTheme.colorScheme.onBackground
             ) {
                 Text("Freddie")
             }

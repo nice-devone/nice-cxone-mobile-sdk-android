@@ -17,7 +17,6 @@ package com.nice.cxonechat.internal
 
 import com.nice.cxonechat.Cancellable
 import com.nice.cxonechat.ChatFieldHandler
-import com.nice.cxonechat.ChatMode.SingleThread
 import com.nice.cxonechat.ChatThreadEventHandler
 import com.nice.cxonechat.ChatThreadHandler
 import com.nice.cxonechat.ChatThreadHandler.OnThreadUpdatedListener
@@ -29,7 +28,6 @@ import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.updateWith
 import com.nice.cxonechat.internal.model.ChatThreadMutable
 import com.nice.cxonechat.internal.model.CustomFieldInternal.Companion.updateWith
-import com.nice.cxonechat.internal.model.network.EventCaseStatusChanged
 import com.nice.cxonechat.internal.model.network.EventThreadRecovered
 import com.nice.cxonechat.internal.model.network.EventThreadUpdated
 import com.nice.cxonechat.internal.socket.EventCallback.Companion.addCallback
@@ -56,14 +54,7 @@ internal class ChatThreadHandlerImpl(
         val onUpdated = chat.socketListener.addCallback(EventThreadUpdated) {
             listener.onUpdated(thread)
         }
-        val onArchived = if (chat.chatMode !== SingleThread) {
-            chat.socketListener.addCallback(EventCaseStatusChanged) { event ->
-                CaseStatusChangedHandlerActions.handleCaseClosed(thread, event, listener::onUpdated)
-            }
-        } else {
-            Cancellable.noop
-        }
-        return Cancellable(onRecovered, onUpdated, onArchived)
+        return Cancellable(onRecovered, onUpdated)
     }
 
     override fun refresh() {

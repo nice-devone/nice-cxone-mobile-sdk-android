@@ -15,8 +15,10 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.util.plus
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import java.util.Date
 import kotlin.time.Duration.Companion.seconds
 
@@ -24,14 +26,18 @@ import kotlin.time.Duration.Companion.seconds
  * An access token used by the customer for sending messages if OAuth authorization is on for the
  * channel.
  */
+@Serializable
 internal data class AccessToken(
-    @SerializedName("token")
+    @SerialName("token")
     val token: String,
-    @SerializedName("expiresIn")
+    @SerialName("expiresIn")
     private val expiresIn: Long,
 ) {
 
+    @Transient
     private val createdAt = Date()
+
+    @Transient
     val expiresAt = createdAt + expiresIn.seconds.inWholeMilliseconds
 
     /** Whether the token has expired or not. */

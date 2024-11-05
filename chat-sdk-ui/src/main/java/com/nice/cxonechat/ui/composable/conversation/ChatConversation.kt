@@ -29,34 +29,28 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons.Filled
 import androidx.compose.material.icons.filled.Archive
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.nice.cxonechat.ui.R.drawable
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.conversation.model.ConversationUiState
 import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider
 import com.nice.cxonechat.ui.composable.conversation.model.Section
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.Scaffold
-import com.nice.cxonechat.ui.composable.theme.TopBar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -68,10 +62,6 @@ import kotlinx.coroutines.launch
  * @param conversationState State of the conversation and means how to send new messages.
  * @param audioRecordingState State of the audio recording and means how to trigger it.
  * @param onAttachmentTypeSelection Action invoked when a user has selected what type of file they want to send as attachment.
- * @param onEditThreadName Callback to trigger edit thread name dialog.
- * @param onEditThreadValues Callback to trigger edit thread values dialog.
- * @param onEndContact Callback to trigger the end of a contact.
- * @param displayEndConversation Callback to trigger the end of contact dialog.
  * @param modifier Optional [Modifier] for [Scaffold] surrounding the conversation view.
  */
 @Composable
@@ -79,10 +69,6 @@ internal fun ChatConversation(
     conversationState: ConversationUiState,
     audioRecordingState: AudioRecordingUiState,
     onAttachmentTypeSelection: (mimeType: Collection<String>) -> Unit,
-    onEditThreadName: () -> Unit,
-    onEditThreadValues: () -> Unit,
-    onEndContact: () -> Unit,
-    displayEndConversation: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scrollState = rememberLazyListState()
@@ -97,34 +83,22 @@ internal fun ChatConversation(
         }
     }
 
-    ChatTheme.Scaffold(
-        topBar = {
-            ChatThreadTopBar(
-                conversationState = conversationState,
-                onEditThreadName = onEditThreadName,
-                onEditThreadValues = onEditThreadValues,
-                onEndContact = onEndContact,
-                displayEndConversation = displayEndConversation,
-            )
-        }
+    Column(
+        modifier.fillMaxSize(),
     ) {
-        Column(
-            modifier.fillMaxSize(),
-        ) {
-            MessageListView(
-                messages,
-                conversation = conversationState,
-                scrollState = scrollState,
-                modifier = Modifier.weight(1f)
-            )
-            UserInputView(
-                conversationState = conversationState,
-                scope = scope,
-                scrollState = scrollState,
-                audioRecordingState = audioRecordingState,
-                onAttachmentTypeSelection = onAttachmentTypeSelection,
-            )
-        }
+        MessageListView(
+            messages,
+            conversation = conversationState,
+            scrollState = scrollState,
+            modifier = Modifier.weight(1f)
+        )
+        UserInputView(
+            conversationState = conversationState,
+            scope = scope,
+            scrollState = scrollState,
+            audioRecordingState = audioRecordingState,
+            onAttachmentTypeSelection = onAttachmentTypeSelection,
+        )
     }
 }
 
@@ -176,56 +150,6 @@ private fun UserInputView(
             }
         }
     }
-}
-
-@Composable
-private fun ChatThreadTopBar(
-    conversationState: ConversationUiState,
-    onEditThreadName: () -> Unit,
-    onEditThreadValues: () -> Unit,
-    onEndContact: () -> Unit,
-    displayEndConversation: () -> Unit,
-) {
-    ChatTheme.TopBar(
-        title = conversationState.threadName.collectAsState(null).value?.ifBlank { null }
-            ?: stringResource(id = string.thread_list_title),
-        actions = {
-            if (conversationState.isMultiThreaded) {
-                IconButton(onClick = onEditThreadName) {
-                    Icon(
-                        painter = painterResource(id = drawable.ic_baseline_chat_24),
-                        contentDescription = stringResource(id = string.change_thread_name)
-                    )
-                }
-            }
-            if (conversationState.hasQuestions) {
-                IconButton(onClick = onEditThreadValues) {
-                    Icon(
-                        painter = painterResource(id = drawable.ic_baseline_edit),
-                        contentDescription = stringResource(id = string.change_details_label)
-                    )
-                }
-            }
-            if (conversationState.isLiveChat) {
-                if (conversationState.isArchived.collectAsState().value) {
-                    IconButton(onClick = displayEndConversation) {
-                        Icon(
-                            painter = rememberVectorPainter(image = Filled.MoreVert),
-                            contentDescription = stringResource(id = string.livechat_conversation_options)
-                        )
-                    }
-                } else {
-                    IconButton(onClick = onEndContact) {
-                        Icon(
-                            painter = painterResource(id = drawable.ic_baseline_cancel_24),
-                            tint = ChatTheme.colors.error,
-                            contentDescription = stringResource(id = string.action_end_conversation)
-                        )
-                    }
-                }
-            }
-        }
-    )
 }
 
 @Composable
@@ -300,10 +224,6 @@ private fun PreviewChatMessageInput() {
             conversationState = previewUiState(messages, positionInQueue = 4),
             audioRecordingState = previewAudioState(),
             onAttachmentTypeSelection = {},
-            onEditThreadName = {},
-            onEditThreadValues = {},
-            onEndContact = {},
-            displayEndConversation = {},
         )
     }
 }

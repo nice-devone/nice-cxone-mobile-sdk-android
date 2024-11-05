@@ -15,14 +15,11 @@
 
 package com.nice.cxonechat.ui.composable.theme
 
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.LocalContentColor
-import androidx.compose.material.LocalRippleConfiguration
-import androidx.compose.material.contentColorFor
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.takeOrElse
 
 /**
@@ -32,21 +29,8 @@ import androidx.compose.ui.graphics.takeOrElse
 @Composable
 @ReadOnlyComposable
 fun contentColorFor(backgroundColor: Color): Color = when (backgroundColor) {
-    Color.Transparent -> ChatTheme.colors.primary
+    Color.Transparent -> ChatTheme.colorScheme.primary
     ChatTheme.chatColors.agent.background -> ChatTheme.chatColors.agent.foreground
     ChatTheme.chatColors.customer.background -> ChatTheme.chatColors.customer.foreground
-    else -> ChatTheme.colors.contentColorFor(backgroundColor)
+    else -> ChatTheme.colorScheme.contentColorFor(backgroundColor)
 }.takeOrElse { LocalContentColor.current }
-
-/**
- * Applies [lerp] between this color and [androidx.compose.material.ripple.RippleTheme.defaultColor] and
- * [androidx.compose.material.ripple.RippleTheme.rippleAlpha],
- * [androidx.compose.material.ripple.RippleAlpha.pressedAlpha] as a fraction.
- */
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-internal fun Color.rippleVariant(): Color = lerp(
-    start = this,
-    stop = LocalRippleConfiguration.current?.color ?: Color.Unspecified,
-    fraction = LocalRippleConfiguration.current?.rippleAlpha?.pressedAlpha ?: 0.1f,
-)

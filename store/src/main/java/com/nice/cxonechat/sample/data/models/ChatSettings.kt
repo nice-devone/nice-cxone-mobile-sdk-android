@@ -17,6 +17,7 @@ package com.nice.cxonechat.sample.data.models
 
 import com.nice.cxonechat.Authorization
 import com.nice.cxonechat.UserName
+import kotlinx.serialization.Serializable
 
 /**
  * Saved chat settings.
@@ -26,6 +27,7 @@ import com.nice.cxonechat.UserName
  * @param userName saved user name.
  * @param customerId saved CustomerId.
  */
+@Serializable
 data class ChatSettings(
     val sdkConfiguration: SdkConfiguration? = null,
     val authorization: ChatAuthorization? = null,
@@ -36,6 +38,7 @@ data class ChatSettings(
 /**
  * Application implementation of [UserName].
  */
+@Serializable
 data class ChatUserName(
     override val lastName: String,
     override val firstName: String
@@ -52,6 +55,7 @@ val UserName.toChatUserName
 /**
  * Application implementation of [Authorization].
  */
+@Serializable
 data class ChatAuthorization(
     override val code: String,
     override val verifier: String

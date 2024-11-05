@@ -24,6 +24,7 @@ plugins {
     alias (libs.plugins.google.services)
     alias (libs.plugins.firebase.appdistribution)
     alias (libs.plugins.firebase.crashlytics)
+    id "org.jetbrains.kotlin.plugin.serialization"
 }
 
 def storeVersion = branchVersion(version, project)
@@ -59,7 +60,7 @@ android {
             versionNameSuffix '-debug'
         }
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
@@ -95,7 +96,8 @@ android.applicationVariants.all { variant ->
 
 dependencies {
     implementation libs.retrofit
-    implementation libs.retrofit.gson
+    implementation libs.kotlinx.serialization.json
+    implementation libs.retrofit.kotlinx.serialization
 
     // Initializer<T>
     implementation libs.androidx.lifecycle.common
@@ -114,6 +116,7 @@ dependencies {
 
     // AsyncImage
     implementation libs.coil.compose
+    implementation libs.okhttp.logging
 
     // CXOne Chat SDK
     implementation project(":chat-sdk-core")

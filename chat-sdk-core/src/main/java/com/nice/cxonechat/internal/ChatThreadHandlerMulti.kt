@@ -24,6 +24,7 @@ import com.nice.cxonechat.internal.model.network.EventThreadArchived
 import com.nice.cxonechat.internal.model.network.EventThreadUpdated
 import com.nice.cxonechat.internal.serializer.Default
 import com.nice.cxonechat.internal.socket.EventCallback.Companion.acceptResponse
+import kotlinx.serialization.encodeToString
 
 internal class ChatThreadHandlerMulti(
     private val chat: ChatWithParameters,
@@ -62,7 +63,7 @@ internal class ChatThreadHandlerMulti(
         chat.socket?.let { socket ->
             chat.socketListener.onMessage(
                 socket,
-                Default.serializer.toJson(EventThreadUpdated(thread))
+                Default.serializer.encodeToString(EventThreadUpdated(thread))
             )
         }
     }

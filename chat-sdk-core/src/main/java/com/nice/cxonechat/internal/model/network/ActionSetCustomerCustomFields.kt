@@ -15,21 +15,25 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.EventAction
 import com.nice.cxonechat.enums.EventAction.ChatWindowEvent
 import com.nice.cxonechat.enums.EventType.SetCustomerCustomFields
 import com.nice.cxonechat.internal.model.CustomFieldModel
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.util.UUIDProvider
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
+@Serializable
 internal data class ActionSetCustomerCustomFields(
-    @SerializedName("action")
+    @SerialName("action")
     val action: EventAction = ChatWindowEvent,
-    @SerializedName("eventId")
+    @SerialName("eventId")
+    @Contextual
     val eventId: UUID = UUIDProvider.next(),
-    @SerializedName("payload")
+    @SerialName("payload")
     val payload: Payload<Data>,
 ) {
 
@@ -44,8 +48,9 @@ internal data class ActionSetCustomerCustomFields(
         )
     )
 
+    @Serializable
     data class Data(
-        @SerializedName("customFields")
+        @SerialName("customFields")
         val customFields: List<CustomFieldModel>,
     )
 }

@@ -16,6 +16,7 @@
 package com.nice.cxonechat.event
 
 import com.nice.cxonechat.enums.VisitorEventType.TimeSpentOnPage
+import com.nice.cxonechat.event.AnalyticsEvent.Data.TimeSpentOnPageData
 import com.nice.cxonechat.internal.model.network.TimeSpentOnPageModel
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.storage.ValueStorage
@@ -30,11 +31,11 @@ internal class TimeSpentOnPageEvent(
     private val uri: String,
     private val date: Date = Date(),
     private val timeSpentOnPage: Long
-) : ChatEvent() {
+) : ChatEvent<AnalyticsEvent>() {
     override fun getModel(
         connection: Connection,
         storage: ValueStorage,
-    ): Any {
+    ): AnalyticsEvent {
         val model = TimeSpentOnPageModel(
             url = uri,
             title = title,
@@ -44,7 +45,7 @@ internal class TimeSpentOnPageEvent(
             TimeSpentOnPage,
             storage,
             date,
-            model
+            TimeSpentOnPageData(model)
         )
     }
 

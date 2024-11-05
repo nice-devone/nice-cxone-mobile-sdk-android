@@ -15,22 +15,27 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.EventAction
 import com.nice.cxonechat.enums.EventAction.ChatWindowEvent
 import com.nice.cxonechat.enums.EventType.StoreVisitorEvents
 import com.nice.cxonechat.enums.VisitorEventType
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.util.UUIDProvider
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 import java.util.Date
 import java.util.UUID
 
+@Serializable
 internal data class ActionStoreVisitorEvent(
-    @SerializedName("action")
+    @SerialName("action")
     val action: EventAction = ChatWindowEvent,
-    @SerializedName("eventId")
+    @SerialName("eventId")
+    @Contextual
     val eventId: UUID = UUIDProvider.next(),
-    @SerializedName("payload")
+    @SerialName("payload")
     val payload: LegacyPayload<Data>,
 ) {
 
@@ -53,7 +58,7 @@ internal data class ActionStoreVisitorEvent(
         connection: Connection,
         visitor: UUID,
         destination: UUID,
-        vararg events: Pair<VisitorEventType, Any?>,
+        vararg events: Pair<VisitorEventType, JsonElement?>,
         createdAt: Date = Date(),
     ) : this(
         payload = LegacyPayload(
@@ -74,8 +79,9 @@ internal data class ActionStoreVisitorEvent(
         )
     )
 
-    data class Data constructor(
-        @SerializedName("visitorEvents")
+    @Serializable
+    data class Data(
+        @SerialName("visitorEvents")
         val visitorEvents: List<VisitorEvent>,
     )
 }

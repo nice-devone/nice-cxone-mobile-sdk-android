@@ -15,7 +15,7 @@
 
 package com.nice.cxonechat
 
-import com.google.gson.GsonBuilder
+import com.google.gson.Strictness
 import com.nice.cxonechat.ChatEventHandlerActions.conversion
 import com.nice.cxonechat.ChatEventHandlerActions.pageView
 import com.nice.cxonechat.ChatEventHandlerActions.proactiveActionClick
@@ -33,14 +33,18 @@ import com.nice.cxonechat.enums.VisitorEventType.ProactiveActionDisplayed
 import com.nice.cxonechat.enums.VisitorEventType.ProactiveActionFailed
 import com.nice.cxonechat.enums.VisitorEventType.ProactiveActionSuccess
 import com.nice.cxonechat.event.AnalyticsEvent
+import com.nice.cxonechat.event.AnalyticsEvent.Data
+import com.nice.cxonechat.event.AnalyticsEvent.Data.ValueMapData
 import com.nice.cxonechat.event.AnalyticsEvent.Destination
 import com.nice.cxonechat.internal.ChatEventHandlerImpl
 import com.nice.cxonechat.internal.ChatWithParameters
 import com.nice.cxonechat.internal.RemoteServiceBuilder
 import com.nice.cxonechat.internal.model.network.PageViewData
+import com.nice.cxonechat.internal.model.network.ProactiveActionInfo
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.state.Environment
 import com.nice.cxonechat.storage.ValueStorage
+import com.nice.cxonechat.tool.Gson
 import com.nice.cxonechat.tool.MockInterceptor
 import com.nice.cxonechat.tool.awaitResult
 import io.mockk.every
@@ -59,9 +63,9 @@ import com.nice.cxonechat.internal.model.network.Conversion as ConversionModel
 
 internal class ChatEventHandlerActionsTest {
     private val gson by lazy {
-        GsonBuilder()
+        Gson.newBuilder()
             .registerTypeAdapter(Date::class.java, GsonUTCDateAdapter())
-            .setLenient()
+            .setStrictness(Strictness.LENIENT)
             .create()
     }
     private val visitorId = UUID.randomUUID()
@@ -151,14 +155,14 @@ internal class ChatEventHandlerActionsTest {
         }
     }
 
-    private fun event(type: VisitorEventType, data: Any = mapOf<String, Any>()): AnalyticsEvent {
+    private fun event(type: VisitorEventType, data: Data = ValueMapData(mapOf())): AnalyticsEvent {
         return AnalyticsEvent(
             eventId,
             type,
             visitId,
             Destination(destinationId),
             now,
-            gson.toJson(data).let { gson.fromJson(it, Map::class.java) }
+            data,
         )
     }
 
@@ -166,7 +170,7 @@ internal class ChatEventHandlerActionsTest {
     fun conversion() {
         val expect = event(
             Conversion,
-            ConversionModel("cash", 324, now)
+            Data.ConversionData(ConversionModel("cash", 324, now))
         )
         verifyEventSent(expect) { done ->
             events.conversion("cash", 324, now) { done() }
@@ -177,7 +181,7 @@ internal class ChatEventHandlerActionsTest {
     fun pageView() {
         val expect = event(
             PageView,
-            PageViewData("some title", "https://some.url/or/other")
+            Data.PageViewData(PageViewData("some title", "https://some.url/or/other"))
         )
         verifyEventSent(expect) { done ->
             events.pageView("some title", "https://some.url/or/other", now) { done() }
@@ -186,7 +190,7 @@ internal class ChatEventHandlerActionsTest {
 
     @Test
     fun proactiveActionClick() {
-        val expect = event(ProactiveActionClicked, actionMetaData)
+        val expect = event(ProactiveActionClicked, Data.ProactiveActionData(ProactiveActionInfo(actionMetaData)))
         verifyEventSent(expect) { done ->
             events.proactiveActionClick(actionMetaData, now) { done() }
         }
@@ -194,7 +198,7 @@ internal class ChatEventHandlerActionsTest {
 
     @Test
     fun proactiveActionDisplay() {
-        val expect = event(ProactiveActionDisplayed, actionMetaData)
+        val expect = event(ProactiveActionDisplayed, Data.ProactiveActionData(ProactiveActionInfo(actionMetaData)))
         verifyEventSent(expect) { done ->
             events.proactiveActionDisplay(actionMetaData, now) { done() }
         }
@@ -202,7 +206,7 @@ internal class ChatEventHandlerActionsTest {
 
     @Test
     fun proactiveActionFailure() {
-        val expect = event(ProactiveActionFailed, actionMetaData)
+        val expect = event(ProactiveActionFailed, Data.ProactiveActionData(ProactiveActionInfo(actionMetaData)))
         verifyEventSent(expect) { done ->
             events.proactiveActionFailure(actionMetaData, now) { done() }
         }
@@ -210,7 +214,7 @@ internal class ChatEventHandlerActionsTest {
 
     @Test
     fun proactiveActionSuccess() {
-        val expect = event(ProactiveActionSuccess, actionMetaData)
+        val expect = event(ProactiveActionSuccess, Data.ProactiveActionData(ProactiveActionInfo(actionMetaData)))
         verifyEventSent(expect) { done ->
             events.proactiveActionSuccess(actionMetaData, now) { done() }
         }

@@ -16,9 +16,9 @@
 package com.nice.cxonechat.sample.previewproviders
 
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
-import com.google.gson.Gson
 import com.nice.cxonechat.sample.data.models.Product
 import com.nice.cxonechat.sample.data.models.ProductList
+import kotlinx.serialization.json.Json
 
 /**
  * PreviewParameterProvider providing a list of products for the product list page.
@@ -29,7 +29,7 @@ class ProductsParameterProvider: PreviewParameterProvider<List<Product>> {
 
     private companion object {
         val items by lazy {
-            Gson().fromJson(JSON, ProductList::class.java).items
+            Json.Default.decodeFromString<ProductList>(JSON).items
         }
 
         private const val JSON = """

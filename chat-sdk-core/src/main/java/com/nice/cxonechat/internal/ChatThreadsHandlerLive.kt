@@ -19,6 +19,7 @@ import com.nice.cxonechat.Cancellable
 import com.nice.cxonechat.ChatThreadHandler
 import com.nice.cxonechat.ChatThreadsHandler
 import com.nice.cxonechat.ChatThreadsHandler.OnThreadsUpdatedListener
+import com.nice.cxonechat.enums.ContactStatus
 import com.nice.cxonechat.enums.ErrorType.RecoveringLivechatFailed
 import com.nice.cxonechat.enums.EventType
 import com.nice.cxonechat.enums.EventType.LivechatRecovered
@@ -97,7 +98,7 @@ internal class ChatThreadsHandlerLive(
                 tmpThreadHandlerRef = null
             }
         }
-        val recovered = if (eventThread == null || !eventThread.canAddMoreMessages) {
+        val recovered = if (eventThread == null || !eventThread.canAddMoreMessages || event.lastContactStatus === ContactStatus.Closed) {
             createThreadIfPossible()
         } else {
             eventThread.asCopyable().copy(

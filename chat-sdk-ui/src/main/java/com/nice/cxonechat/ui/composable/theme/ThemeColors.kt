@@ -24,20 +24,18 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.nice.cxonechat.Public
 
 /** A set of colors to be applied in either dark or light mode. */
 @Suppress(
     "ComplexInterface" // Serves as definition of constants.
 )
-@Public
 interface ThemeColors {
     /** Android primary color. */
     val primary: Color
@@ -93,7 +91,6 @@ interface ThemeColors {
          * @param positionInQueueBackground color for position in queue panel.
          * @param positionInQueueForeground color for position in queue panel.
          */
-        @Public
         @JvmStatic
         @JvmName("create")
         @Suppress("LongParameterList")
@@ -159,12 +156,12 @@ private fun PreviewThemeColors() {
 private fun ThemeColorsList() {
     ChatTheme {
         val colors = listOf(
-            "primary" to ChatTheme.colors.primary,
-            "onPrimary" to ChatTheme.colors.onPrimary,
-            "background" to ChatTheme.colors.background,
-            "onBackground" to ChatTheme.colors.onBackground,
-            "secondary" to ChatTheme.colors.secondary,
-            "onSecondary" to ChatTheme.colors.onSecondary,
+            "primary" to ChatTheme.colorScheme.primary,
+            "onPrimary" to ChatTheme.colorScheme.onPrimary,
+            "background" to ChatTheme.colorScheme.background,
+            "onBackground" to ChatTheme.colorScheme.onBackground,
+            "secondary" to ChatTheme.colorScheme.secondary,
+            "onSecondary" to ChatTheme.colorScheme.onSecondary,
         )
         Surface {
             Column(

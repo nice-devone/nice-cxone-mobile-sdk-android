@@ -29,7 +29,7 @@ internal class ChatEventHandlerVisitGuard(
     private val origin: ChatEventHandler,
     private val chat: ChatWithParameters,
 ) : ChatEventHandler by origin {
-    override fun trigger(event: ChatEvent, listener: OnEventSentListener?, errorListener: OnEventErrorListener?) {
+    override fun trigger(event: ChatEvent<*>, listener: OnEventSentListener?, errorListener: OnEventErrorListener?) {
         if (event is PageViewEvent) {
             validateVisit(event.date)
         }

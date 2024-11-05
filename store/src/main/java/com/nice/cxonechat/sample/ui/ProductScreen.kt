@@ -26,10 +26,10 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.AlertDialog
-import androidx.compose.material.LocalTextStyle
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.Text
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -208,7 +208,7 @@ object ProductScreen : Screen {
 
     @Composable
     private fun Headline(text: String) {
-        Text(text, style = AppTheme.typography.h5.bold)
+        Text(text, style = AppTheme.typography.headlineSmall.bold)
     }
 
     @Composable
@@ -216,8 +216,8 @@ object ProductScreen : Screen {
         Text(
             text,
             modifier = Modifier.fillMaxWidth(1f),
-            style = AppTheme.typography.body1,
-            color = AppTheme.colors.onBackground
+            style = AppTheme.typography.bodyLarge,
+            color = AppTheme.colorScheme.onBackground
         )
     }
 }

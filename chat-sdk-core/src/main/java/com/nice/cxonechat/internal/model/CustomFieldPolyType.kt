@@ -15,41 +15,52 @@
 
 package com.nice.cxonechat.internal.model
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal sealed interface CustomFieldPolyType {
 
+    @Serializable
+    @SerialName("text")
     data class Text(
-        @SerializedName("ident")
+        @SerialName("ident")
         val fieldId: String,
-        @SerializedName("label")
+        @SerialName("label")
         val label: String,
     ) : CustomFieldPolyType
 
+    @Serializable
+    @SerialName("email")
     data class Email(
-        @SerializedName("ident")
+        @SerialName("ident")
         val fieldId: String,
-        @SerializedName("label")
+        @SerialName("label")
         val label: String,
     ) : CustomFieldPolyType
 
+    @Serializable
+    @SerialName("list")
     data class Selector(
-        @SerializedName("ident")
+        @SerialName("ident")
         val fieldId: String,
-        @SerializedName("label")
+        @SerialName("label")
         val label: String,
-        @SerializedName("values")
+        @SerialName("values")
         val values: List<SelectorModel>,
     ) : CustomFieldPolyType
 
+    @Serializable
+    @SerialName("tree")
     data class Hierarchy(
-        @SerializedName("ident")
+        @SerialName("ident")
         val fieldId: String,
-        @SerializedName("label")
+        @SerialName("label")
         val label: String,
-        @SerializedName("values")
+        @SerialName("values")
         val values: List<NodeModel>,
     ) : CustomFieldPolyType
 
-    object Noop : CustomFieldPolyType
+    @Serializable
+    data object Noop : CustomFieldPolyType
 }

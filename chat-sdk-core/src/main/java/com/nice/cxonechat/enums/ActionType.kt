@@ -15,17 +15,19 @@
 
 package com.nice.cxonechat.enums
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * The different types of WebSocket actions.
  */
+@Serializable
 internal enum class ActionType(val value: String) {
     /** An action for welcome message. */
-    @SerializedName("WelcomeMessage")
+    @SerialName("WelcomeMessage")
     WelcomeMessage("WelcomeMessage"),
 
     /** An action for custom popup box. */
-    @SerializedName("CustomPopupBox")
+    @SerialName("CustomPopupBox")
     CustomPopupBox("CustomPopupBox")
 }

@@ -15,7 +15,8 @@
 
 package com.nice.cxonechat.sample.data.models
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import javax.annotation.concurrent.Immutable
 
 /**
@@ -24,7 +25,8 @@ import javax.annotation.concurrent.Immutable
  * @param configurations The list of defined configurations.
  */
 @Immutable
+@Serializable
 data class SdkConfigurationList(
-    @SerializedName("configurations")
+    @SerialName("configurations")
     val configurations: SdkConfigurations,
 )

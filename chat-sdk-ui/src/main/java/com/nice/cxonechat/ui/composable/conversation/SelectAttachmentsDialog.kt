@@ -25,17 +25,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.LocalContentColor
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.Icons.Outlined
 import androidx.compose.material.icons.filled.Deselect
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
@@ -159,6 +160,7 @@ private fun TopBar(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BottomBar(
     selection: Collection<Attachment>,
@@ -174,11 +176,11 @@ private fun BottomBar(
         ) {
             Row {
                 TextButton(onClick = onSelectAll) {
-                    Text(stringResource(string.select_all), color = ChatTheme.colors.onPrimary)
+                    Text(stringResource(string.select_all), color = ChatTheme.colorScheme.onPrimary)
                 }
 
                 TextButton(onClick = onSelectNone) {
-                    Text(stringResource(string.select_none), color = ChatTheme.colors.onPrimary)
+                    Text(stringResource(string.select_none), color = ChatTheme.colorScheme.onPrimary)
                 }
             }
 

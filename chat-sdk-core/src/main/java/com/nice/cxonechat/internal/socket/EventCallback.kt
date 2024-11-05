@@ -18,8 +18,10 @@ package com.nice.cxonechat.internal.socket
 import com.nice.cxonechat.Cancellable
 import com.nice.cxonechat.enums.ErrorType
 import com.nice.cxonechat.enums.EventType
-import com.nice.cxonechat.internal.serializer.Default.serializer
+import com.nice.cxonechat.internal.serializer.Default
 import com.nice.cxonechat.internal.socket.ErrorCallback.Companion.addErrorCallback
+import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.serializer
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import java.util.UUID
@@ -28,7 +30,7 @@ internal abstract class EventCallback<Event>(
     private val type: EventType,
     private val eventType: Class<Event>,
 ) : WebSocketListener() {
-
+    private val serializer = Default.serializer.serializersModule.serializer(eventType) as DeserializationStrategy<Event>
     interface ReceivedEvent<Type : Any> {
         val type: EventType
     }
@@ -38,13 +40,11 @@ internal abstract class EventCallback<Event>(
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {
-        val blueprint: EventBlueprint? = serializer.runCatching {
-            fromJson(text, EventBlueprint::class.java)
+        val blueprint: EventBlueprint? = Default.serializer.runCatching {
+            decodeFromString<EventBlueprint>(text)
         }.getOrNull()
         if (blueprint?.anyType === type) {
-            serializer.fromJson(text, eventType)?.let {
-                onEvent(webSocket, it)
-            }
+            onEvent(webSocket, Default.serializer.decodeFromString(serializer, text))
         }
     }
 

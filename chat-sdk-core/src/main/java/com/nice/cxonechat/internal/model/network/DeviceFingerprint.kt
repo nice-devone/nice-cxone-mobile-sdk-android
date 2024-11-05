@@ -16,41 +16,43 @@
 package com.nice.cxonechat.internal.model.network
 
 import android.os.Build
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.util.Locale
 
 /** Represents fingerprint data about the customer. */
+@Serializable
 internal data class DeviceFingerprint(
-    @SerializedName("country")
+    @SerialName("country")
     val country: String? = Locale.getDefault().country,
 
     /** Current IP Address. */
-    @SerializedName("ip")
+    @SerialName("ip")
     val ip: String? = null,
 
-    @SerializedName("language")
+    @SerialName("language")
     val language: String? = Locale.getDefault().language,
 
-    @SerializedName("location")
+    @SerialName("location")
     val location: String? = null,
 
     /** The type of application the customer is using (native or web app). */
-    @SerializedName("applicationType")
+    @SerialName("applicationType")
     val applicationType: String? = "native",
 
     /** The operating system the customer is currently using. */
-    @SerializedName("os")
+    @SerialName("os")
     val os: String? = "Android",
 
     /** The operating system version that the customer is currently using. */
-    @SerializedName("osVersion")
+    @SerialName("osVersion")
     val osVersion: String? = Build.VERSION.RELEASE,
 
     /** The type of device that the customer is currently using. */
-    @SerializedName("deviceType")
+    @SerialName("deviceType")
     val deviceType: String? = "mobile",
 
     /** Token uniquely identifying this device. This defaults to null since it may be considered PII. */
-    @SerializedName("deviceToken")
+    @SerialName("deviceToken")
     val deviceToken: String? = null,
 )

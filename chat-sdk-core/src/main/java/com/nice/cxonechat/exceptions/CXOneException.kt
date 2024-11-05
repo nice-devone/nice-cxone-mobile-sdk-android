@@ -134,7 +134,7 @@ class MissingCustomerId internal constructor() : CXOneException(
  * Troubleshooting: Report to CXone support.
  */
 @Public
-class InternalError internal constructor(message: String) : CXOneException(message)
+class InternalError internal constructor(message: String, cause: Throwable? = null) : CXOneException(message, cause)
 
 /**
  * The SDK was unable to dispatch analytics event to server, due to some kind of connectivity issue.

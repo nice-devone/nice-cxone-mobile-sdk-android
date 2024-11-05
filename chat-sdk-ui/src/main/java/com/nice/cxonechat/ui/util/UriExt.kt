@@ -13,32 +13,13 @@
  * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
  */
 
-import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
+package com.nice.cxonechat.ui.util
 
-plugins {
-    id("android-library-conventions")
-    id("android-kotlin-conventions")
-    id("android-docs-conventions")
-    id("android-test-conventions")
-    id("android-library-style-conventions")
-    id("publish-conventions")
-    id("api-conventions")
-}
+import android.net.Uri
+import java.util.UUID
 
-android {
-    namespace = "com.nice.cxonechat.log.android"
-}
-
-dependencies {
-    api(project(":logger"))
-}
-
-mavenPublishing {
-    configure(
-        AndroidSingleVariantLibrary(
-            variant = "release",
-            sourcesJar = true,
-            publishJavadocJar = true,
-        )
-    )
+internal fun Uri.parseThreadDeeplink(): Result<UUID> = runCatching {
+    val threadIdString = getQueryParameter("idOnExternalPlatform")
+    require(!threadIdString.isNullOrEmpty()) { "Invalid threadId in $this" }
+    UUID.fromString(threadIdString)
 }

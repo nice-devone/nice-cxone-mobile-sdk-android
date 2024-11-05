@@ -15,19 +15,22 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.EventType.ThreadListFetched
 import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal data class EventThreadListFetched(
-    @SerializedName("postback")
+    @SerialName("postback")
     val postback: Postback<Data>,
 ) {
 
     val threads get() = postback.data.threads
 
+    @Serializable
     data class Data(
-        @SerializedName("threads")
+        @SerialName("threads")
         val threads: List<ReceivedThreadData>,
     )
 

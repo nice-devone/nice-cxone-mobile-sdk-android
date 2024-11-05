@@ -17,6 +17,7 @@ package com.nice.cxonechat
 
 import android.content.Context
 import androidx.annotation.CheckResult
+import com.nice.cxonechat.core.BuildConfig
 import com.nice.cxonechat.internal.ChatBuilderDefault
 import com.nice.cxonechat.internal.ChatBuilderLogging
 import com.nice.cxonechat.internal.ChatBuilderThreading
@@ -171,6 +172,15 @@ interface ChatBuilder {
         ): ChatBuilder {
             val sharedClient = OkHttpClient()
                 .newBuilder()
+                .addInterceptor { chain ->
+                    chain.proceed(
+                        chain.request()
+                            .newBuilder()
+                            .addHeader("x-sdk-platform", "android")
+                            .addHeader("x-sdk-version", BuildConfig.VERSION_NAME)
+                            .build()
+                    )
+                }
                 .socketFactory(TaggingSocketFactory)
                 .build()
             val factory = SocketFactoryDefault(config, sharedClient)

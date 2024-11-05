@@ -20,30 +20,6 @@ import android.content.pm.PackageManager.NameNotFoundException
 import android.content.pm.PackageManager.PackageInfoFlags
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
-import androidx.annotation.DrawableRes
-import androidx.appcompat.content.res.AppCompatResources
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.core.graphics.drawable.toBitmap
-
-/**
- * Create a Compose [Painter] from a drawable resource.
- *
- * Note: Intended for usage *only* with mipmap resources (like launcher icons).
- * For other resource types use [painterResource](androidx.compose.ui.res.painterResource).
- *
- * @param resId drawable resource id
- * @return a [Painter] resource suitable for usage with [Icon](androidx.compose.material.Icon)
- * and [Image](androidx.compose.foundation.Image).
- */
-fun Context.mipmapPainter(@DrawableRes resId: Int): Painter? = AppCompatResources
-    .getDrawable(this, resId)
-    ?.toBitmap()
-    ?.asImageBitmap()
-    ?.let {
-        return BitmapPainter(it)
-    }
 
 /**
  * Fetch the `versionName` value from the manifest file.

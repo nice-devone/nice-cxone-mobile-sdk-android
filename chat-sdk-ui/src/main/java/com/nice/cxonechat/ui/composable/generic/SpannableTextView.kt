@@ -38,7 +38,7 @@ private const val SPACING_FIX = 3f
 internal fun SpannableTextView(
     spannable: Spannable,
     modifier: Modifier = Modifier,
-    textStyle: TextStyle = ChatTheme.typography.body1,
+    textStyle: TextStyle = ChatTheme.typography.bodyLarge,
 ) {
     AndroidView(
         modifier = modifier,
@@ -70,7 +70,7 @@ internal fun SpannableTextView(
 internal fun HtmlText(
     html: String,
     modifier: Modifier = Modifier,
-    textStyle: TextStyle = ChatTheme.typography.body1
+    textStyle: TextStyle = ChatTheme.typography.bodyLarge
 ) {
     SpannableTextView(
         spannable = HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_COMPACT) as Spannable,

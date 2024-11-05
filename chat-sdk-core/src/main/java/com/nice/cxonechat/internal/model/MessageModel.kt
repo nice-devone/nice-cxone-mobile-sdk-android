@@ -15,7 +15,6 @@
 
 package com.nice.cxonechat.internal.model
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.internal.model.MessageDirectionModel.ToAgent
 import com.nice.cxonechat.internal.model.MessageDirectionModel.ToClient
 import com.nice.cxonechat.internal.model.network.MessagePolyContent
@@ -26,35 +25,42 @@ import com.nice.cxonechat.internal.model.network.MessagePolyContent.RichLink
 import com.nice.cxonechat.internal.model.network.MessagePolyContent.Text
 import com.nice.cxonechat.internal.model.network.UserStatistics
 import com.nice.cxonechat.message.MessageAuthor
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.util.Date
 import java.util.UUID
 
+@Serializable
 internal data class MessageModel(
-    @SerializedName("idOnExternalPlatform")
+    @SerialName("idOnExternalPlatform")
+    @Contextual
     val idOnExternalPlatform: UUID,
 
-    @SerializedName("threadIdOnExternalPlatform")
+    @SerialName("threadIdOnExternalPlatform")
+    @Contextual
     val threadIdOnExternalPlatform: UUID,
 
-    @SerializedName("messageContent")
+    @SerialName("messageContent")
     val messageContent: MessagePolyContent,
 
-    @SerializedName("createdAt")
+    @SerialName("createdAt")
+    @Contextual
     val createdAt: Date,
 
-    @SerializedName("attachments")
+    @SerialName("attachments")
     val attachments: List<AttachmentModel>,
 
-    @SerializedName("direction")
+    @SerialName("direction")
     val direction: MessageDirectionModel,
 
-    @SerializedName("userStatistics")
+    @SerialName("userStatistics")
     val userStatistics: UserStatistics,
 
-    @SerializedName("authorUser")
+    @SerialName("authorUser")
     val authorUser: AgentModel? = null,
 
-    @SerializedName("authorEndUserIdentity")
+    @SerialName("authorEndUserIdentity")
     val authorEndUserIdentity: CustomerIdentityModel? = null,
 ) {
     val author: MessageAuthor?

@@ -15,9 +15,11 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal data class MessagePayload(
-    @SerializedName("text")
+    @SerialName("text")
     val text: String,
 )

@@ -15,8 +15,11 @@
 
 package com.nice.cxonechat.util
 
+import com.nice.cxonechat.internal.serializer.Default.DateTimeSerializer
+import kotlinx.serialization.Serializable
 import java.util.Date
 
+@Serializable(with = DateTimeSerializer::class)
 internal data class DateTime(
     val date: Date,
 )

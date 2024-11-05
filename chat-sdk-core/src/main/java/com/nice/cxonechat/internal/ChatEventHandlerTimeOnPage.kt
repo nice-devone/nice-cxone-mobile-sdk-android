@@ -28,7 +28,7 @@ internal class ChatEventHandlerTimeOnPage(
     private val origin: ChatEventHandler,
     private val chat: ChatWithParameters,
 ) : ChatWithParameters by chat, ChatEventHandler {
-    override fun trigger(event: ChatEvent, listener: OnEventSentListener?, errorListener: OnEventErrorListener?) {
+    override fun trigger(event: ChatEvent<*>, listener: OnEventSentListener?, errorListener: OnEventErrorListener?) {
         when (event) {
             is PageViewEvent -> onPageViewed(event, listener, errorListener)
             is PageViewEndedEvent -> onPageEnded(event, listener, errorListener)

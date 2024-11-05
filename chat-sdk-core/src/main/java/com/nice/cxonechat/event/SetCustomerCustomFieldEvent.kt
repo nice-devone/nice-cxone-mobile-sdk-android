@@ -22,7 +22,7 @@ import com.nice.cxonechat.storage.ValueStorage
 
 internal class SetCustomerCustomFieldEvent(
     private val fields: Map<String, String>,
-) : ChatEvent() {
+) : ChatEvent<ActionSetCustomerCustomFields>() {
 
     override fun getModel(
         connection: Connection,

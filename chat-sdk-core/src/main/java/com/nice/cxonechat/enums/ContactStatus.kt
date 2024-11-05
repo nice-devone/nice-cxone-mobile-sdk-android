@@ -15,26 +15,36 @@
 
 package com.nice.cxonechat.enums
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
 /**
  * The list of all statuses on a contact.
  */
+@Serializable
 internal enum class ContactStatus(val value: String) {
     /** The contact is newly opened. */
+    @SerialName("new")
     New("new"),
 
     /** The contact is currently open. */
+    @SerialName("open")
     Open("open"),
 
     /** The contact is pending. */
+    @SerialName("pending")
     Pending("pending"),
 
     /** The contact has been escalated. */
+    @SerialName("escalated")
     Escalated("escalated"),
 
     /** The contact has been resolved. */
+    @SerialName("resolved")
     Resolved("resolved"),
 
     /** The contact is closed. */
+    @SerialName("closed")
     Closed("closed"),
 
     /** The contact contains some unknown status string. */

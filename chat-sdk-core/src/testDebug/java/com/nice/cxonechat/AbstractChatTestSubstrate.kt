@@ -30,6 +30,7 @@ import com.nice.cxonechat.storage.ValueStorage
 import com.nice.cxonechat.tool.ChatEntrailsMock
 import com.nice.cxonechat.tool.MockServer
 import com.nice.cxonechat.tool.awaitResult
+import com.nice.cxonechat.util.plus
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
@@ -41,8 +42,10 @@ import org.junit.Before
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.Date
 import java.util.UUID
 import kotlin.test.assertEquals
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.milliseconds
 
 internal abstract class AbstractChatTestSubstrate {
@@ -109,7 +112,7 @@ internal abstract class AbstractChatTestSubstrate {
         every { destinationId } returns UUID.fromString(TestUUID)
         every { welcomeMessage } returns "welcome"
         every { authToken } returns "token"
-        every { authTokenExpDate } returns null
+        every { authTokenExpDate } returns Date().plus(1.days.inWholeMilliseconds)
         every { deviceToken } returns null
     }
 

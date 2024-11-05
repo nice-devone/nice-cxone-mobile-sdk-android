@@ -22,7 +22,7 @@ import java.util.UUID
 
 internal data class RecoverThreadEvent(
     val threadId: UUID?
-) : ChatEvent() {
+) : ChatEvent<ActionRecoverThread>() {
     override fun getModel(connection: Connection, storage: ValueStorage) = ActionRecoverThread(
         connection = connection,
         threadId = threadId

@@ -15,8 +15,11 @@
 
 package com.nice.cxonechat.util
 
+import com.nice.cxonechat.internal.serializer.Default.IsoDateSerializer
+import kotlinx.serialization.Serializable
 import java.util.Date
 
+@Serializable(with = IsoDateSerializer::class)
 internal data class IsoDate(
     val date: Date
 )

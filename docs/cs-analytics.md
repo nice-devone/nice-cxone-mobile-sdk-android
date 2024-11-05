@@ -1,8 +1,9 @@
 # Case Study: Analytics
 
-CXone backend provides WFA (WorkFlow automation) functionality which relies on Chat SDK reporting of analytic events.
+CXone backend provides WFA (WorkFlow automation) functionality which relies on Chat SDK reporting of analytic events which serve as triggers for the automation.
+More information about WFA can be found in the [CXone documentation](https://help.nice-incontact.com/content/acd/digital/chat/workflowautomation.htm).
 
-## Analytics events
+## Supported Analytics events
 
 - **ChatWindowOpenEvent**
   - Specific Chat screen (conversation) has been opened
@@ -63,12 +64,12 @@ class ChatViewModel : ViewModel() {
 Events `events.pageView()` and `events.pageViewEnded()` can help you with tracking customer visits within your application.
 Also, these events are used for automatic reporting of time spent on page by the user.
 
-> ⚠️ Important:
+> [!IMPORTANT]
 > Integrator must handle entering background on its own, the SDK does not handle this behavior.
 > Implement lifecycle observer which will report `pageView()` event for `Lifecycle.Event.ON_START` and `pageViewEnded()`
 > for `Lifecycle.Event.ON_STOP`.
 
-> ⚠️ Important:
+> [!IMPORTANT]
 > Thread list, chat transcript, etc. should not be generating page view events. For tracing chatting with the agent,
 > the SDK includes the `chatWindowOpen()` method.
 
@@ -78,3 +79,6 @@ Proactive events are used for evaluation of user flow when they are presented wi
 When the proactive action is presented to the user, the integration should report `events.proactiveActionDisplay(action.metadata)`
 and when user interacts with it the application should report `events.proactiveActionClick(action.metadata)`.
 Reporting of success and failure is left to interpretation of integrators.
+
+In current version the SDK only supports Popup Box which requires the integration to implement `ChatActionHandler.OnPopupActionListener` interface and register it via the `ChatActionHandler.onPopup` method.
+Other details can be found in the [Chat SDK documentation](https://help.nice-incontact.com/content/acd/digital/guide/guideactions/mobileapplicationpopupbox.htm?tocpath=CXone%20Guide%7CCXone%20Guide%7CCreate%20Engagement%20Rules%7CLegacy%20Engagement%20Actions%7C_____6#MobileApplicationPopupBox).

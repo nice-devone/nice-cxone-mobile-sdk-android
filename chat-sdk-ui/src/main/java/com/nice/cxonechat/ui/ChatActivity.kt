@@ -15,184 +15,129 @@
 
 package com.nice.cxonechat.ui
 
+import android.Manifest.permission
+import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
-import android.view.Menu
-import android.view.WindowManager.LayoutParams
-import androidx.annotation.AnimRes
-import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
+import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions
+import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.SnackbarDuration.Short
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.Lifecycle.State.DESTROYED
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.findNavController
-import androidx.navigation.fragment.NavHostFragment
-import com.google.android.material.snackbar.Snackbar
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.createGraph
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.nice.cxonechat.ChatMode.LiveChat
 import com.nice.cxonechat.ChatMode.MultiThread
 import com.nice.cxonechat.ChatState
 import com.nice.cxonechat.ChatState.Connected
-import com.nice.cxonechat.ChatState.Connecting
-import com.nice.cxonechat.ChatState.ConnectionLost
 import com.nice.cxonechat.ChatState.Initial
-import com.nice.cxonechat.ChatState.Offline
-import com.nice.cxonechat.ChatState.Prepared
 import com.nice.cxonechat.ChatState.Preparing
 import com.nice.cxonechat.ChatState.Ready
-import com.nice.cxonechat.Public
-import com.nice.cxonechat.exceptions.RuntimeChatException.AuthorizationError
-import com.nice.cxonechat.prechat.PreChatSurvey
+import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.ui.R.anim
 import com.nice.cxonechat.ui.R.string
+import com.nice.cxonechat.ui.Screen.Offline
+import com.nice.cxonechat.ui.Screen.ThreadList
+import com.nice.cxonechat.ui.Screen.ThreadScreen
+import com.nice.cxonechat.ui.composable.HandleChatErrorState
+import com.nice.cxonechat.ui.composable.HandleChatState
+import com.nice.cxonechat.ui.composable.HandleChatViewDialog
+import com.nice.cxonechat.ui.composable.OfflineContentView
+import com.nice.cxonechat.ui.composable.ThreadContentView
+import com.nice.cxonechat.ui.composable.ThreadListContentView
+import com.nice.cxonechat.ui.composable.conversation.ChatThreadTopBar
+import com.nice.cxonechat.ui.composable.conversation.model.ConversationTopBarState
+import com.nice.cxonechat.ui.composable.showCancellableSnackbar
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
-import com.nice.cxonechat.ui.databinding.ActivityMainBinding
+import com.nice.cxonechat.ui.composable.theme.Fab
+import com.nice.cxonechat.ui.composable.theme.Scaffold
+import com.nice.cxonechat.ui.composable.theme.TopBar
+import com.nice.cxonechat.ui.domain.AttachmentSharingRepository
+import com.nice.cxonechat.ui.main.AudioRecordingViewModel
 import com.nice.cxonechat.ui.main.ChatStateViewModel
+import com.nice.cxonechat.ui.main.ChatThreadViewModel
 import com.nice.cxonechat.ui.main.ChatThreadsViewModel
 import com.nice.cxonechat.ui.main.ChatViewModel
-import com.nice.cxonechat.ui.main.ChatViewModel.Dialogs.None
-import com.nice.cxonechat.ui.main.ChatViewModel.Dialogs.Survey
-import com.nice.cxonechat.ui.main.ChatViewModel.NavigationState
-import com.nice.cxonechat.ui.main.ChatViewModel.NavigationState.MultiThreadEnabled
-import com.nice.cxonechat.ui.main.ChatViewModel.NavigationState.NavigationFinished
-import com.nice.cxonechat.ui.main.ChatViewModel.NavigationState.SingleThreadCreated
-import com.nice.cxonechat.ui.main.ChatViewModel.State
-import com.nice.cxonechat.ui.main.ChatViewModel.State.CreateSingleThread
-import com.nice.cxonechat.ui.main.ChatViewModel.State.SingleThreadCreationFailed
-import com.nice.cxonechat.ui.main.ChatViewModel.State.SingleThreadPreChatSurveyRequired
-import com.nice.cxonechat.ui.model.describe
-import com.nice.cxonechat.ui.util.Ignored
-import com.nice.cxonechat.ui.util.isEmpty
-import com.nice.cxonechat.ui.util.showAlert
-import kotlinx.coroutines.CoroutineScope
+import com.nice.cxonechat.ui.storage.ValueStorage
+import com.nice.cxonechat.ui.util.applyFixesForKeyboardInput
+import com.nice.cxonechat.ui.util.checkNotificationPermissions
+import com.nice.cxonechat.ui.util.checkPermissions
+import com.nice.cxonechat.ui.util.contentDescription
+import com.nice.cxonechat.ui.util.openWithAndroid
+import com.nice.cxonechat.ui.util.overrideCloseAnimation
+import com.nice.cxonechat.ui.util.overrideOpenAnimation
+import com.nice.cxonechat.ui.util.parseThreadDeeplink
+import com.nice.cxonechat.ui.util.repeatOnOwnerLifecycle
+import com.nice.cxonechat.ui.util.showToast
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import java.util.UUID
-import java.util.concurrent.CancellationException
-import com.nice.cxonechat.ui.main.ChatViewModel.NavigationState.Offline as NavigationOffline
 
 /**
  * Chat container activity.
  */
-@Public
 @Suppress("TooManyFunctions")
-class ChatActivity : AppCompatActivity() {
+class ChatActivity : ComponentActivity() {
     private val chatViewModel: ChatViewModel by viewModel()
     private val chatThreadsViewModel: ChatThreadsViewModel by viewModel()
+    private val chatThreadViewModel: ChatThreadViewModel by viewModel()
     private val chatStateViewModel: ChatStateViewModel by viewModel()
-    private val closing
-        get() = lifecycle.currentState == DESTROYED
+    private val audioViewModel: AudioRecordingViewModel by viewModel()
+    private val attachmentSharingRepository: AttachmentSharingRepository by inject()
+    private val valueStorage: ValueStorage by inject()
 
-    @Suppress("LateinitUsage")
-    private lateinit var binding: ActivityMainBinding
-
-    private var chatStateSnackbar: Snackbar? = null
-        set(value) {
-            field?.dismiss()
-            field = value
-        }
+    private val requestPermissionLauncher: ActivityResultLauncher<String> = getNotificationRequestResult()
+    private val audioRequestPermissionLauncher = getAudioRequestResult()
+    private val activityLauncher by lazy {
+        SelectAttachmentActivityLauncher(::sendAttachment, activityResultRegistry).also(lifecycle::addObserver)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         applyFixesForKeyboardInput()
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
+        activityLauncher // activity launcher has to self-register before onStart
         setupComposableUi()
-
-        registerHandler(::handleChatState)
-        registerChatModelStateHandler()
-        registerHandler(::handleErrorStates)
+        repeatOnOwnerLifecycle { intent.handleDeeplink() }
     }
 
-    private fun registerChatModelStateHandler() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                var job: Job? = null
-                chatStateViewModel.state.collect {
-                    job = if (listOf(Ready, Offline).contains(it)) {
-                        handleChatModelState()
-                    } else {
-                        job?.cancel(CancellationException("State: $it"))
-                        null
-                    }
-                }
-            }
-        }
-    }
-
-    private fun CoroutineScope.handleChatModelState() = launch {
-        chatViewModel.state.collect { state ->
-            when (state) {
-                State.Initial -> Ignored
-                is NavigationState -> {
-                    if (state is MultiThreadEnabled || state is NavigationFinished) {
-                        observeBackgroundThreadUpdates()
-                    }
-                    startFragmentNavigation(state)
-                    if (state is MultiThreadEnabled) {
-                        intent?.handleDeeplink()
-                    }
-                }
-
-                CreateSingleThread -> chatViewModel.createThread()
-                is SingleThreadPreChatSurveyRequired -> chatViewModel.showPreChatSurvey(state.survey)
-                is SingleThreadCreationFailed -> showOnThreadCreationFailure(state)
-            }
-        }
-    }
-
-    private fun registerHandler(
-        handler: suspend () -> Unit,
-        repeatOnLifecycleState: Lifecycle.State = Lifecycle.State.RESUMED,
-    ) {
-        lifecycleScope.launch {
-            repeatOnLifecycle(repeatOnLifecycleState) {
-                handler()
-            }
-        }
-    }
-
-    private suspend fun handleErrorStates() {
-        chatStateViewModel.chatErrorState.collect {
-            if (it is AuthorizationError) {
-                AlertDialog.Builder(this)
-                    .setMessage(string.chat_state_error_default_message)
-                    .setCancelable(false)
-                    .setNeutralButton(string.chat_state_error_action_close) { _, _ -> finish() }
-                    .setOnDismissListener { finish() }
-                    .create()
-                    .show()
-            } else {
-                chatStateSnackbar = Snackbar.make(
-                    binding.root,
-                    it.message ?: getText(string.chat_state_error_default_message),
-                    Snackbar.LENGTH_SHORT
-                ).also(Snackbar::show)
-            }
-        }
-    }
-
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                intent?.handleDeeplink()
-            }
-        }
+        repeatOnOwnerLifecycle { intent.handleDeeplink() }
     }
 
     override fun onPause() {
@@ -200,74 +145,246 @@ class ChatActivity : AppCompatActivity() {
         chatViewModel.close()
     }
 
-    /**
-     * This is workaround for issue when keyboard is shown window content pans under the toolbar and keyboard overlaps
-     * window contents.
-     * There should be a better solution.
-     */
-    @Suppress("DEPRECATION")
-    private fun applyFixesForKeyboardInput() {
-        if (VERSION.SDK_INT >= VERSION_CODES.R) window.setDecorFitsSystemWindows(true)
-        window.setSoftInputMode(LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+    @Composable
+    private fun BackgroundThreadUpdates(snackbarHostState: SnackbarHostState) {
+        chatThreadsViewModel.backgroundThreadsFlow.collectAsState(null).value?.let { thread ->
+            LaunchedEffect(thread) {
+                snackbarHostState.showSnackbar(
+                    message = getString(string.background_thread_updated, thread.chatThread.threadName.orEmpty()),
+                    duration = Short,
+                )
+            }
+        }
     }
 
-    private fun CoroutineScope.observeBackgroundThreadUpdates() = launch {
-        chatThreadsViewModel.backgroundThreadsFlow.filterNotNull().collect {
-            Snackbar.make(
-                binding.root,
-                getString(string.background_thread_updated, it.chatThread.threadName.orEmpty()),
-                Snackbar.LENGTH_SHORT
-            ).show()
-        }
+    private fun sendAttachment(it: Uri) {
+        chatThreadViewModel.sendAttachment(it)
     }
 
     override fun finish() {
         super.finish()
-
         overrideCloseAnimation(anim.dismiss_host, anim.dismiss_chat)
     }
 
     private fun setupComposableUi() {
-        binding.composeView.setContent {
+        setContent {
             ChatTheme {
-                when (val dialog = chatViewModel.dialogShown.collectAsState().value) {
-                    None -> Ignored
-                    is Survey -> BuildPreChatSurveyDialog(survey = dialog.survey)
+                val chatState by chatStateViewModel.state.collectAsState()
+                val snackbarHostState = remember { SnackbarHostState() }
+                HandleEarlyChatState(snackbarHostState) {
+                    ChatUi(chatState, snackbarHostState)
                 }
             }
         }
     }
 
     @Composable
-    private fun BuildPreChatSurveyDialog(survey: PreChatSurvey) {
-        PreChatSurveyDialog(
-            survey = survey,
-            onCancel = ::finish,
-            onValidSurveySubmission = chatViewModel::respondToSurvey,
+    private fun HandleEarlyChatState(snackbarHostState: SnackbarHostState, onChatReady: @Composable () -> Unit) {
+        val state by chatStateViewModel.state.collectAsState()
+        val context = LocalContext.current
+        when (state) {
+            // if the chat isn't prepared yet, prepare it.  Hopefully it's been
+            // configured by the provider.
+            Initial, Preparing -> LaunchedEffect(state) {
+                snackbarHostState.currentSnackbarData?.dismiss()
+                if (state == Initial) {
+                    chatViewModel.prepare(context)
+                }
+                snackbarHostState.showCancellableSnackbar(
+                    message = context.getString(string.preparing_sdk),
+                    actionLabel = context.getString(string.cancel),
+                    onAction = ::finish,
+                )
+            }
+
+            else -> onChatReady()
+        }
+    }
+
+    @Composable
+    private fun ChatUi(chatState: ChatState, snackbarHostState: SnackbarHostState) {
+        val isMultiThread = remember { chatViewModel.chatMode === MultiThread }
+        val isLiveChat = remember { chatViewModel.chatMode === LiveChat }
+
+        val navController = rememberNavController()
+        val initialScreen = remember { getChatInitialScreen(isLiveChat, chatState, isMultiThread) }
+        val screenGraph = navController.createGraph(startDestination = initialScreen) {
+            composable<Offline> {
+                OfflineView(snackbarHostState)
+            }
+            composable<ThreadList> {
+                ThreadListView(snackbarHostState, navController)
+            }
+            composable<ThreadScreen> {
+                ThreadView(snackbarHostState, isMultiThread, isLiveChat)
+            }
+        }
+        HandleChatViewDialog(
+            dialogShownFlow = chatViewModel.dialogShown,
+            cancelAction = ::finish,
+            submitAction = chatViewModel::respondToSurvey,
+            retryAction = chatViewModel::refreshThreadState
+        )
+        HandleChatState(
+            snackbarHostState = snackbarHostState,
+            chatStateFlow = chatStateViewModel.state,
+            onConnectChatAction = chatViewModel::connect,
+            onReadyAction = {
+                navController.navigate(if (chatViewModel.chatMode === MultiThread) ThreadList else ThreadScreen) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            },
+            onFinishAction = ::finish,
+            onOfflineAction = {
+                navController.navigate(Offline)
+            },
+        )
+        HandleChatErrorState(snackbarHostState, chatStateViewModel.chatErrorState, ::finish)
+        NavHost(navController, screenGraph)
+    }
+
+    @Composable
+    private fun ThreadView(snackbarHostState: SnackbarHostState, isMultiThread: Boolean, isLiveChat: Boolean) {
+        ChatTheme.Scaffold(
+            snackbarHostState = snackbarHostState,
+            topBar = { ThreadViewTopBar(isMultiThread, isLiveChat) }
+        ) { padding ->
+            Box(modifier = Modifier.padding(padding)) {
+                ThreadContentView(snackbarHostState = snackbarHostState)
+                if (isMultiThread) BackgroundThreadUpdates(snackbarHostState)
+            }
+        }
+    }
+
+    @Composable
+    private fun ThreadListView(snackbarHostState: SnackbarHostState, navController: NavHostController) {
+        ChatTheme.Scaffold(
+            snackbarHostState = snackbarHostState,
+            topBar = { ChatTheme.TopBar(title = stringResource(id = string.thread_list_title)) },
+            floatingActionButton = { ChatFab(chatThreadsViewModel::createThread) }
+        ) {
+            Box(modifier = Modifier.padding(it)) {
+                BackgroundThreadUpdates(snackbarHostState)
+                ThreadListContentView(chatThreadsViewModel) {
+                    navController.navigate(ThreadScreen)
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun OfflineView(snackbarHostState: SnackbarHostState) {
+        BackHandler {
+            finish()
+        }
+        ChatTheme.Scaffold(
+            snackbarHostState = snackbarHostState,
+            topBar = { ChatTheme.TopBar(title = stringResource(id = string.offline)) }
+        ) {
+            Box(modifier = Modifier.padding(it)) {
+                OfflineContentView()
+            }
+        }
+    }
+
+    private fun getChatInitialScreen(isLiveChat: Boolean, chatState: ChatState, isMultiThread: Boolean) = when {
+        isLiveChat && chatState === ChatState.Offline -> Offline
+        isMultiThread -> ThreadList
+        else -> ThreadScreen
+    }
+
+    @Composable
+    private fun ThreadViewTopBar(isMultiThread: Boolean, isLiveChat: Boolean) {
+        val threadNameFlow = remember { chatThreadViewModel.chatMetadata.map { it.threadName } }
+        ChatThreadTopBar(
+            conversationState = ConversationTopBarState(
+                threadName = threadNameFlow,
+                isMultiThreaded = isMultiThread,
+                isLiveChat = isLiveChat,
+                hasQuestions = chatThreadViewModel.hasQuestions,
+                isArchived = chatThreadViewModel.isArchived,
+            ),
+            onEditThreadName = { chatThreadViewModel.editThreadName() },
+            onEditThreadValues = chatThreadViewModel::startEditingCustomValues,
+            onEndContact = chatThreadViewModel::endContact,
+            displayEndConversation = chatThreadViewModel::showEndContactDialog,
         )
     }
 
-    private fun startFragmentNavigation(state: NavigationState) {
-        val navigationStart = when (state) {
-            NavigationOffline -> R.navigation.offline
-            MultiThreadEnabled -> R.navigation.threads
-            SingleThreadCreated -> R.navigation.chat
-            NavigationFinished -> return
+    @SuppressLint(
+        "MissingPermission" // permission state is checked by `checkPermissions()` method
+    )
+    private suspend fun onTriggerRecording(): Boolean {
+        if (!checkPermissions(
+                valueStorage = valueStorage,
+                permissions = requiredRecordAudioPermissions,
+                rationale = string.recording_audio_permission_rationale,
+                onAcceptPermissionRequest = audioRequestPermissionLauncher::launch
+            )
+        ) {
+            return false
+            // Permissions will need to be sorted out first, user will have to click the button again after that
         }
-
-        val navHostFragment = NavHostFragment.create(navigationStart)
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.nav_host_fragment, navHostFragment)
-            .setPrimaryNavigationFragment(navHostFragment)
-            .commitNow()
-
-        navHostFragment.navController.addOnDestinationChangedListener { _, _, _ ->
-            invalidateOptionsMenu()
+        return if (audioViewModel.recordingFlow.value) {
+            audioViewModel.stopRecording(this@ChatActivity)
+        } else {
+            audioViewModel.startRecording(this@ChatActivity).isSuccess
         }
+    }
 
-        chatViewModel.setNavigationFinishedState()
+    @SuppressLint(
+        "MissingPermission" // permission state is checked by `checkPermissions()` method
+    )
+    private fun onDismissRecording() {
+        lifecycleScope.launch {
+            if (!checkPermissions(
+                    valueStorage = valueStorage,
+                    permissions = requiredRecordAudioPermissions,
+                    rationale = string.recording_audio_permission_rationale,
+                    onAcceptPermissionRequest = audioRequestPermissionLauncher::launch
+                )
+            ) {
+                return@launch
+            }
+            audioViewModel.deleteLastRecording(this@ChatActivity) {
+                showToast(string.record_audio_failed_cleanup, Toast.LENGTH_LONG)
+            }
+        }
+    }
 
-        invalidateOptionsMenu()
+    private fun onShare(attachments: Collection<Attachment>) {
+        chatThreadViewModel.beginPrepareAttachments()
+        lifecycleScope.launch(Dispatchers.IO) {
+            val intent = attachmentSharingRepository.createSharingIntent(attachments, this@ChatActivity)
+            chatThreadViewModel.finishPrepareAttachments()
+            lifecycleScope.launch(Dispatchers.Main) {
+                if (intent == null) {
+                    showToast(string.prepare_attachments_failure)
+                } else {
+                    startActivity(Intent.createChooser(intent, null))
+                }
+            }
+        }
+    }
+
+    private fun onAttachmentClicked(attachment: Attachment) {
+        val url = attachment.url
+        val mimeType = attachment.mimeType.orEmpty()
+        val title by lazy { attachment.contentDescription }
+        when {
+            mimeType.startsWith("image/") -> chatThreadViewModel.showImage(url, title ?: getString(string.image_preview_title))
+            mimeType.startsWith("video/") -> chatThreadViewModel.showVideo(url, title ?: getString(string.video_preview_title))
+            mimeType.startsWith("audio/") -> chatThreadViewModel.playAudio(url, title)
+            else -> openWithAndroid(attachment)
+        }
+    }
+
+    private fun openWithAndroid(attachment: Attachment) {
+        if (!openWithAndroid(attachment.url, attachment.mimeType)) showInvalidAttachmentDialog(attachment)
     }
 
     override fun onResume() {
@@ -277,90 +394,17 @@ class ChatActivity : AppCompatActivity() {
                 chatViewModel.reportOnResume()
             }
         }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.default_menu, menu)
-        return true
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        if (menu != null && chatStateViewModel.state.value == Connected) {
-            val navController = findNavController(R.id.nav_host_fragment)
-            val isInChat = navController.currentDestination?.id == R.id.offlineFragment
-            val isMultiThread = chatViewModel.chatMode === MultiThread
-            val isLiveChat = chatViewModel.chatMode === LiveChat
-            val hasQuestions = chatViewModel.preChatSurvey?.fields?.isEmpty() == false
-
-            with(menu) {
-                findItem(R.id.action_thread_name)?.isVisible = isInChat && isMultiThread
-                findItem(R.id.action_custom_values)?.isVisible = isInChat && hasQuestions
-                findItem(R.id.action_end_contact)?.isVisible = isInChat && isLiveChat
-            }
+        lifecycleScope.launch {
+            chatStateViewModel.state.filter { it === Ready }.first()
+            chatViewModel.refreshThreadState()
         }
-
-        return super.onPrepareOptionsMenu(menu)
-    }
-
-    private suspend fun handleChatState() {
-        chatStateViewModel.state.collect { state: ChatState ->
-            when (state) {
-                // if the chat isn't prepared yet, prepare it.  Hopefully it's been
-                // configured by the provider.
-                Initial -> chatViewModel.prepare(applicationContext)
-
-                Preparing -> chatStateSnackbar = Snackbar.make(
-                    binding.root,
-                    getString(string.preparing_sdk),
-                    Snackbar.LENGTH_INDEFINITE
-                ).setAction(string.chat_state_connecting_action_cancel) {
-                    finish()
-                }.apply(Snackbar::show)
-
-                // if the chat is (or becomes) prepared, then start a connect attempt
-                Prepared -> if (!closing) {
-                    chatViewModel.connect()
-                }
-
-                Connecting -> chatStateSnackbar = Snackbar.make(
-                    binding.root,
-                    getString(string.chat_state_connecting),
-                    Snackbar.LENGTH_INDEFINITE
-                ).setAction(string.chat_state_connecting_action_cancel) {
-                    finish()
-                }.apply(Snackbar::show)
-
-                Connected -> chatStateSnackbar = Snackbar.make(
-                    binding.root,
-                    string.chat_state_connected,
-                    Snackbar.LENGTH_SHORT
-                ).apply(Snackbar::show)
-
-                Ready -> chatStateSnackbar = Snackbar.make(
-                    binding.root,
-                    "SDK ready",
-                    Snackbar.LENGTH_SHORT
-                ).apply(Snackbar::show)
-
-                Offline -> chatStateSnackbar = Snackbar.make(
-                    binding.root,
-                    "SDK OFFLINE",
-                    Snackbar.LENGTH_SHORT
-                )
-
-                ConnectionLost -> chatStateSnackbar = Snackbar.make(
-                    binding.root,
-                    string.chat_state_connection_lost,
-                    Snackbar.LENGTH_INDEFINITE
-                ).setAction(string.chat_state_connection_lost_action_reconnect) {
-                    chatViewModel.connect()
-                }.apply(Snackbar::show)
-            }
+        if (VERSION.SDK_INT >= VERSION_CODES.TIRAMISU) {
+            checkNotificationPermissions(
+                permission.POST_NOTIFICATIONS,
+                string.notifications_rationale,
+                requestPermissionLauncher::launch
+            )
         }
-    }
-
-    private fun showOnThreadCreationFailure(state: SingleThreadCreationFailed) {
-        showAlert(describe(state.failure), onClick = chatViewModel::refreshThreadState)
     }
 
     private suspend fun Intent.handleDeeplink() {
@@ -373,31 +417,29 @@ class ChatActivity : AppCompatActivity() {
     }
 
     companion object {
-        private fun Activity.overrideOpenAnimation(
-            @AnimRes enterAnim: Int,
-            @AnimRes exitAnim: Int,
-        ) {
-            if (VERSION.SDK_INT < VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                @Suppress("DEPRECATION")
-                overridePendingTransition(enterAnim, exitAnim)
-            } else {
-                overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, enterAnim, exitAnim)
-            }
+        private val requiredRecordAudioPermissions = if (VERSION.SDK_INT > VERSION_CODES.Q) {
+            setOf(permission.RECORD_AUDIO)
+        } else {
+            setOf(permission.RECORD_AUDIO, permission.WRITE_EXTERNAL_STORAGE)
         }
 
-        /*
-         * This could be defined as a normal method on ChatActivity, but this seems to keep it paired with
-         * overrideCloseAnimation better.
-         */
-        private fun Activity.overrideCloseAnimation(
-            @AnimRes enterAnim: Int,
-            @AnimRes exitAnim: Int,
-        ) {
-            if (VERSION.SDK_INT < VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                @Suppress("DEPRECATION")
-                overridePendingTransition(enterAnim, exitAnim)
-            } else {
-                overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, enterAnim, exitAnim)
+        @Composable
+        private fun ChatActivity.ThreadContentView(snackbarHostState: SnackbarHostState) {
+            ThreadContentView(
+                onAttachmentClicked = ::onAttachmentClicked,
+                onShare = ::onShare,
+                closeChat = ::finish,
+                onDismissRecording = ::onDismissRecording,
+                onTriggerRecording = ::onTriggerRecording,
+                chatThreadViewModel = chatThreadViewModel,
+                chatViewModel = chatViewModel,
+                audioViewModel = audioViewModel,
+                snackbarHostState = snackbarHostState,
+                activityLauncher = activityLauncher,
+            )
+            val chatThreadsState by chatThreadsViewModel.state.collectAsState()
+            if (chatThreadsState === ChatThreadsViewModel.State.ThreadSelected) {
+                chatThreadsViewModel.resetState()
             }
         }
 
@@ -406,6 +448,7 @@ class ChatActivity : AppCompatActivity() {
          *
          * @param from Activity to use as a base for the new [ChatActivity].
          */
+        @JvmStatic
         fun startChat(from: Activity) {
             from.startActivity(Intent(from, ChatActivity::class.java))
             from.overrideOpenAnimation(anim.present_chat, anim.present_host)
@@ -413,8 +456,55 @@ class ChatActivity : AppCompatActivity() {
     }
 }
 
-private fun Uri.parseThreadDeeplink(): Result<UUID> = runCatching {
-    val threadIdString = getQueryParameter("idOnExternalPlatform")
-    require(!threadIdString.isNullOrEmpty()) { "Invalid threadId in $this" }
-    UUID.fromString(threadIdString)
+private fun ComponentActivity.getNotificationRequestResult() =
+    registerForActivityResult(RequestPermission()) { isGranted ->
+        if (!isGranted) {
+            MaterialAlertDialogBuilder(this)
+                .setTitle(string.no_notifications_title)
+                .setMessage(string.no_notifications_message)
+                .setNeutralButton(string.ok, null)
+                .show()
+        }
+    }
+
+private fun ComponentActivity.getAudioRequestResult() =
+    registerForActivityResult(RequestMultiplePermissions()) { requestResults: Map<String, Boolean>? ->
+        if (requestResults.orEmpty().any { !it.value }) {
+            MaterialAlertDialogBuilder(this)
+                .setTitle(string.recording_audio_permission_denied_title)
+                .setMessage(string.recording_audio_permission_denied_body)
+                .setNeutralButton(string.ok) { dialog, _ ->
+                    dialog.dismiss()
+                }
+        }
+    }
+
+private fun Context.showInvalidAttachmentDialog(attachment: Attachment) {
+    MaterialAlertDialogBuilder(this)
+        .setTitle(string.unsupported_type_title)
+        .setMessage(getString(string.unsupported_type_message, attachment.mimeType))
+        .setNegativeButton(string.cancel, null)
+        .show()
+}
+
+@Composable
+private fun ChatFab(onClick: () -> Unit = {}) {
+    ChatTheme.Fab(
+        onClick = onClick,
+        icon = rememberVectorPainter(image = Icons.Default.Add),
+        contentDescription = null,
+    )
+}
+
+@Serializable
+private sealed class Screen {
+
+    @Serializable
+    data object Offline : Screen()
+
+    @Serializable
+    data object ThreadList : Screen()
+
+    @Serializable
+    data object ThreadScreen : Screen()
 }

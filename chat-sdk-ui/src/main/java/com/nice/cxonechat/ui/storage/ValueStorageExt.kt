@@ -15,22 +15,15 @@
 
 package com.nice.cxonechat.ui.storage
 
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.nice.cxonechat.ui.storage.ValueStorage.StringKey.CustomerCustomValuesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.serialization.json.Json
 
 internal suspend fun ValueStorage.getCustomerCustomValues(): Map<String, String> {
-    @Suppress("UNCHECKED_CAST")
-    val parameterized = TypeToken.getParameterized(
-        Map::class.java,
-        String::class.java,
-        String::class.java
-    ) as? TypeToken<Map<String, String>>?
     val json = getString(CustomerCustomValuesKey).firstNotBlankOrNull()
     return if (json != null) {
-        Gson().fromJson(json, parameterized) ?: emptyMap()
+        Json.Default.decodeFromString<Map<String, String>>(json)
     } else {
         emptyMap()
     }

@@ -27,10 +27,16 @@ abstract class Agent {
     abstract val id: Int
 
     /** The id of the agent in the inContact (CXone) system. */
-    abstract val inContactId: UUID? // todo find out why is this nullable
+    @Deprecated(
+        message = "inContactId is internal field and should not be used. It is now always null.",
+    )
+    abstract val inContactId: UUID?
 
     /** The email address of the agent. */
-    abstract val emailAddress: String? // todo find out why is this nullable
+    @Deprecated(
+        message = "emailAddress is internal field and should not be used. It is now always null.",
+    )
+    abstract val emailAddress: String?
 
     /** The first name of the agent. */
     abstract val firstName: String
@@ -38,8 +44,8 @@ abstract class Agent {
     /** The surname of the agent. */
     abstract val lastName: String
 
-    /** The nickname of the agent. */
-    abstract val nickname: String? // todo find out why is this nullable or necessary
+    /** The optional nickname of the agent. */
+    abstract val nickname: String?
 
     /** Whether the agent is a bot. */
     abstract val isBotUser: Boolean

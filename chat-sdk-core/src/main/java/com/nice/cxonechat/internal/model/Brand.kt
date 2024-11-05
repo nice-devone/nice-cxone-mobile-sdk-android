@@ -15,15 +15,17 @@
 
 package com.nice.cxonechat.internal.model
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 // BrandView
 
 /**
  * Represents all info about the brand.
  */
-internal data class Brand constructor(
+@Serializable
+internal data class Brand(
     /** The id of the brand. */
-    @SerializedName("id")
+    @SerialName("id")
     val id: Int,
 )

@@ -29,14 +29,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.LinearProgressIndicator
-import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons.Outlined
 import androidx.compose.material.icons.outlined.FastForward
 import androidx.compose.material.icons.outlined.FastRewind
 import androidx.compose.material.icons.outlined.PlayCircleOutline
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -109,7 +109,7 @@ private fun playerFactory(context: Context, exoPlayer: ExoPlayer) =
 private fun InspectionPlaceholder(modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
-        border = BorderStroke(1.dp, ChatTheme.colors.onSurface.copy(alpha = 0.3f))
+        border = BorderStroke(1.dp, ChatTheme.colorScheme.onSurface.copy(alpha = 0.3f))
     ) {
         Column(
             modifier = Modifier
@@ -117,8 +117,8 @@ private fun InspectionPlaceholder(modifier: Modifier = Modifier) {
                 .height(80.dp)
         ) {
             LinearProgressIndicator(
-                progress = 0.5f,
-                modifier = Modifier.fillMaxWidth()
+                progress = { 0.5f },
+                modifier = Modifier.fillMaxWidth(),
             )
             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxSize()) {
                 IconButton(onClick = {}, modifier = Modifier.fillMaxHeight()) {

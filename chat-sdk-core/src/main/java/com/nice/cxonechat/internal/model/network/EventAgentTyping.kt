@@ -15,16 +15,18 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.EventType.SenderTypingStarted
 import com.nice.cxonechat.internal.model.AgentModel
 import com.nice.cxonechat.internal.model.Thread
 import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
 import com.nice.cxonechat.thread.ChatThread
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /** Event received when the agent begins typing or stops typing. */
+@Serializable
 internal data class EventAgentTyping(
-    @SerializedName("data")
+    @SerialName("data")
     val data: Data,
 ) {
 
@@ -37,10 +39,11 @@ internal data class EventAgentTyping(
     fun inThread(thread: ChatThread) =
         data.thread.idOnExternalPlatform == thread.id
 
+    @Serializable
     data class Data(
-        @SerializedName("thread")
+        @SerialName("thread")
         val thread: Thread,
-        @SerializedName("user")
+        @SerialName("user")
         val user: AgentModel?,
     )
 

@@ -15,21 +15,105 @@
 
 package com.nice.cxonechat.tool
 
+import com.google.gson.FormattingStyle
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.TypeAdapter
+import com.google.gson.TypeAdapterFactory
+import com.google.gson.internal.Streams
+import com.google.gson.reflect.TypeToken
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonToken.NULL
+import com.google.gson.stream.JsonToken.NUMBER
+import com.google.gson.stream.JsonWriter
 import com.nice.cxonechat.internal.serializer.Default
-import java.lang.reflect.Type
+import com.nice.cxonechat.util.timestampToDate
+import com.nice.cxonechat.util.toTimestamp
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.serializer
+import java.util.Date
+import kotlin.math.roundToLong
 
-internal fun Any.serialize(temporarySubtypes: Map<Type, Any> = emptyMap()): String = Default.serializer
-    .let { gson ->
-        when {
-            temporarySubtypes.isNotEmpty() -> {
-                val builder = gson.newBuilder()
-                for ((type, adapter) in temporarySubtypes) {
-                    builder.registerTypeAdapter(type, adapter)
-                }
-                builder.create()
+internal inline fun <reified T : Any> T.serialize(): String = if (this::class.java.isAnnotationPresent(Serializable::class.java)) {
+    Default.serializer.encodeToString(this)
+} else {
+    Gson.toJson(this)
+}
+
+internal val Gson = GsonBuilder()
+    .registerTypeAdapter(Date::class.java, DateTypeAdapter())
+    .registerTypeAdapterFactory(Factory())
+    .setFormattingStyle(FormattingStyle.PRETTY)
+    .create()
+
+private class DateTypeAdapter : TypeAdapter<Date>() {
+
+    override fun write(out: JsonWriter, value: Date?) {
+        if (value == null) {
+            out.nullValue()
+            return
+        }
+        out.value(value.toTimestamp())
+    }
+
+    override fun read(reader: JsonReader): Date? {
+        return when (reader.peek()) {
+            NULL -> {
+                reader.nextNull()
+                null
             }
 
-            else -> gson
+            NUMBER -> {
+                var time = reader.nextDouble()
+                if (time < epochLimitSeconds) time *= 1000
+                Date(time.roundToLong())
+            }
+
+            else -> reader.nextString().timestampToDate()
         }
     }
-    .toJson(this)
+
+    companion object {
+        // this will make the program malfunction on Sat Nov 20 2286 17:46:40 UTC (:
+        private const val epochLimitSeconds = 10_000_000_000L
+    }
+}
+
+
+private class Factory : TypeAdapterFactory {
+    override fun <T> create(gson: Gson, type: TypeToken<T>): TypeAdapter<T> {
+        val rawType: Class<in T> = type.rawType
+        val annotation: Serializable? = rawType.getAnnotation(Serializable::class.java)
+
+        val annotationPresent: Boolean = rawType.isAnnotationPresent(Serializable::class.java)
+
+        if (annotation != null && annotationPresent) {
+            return KotlinxAdapter(rawType)
+        }
+
+        return gson.getDelegateAdapter(this, type)
+    }
+}
+
+private class KotlinxAdapter<T>(private val type: Class<in T>) : TypeAdapter<T>() {
+    val serializer = Default.serializer.serializersModule.serializer(type)
+    override fun write(out: JsonWriter, value: T?) {
+        if (value == null) {
+            out.nullValue()
+            return
+        }
+
+        out.jsonValue(Default.serializer.encodeToString(serializer, value))
+    }
+
+    override fun read(reader: JsonReader): T? {
+        return when (reader.peek()) {
+            NULL -> {
+                reader.nextNull()
+                null
+            }
+            else -> Default.serializer.decodeFromString(serializer, Streams.parse(reader).toString()) as T
+        }
+    }
+}

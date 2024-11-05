@@ -25,7 +25,7 @@ internal class ChatEventHandlerThreading(
     private val origin: ChatEventHandler,
     private val chat: ChatWithParameters,
 ) : ChatEventHandler {
-    override fun trigger(event: ChatEvent, listener: OnEventSentListener?, errorListener: OnEventErrorListener?) {
+    override fun trigger(event: ChatEvent<*>, listener: OnEventSentListener?, errorListener: OnEventErrorListener?) {
         chat.entrails.threading.background {
             try {
                 origin.trigger(event, listener, errorListener)

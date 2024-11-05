@@ -15,10 +15,12 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal data class AccessPayload(
-    @SerializedName("accessToken")
+    @SerialName("accessToken")
     val accessToken: AccessTokenPayload?,
 ) {
     constructor(token: String?) : this(token?.let(::AccessTokenPayload))

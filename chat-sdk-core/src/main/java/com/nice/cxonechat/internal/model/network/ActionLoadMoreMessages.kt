@@ -15,7 +15,6 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.EventAction
 import com.nice.cxonechat.enums.EventAction.ChatWindowEvent
 import com.nice.cxonechat.enums.EventType.LoadMoreMessages
@@ -24,14 +23,19 @@ import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.util.DateTime
 import com.nice.cxonechat.util.UUIDProvider
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
+@Serializable
 internal data class ActionLoadMoreMessages(
-    @SerializedName("action")
+    @SerialName("action")
     val action: EventAction = ChatWindowEvent,
-    @SerializedName("eventId")
+    @SerialName("eventId")
+    @Contextual
     val eventId: UUID = UUIDProvider.next(),
-    @SerializedName("payload")
+    @SerialName("payload")
     val payload: Payload<Data>,
 ) {
 
@@ -50,12 +54,14 @@ internal data class ActionLoadMoreMessages(
         )
     )
 
+    @Serializable
     data class Data(
-        @SerializedName("scrollToken")
+        @SerialName("scrollToken")
         val scrollToken: String,
-        @SerializedName("thread")
+        @SerialName("thread")
         val thread: Thread,
-        @SerializedName("oldestMessageDatetime")
+        @SerialName("oldestMessageDatetime")
+        @Contextual
         val oldestMessageDatetime: DateTime,
     )
 }

@@ -15,19 +15,21 @@
 
 package com.nice.cxonechat.internal.model
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.prechat.PreChatSurvey
 import com.nice.cxonechat.prechat.PreChatSurveyInternal
 import com.nice.cxonechat.state.FieldDefinitionImpl
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal data class PreContactFormModel(
-    @SerializedName("name")
+    @SerialName("name")
     val name: String,
 
-    @SerializedName("channels")
+    @SerialName("channels")
     val channels: List<ChannelIdentifier>,
 
-    @SerializedName("customFields")
+    @SerialName("customFields")
     val customFields: List<PreContactCustomFieldDefinitionModel>,
 ) {
 

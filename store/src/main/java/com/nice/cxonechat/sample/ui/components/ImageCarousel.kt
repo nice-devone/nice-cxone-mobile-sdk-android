@@ -28,7 +28,10 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.MaterialTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Photo
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -40,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -102,6 +106,8 @@ fun ImageCarousel(
                     .carouselTransition(index, pagerState),
                 alignment = Alignment.Center,
                 contentScale = ContentScale.Fit,
+                placeholder = rememberVectorPainter(Icons.Default.Photo),
+                error = rememberVectorPainter(Icons.Default.Error),
             )
         }
 
@@ -132,8 +138,8 @@ private fun DotIndicators(
     pageCount: Int,
     pagerState: PagerState,
     modifier: Modifier = Modifier,
-    selectedColor: Color = MaterialTheme.colors.primary,
-    unselectedColor: Color = MaterialTheme.colors.secondary,
+    selectedColor: Color = MaterialTheme.colorScheme.primary,
+    unselectedColor: Color = MaterialTheme.colorScheme.secondary,
     dotSize: Dp = 6.dp,
     dotSpacing: Dp = 3.dp,
 ) {
@@ -155,8 +161,8 @@ private fun DotIndicators(
 @Composable
 private fun DotIndicator(
     selected: Boolean,
-    selectedColor: Color = MaterialTheme.colors.primary,
-    unselectedColor: Color = MaterialTheme.colors.secondary,
+    selectedColor: Color = MaterialTheme.colorScheme.primary,
+    unselectedColor: Color = MaterialTheme.colorScheme.secondary,
     dotSize: Dp = 6.dp,
 ) {
     val color = if (selected) {

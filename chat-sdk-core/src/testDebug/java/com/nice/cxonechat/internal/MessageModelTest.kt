@@ -38,8 +38,6 @@ internal class MessageModelTest {
         userStatistics = mockk(),
         authorUser = AgentModel(
             id = 1,
-            inContactId = UUID.randomUUID(),
-            emailAddress = null,
             firstName = "Agent",
             surname = "Name",
             nickname = null,

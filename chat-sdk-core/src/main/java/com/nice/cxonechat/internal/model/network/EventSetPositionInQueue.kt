@@ -15,11 +15,12 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
-import com.nice.cxonechat.internal.model.Contact
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal data class EventSetPositionInQueue(
-    @SerializedName("data")
+    @SerialName("data")
     val data: Data
 ) {
     val consumerContact get() = data.consumerContact.id
@@ -27,18 +28,20 @@ internal data class EventSetPositionInQueue(
     val positionInQueue get() = data.positionInQueue
     val hasOnlineAgent get() = data.isAnyAgentOnlineForQueue
 
+    @Serializable
     data class Data(
-        @SerializedName("consumerContact")
-        val consumerContact: Contact,
-        @SerializedName("routingQueue")
+        @SerialName("consumerContact")
+        val consumerContact: Identifier,
+        @SerialName("routingQueue")
         val routingQueue: RoutingQueue,
-        @SerializedName("positionInQueue")
+        @SerialName("positionInQueue")
         val positionInQueue: Int,
-        @SerializedName("isAnyAgentOnlineForQueue")
+        @SerialName("isAnyAgentOnlineForQueue")
         val isAnyAgentOnlineForQueue: Boolean,
     ) {
+        @Serializable
         data class RoutingQueue(
-            @SerializedName("id")
+            @SerialName("id")
             val id: String,
         )
     }

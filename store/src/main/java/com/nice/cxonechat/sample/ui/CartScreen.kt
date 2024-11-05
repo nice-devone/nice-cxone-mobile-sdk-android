@@ -26,13 +26,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Divider
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -168,7 +168,7 @@ object CartScreen : Screen {
         ) {
             item {
                 Header(modifier = Modifier.padding(bottom = 4.dp))
-                Divider(thickness = 2.dp, color = AppTheme.colors.onBackground)
+                HorizontalDivider(thickness = 2.dp, color = AppTheme.colorScheme.onBackground)
             }
 
             itemsIndexed(items = cart.items, key = { _, item -> item.productId }) { index, item ->
@@ -180,12 +180,12 @@ object CartScreen : Screen {
                     updateItem = updateItem
                 )
                 if (index != cart.items.lastIndex) {
-                    Divider()
+                    HorizontalDivider()
                 }
             }
 
             item {
-                Divider(thickness = 2.dp, color = AppTheme.colors.onBackground)
+                HorizontalDivider(thickness = 2.dp, color = AppTheme.colorScheme.onBackground)
                 Footer(cart.total, modifier = Modifier.padding(top = 4.dp))
             }
         }
@@ -215,7 +215,7 @@ object CartScreen : Screen {
     @Composable
     private fun Footer(total: Double, modifier: Modifier = Modifier) {
         Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            Text(total.asCurrency, style = AppTheme.typography.body1.bold)
+            Text(total.asCurrency, style = AppTheme.typography.bodyLarge.bold)
         }
     }
 
@@ -245,7 +245,7 @@ object CartScreen : Screen {
                             updateItem(item.copy(quantity = quantity.toInt()))
                         }
                     },
-                textStyle = AppTheme.typography.body1.copy(textAlign = TextAlign.End),
+                textStyle = AppTheme.typography.bodyLarge.copy(textAlign = TextAlign.End),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Decimal,
                     imeAction = if(more) ImeAction.Next else ImeAction.Done

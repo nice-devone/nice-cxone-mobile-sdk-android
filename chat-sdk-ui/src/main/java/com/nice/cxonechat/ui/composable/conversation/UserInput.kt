@@ -33,21 +33,21 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.ContentAlpha
-import androidx.compose.material.Divider
-import androidx.compose.material.Icon
-import androidx.compose.material.IconToggleButton
-import androidx.compose.material.LocalContentColor
-import androidx.compose.material.LocalTextStyle
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons.AutoMirrored
 import androidx.compose.material.icons.Icons.Outlined
 import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.MicNone
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.IconToggleButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -88,7 +88,6 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.SelectableIconButton
 import com.nice.cxonechat.ui.composable.theme.SmallSpacer
-import com.nice.cxonechat.ui.composable.theme.contentColorFor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -238,7 +237,7 @@ private fun Header() {
             .height(24.dp)
             .padding(vertical = space.medium, horizontal = space.large)
     ) {
-        Divider(
+        HorizontalDivider(
             modifier = Modifier
                 .weight(1f)
                 .align(Alignment.CenterVertically)
@@ -296,7 +295,7 @@ private fun RowScope.UserInputText(
             textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current)
         )
 
-        val disableContentColor = ChatTheme.colors.onSurface.copy(alpha = ContentAlpha.disabled)
+        val disableContentColor = ChatTheme.colorScheme.onSurface.copy(alpha = 0.38f)
         if (textFieldValue.text.isEmpty() && !focusState) {
             val hint = if (isAudioRecording) {
                 stringResource(string.recording_audio_hint)
@@ -308,7 +307,7 @@ private fun RowScope.UserInputText(
                     .align(Alignment.CenterStart)
                     .padding(horizontal = 16.dp),
                 text = hint,
-                style = ChatTheme.typography.body1.copy(color = disableContentColor)
+                style = ChatTheme.typography.bodyLarge.copy(color = disableContentColor)
             )
         }
     }
@@ -341,7 +340,7 @@ private fun UserInputSelector(
         val border = if (!sendMessageEnabled) {
             BorderStroke(
                 width = 1.dp,
-                color = ChatTheme.colors.onSurface.copy(alpha = 0.3f)
+                color = ChatTheme.colorScheme.onSurface.copy(alpha = 0.3f)
             )
         } else {
             null
@@ -407,7 +406,7 @@ private fun ChatTheme.InputSelectorToggleButton(
     checked: Boolean,
     onToggle: (Boolean) -> Unit,
 ) {
-    val selectedColor = if (checked) colors.secondaryVariant else colors.secondary
+    val selectedColor = if (checked) colorScheme.primary else colorScheme.secondary
     val backgroundModifier = Modifier.background(
         color = selectedColor,
         shape = RoundedCornerShape(8.dp)
@@ -415,11 +414,16 @@ private fun ChatTheme.InputSelectorToggleButton(
     IconToggleButton(
         checked = checked,
         onCheckedChange = onToggle,
+        colors = IconButtonDefaults.iconToggleButtonColors(
+            containerColor = colorScheme.secondary,
+            contentColor = colorScheme.onSecondary,
+            checkedContainerColor = colorScheme.primary,
+            checkedContentColor = colorScheme.onPrimary,
+        ),
         modifier = Modifier.then(backgroundModifier)
     ) {
         Icon(
             icon,
-            tint = contentColorFor(backgroundColor = selectedColor),
             modifier = Modifier.padding(4.dp),
             contentDescription = description
         )
@@ -436,7 +440,7 @@ private fun SelectorExpanded(
 ) {
     if (currentSelector == None) return
 
-    Surface(elevation = 8.dp) {
+    Surface(shadowElevation = 8.dp, tonalElevation = 8.dp) {
         when (currentSelector) {
             Attachment -> AttachmentPickerDialog(onCloseRequested, onAttachmentTypeSelection)
             Audio -> AudioRecordingDialog(

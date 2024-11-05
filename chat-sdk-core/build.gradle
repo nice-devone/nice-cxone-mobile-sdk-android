@@ -23,6 +23,7 @@ plugins {
     id "android-library-style-conventions"
     id "publish-conventions"
     id "api-conventions"
+    id "org.jetbrains.kotlin.plugin.serialization"
 }
 metalava {
     hiddenPackages = ["com.nice.cxonechat.internal"]
@@ -75,12 +76,14 @@ mavenPublishing {
 dependencies {
     implementation libs.androidx.ktx
     implementation libs.security.crypto
-    implementation libs.gson
+    implementation libs.kotlinx.serialization.json
     implementation libs.retrofit
-    implementation libs.retrofit.gson
+    implementation libs.retrofit.kotlinx.serialization
     implementation libs.okhttp
     implementation project(':utilities')
     api project(':logger')
     implementation project(':logger-android')
     testImplementation libs.kotest.assertions.core
+    testImplementation libs.kotlin.reflect
+    testImplementation libs.gson
 }

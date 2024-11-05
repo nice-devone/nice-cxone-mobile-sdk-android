@@ -15,14 +15,16 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.EventType.CustomerAuthorized
 import com.nice.cxonechat.internal.model.CustomerIdentityModel
 import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /** Event received when a customer is successfully authorized. */
+@Serializable
 internal data class EventCustomerAuthorized(
-    @SerializedName("postback")
+    @SerialName("postback")
     val postback: Postback<Data>,
 ) {
 
@@ -33,10 +35,11 @@ internal data class EventCustomerAuthorized(
     val token get() = postback.data.accessToken?.token
     val tokenExpiresAt get() = postback.data.accessToken?.expiresAt
 
+    @Serializable
     data class Data(
-        @SerializedName("consumerIdentity")
+        @SerialName("consumerIdentity")
         val consumerIdentity: CustomerIdentityModel,
-        @SerializedName("accessToken")
+        @SerialName("accessToken")
         val accessToken: AccessToken?,
     )
 

@@ -297,7 +297,17 @@ class ChatInstanceProvider private constructor(
             return@scope
         }
 
-        assertState({ setOf(Prepared, ConnectionLost).contains(it) }) {
+        /*
+         * Offline state is a special case where we allow doConnect to be called since
+         * the live chat implementation of Chat will re-check the availability of the chat,
+         * if the cached availability information is expired and will fetch a fresh version,
+         * if it is required.
+         * In case that the availability information will allow it the connection attempt will be made.
+         *
+         * Independent on the state of the availability information the instance provider
+         *  will be notified via the onReady callback once the procedure is finished.
+         */
+        assertState({ setOf(Prepared, ConnectionLost, Offline).contains(it) }) {
             "ChatInstanceProvider.connect called in invalid state ($chatState). " +
                     "It is only allowed when the connection is either PREPARED, LOST_CONNECTION, or OFFLINE."
         }
