@@ -15,9 +15,11 @@
 
 package com.nice.cxonechat.api.model
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal data class AttachmentUploadResponse(
-    @SerializedName("fileUrl")
+    @SerialName("fileUrl")
     val fileUrl: String? = null,
 )

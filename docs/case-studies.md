@@ -10,3 +10,5 @@ Here's a selection of simplified, but fully functional, use cases to get you sta
 - [Push notifications](cs-push-notifications.md)
 - [Rich Messages](cs-rich-messages.md)
 - [Analytics](cs-analytics.md)
+- [Setting customer id](cs-customer-id.md)
+- [Logging](cs-logging.md)

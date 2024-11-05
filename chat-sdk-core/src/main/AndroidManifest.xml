@@ -18,5 +18,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <application  android:fullBackupContent="@xml/backup_rules" />
+    <application
+        android:fullBackupContent="@xml/backup_rules"
+        android:largeHeap="true" />
 </manifest>

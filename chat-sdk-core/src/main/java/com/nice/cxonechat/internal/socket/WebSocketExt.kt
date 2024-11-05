@@ -16,6 +16,7 @@
 package com.nice.cxonechat.internal.socket
 
 import com.nice.cxonechat.internal.serializer.Default.serializer
+import kotlinx.serialization.serializer
 import okhttp3.WebSocket
 
 /**
@@ -23,7 +24,8 @@ import okhttp3.WebSocket
  * [callback] will be invoked if the [send] has reported that message has been enqueued.
  */
 internal fun WebSocket.send(model: Any, callback: (() -> Unit)? = null) {
-    val text = serializer.toJson(model)
+    val kser = serializer.serializersModule.serializer(model::class.java)
+    val text = serializer.encodeToString(kser, model)
     if (send(text = text)) {
         callback?.invoke()
     }

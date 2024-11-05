@@ -15,17 +15,20 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.internal.model.Thread
 import com.nice.cxonechat.thread.ChatThread
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-internal class EndContactPayload(
-    thread: ChatThread,
+@Serializable
+internal data class EndContactPayload(
+    @SerialName("thread")
+    val thread: Thread,
+    @SerialName("contact")
+    val contact: Identifier?,
 ) {
-
-    @SerializedName("thread")
-    val thread = Thread(thread)
-
-    @SerializedName("contact")
-    val contact = thread.contactId?.let(::Identifier)
+    constructor(thread: ChatThread) : this(
+        thread = Thread(thread),
+        contact = thread.contactId?.let(::Identifier)
+    )
 }

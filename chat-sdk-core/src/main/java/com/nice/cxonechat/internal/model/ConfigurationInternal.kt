@@ -25,7 +25,9 @@ internal data class ConfigurationInternal(
     override val isProactiveChatEnabled: Boolean,
     override val isAuthorizationEnabled: Boolean,
     internal val preContactSurvey: PreChatSurvey?,
+    @Deprecated("Client side validation of [FieldDefinition]s is no longer supported.")
     override val contactCustomFields: FieldDefinitionList,
+    @Deprecated("Client side validation of [FieldDefinition]s is no longer supported.")
     override val customerCustomFields: FieldDefinitionList,
     override val fileRestrictions: FileRestrictions,
     override val isLiveChat: Boolean,

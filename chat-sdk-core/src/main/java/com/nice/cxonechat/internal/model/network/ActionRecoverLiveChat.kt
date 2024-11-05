@@ -15,19 +15,23 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.EventAction
 import com.nice.cxonechat.enums.EventAction.ChatWindowEvent
 import com.nice.cxonechat.enums.EventType.RecoverLivechat
 import com.nice.cxonechat.state.Connection
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
+@Serializable
 internal data class ActionRecoverLiveChat(
-    @SerializedName("action")
+    @SerialName("action")
     val action: EventAction = ChatWindowEvent,
-    @SerializedName("eventId")
+    @SerialName("eventId")
+    @Contextual
     val eventId: UUID = UUID.randomUUID(),
-    @SerializedName("payload")
+    @SerialName("payload")
     val payload: Payload<RecoverThreadData>,
 ) {
 

@@ -15,7 +15,6 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.EventAction
 import com.nice.cxonechat.enums.EventAction.ChatWindowEvent
 import com.nice.cxonechat.enums.EventType.SendMessage
@@ -25,14 +24,21 @@ import com.nice.cxonechat.internal.model.Thread
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.util.UUIDProvider
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonNames
 import java.util.UUID
 
-internal data class ActionMessage constructor(
-    @SerializedName("action")
+@Serializable
+internal data class ActionMessage(
+    @SerialName("action")
     val action: EventAction = ChatWindowEvent,
-    @SerializedName("eventId")
+    @SerialName("eventId")
+    @Contextual
     val eventId: UUID = UUIDProvider.next(),
-    @SerializedName("payload")
+    @SerialName("payload")
     val payload: Payload<Data>,
 ) {
 
@@ -61,22 +67,27 @@ internal data class ActionMessage constructor(
         )
     )
 
+    @OptIn(ExperimentalSerializationApi::class)
+    @Serializable
     data class Data(
-        @SerializedName("thread")
+        @SerialName("thread")
         val thread: Thread,
-        @SerializedName("messageContent")
+        @SerialName("messageContent")
         val messageContent: MessageContent,
-        @SerializedName("idOnExternalPlatform")
+        @SerialName("idOnExternalPlatform")
+        @Contextual
         val id: UUID,
-        @SerializedName(value = "customer", alternate = ["consumer"])
+        @SerialName(value = "customer")
+        @JsonNames("customer", "consumer")
         val customer: CustomFieldsData? = null,
-        @SerializedName(value = "contact", alternate = ["consumerContact"])
+        @SerialName(value = "contact")
+        @JsonNames("contact", "consumerContact")
         val customerContact: CustomFieldsData?,
-        @SerializedName("attachments")
+        @SerialName("attachments")
         val attachments: List<AttachmentModel> = emptyList(),
-        @SerializedName("deviceFingerprint")
+        @SerialName("deviceFingerprint")
         val deviceFingerprint: DeviceFingerprint = DeviceFingerprint(),
-        @SerializedName("accessToken")
+        @SerialName("accessToken")
         val accessToken: AccessTokenPayload? = null,
     ) {
 

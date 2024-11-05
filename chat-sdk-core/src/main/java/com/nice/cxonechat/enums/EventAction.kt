@@ -15,26 +15,28 @@
 
 package com.nice.cxonechat.enums
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * The different types of actions for an event.
  */
+@Serializable
 internal enum class EventAction(val value: String) {
 
     /** The customer is registering for chat access. */
-    @SerializedName("register")
+    @SerialName("register")
     Register("register"),
 
     /** The customer is interacting with something in the chat window. */
-    @SerializedName("chatWindowEvent")
+    @SerialName("chatWindowEvent")
     ChatWindowEvent("chatWindowEvent"),
 
     /** The customer is making an outbound action. */
-    @SerializedName("outbound")
+    @SerialName("outbound")
     Outbound("outbound"),
 
     /** The socket is sending a message to verify the connection. */
-    @SerializedName("heartbeat")
+    @SerialName("heartbeat")
     Heartbeat("heartbeat"),
 }

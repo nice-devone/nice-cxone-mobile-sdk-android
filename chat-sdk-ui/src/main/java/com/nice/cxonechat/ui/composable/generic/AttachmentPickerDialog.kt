@@ -24,10 +24,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.AlertDialog
-import androidx.compose.material.Button
-import androidx.compose.material.RadioButton
-import androidx.compose.material.Text
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -115,7 +115,7 @@ private fun AttachmentPickerDialogContent(
                 )
                 Text(
                     text = label,
-                    style = ChatTheme.typography.body1.merge(),
+                    style = ChatTheme.typography.bodyLarge.merge(),
                     modifier = Modifier.padding(start = ChatTheme.space.large)
                 )
             }

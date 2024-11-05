@@ -15,25 +15,27 @@
 
 package com.nice.cxonechat.internal.model
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.internal.model.network.CustomVariable
 import com.nice.cxonechat.internal.model.network.DeviceFingerprint
 import com.nice.cxonechat.internal.model.network.Journey
 import com.nice.cxonechat.state.Connection
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 // Visitor
 
 /**
  * All information about a visitor.
  */
+@Serializable
 internal data class Visitor(
-    @SerializedName("customerIdentity")
+    @SerialName("customerIdentity")
     val customerIdentity: CustomerIdentityModel? = null,
-    @SerializedName("browserFingerprint")
+    @SerialName("browserFingerprint")
     val deviceFingerprint: DeviceFingerprint,
-    @SerializedName("journey")
+    @SerialName("journey")
     val journey: Journey? = null,
-    @SerializedName("customVariables")
+    @SerialName("customVariables")
     val customVariables: List<CustomVariable>? = null,
 ) {
     constructor(

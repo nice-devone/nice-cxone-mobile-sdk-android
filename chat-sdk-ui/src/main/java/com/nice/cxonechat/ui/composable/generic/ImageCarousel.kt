@@ -19,7 +19,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.Surface
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -88,8 +88,8 @@ private fun PreviewImageCarousel() {
                 placeholder = BrushPainter(
                     Brush.linearGradient(
                         listOf(
-                            Color(color = ChatTheme.colors.surface.toArgb()),
-                            Color(color = ChatTheme.colors.primary.copy(alpha = 0.2f).toArgb()),
+                            Color(color = ChatTheme.colorScheme.surface.toArgb()),
+                            Color(color = ChatTheme.colorScheme.primary.copy(alpha = 0.2f).toArgb()),
                         )
                     )
                 )

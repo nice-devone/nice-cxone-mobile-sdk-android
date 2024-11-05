@@ -17,8 +17,8 @@ package com.nice.cxonechat.ui.composable.theme
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.AlertDialog
-import androidx.compose.material.Text
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -43,7 +43,7 @@ internal fun ChatTheme.Dialog(
                     Text(
                         it,
                         modifier = Modifier.padding(bottom = space.large),
-                        style = typography.h6
+                        style = chatTypography.dialogTitle
                     )
                 }
                 content()

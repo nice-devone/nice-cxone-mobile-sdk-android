@@ -15,16 +15,19 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.EventType.ThreadRecovered
 import com.nice.cxonechat.internal.model.AgentModel
 import com.nice.cxonechat.internal.model.CustomFieldModel
 import com.nice.cxonechat.internal.model.MessageModel
 import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
 import com.nice.cxonechat.thread.ChatThread
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonNames
 
+@Serializable
 internal data class EventThreadRecovered(
-    @SerializedName("postback")
+    @SerialName("postback")
     val postback: Postback<Data>,
 ) {
 
@@ -43,18 +46,20 @@ internal data class EventThreadRecovered(
     fun inThread(thread: ChatThread) = this.thread.id == thread.id &&
             messages.all { it.threadId == thread.id }
 
+    @Serializable
     data class Data(
-        @SerializedName("messages")
+        @SerialName("messages")
         val messages: List<MessageModel>?,
-        @SerializedName("inboxAssignee")
+        @SerialName("inboxAssignee")
         val inboxAssignee: AgentModel?,
-        @SerializedName("thread")
+        @SerialName("thread")
         val thread: ReceivedThreadData,
-        @SerializedName("messagesScrollToken")
+        @SerialName("messagesScrollToken")
         val messagesScrollToken: String,
-        @SerializedName("customer")
+        @SerialName("customer")
         val customer: CustomFieldsData? = null,
-        @SerializedName("contact", alternate = ["consumerContact"])
+        @SerialName("contact")
+        @JsonNames("contact", "consumerContact")
         val contact: ContactFieldData? = null,
     )
 

@@ -16,6 +16,7 @@
 package com.nice.cxonechat.event
 
 import com.nice.cxonechat.enums.VisitorEventType.Conversion
+import com.nice.cxonechat.event.AnalyticsEvent.Data.ConversionData
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.storage.ValueStorage
 import java.util.Date
@@ -31,21 +32,21 @@ internal class ConversionEvent(
     private val type: String,
     private val value: Number,
     private val date: Date = Date()
-) : ChatEvent() {
+) : ChatEvent<AnalyticsEvent>() {
     override fun getModel(
         connection: Connection,
         storage: ValueStorage,
-    ): Any {
+    ): AnalyticsEvent {
         val conversion = ConversionModel(
             type = type,
-            value = value,
+            value = value.toLong(),
             timestamp = date
         )
         return AnalyticsEvent(
             Conversion,
             storage,
             date,
-            conversion,
+            ConversionData(conversion),
         )
     }
 

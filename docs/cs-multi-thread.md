@@ -29,61 +29,10 @@ class ChatAllConversationsViewModel(
 
     private val chat = ChatInstanceProvider.get().chat.let(::requireNotNull)
     private val handlerThreads = chat.threads()
-    private val handlerFields = chat.fields()
-    private val handlerEvents = chat.events()
     private val cancellable = handlerThreads.threads {
         threads = it
         // notify ui
     }.also { handlerThreads.refresh() }
-
-    init {
-        FirebaseMessaging.getInstance().token.addOnSuccessListener {
-            chat.setDeviceToken(it)
-        }
-        val configuration = chat.configuration
-        val deviceInfo = configuration.customerCustomFields
-            .filterIsInstance(FieldDefinition.Text::class.java)
-            .mapNotNull {
-                when (val id: String = it.fieldId) {
-                    "device-oem" -> id to Build.MANUFACTURER
-                    "device-model" -> id to Build.MODEL
-                    "device-os" -> id to "Android"
-                    "device-version" -> id to Build.VERSION.SDK_INT.toString()
-                    else -> null
-                }
-            }.toMap()
-        handlerFields.add(deviceInfo)
-    }
-
-    /**
-     * send a page viewed event to the server. 
-     * 
-     * onPageView and onPageViewEnded should be invoked from each page (i.e., fragment
-     * or activity) in your application, as in:
-     * 
-     *     OnLifecycleEvent { _, event ->
-     *         when (event) {
-     *             ON_RESUME -> viewModel.onPageView(pageTitle, pageUrl)
-     *             ON_PAUSE -> viewModel.onPageViewEnded(pageTitle, pageUrl)
-     *             else -> Ignored
-     *         }
-     *     }
-     */
-    fun onPageView(title: String, url: String) {
-        handlerEvents().pageView(title, url)
-    }
-
-    /**
-     * Send a time spent on page event to the server to "close" a corresponding 
-     * page view event.
-     */
-    fun onPageViewEnded(title: String, url: String) {
-        handlerEvents().pageViewEnded(title, url)
-    }
-
-    fun onConversion(type: String, value: Number) {
-        handlerEvents.conversion(type, value)
-    }
 
     fun onClickThread(thread: ChatThread) {
         navigator.toDetail(thread)
@@ -115,9 +64,8 @@ class ChatAllConversationViewModel(
     private val handlerMessage = handlerThread.messages()
     private val handlerAction = handlerThread.actions()
     private val handlerEvents = handlerThread.events()
-    private val handlerFields = handlerThread.fields()
     private val cancellable = handlerThread.get {
-        if (isInForeground) handlerEvents.trigger(MarkThreadReadEvent)
+        if (isInForeground) handlerEvents.markThreadRead()
         // notify ui that ::thread has changed
     }.also { handlerThread.refresh() }
     private val sentListener = MessageListener(WeakReference(this))
@@ -125,19 +73,6 @@ class ChatAllConversationViewModel(
     var isInForeground = true
     val thread get() = handlerThread.get()
     val messagesSent = mutableSetOf<UUID>()
-
-    init {
-        val customFields = chat.configuration.contactCustomFields
-            .filterIsInstance(FieldDefinition.Text::class.java)
-            .mapNotNull {
-                when (val id: String = it.fieldId) {
-                    "last-contact" -> id to "2005-08-25T11:45:89.187Z"
-                    "flag-disrespectful" -> id to "true"
-                    else -> null
-                }
-            }.toMap()
-        handlerFields.add(customFields)
-    }
 
     fun setName(name: String) {
         handlerThread.setName(name)
@@ -147,16 +82,8 @@ class ChatAllConversationViewModel(
         handlerAction.onPopup(listener)
     }
 
-    fun onTypingStart() {
-        handlerEvents.trigger(TypingStartEvent)
-    }
-
-    fun onTypingStop() {
-        handlerEvents.trigger(TypingEndEvent)
-    }
-
     fun onClickArchive() {
-        handlerEvents.trigger(ArchiveThreadEvent)
+        handlerThread.archive()
     }
 
     fun onEndReached() {

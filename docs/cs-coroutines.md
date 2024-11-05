@@ -3,6 +3,8 @@
 Coroutines are widely accepted framework in the Android space, therefore we would like to show you
 how to implement some extensions atop of CXone Chat SDK.
 
+The following examples are based on source code in the Chat SDK UI module, which can be found [here](../chat-sdk-ui/src/main/java/com/nice/cxonechat/ui/main).
+
 ## Libraries
 
 Additional dependencies required to run these samples. All samples are validated for version
@@ -10,8 +12,8 @@ described in the `dependencies` block, Major update revisions may vary in syntax
 
 ```groovy
 dependencies {
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
-    runtimeOnly 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0"
+    runtimeOnly "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0"
 }
 ```
 
@@ -49,7 +51,8 @@ val ChatThreadHandler.flow
 
 This is an extension for `ChatInstanceProvider` described [here][cs-instance-holder].
 
-> ⚠️ We do not necessarily believe that this is the "go-to" implementation for indicating that the
+> [!WARNING]
+>  We do not necessarily believe that this is the "go-to" implementation for indicating that the
 > chat is ready. Implement callbacks to your `ChatInstanceProvider`, if necessary. Though this is
 > useful for demonstration or PoC purposes.
 

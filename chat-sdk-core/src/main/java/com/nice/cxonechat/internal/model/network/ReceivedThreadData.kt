@@ -15,30 +15,36 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.internal.model.ChatThreadInternal
 import com.nice.cxonechat.internal.model.Thread
 import com.nice.cxonechat.thread.ChatThreadState.Received
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.util.Date
 import java.util.UUID
 
+@Serializable
 internal data class ReceivedThreadData(
-    @SerializedName("id")
+    @SerialName("id")
     internal val id: String,
-    @SerializedName("idOnExternalPlatform")
+    @SerialName("idOnExternalPlatform")
+    @Contextual
     val idOnExternalPlatform: UUID,
-    @SerializedName("channelId")
+    @SerialName("channelId")
     val channelId: String,
-    @SerializedName("threadName")
+    @SerialName("threadName")
     val threadName: String,
-    @SerializedName("createdAt")
-    val createdAt: Date,
-    @SerializedName("updatedAt")
-    val updatedAt: Date,
-    @SerializedName("canAddMoreMessages")
+    @SerialName("createdAt")
+    @Contextual
+    val createdAt: Date?,
+    @SerialName("updatedAt")
+    @Contextual
+    val updatedAt: Date?,
+    @SerialName("canAddMoreMessages")
     val canAddMoreMessages: Boolean,
-    @SerializedName("thread")
-    val thread: Thread,
+    @SerialName("thread")
+    val thread: Thread? = null,
 ) {
 
     fun toChatThread() = ChatThreadInternal(

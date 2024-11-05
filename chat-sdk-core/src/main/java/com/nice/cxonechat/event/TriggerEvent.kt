@@ -27,15 +27,14 @@ import java.util.UUID
  * representative for more information.
  * */
 @Public
-@Deprecated("Use ChatEventHandler.event()")
-class TriggerEvent(
+internal class TriggerEvent(
     private val id: UUID,
-) : ChatEvent() {
+) : ChatEvent<ActionExecuteTrigger>() {
 
     override fun getModel(
         connection: Connection,
         storage: ValueStorage,
-    ): Any = ActionExecuteTrigger(
+    ) = ActionExecuteTrigger(
         connection = connection,
         destination = storage.destinationId,
         visitor = storage.visitorId,

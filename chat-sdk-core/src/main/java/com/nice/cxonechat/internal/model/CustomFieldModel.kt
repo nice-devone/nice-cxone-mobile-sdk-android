@@ -15,16 +15,20 @@
 
 package com.nice.cxonechat.internal.model
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.thread.CustomField
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.util.Date
 
+@Serializable
 internal data class CustomFieldModel(
-    @SerializedName("ident")
+    @SerialName("ident")
     val id: String,
-    @SerializedName("value")
+    @SerialName("value")
     val value: String,
-    @SerializedName("updatedAt")
+    @SerialName("updatedAt")
+    @Contextual
     val updatedAt: Date,
 ) {
 

@@ -15,45 +15,48 @@
 
 package com.nice.cxonechat.enums
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * Definition of all errors reported by the server.
  */
+@Serializable
 internal enum class ErrorType(val value: String) {
 
-    @SerializedName("ConsumerReconnectionFailed")
+    @SerialName("ConsumerReconnectionFailed")
     ConsumerReconnectionFailed("ConsumerReconnectionFailed"),
 
-    @SerializedName("TokenRefreshingFailed")
+    @SerialName("TokenRefreshingFailed")
     TokenRefreshingFailed("TokenRefreshingFailed"),
 
-    @SerializedName("SendingMessageFailed")
+    @SerialName("SendingMessageFailed")
     SendingMessageFailed("SendingMessageFailed"),
 
-    @SerializedName("RecoveringLivechatFailed")
+    @SerialName("RecoveringLivechatFailed")
     RecoveringLivechatFailed("RecoveringLivechatFailed"),
 
-    @SerializedName("RecoveringThreadFailed")
+    @SerialName("RecoveringThreadFailed")
     RecoveringThreadFailed("RecoveringThreadFailed"),
 
-    @SerializedName("SendingOutboundFailed")
+    @SerialName("SendingOutboundFailed")
     SendingOutboundFailed("SendingOutboundFailed"),
 
-    @SerializedName("UpdatingThreadFailed")
+    @SerialName("UpdatingThreadFailed")
     UpdatingThreadFailed("UpdatingThreadFailed"),
 
-    @SerializedName("ArchivingThreadFailed")
+    @SerialName("ArchivingThreadFailed")
     ArchivingThreadFailed("ArchivingThreadFailed"),
 
-    @SerializedName("SendingTranscriptFailed")
+    @SerialName("SendingTranscriptFailed")
     SendingTranscriptFailed("SendingTranscriptFailed"),
 
-    @SerializedName("SendingOfflineMessageFailed")
+    @SerialName("SendingOfflineMessageFailed")
     SendingOfflineMessageFailed("SendingOfflineMessageFailed"),
 
-    @SerializedName("MetadataLoadFailed")
+    @SerialName("MetadataLoadFailed")
     MetadataLoadFailed("MetadataLoadFailed"),
 
+    @SerialName("S3EventLoadFailed")
     S3EventLoadFailed("S3EventLoadFailed"),
 }

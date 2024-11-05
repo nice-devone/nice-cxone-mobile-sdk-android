@@ -15,11 +15,13 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
+@Serializable
 internal data class Identifier(
-    @SerializedName("id")
+    @SerialName("id")
     val id: String,
 ) {
 

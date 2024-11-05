@@ -22,6 +22,7 @@ internal data class MessageAuthorInternal(
     override val firstName: String,
     override val lastName: String,
     override val imageUrl: String?,
+    override val nickname: String? = null,
 ) : MessageAuthor() {
 
     override fun toString() = buildString {
@@ -33,6 +34,8 @@ internal data class MessageAuthorInternal(
         append(lastName)
         append("', imageUrl='")
         append(imageUrl)
+        append("', nickname='")
+        append(nickname)
         append("')")
     }
 }

@@ -17,7 +17,9 @@ package com.nice.cxonechat
 
 import com.nice.cxonechat.FakeChatStateListener.ChatStateConnection
 import com.nice.cxonechat.FakeChatStateListener.ChatStateConnection.Ready
+import com.nice.cxonechat.enums.ContactStatus.Closed
 import com.nice.cxonechat.enums.ErrorType.RecoveringLivechatFailed
+import com.nice.cxonechat.internal.ChatThreadHandlerLiveChat.Companion.BEGIN_CONVERSATION_MESSAGE
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.model.AvailabilityStatus.Offline
 import com.nice.cxonechat.internal.model.MessageModel
@@ -29,6 +31,7 @@ import com.nice.cxonechat.thread.ChatThread
 import io.kotest.matchers.shouldBe
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
@@ -113,6 +116,36 @@ internal class ChatLiveTest : AbstractChatTest() {
         assertNotNull(actual)
         assertSendText(ServerRequest.EndContact(connection, expected)) {
             chat.threads().thread(actual).endContact()
+        }
+    }
+
+    @Test
+    fun connect_live_chat_ignores_closed_recovered_thread() {
+        val messages = arrayOf(makeMessageModel())
+        val recovered = makeChatThread().asCopyable().copy(
+            messages = messages.mapNotNull(MessageModel::toMessage),
+            contactId = TestContactId
+        )
+        assertSendTexts(
+            ServerRequest.ReconnectConsumer(connection),
+            ServerRequest.RecoverLiveChatThread(connection, null), // Connect
+            ServerRequest.RecoverLiveChatThread(connection, null), // Refresh thread state on first call
+            ServerRequest.SendMessage(connection,
+                makeChatThread(TestUUIDValue, ""),
+                storage = storage,
+                message = BEGIN_CONVERSATION_MESSAGE
+            )
+        ) {
+            connect()
+            assertEquals(ChatStateConnection.Connected, chatStateListener.connection)
+            val actual = testCallback(::get) {
+                sendServerMessage(
+                    ServerResponse.LivechatRecovered(thread = recovered, messages = messages, status = Closed)
+                )
+            }
+            assertNotNull(actual)
+            assertEquals(Ready, chatStateListener.connection)
+            assertNotEquals(recovered, actual)
         }
     }
 

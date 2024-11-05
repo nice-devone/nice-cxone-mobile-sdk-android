@@ -15,7 +15,6 @@
 
 package com.nice.cxonechat.internal
 
-import com.google.gson.JsonParseException
 import com.nice.cxonechat.ChatEventHandler
 import com.nice.cxonechat.ChatEventHandler.OnEventErrorListener
 import com.nice.cxonechat.ChatEventHandler.OnEventSentListener
@@ -26,6 +25,7 @@ import com.nice.cxonechat.exceptions.AnalyticsEventDispatchException
 import com.nice.cxonechat.exceptions.CXOneException
 import com.nice.cxonechat.exceptions.InternalError
 import com.nice.cxonechat.internal.socket.send
+import kotlinx.serialization.SerializationException
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -35,7 +35,7 @@ internal class ChatEventHandlerImpl(
     private val chat: ChatWithParameters,
 ) : ChatEventHandler {
 
-    override fun trigger(event: ChatEvent, listener: OnEventSentListener?, errorListener: OnEventErrorListener?) {
+    override fun trigger(event: ChatEvent<*>, listener: OnEventSentListener?, errorListener: OnEventErrorListener?) {
         // Is this an internal event that doesn't get broadcast any further?
         if (event is LocalEvent) return
 
@@ -44,7 +44,7 @@ internal class ChatEventHandlerImpl(
         }.onFailure { throwable ->
             when (throwable) {
                 is CXOneException -> errorListener?.onError(throwable)
-                is ParseException, is JsonParseException -> errorListener?.onError(InternalError("Serialization error"))
+                is ParseException, is SerializationException -> errorListener?.onError(InternalError("Serialization error", throwable))
             }
         }.getOrNull() ?: return
         when (model) {

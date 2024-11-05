@@ -15,13 +15,15 @@
 
 package com.nice.cxonechat.internal.model
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal data class NodeModel(
-    @SerializedName("name")
+    @SerialName("name")
     val name: String,
-    @SerializedName("value")
+    @SerialName("value")
     val value: String,
-    @SerializedName("parentId")
+    @SerialName("parentId")
     val parentId: String?,
 )

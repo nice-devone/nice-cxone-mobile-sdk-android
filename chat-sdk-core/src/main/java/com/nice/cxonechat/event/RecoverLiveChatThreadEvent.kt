@@ -22,6 +22,6 @@ import java.util.UUID
 
 internal data class RecoverLiveChatThreadEvent(
     private val threadId: UUID? = null,
-) : ChatEvent() {
+) : ChatEvent<ActionRecoverLiveChat>() {
     override fun getModel(connection: Connection, storage: ValueStorage) = ActionRecoverLiveChat(connection, threadId)
 }

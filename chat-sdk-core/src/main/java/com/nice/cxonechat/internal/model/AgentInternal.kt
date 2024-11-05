@@ -20,8 +20,10 @@ import java.util.UUID
 
 internal data class AgentInternal(
     override val id: Int,
-    override val inContactId: UUID?,
-    override val emailAddress: String?,
+    @Deprecated("inContactId is internal field and should not be used. It is now always null.")
+    override val inContactId: UUID? = null,
+    @Deprecated("emailAddress is internal field and should not be used. It is now always null.")
+    override val emailAddress: String? = null,
     override val firstName: String,
     override val lastName: String,
     override val nickname: String?,
@@ -34,10 +36,6 @@ internal data class AgentInternal(
     override fun toString() = buildString {
         append("Agent(id=")
         append(id)
-        append(", inContactId=")
-        append(inContactId)
-        append(", emailAddress=")
-        append(emailAddress)
         append(", firstName='")
         append(firstName)
         append("', lastName='")

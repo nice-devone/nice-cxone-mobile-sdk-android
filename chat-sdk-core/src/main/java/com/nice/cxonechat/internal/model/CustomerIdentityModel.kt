@@ -15,20 +15,22 @@
 
 package com.nice.cxonechat.internal.model
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.message.MessageAuthor
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal data class CustomerIdentityModel(
-    @SerializedName("idOnExternalPlatform")
+    @SerialName("idOnExternalPlatform")
     val idOnExternalPlatform: String,
 
-    @SerializedName("firstName")
+    @SerialName("firstName")
     val firstName: String? = null,
 
-    @SerializedName("lastName")
+    @SerialName("lastName")
     val lastName: String? = null,
 
-    @SerializedName("image")
+    @SerialName("image")
     val imageUrl: String? = null,
 ) {
 

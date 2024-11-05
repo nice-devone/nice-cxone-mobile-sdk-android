@@ -29,6 +29,7 @@ import com.nice.cxonechat.event.ProactiveActionFailureEvent
 import com.nice.cxonechat.event.ProactiveActionSuccessEvent
 import com.nice.cxonechat.event.RefreshToken
 import com.nice.cxonechat.event.TriggerEvent
+import com.nice.cxonechat.internal.model.network.ProactiveActionInfo
 import java.util.Date
 import java.util.UUID
 
@@ -262,7 +263,7 @@ object ChatEventHandlerActions {
         date: Date = Date(),
         listener: OnEventSentListener? = null,
         errorListener: OnEventErrorListener? = null,
-    ) = trigger(ProactiveActionSuccessEvent(data, date), listener, errorListener)
+    ) = trigger(ProactiveActionSuccessEvent(ProactiveActionInfo(data), date), listener, errorListener)
 
     /**
      * Refresh the authentication token associated with the chat.

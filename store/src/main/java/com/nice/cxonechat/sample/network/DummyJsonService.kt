@@ -18,9 +18,13 @@ package com.nice.cxonechat.sample.network
 import com.nice.cxonechat.sample.data.models.Product
 import com.nice.cxonechat.sample.data.models.ProductList
 import com.nice.cxonechat.utilities.TaggingSocketFactory
+import kotlinx.serialization.json.Json
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import okhttp3.logging.HttpLoggingInterceptor.Level.BASIC
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Path
 
@@ -46,18 +50,29 @@ interface DummyJsonService {
     @GET("/product/{productId}")
     suspend fun product(@Path("productId") productId: String): Product
 
+    @Suppress("UndocumentedPublicClass")
     companion object {
         private val client by lazy {
             OkHttpClient.Builder()
                 .socketFactory(TaggingSocketFactory)
+                .addInterceptor(
+                    HttpLoggingInterceptor().apply {
+                        level = BASIC
+                    }
+                )
                 .build()
+        }
+
+        private val json = Json {
+            ignoreUnknownKeys = true
+            isLenient = true
         }
 
         /** singleton instance of DummyJsonService provided by retrofit. */
         val dummyJsonService: DummyJsonService by lazy {
             Retrofit.Builder()
                 .baseUrl("https://dummyjson.com")
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(json.asConverterFactory("application/json; charset=UTF-8".toMediaType()))
                 .client(client)
                 .build()
                 .create(DummyJsonService::class.java)

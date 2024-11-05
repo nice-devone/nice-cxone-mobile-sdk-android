@@ -17,9 +17,9 @@ package com.nice.cxonechat.sample.ui.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.MaterialTheme.colors
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,7 +50,7 @@ fun RatingBar(
     rating: Double,
     modifier: Modifier = Modifier,
     stars: Int = 5,
-    starsColor: Color = colors.primary,
+    starsColor: Color = colorScheme.primary,
     filledStar: Painter = painterResource(id = drawable.star),
     halfStar: Painter = painterResource(id = drawable.star_half),
     unfilledStar: Painter = painterResource(id = drawable.star_outline),

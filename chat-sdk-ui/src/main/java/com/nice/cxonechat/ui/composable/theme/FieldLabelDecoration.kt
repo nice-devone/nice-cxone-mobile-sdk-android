@@ -17,15 +17,14 @@ package com.nice.cxonechat.ui.composable.theme
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Text
-import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
+// TODO replace usage of this extension function with supporting text usage
 @Composable
 internal fun ChatTheme.FieldLabelDecoration(
     label: String?,
@@ -42,10 +42,8 @@ internal fun ChatTheme.FieldLabelDecoration(
     isError: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val labelColor = TextFieldDefaults
-        .textFieldColors()
-        .labelColor(enabled = true, error = isError, interactionSource = remember(::MutableInteractionSource))
-        .value
+    val colors = TextFieldDefaults.colors()
+    val labelColor = if (isError) colors.errorLabelColor else colors.unfocusedLabelColor
 
     Box(modifier = modifier) {
         Box(
@@ -62,13 +60,13 @@ internal fun ChatTheme.FieldLabelDecoration(
             Row(
                 Modifier
                     .padding(start = space.large - 1.dp)
-                    .background(colors.background)
+                    .background(colorScheme.background)
             ) {
                 Text(
                     label,
                     modifier = Modifier.padding(start = 1.dp, end = 1.dp),
                     color = labelColor,
-                    style = typography.caption
+                    style = chatTypography.surveyListItem
                 )
             }
         }

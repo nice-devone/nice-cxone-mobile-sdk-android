@@ -15,21 +15,23 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * Data to be sent on a page view visitor event.
  */
+@Serializable
 internal data class TimeSpentOnPageModel(
     /** A title for the page that was viewed. */
-    @SerializedName("title")
+    @SerialName("title")
     val title: String,
 
     /** The unique URL or URI for the page that was viewed. Doesn't need to be a valid URL. */
-    @SerializedName("url")
+    @SerialName("url")
     val url: String, // This can be any identifier for the page; doesn't need to be URL
 
     /** Time spent on the page. */
-    @SerializedName("timeSpentOnPage")
+    @SerialName("timeSpentOnPage")
     val timeSpentOnPage: Long,
 )

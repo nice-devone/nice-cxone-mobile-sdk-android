@@ -15,14 +15,18 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.util.Date
 
-internal data class Conversion constructor(
-    @SerializedName("conversionType")
+@Serializable
+internal data class Conversion(
+    @SerialName("conversionType")
     val type: String,
-    @SerializedName("conversionValue")
-    val value: Number,
-    @SerializedName("conversionTimeWithMilliseconds")
+    @SerialName("conversionValue")
+    val value: Long,
+    @SerialName("conversionTimeWithMilliseconds")
+    @Contextual
     val timestamp: Date,
 )

@@ -15,22 +15,34 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.internal.model.network.RecoverThreadData.ThreadSpecification.EmptySpecification
 import com.nice.cxonechat.internal.model.network.RecoverThreadData.ThreadSpecification.ThreadIdSpecification
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonClassDiscriminator
 import java.util.UUID
 
+@Serializable
 internal data class RecoverThreadData(
-    @SerializedName("thread")
+    @SerialName("thread")
     val thread: ThreadSpecification,
 ) {
 
+    @OptIn(ExperimentalSerializationApi::class)
+    @Serializable
+    @JsonClassDiscriminator("client_type") // Temporary solution to avoid possible conflict with the real type
     internal sealed interface ThreadSpecification {
+        @Serializable
+        @SerialName("thread_id") // Not required, but it hides internal class name
         data class ThreadIdSpecification(
-            @SerializedName("idOnExternalPlatform")
+            @SerialName("idOnExternalPlatform")
+            @Contextual
             val idOnExternalPlatform: UUID,
         ) : ThreadSpecification
 
+        @Serializable
         data object EmptySpecification : ThreadSpecification
     }
 

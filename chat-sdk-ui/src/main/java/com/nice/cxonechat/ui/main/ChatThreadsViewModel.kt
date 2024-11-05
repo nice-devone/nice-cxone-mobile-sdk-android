@@ -52,6 +52,7 @@ import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -74,7 +75,7 @@ internal class ChatThreadsViewModel(
     private val internalState: MutableStateFlow<State> = MutableStateFlow(Initial)
     val createThreadFailure = MutableStateFlow(null as Failure?)
 
-    private val threadFlow = threadsHandler.flow
+    private val threadFlow = threadsHandler.flow.shareIn(viewModelScope, SharingStarted.Lazily, 1)
 
     private val threadList: StateFlow<List<Thread>> = threadFlow
         .conflate()
@@ -181,16 +182,20 @@ internal class ChatThreadsViewModel(
         internalState.value = ThreadSelected
     }
 
-    internal suspend fun selectThreadById(threadId: UUID) = logger.timedScope("selectThreadById($threadId)") {
-        if (threadId == selectedThreadRepository.chatThreadHandler?.get()?.id) {
-            return@timedScope
+    internal fun selectThreadById(threadId: UUID) {
+        viewModelScope.launch(Dispatchers.Default) {
+            logger.timedScope("selectThreadById($threadId)") {
+                if (threadId == selectedThreadRepository.chatThreadHandler?.get()?.id) {
+                    return@timedScope
+                }
+                val flow = threadFlow
+                refreshThreads()
+                val threadList = flow.first()
+                require(threadList.isNotEmpty())
+                selectedThreadRepository.chatThreadHandler = threadsHandler.thread(threadList.first { it.id == threadId })
+                internalState.value = ThreadSelected
+            }
         }
-        val flow = threadFlow
-        refreshThreads()
-        val threadList = flow.first()
-        require(threadList.isNotEmpty())
-        selectedThreadRepository.chatThreadHandler = threadsHandler.thread(threadList.first { it.id == threadId })
-        internalState.value = ThreadSelected
     }
 
     private suspend fun createThreadWorker(response: Sequence<PreChatResponse>) =

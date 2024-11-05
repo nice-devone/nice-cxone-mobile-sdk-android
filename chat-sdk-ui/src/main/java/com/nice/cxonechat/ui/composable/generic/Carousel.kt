@@ -44,7 +44,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.google.android.material.math.MathUtils.lerp
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
-import com.nice.cxonechat.ui.composable.theme.ChatTheme.colors
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
@@ -132,8 +132,8 @@ private fun DotIndicators(
     pageCount: Int,
     pagerState: PagerState,
     modifier: Modifier = Modifier,
-    selectedColor: Color = colors.primary,
-    unselectedColor: Color = colors.secondary,
+    selectedColor: Color = colorScheme.primary,
+    unselectedColor: Color = colorScheme.secondary,
     dotSize: Dp = 6.dp,
     dotSpacing: Dp = 3.dp,
 ) {
@@ -155,8 +155,8 @@ private fun DotIndicators(
 @Composable
 private fun DotIndicator(
     selected: Boolean,
-    selectedColor: Color = colors.primary,
-    unselectedColor: Color = colors.secondary,
+    selectedColor: Color = colorScheme.primary,
+    unselectedColor: Color = colorScheme.secondary,
     dotSize: Dp = 6.dp,
 ) {
     val color = if (selected) {

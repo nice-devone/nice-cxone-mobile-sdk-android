@@ -18,13 +18,16 @@ package com.nice.cxonechat.sample.ui.theme
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.Icons.AutoMirrored.Filled
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
@@ -35,23 +38,29 @@ import androidx.compose.ui.tooling.preview.Preview
  * @param title Title to display.
  * @param navigationIcon Navigation Icon to display on left of bar.
  * @param actions Any actions to display on right of bar.
- * @param backgroundColor Background color for bar, defaults to AppTheme.colors.primary.
+ * @param containerColor Background color for bar, defaults to AppTheme.colors.primary.
  * @param contentColor Content color for bar, defaults to AppTheme.colors.onPrimary.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppTheme.TopBar(
     title: String,
-    navigationIcon: @Composable (() -> Unit)? = null,
+    navigationIcon: @Composable (() -> Unit) = { },
     actions: @Composable RowScope.() -> Unit = { },
-    backgroundColor: Color = colors.primary,
-    contentColor: Color = colors.onPrimary,
+    containerColor: Color = colorScheme.primary,
+    contentColor: Color = colorScheme.onPrimary,
 ) {
     TopAppBar(
         title = { Text(title) },
         navigationIcon = navigationIcon,
         actions = actions,
-        backgroundColor = backgroundColor,
-        contentColor = contentColor,
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = containerColor,
+            scrolledContainerColor = containerColor,
+            navigationIconContentColor = contentColor,
+            titleContentColor = contentColor,
+            actionIconContentColor = contentColor,
+        ),
     )
 }
 
@@ -64,7 +73,7 @@ private fun TopBarPreview() {
             title = "Some Title",
             navigationIcon = {
                 IconButton(onClick = { }) {
-                    Icon(Icons.Default.ArrowBack, null)
+                    Icon(Filled.ArrowBack, null)
                 }
             },
             actions = {

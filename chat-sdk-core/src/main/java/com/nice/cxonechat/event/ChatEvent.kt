@@ -23,16 +23,16 @@ import com.nice.cxonechat.storage.ValueStorage
  * Definition of all available chat events which can be triggered by the application.
  */
 @Public
-sealed class ChatEvent {
+sealed class ChatEvent<T> {
 
     internal abstract fun getModel(
         connection: Connection,
         storage: ValueStorage,
-    ): Any
+    ): T
 
     internal class Custom(
         private val factory: (Connection, ValueStorage) -> Any,
-    ) : ChatEvent() {
+    ) : ChatEvent<Any>() {
         override fun getModel(connection: Connection, storage: ValueStorage): Any = factory(connection, storage)
     }
 }

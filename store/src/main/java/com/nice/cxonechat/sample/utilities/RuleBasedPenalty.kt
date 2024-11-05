@@ -35,9 +35,11 @@ import kotlin.reflect.KClass
  * sequence with only the first match being performed.
  */
 @RequiresApi(VERSION_CODES.P)
-class RuleBasedPenalty(
-    private vararg val rules: Rule,
+class RuleBasedPenalty private constructor(
+    private val rules: List<Rule>,
 ) {
+    constructor(vararg rules: Rule?) : this(rules.filterNotNull())
+
     /**
      * A test predicate to match violations.
      */
@@ -109,6 +111,7 @@ class RuleBasedPenalty(
          * Create a rule to allow violations matching an exception.
          *
          * @param predicate [Predicate] to match.
+         * @return A matching rule.
          */
         fun allow(predicate: Predicate) = Rule(
             predicate = predicate,
@@ -120,7 +123,7 @@ class RuleBasedPenalty(
             /**
              * Match any violation.
              *
-             * @return true
+             * @return A [Predicate] that always matches.
              */
             fun any() = Predicate { true }
 

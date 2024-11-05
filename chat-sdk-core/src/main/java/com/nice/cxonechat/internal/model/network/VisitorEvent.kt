@@ -15,19 +15,25 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.VisitorEventType
 import com.nice.cxonechat.util.UUIDProvider
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 import java.util.Date
 import java.util.UUID
 
+@Serializable
 internal data class VisitorEvent(
-    @SerializedName("type")
+    @SerialName("type")
     val type: VisitorEventType,
-    @SerializedName("id")
+    @SerialName("id")
+    @Contextual
     val id: UUID = UUIDProvider.next(),
-    @SerializedName("createdAtWithMilliseconds")
+    @SerialName("createdAtWithMilliseconds")
+    @Contextual
     val createdAt: Date = Date(),
-    @SerializedName("data")
-    val data: Any? = null,
+    @SerialName("data")
+    val data: JsonElement? = null,
 )

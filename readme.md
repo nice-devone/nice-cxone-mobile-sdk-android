@@ -5,7 +5,7 @@ which are described in chapters below.
 
 ## CXOne Chat SDK
 
-This is the main published module, it is released as an android multi-flavor library with maven artifact coordinates
+This is the only published module, it is released as android multi-flavor library with maven artifact coordinates
 `com.nice.cxone:chat-core`.
 
 ### Adding the dependency
@@ -50,23 +50,26 @@ You can use any uprivilidged valid token, since the package are public.
 Then you can the dependency simply by adding:
 
 ```groovy
-    implementation "com.nice.cxone:chat-sdk-core:2.1.1"
+    implementation "com.nice.cxone:chat-sdk-core:$currentVersion"
 ```
 
 ### Additional information
 
-Visit [documentation][docs] for more information about SDK API.
+Visit [NICE documentation][NICE-docs] for more information about CXone Chat and pre-requisites for the SDK.
+
+Current [API][API].
 
 You can also find a simplified example of possible SDK usage in [case studies](docs/case-studies.md)
 documentation.
 
 We offer a brief how-to guide for integration [here][implementation].
 
-[docs]: https://help.nice-incontact.com/content/acd/digital/mobilesdk/android/getstartedandroid.htm
-[API]: https://help.nice-incontact.com/mobilesdk/Android1.3/dist/index.html
+[NICE-docs]: https://help.nice-incontact.com/content/acd/digital/mobilesdk/cxonemobilesdk.htm
+[API]: https://nice-devone.github.io/nice-cxone-mobile-sdk-android/
+[API-1.3]: https://help.nice-incontact.com/mobilesdk/Android1.3/dist/index.html
 [implementation]: docs/implementation.md
 
-## CXOne Chat UI
+## CXone Chat UI
 
 This is a sample implementation of the UI for CXOne Chat SDK, which allows easier integration of SDK into
 the intended target application.

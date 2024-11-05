@@ -19,8 +19,9 @@ import android.text.Spannable
 import android.text.Spannable.Factory
 import android.text.style.URLSpan
 import android.text.util.Linkify
-import androidx.compose.material.Text
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
@@ -30,6 +31,8 @@ import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.text.util.LinkifyCompat
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 internal fun AutoLinkedText(
@@ -37,22 +40,28 @@ internal fun AutoLinkedText(
     modifier: Modifier = Modifier,
     style: TextStyle = TextStyle.Default,
 ) {
+    val linked = produceState(AnnotatedString(text)) {
+        value = autoLinkedText(text)
+    }
     Text(
-        text = autoLinkedText(text),
+        text = linked.value,
         modifier = modifier,
         style = style,
     )
 }
 
-internal fun autoLinkedText(
+internal suspend fun autoLinkedText(
     text: String,
-): AnnotatedString = spannableToAnnotated(
-    Factory.getInstance()
-        .newSpannable(text)
-        .also {
-            LinkifyCompat.addLinks(it, Linkify.WEB_URLS or Linkify.EMAIL_ADDRESSES or Linkify.PHONE_NUMBERS)
-        }
-)
+): AnnotatedString = Factory.getInstance()
+    .newSpannable(text)
+    .let { linkify(it) }
+    .let(::spannableToAnnotated)
+
+private suspend fun linkify(spannable: Spannable): Spannable = withContext(Dispatchers.IO) {
+    // Some devices access system files defining possible phone number formats, which triggers BlogGuard
+    LinkifyCompat.addLinks(spannable, Linkify.WEB_URLS or Linkify.EMAIL_ADDRESSES or Linkify.PHONE_NUMBERS)
+    spannable
+}
 
 private fun spannableToAnnotated(spannable: Spannable): AnnotatedString = buildAnnotatedString {
     var lastEnd = 0

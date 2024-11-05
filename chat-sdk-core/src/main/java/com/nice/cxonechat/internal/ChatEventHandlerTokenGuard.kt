@@ -29,7 +29,7 @@ internal class ChatEventHandlerTokenGuard(
     private val chat: ChatWithParameters,
 ) : ChatEventHandler by origin {
 
-    override fun trigger(event: ChatEvent, listener: OnEventSentListener?, errorListener: OnEventErrorListener?) {
+    override fun trigger(event: ChatEvent<*>, listener: OnEventSentListener?, errorListener: OnEventErrorListener?) {
         val expiresAt = chat.storage.authTokenExpDate ?: Date(Long.MAX_VALUE)
         if (expiresAt.expiresWithin(10.seconds) && event !is RefreshToken) {
             origin.trigger(RefreshToken)

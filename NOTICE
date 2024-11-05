@@ -15,11 +15,6 @@ This product includes software from The Android Open Source Project, Androidx pr
     * Licensed under the Apache Apache License 2.0
     * https://github.com/androidx/androidx/blob/androidx-main/LICENSE.txt
 
-This product includes software from the Google Inc. Gson project
-    * Copyright 2008 Google Inc.
-    * Licensed under the Apache License, Version 2.0
-    * https://github.com/google/gson/blob/main/LICENSE
-
 This product includes software from the Square, Inc. Retrofit project
     * Copyright 2013 Square, Inc.
     * Licensed under the Apache Apache License 2.0

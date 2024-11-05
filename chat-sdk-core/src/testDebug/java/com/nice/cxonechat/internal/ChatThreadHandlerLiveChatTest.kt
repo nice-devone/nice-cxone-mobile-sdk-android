@@ -45,7 +45,7 @@ internal class ChatThreadHandlerLiveChatTest : AbstractChatTest() {
         val expected = chatThread.asCopyable().copy(positionInQueue = 10, hasOnlineAgent = true, contactId = TestContactId)
 
         val actual = testCallback(::get) {
-            sendServerMessage(ServerResponse.SetPositionInQueue(position = 10, isAgentAvailable = true))
+            sendServerMessage(ServerResponse.SetPositionInQueue(position = 10, isAgentAvailable = true, threadId = chatThread.id))
         }
 
         assertEquals(expected, actual.asCopyable().copy())

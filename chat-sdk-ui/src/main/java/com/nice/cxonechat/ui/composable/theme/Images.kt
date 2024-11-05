@@ -17,13 +17,11 @@ package com.nice.cxonechat.ui.composable.theme
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
-import com.nice.cxonechat.Public
 import com.nice.cxonechat.ui.R
 
 /**
  * Set of images used for decoration and branding.
  */
-@Public
 @Immutable
 interface Images {
 
@@ -40,7 +38,6 @@ interface Images {
          * @param logo Branding image which will be used as logo, see [Images.logo].
          * It can be any resource supported by Coil to load an image.
          */
-        @Public
         @JvmStatic
         @JvmName("create")
         operator fun invoke(

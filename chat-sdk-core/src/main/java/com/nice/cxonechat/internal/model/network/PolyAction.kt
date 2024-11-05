@@ -15,17 +15,21 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal sealed class PolyAction {
+    @Serializable
+    @SerialName("REPLY_BUTTON")
     data class ReplyButton(
-        @SerializedName("text")
+        @SerialName("text")
         val text: String,
-        @SerializedName("postback")
+        @SerialName("postback")
         val postback: String?,
-        @SerializedName("icon")
+        @SerialName("icon")
         val media: MediaModel?,
-        @SerializedName("description")
+        @SerialName("description")
         val description: String?
     ) : PolyAction()
 }

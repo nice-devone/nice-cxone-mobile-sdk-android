@@ -15,11 +15,13 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-internal data class CustomVariable constructor(
-    @SerializedName("identifier")
+@Serializable
+internal data class CustomVariable(
+    @SerialName("identifier")
     val identifier: String,
-    @SerializedName("value")
+    @SerialName("value")
     val value: String,
 )

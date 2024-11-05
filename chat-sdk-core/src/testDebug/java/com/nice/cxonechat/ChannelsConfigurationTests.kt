@@ -15,17 +15,15 @@
 
 package com.nice.cxonechat
 
-import com.google.gson.Gson
-import com.google.gson.JsonParser
 import com.nice.cxonechat.internal.model.AvailabilityStatus.Offline
 import com.nice.cxonechat.internal.model.AvailabilityStatus.Online
 import com.nice.cxonechat.internal.model.ChannelConfiguration
-import com.nice.cxonechat.internal.serializer.Default
 import com.nice.cxonechat.state.Configuration.Feature.LiveChatLogoHidden
 import com.nice.cxonechat.state.Configuration.Feature.ProactiveChatEnabled
 import com.nice.cxonechat.state.Configuration.Feature.RecoverLiveChatDoesNotFail
 import com.nice.cxonechat.state.FieldDefinition.Hierarchy
 import junit.framework.TestCase.assertTrue
+import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -35,17 +33,20 @@ internal class ChannelsConfigurationTests {
         requireNotNull(ResourceHelper.loadString("channelconfiguration.json"))
     }
 
+    private val json = Json {
+        ignoreUnknownKeys = true
+        explicitNulls = false
+    }
+
     private fun configuration(
         isLiveChat: Boolean = false,
         isOnline: Boolean = true,
-    ) = JsonParser.parseString(channelConfigurationData).asJsonObject.apply {
-        addProperty("isLiveChat", isLiveChat)
-        with(getAsJsonObject("availability")) {
-            addProperty("status", if (isOnline) "online" else "offline")
-        }
+    ) = json.decodeFromString<ChannelConfiguration>(channelConfigurationData).let {
+         it.copy(
+            isLiveChat = isLiveChat,
+            availability = it.availability.copy(status = if (isOnline) Online else Offline)
+        )
     }
-        .let(Gson()::toJson)
-        .let { Default.serializer.fromJson(it, ChannelConfiguration::class.java) }
 
     @Test
     fun testLiveChatRelatedParsing() {

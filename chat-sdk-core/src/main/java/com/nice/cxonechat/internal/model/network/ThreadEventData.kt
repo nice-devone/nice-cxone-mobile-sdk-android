@@ -15,13 +15,15 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.internal.model.Thread
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * Event data to be sent for any thread event (archive, recover, etc.).
  */
+@Serializable
 internal data class ThreadEventData(
-    @SerializedName("thread")
+    @SerialName("thread")
     val thread: Thread,
 )

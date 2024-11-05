@@ -15,11 +15,15 @@
 
 package com.nice.cxonechat.internal.socket
 
+import com.nice.cxonechat.core.BuildConfig
+import com.nice.cxonechat.internal.serializer.Default
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerScope
 import com.nice.cxonechat.log.debug
 import com.nice.cxonechat.log.scope
 import com.nice.cxonechat.log.verbose
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
@@ -36,8 +40,19 @@ internal class EventLogger(
         webSocket: WebSocket,
         text: String,
     ) = scope("onMessage") {
-        verbose(text)
+        val jsonText: String = when {
+            BuildConfig.DEBUG -> prettyPrint(text)
+            else -> text
+        }
+        verbose(jsonText)
     }
+
+    private fun prettyPrint(text: String) = runCatching {
+        Default.serializer.encodeToString(
+            serializer = JsonObject.serializer(),
+            value = Default.serializer.parseToJsonElement(text).jsonObject
+        )
+    }.getOrDefault(text)
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) = scope("onFailure") {
         debug("Response: $response", t)

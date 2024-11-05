@@ -17,8 +17,13 @@ package com.nice.cxonechat.event
 
 import com.nice.cxonechat.Public
 import com.nice.cxonechat.enums.VisitorEventType.ProactiveActionDisplayed
+import com.nice.cxonechat.internal.serializer.Default
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.storage.ValueStorage
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.encodeToJsonElement
 import java.util.Date
 import com.nice.cxonechat.internal.model.network.ActionStoreVisitorEvent as StoreVisitorEventsModel
 
@@ -29,19 +34,24 @@ import com.nice.cxonechat.internal.model.network.ActionStoreVisitorEvent as Stor
  * Generally, this can be any form of data or serializable object.
  * */
 @Public
-@Deprecated("Use ChatEventHandler.customVisitor()")
-class CustomVisitorEvent(
+internal class CustomVisitorEvent(
     private val data: Any,
-) : ChatEvent() {
+) : ChatEvent<StoreVisitorEventsModel>() {
 
     override fun getModel(
         connection: Connection,
         storage: ValueStorage,
-    ): Any = StoreVisitorEventsModel(
+    ) = StoreVisitorEventsModel(
         connection = connection,
         visitor = storage.visitorId,
         destination = storage.destinationId,
-        ProactiveActionDisplayed to data,
-        createdAt = Date()
+        ProactiveActionDisplayed to data.toJsonElement(),
+        createdAt = Date(),
     )
+
+    private fun Any.toJsonElement(): JsonElement = when (this) {
+        this::class.java.isAnnotationPresent(Serializable::class.java) -> Default.serializer.encodeToJsonElement(this)
+        is String -> JsonPrimitive(this)
+        else -> Default.serializer.encodeToJsonElement(this)
+    }
 }

@@ -16,7 +16,7 @@
 package com.nice.cxonechat.ui.composable.theme
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.Text
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,7 +41,7 @@ internal fun ChatTheme.Alert(
             OutlinedButton(text = dismissLabel, onClick = onDismiss)
         }
     ) {
-        Text(message, modifier = Modifier.fillMaxWidth(), style = typography.body2)
+        Text(message, modifier = Modifier.fillMaxWidth(), style = chatTypography.dialogBody)
     }
 }
 

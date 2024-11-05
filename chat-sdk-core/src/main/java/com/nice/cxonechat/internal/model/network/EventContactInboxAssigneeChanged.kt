@@ -15,7 +15,6 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.EventType.CaseInboxAssigneeChanged
 import com.nice.cxonechat.internal.model.AgentModel
 import com.nice.cxonechat.internal.model.Brand
@@ -23,9 +22,12 @@ import com.nice.cxonechat.internal.model.ChannelIdentifier
 import com.nice.cxonechat.internal.model.Contact
 import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
 import com.nice.cxonechat.thread.ChatThread
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal data class EventContactInboxAssigneeChanged(
-    @SerializedName("data")
+    @SerialName("data")
     val data: Data,
 ) {
 
@@ -35,16 +37,17 @@ internal data class EventContactInboxAssigneeChanged(
 
     fun inThread(thread: ChatThread) = case.threadIdOnExternalPlatform == thread.id
 
+    @Serializable
     data class Data(
-        @SerializedName("brand")
+        @SerialName("brand")
         val brand: Brand,
-        @SerializedName("channel")
+        @SerialName("channel")
         val channel: ChannelIdentifier,
-        @SerializedName("case")
+        @SerialName("case")
         val case: Contact,
-        @SerializedName("inboxAssignee")
+        @SerialName("inboxAssignee")
         val inboxAssignee: AgentModel?,
-        @SerializedName("previousInboxAssignee")
+        @SerialName("previousInboxAssignee")
         val previousInboxAssignee: AgentModel?,
     )
 

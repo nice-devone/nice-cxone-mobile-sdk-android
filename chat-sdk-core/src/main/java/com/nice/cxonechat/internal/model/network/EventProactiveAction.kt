@@ -15,17 +15,24 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.analytics.ActionMetadata
 import com.nice.cxonechat.analytics.ActionMetadataInternal
 import com.nice.cxonechat.enums.ActionType
 import com.nice.cxonechat.enums.EventType
 import com.nice.cxonechat.internal.model.CustomFieldModel
+import com.nice.cxonechat.internal.serializer.Default
 import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
 import java.util.UUID
 
+@Serializable
 internal data class EventProactiveAction(
-    @SerializedName("data")
+    @SerialName("data")
     val data: Data,
 ) {
 
@@ -37,26 +44,36 @@ internal data class EventProactiveAction(
     val headlineSecondaryText get() = data.proactiveAction.action.data.content.headlineSecondaryText
     val image get() = data.proactiveAction.action.data.content.image
     val mimeType get() = data.proactiveAction.action.data.content.mimeType
-    val variables get() = data.proactiveAction.action.data.content.variables
+    val variables get() = data.proactiveAction.action.data.content.variables.orEmpty().mapValues { entry ->
+        when(val element = entry.value) {
+            null -> null
+            is JsonPrimitive -> element.content
+            else -> Default.serializer.encodeToString(element)
+        }
+    }
 
+    @Serializable
     data class Data(
-        @SerializedName("proactiveAction")
+        @SerialName("proactiveAction")
         val proactiveAction: Action,
     )
 
+    @Serializable
     data class Action(
-        @SerializedName("action")
+        @SerialName("action")
         val action: ProactiveActionDetails,
     )
 
-    data class ProactiveActionDetails constructor(
-        @SerializedName("actionId")
+    @Serializable
+    data class ProactiveActionDetails(
+        @SerialName("actionId")
+        @Contextual
         val actionId: UUID,
-        @SerializedName("actionName")
+        @SerialName("actionName")
         val actionName: String,
-        @SerializedName("actionType")
+        @SerialName("actionType")
         val actionType: ActionType,
-        @SerializedName("data")
+        @SerialName("data")
         val data: ActionData,
     ) {
 
@@ -67,30 +84,33 @@ internal data class EventProactiveAction(
         )
     }
 
+    @Serializable
     data class ActionData(
-        @SerializedName("content")
+        @SerialName("content")
         val content: Content,
-        @SerializedName("handover")
+        @SerialName("handover")
         val handover: Handover,
     )
 
+    @Serializable
     data class Content(
-        @SerializedName("bodyText")
+        @SerialName("bodyText")
         val bodyText: String,
-        @SerializedName("headlineText")
+        @SerialName("headlineText")
         val headlineText: String? = null,
-        @SerializedName("headlineSecondaryText")
+        @SerialName("headlineSecondaryText")
         val headlineSecondaryText: String? = null,
-        @SerializedName("image")
+        @SerialName("image")
         val image: String? = null,
-        @SerializedName("mimeType")
+        @SerialName("mimeType")
         val mimeType: String? = null,
-        @SerializedName("variables")
-        val variables: Map<String, Any?>? = null,
+        @SerialName("variables")
+        val variables: Map<String, JsonElement?>? = null,
     )
 
+    @Serializable
     data class Handover(
-        @SerializedName("customFields")
+        @SerialName("customFields")
         val customFields: List<CustomFieldModel>? = null,
     )
 

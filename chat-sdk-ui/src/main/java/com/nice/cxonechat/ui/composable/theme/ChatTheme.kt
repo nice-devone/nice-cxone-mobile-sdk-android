@@ -16,12 +16,12 @@
 package com.nice.cxonechat.ui.composable.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material.Colors
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Shapes
-import androidx.compose.material.Typography
-import androidx.compose.material.darkColors
-import androidx.compose.material.lightColors
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
+import androidx.compose.material3.Typography
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
@@ -34,7 +34,7 @@ internal fun ChatTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Com
         ChatThemeDetails.lightColors
     }
     val colors = if (darkTheme) {
-        darkColors(
+        darkColorScheme(
             primary = theme.primary,
             onPrimary = theme.onPrimary,
             background = theme.background,
@@ -43,10 +43,9 @@ internal fun ChatTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Com
             onSurface = theme.onBackground,
             secondary = theme.accent,
             onSecondary = theme.onAccent,
-            secondaryVariant = theme.accent.rippleVariant(),
         )
     } else {
-        lightColors(
+        lightColorScheme(
             primary = theme.primary,
             onPrimary = theme.onPrimary,
             background = theme.background,
@@ -55,7 +54,6 @@ internal fun ChatTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Com
             onSurface = theme.onBackground,
             secondary = theme.accent,
             onSecondary = theme.onAccent,
-            secondaryVariant = theme.accent.rippleVariant(),
         )
     }
     val chatColors = ChatColors(theme)
@@ -68,7 +66,7 @@ internal fun ChatTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Com
         LocalImages provides images,
     ) {
         MaterialTheme(
-            colors = colors,
+            colorScheme = colors,
             typography = Typography,
             shapes = Shapes,
             content = content
@@ -80,10 +78,10 @@ internal object ChatTheme {
     /**
      * Retrieves the current [DefaultColors] at the call site's position in the hierarchy.
      */
-    val colors: Colors
+    val colorScheme: ColorScheme
         @Composable
         @ReadOnlyComposable
-        get() = MaterialTheme.colors
+        get() = MaterialTheme.colorScheme
 
     /**
      * Retrieves the current [Typography] at the call site's position in the hierarchy.

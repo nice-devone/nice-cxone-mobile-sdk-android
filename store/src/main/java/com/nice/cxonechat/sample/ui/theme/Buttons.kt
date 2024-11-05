@@ -19,11 +19,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.ButtonColors
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Icon
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.Text
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,7 +32,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.nice.cxonechat.sample.R.drawable
 import com.nice.cxonechat.sample.R.string
-import androidx.compose.material.FloatingActionButton as MaterialFab
+import androidx.compose.material3.FloatingActionButton as MaterialFab
 
 /**
  * The outlined button preferred through out the application with the AppTheme
@@ -64,9 +64,9 @@ fun AppTheme.OutlinedButton(
 
 @Composable
 private fun AppTheme.buttonColors(isDefault: Boolean): ButtonColors {
-    val background = if (isDefault) colors.primary else Color.Transparent
+    val background = if (isDefault) colorScheme.primary else Color.Transparent
     return ButtonDefaults.buttonColors(
-        backgroundColor = background,
+        containerColor = background,
         contentColor = contentColorFor(background)
     )
 }
@@ -94,7 +94,7 @@ fun AppTheme.ContinueButton(onClick: () -> Unit) {
  */
 @Composable
 fun AppTheme.ChatFab(onClick: () -> Unit) {
-    MaterialFab(onClick = onClick, backgroundColor = colors.primary) {
+    MaterialFab(onClick = onClick, containerColor = colorScheme.primary) {
         Icon(painterResource(drawable.ic_chat_24px), stringResource(string.open_chat))
     }
 }

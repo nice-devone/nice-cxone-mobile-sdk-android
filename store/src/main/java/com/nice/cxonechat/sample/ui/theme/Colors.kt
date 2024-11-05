@@ -15,8 +15,8 @@
 
 package com.nice.cxonechat.sample.ui.theme
 
-import androidx.compose.material.LocalContentColor
-import androidx.compose.material.contentColorFor
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.graphics.Color
@@ -106,6 +106,6 @@ object Colors {
 @Composable
 @ReadOnlyComposable
 fun contentColorFor(backgroundColor: Color): Color = when (backgroundColor) {
-    Color.Transparent -> AppTheme.colors.primary
-    else -> AppTheme.colors.contentColorFor(backgroundColor)
+    Color.Transparent -> AppTheme.colorScheme.primary
+    else -> AppTheme.colorScheme.contentColorFor(backgroundColor)
 }.takeOrElse { LocalContentColor.current }

@@ -21,7 +21,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -178,7 +178,7 @@ private fun ConfigurationSelector(
 
     Column(
         modifier
-            .border(1.dp, AppTheme.colors.onBackground.copy(alpha = 0.50f), RoundedCornerShape(4.dp))
+            .border(1.dp, AppTheme.colorScheme.onBackground.copy(alpha = 0.50f), RoundedCornerShape(4.dp))
     ) {
         DropdownField(
             modifier = Modifier.padding(space.defaultPadding),
@@ -193,7 +193,7 @@ private fun ConfigurationSelector(
 @Composable
 private fun CustomEnvironmentDetails(state: SdkConfigurationState) {
     if(state.isCustomConfiguration) {
-        Divider(modifier = Modifier.padding(vertical = space.medium))
+        HorizontalDivider(modifier = Modifier.padding(vertical = space.medium))
         EnvironmentSelector(state)
         BrandIdField(state)
         ChannelIdField(state)
@@ -208,7 +208,7 @@ private fun EnvironmentSelector(
     Column(
         modifier
             .padding(top = space.medium)
-            .border(1.dp, AppTheme.colors.onBackground.copy(alpha = 0.50f), RoundedCornerShape(4.dp))
+            .border(1.dp, AppTheme.colorScheme.onBackground.copy(alpha = 0.50f), RoundedCornerShape(4.dp))
     ) {
         DropdownField(
             modifier = modifier.padding(space.defaultPadding),

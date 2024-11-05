@@ -15,8 +15,9 @@
 
 package com.nice.cxonechat.sample.data.models
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.SocketFactoryConfiguration
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * A savable configuration for the SDK.
@@ -27,20 +28,20 @@ import com.nice.cxonechat.SocketFactoryConfiguration
  * @param brandId Brand ID for configuration.
  * @param channelId Channel ID to configure.
  */
+@Serializable
 data class SdkConfiguration(
-    @SerializedName("name")
+    @SerialName("name")
     val name: String,
-    @SerializedName("environment")
+    @SerialName("environment")
     val environment: SdkEnvironment,
-    @SerializedName("brandId")
+    @SerialName("brandId")
     val brandId: Long,
-    @SerializedName("channelId")
+    @SerialName("channelId")
     val channelId: String,
 ) {
     /**
      * Convert a saved SdkConfiguration to a SocketFactoryConfiguration for building a chat.
      *
-     * @param context Android context, used to fetch the version name.
      * @return Appropriately constructed SdkConfiguration.
      */
     val asSocketFactoryConfiguration: SocketFactoryConfiguration

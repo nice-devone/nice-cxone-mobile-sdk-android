@@ -15,11 +15,11 @@
 
 package com.nice.cxonechat.ui.composable.generic
 
-import androidx.compose.material.LocalContentColor
 import androidx.compose.material.icons.Icons.Outlined
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Downloading
 import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier

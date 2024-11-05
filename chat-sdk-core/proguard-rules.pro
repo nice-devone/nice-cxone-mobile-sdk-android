@@ -20,10 +20,8 @@
 -keepclasseswithmembers,allowoptimization class **, **$**, **$**$**, **$**$**, **$**$**$** {
     @com.nice.cxonechat.Public public <methods>;
 }
--keep,allowobfuscation,allowoptimization class **, **$**, **$**$**, **$**$**, **$**$**$** {
-    <init>(...);
-    @com.google.gson.annotations.SerializedName <fields>;
-    @com.google.gson.annotations.SerializedName <methods>;
+-keepclasseswithmembernames class com.nice.cxonechat.ChatInstanceProvider$Listener {
+    public <methods>;
 }
 
 ## === Intrinsics ===
@@ -50,3 +48,16 @@
 
 ## === Suppression ===
 -dontwarn java.lang.invoke.StringConcatFactory
+
+## === Serialization ===
+## Kotlinx.serialization rules are not effective if the classes are not used with R8 in fullmode
+-keepclassmembers class com.nice.cxonechat.internal.model.**$**, com.nice.cxonechat.api.model.**$** {
+    kotlinx.serialization.KSerializer serializer();
+}
+-keep class com.nice.cxonechat.internal.model.**, com.nice.cxonechat.api.model.** {
+       public static <1> INSTANCE;
+       kotlinx.serialization.KSerializer serializer(...);
+}
+-keepclassmembers public class **$$serializer {
+    *;
+}

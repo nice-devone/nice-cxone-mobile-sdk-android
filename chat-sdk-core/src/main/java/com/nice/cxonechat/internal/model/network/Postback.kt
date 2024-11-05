@@ -15,12 +15,14 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.EventType
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal data class Postback<Data>(
-    @SerializedName("eventType")
+    @SerialName("eventType")
     val eventType: EventType,
-    @SerializedName("data")
+    @SerialName("data")
     val data: Data,
 )

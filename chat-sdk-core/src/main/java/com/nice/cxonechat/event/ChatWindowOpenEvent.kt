@@ -25,11 +25,11 @@ import java.util.Date
  */
 internal class ChatWindowOpenEvent(
     private val date: Date = Date()
-) : ChatEvent() {
+) : ChatEvent<AnalyticsEvent>() {
     override fun getModel(
         connection: Connection,
         storage: ValueStorage,
-    ): Any = AnalyticsEvent(ChatWindowOpened, storage, date)
+    ) = AnalyticsEvent(ChatWindowOpened, storage, date)
 
     override fun toString() = "ChatWindowOpen()"
 }

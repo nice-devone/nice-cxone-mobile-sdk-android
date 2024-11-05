@@ -15,17 +15,19 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-internal data class UTM constructor(
-    @SerializedName("source")
+@Serializable
+internal data class UTM(
+    @SerialName("source")
     val source: String,
-    @SerializedName("medium")
+    @SerialName("medium")
     val medium: String,
-    @SerializedName("campaign")
+    @SerialName("campaign")
     val campaign: String,
-    @SerializedName("term")
+    @SerialName("term")
     val term: String,
-    @SerializedName("content")
+    @SerialName("content")
     val content: String,
 )

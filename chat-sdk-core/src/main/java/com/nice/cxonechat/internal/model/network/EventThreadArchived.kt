@@ -15,20 +15,25 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.EventType
 import com.nice.cxonechat.internal.socket.EventCallback.EventWithId
 import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
+@Serializable
 internal data class EventThreadArchived(
-    @SerializedName("eventId")
+    @SerialName("eventId")
+    @Contextual
     override val eventId: UUID,
-    @SerializedName("postback")
+    @SerialName("postback")
     val postback: Postback,
 ) : EventWithId {
+    @Serializable
     data class Postback(
-        @SerializedName("eventType")
+        @SerialName("eventType")
         val eventType: String
     )
 

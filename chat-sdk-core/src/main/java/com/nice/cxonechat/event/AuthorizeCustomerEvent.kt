@@ -22,7 +22,7 @@ import com.nice.cxonechat.storage.ValueStorage
 internal class AuthorizeCustomerEvent(
     private val code: String,
     private val verifier: String,
-) : ChatEvent() {
+) : ChatEvent<ActionAuthorizeCustomer>() {
 
     override fun getModel(
         connection: Connection,

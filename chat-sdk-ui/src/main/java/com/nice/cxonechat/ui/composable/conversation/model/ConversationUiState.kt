@@ -37,7 +37,6 @@ import com.nice.cxonechat.message.Message as SdkMessage
  * Captures the state of active conversation and also handling of various actions possible within
  * the conversation.
  *
- * @property threadName Flow of names for active conversation - usually bound to the conversation thread.
  * @param sdkMessages Flow of messages for the active conversation, it is expected that the flow will be updated if
  * [sendMessage] is invoked.
  * @property typingIndicator Flow indicating that the agent handling the conversation is typing.
@@ -51,19 +50,16 @@ import com.nice.cxonechat.message.Message as SdkMessage
  * @property onAttachmentClicked An action which handles when users clicks on an Attachment
  * @property onMoreClicked An action to take when the more button is clicked in an attachment preview.
  * @property onShare Action to take when share is selected via long press or attachment selection dialog.
- * @param backgroundDispatcher Optional dispatcher used for mapping of incoming messages off the main thread,
- * intended for testing.
- * @property isMultiThreaded true iff the channel is configured for multiple threads.
- * @property hasQuestions true iff there is a prechat questionnaire for the channel.
  * @property isArchived Flow indicating if the thread was archived.
  * @property isLiveChat true iff the channel is configured as live chat.
+ * @param backgroundDispatcher Optional dispatcher used for mapping of incoming messages off the main thread,
+ * intended for testing.
  */
 @Suppress(
     "LongParameterList", // POJO class
 )
 @Stable
 internal data class ConversationUiState(
-    internal val threadName: Flow<String?>,
     private val sdkMessages: Flow<List<SdkMessage>>,
     internal val typingIndicator: Flow<Boolean>,
     internal val positionInQueue: Flow<Int?>,
@@ -75,11 +71,9 @@ internal data class ConversationUiState(
     internal val onAttachmentClicked: (Attachment) -> Unit,
     internal val onMoreClicked: (List<Attachment>, String) -> Unit,
     internal val onShare: (Collection<Attachment>) -> Unit,
-    private val backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
-    internal val isMultiThreaded: Boolean,
-    internal val hasQuestions: Boolean,
     internal val isArchived: StateFlow<Boolean>,
     internal val isLiveChat: Boolean,
+    private val backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
     @Stable
     internal fun messages(context: Context): Flow<List<Section>> = sdkMessages

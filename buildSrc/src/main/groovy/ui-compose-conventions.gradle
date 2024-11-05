@@ -13,6 +13,10 @@
  * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
  */
 
+plugins {
+    id "org.jetbrains.kotlin.plugin.compose"
+}
+
 android {
     buildFeatures {
         compose true
@@ -28,7 +32,7 @@ dependencies {
     implementation libs.androidx.constraintlayout.compose
     implementation platform(libs.androidx.compose.bom)
     implementation libs.androidx.compose.activity
-    implementation libs.androidx.material
+    implementation libs.androidx.material3
     implementation libs.androidx.material.icons.extended
     implementation libs.androidx.lifecycle.runtime.compose
     implementation libs.androidx.compose.ui

@@ -15,13 +15,15 @@
 
 package com.nice.cxonechat.enums
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * The different types of messages that can be sent to the WebSocket.
  */
+@Serializable
 internal enum class MessageContentType(val value: String) {
     /** The message is only sending text. */
-    @SerializedName("TEXT")
+    @SerialName("TEXT")
     Text("TEXT"),
 }

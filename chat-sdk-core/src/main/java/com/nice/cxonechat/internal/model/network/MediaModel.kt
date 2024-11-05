@@ -15,13 +15,15 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal data class MediaModel(
-    @SerializedName("fileName")
+    @SerialName("fileName")
     val fileName: String,
-    @SerializedName("url")
+    @SerialName("url")
     val url: String,
-    @SerializedName("mimeType")
+    @SerialName("mimeType")
     val mimeType: String
 )

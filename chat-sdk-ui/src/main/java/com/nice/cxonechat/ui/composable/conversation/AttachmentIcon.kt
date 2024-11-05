@@ -27,13 +27,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.LocalContentColor
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons.Outlined
 import androidx.compose.material.icons.outlined.FilePresent
 import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Videocam
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -128,7 +128,7 @@ private fun VideoIcon(attachment: Attachment) {
             )
         } else {
             val context = LocalContext.current
-            val background = MaterialTheme.colors.surface.toArgb()
+            val background = MaterialTheme.colorScheme.surface.toArgb()
 
             val exoPlayer = remember {
                 buildProgressivePlayerForUri(context, Uri.parse(attachment.url)).apply {

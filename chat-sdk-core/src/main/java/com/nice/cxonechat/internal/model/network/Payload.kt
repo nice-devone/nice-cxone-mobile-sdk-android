@@ -15,7 +15,6 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.EventType
 import com.nice.cxonechat.internal.model.Brand
 import com.nice.cxonechat.internal.model.ChannelIdentifier
@@ -24,22 +23,29 @@ import com.nice.cxonechat.internal.model.asBrand
 import com.nice.cxonechat.internal.model.asChannelId
 import com.nice.cxonechat.internal.model.asCustomerIdentity
 import com.nice.cxonechat.state.Connection
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonNames
 import java.util.UUID
 
+@Serializable
+@OptIn(ExperimentalSerializationApi::class)
 internal data class Payload<Data>(
-    @SerializedName("brand")
+    @SerialName("brand")
     val brand: Brand,
-    @SerializedName("channel")
+    @SerialName("channel")
     val channel: ChannelIdentifier,
-    @SerializedName("data")
+    @SerialName("data")
     val data: Data,
-    @SerializedName(value = "customerIdentity", alternate = ["consumerIdentity"])
+    @SerialName(value = "customerIdentity")
+    @JsonNames("customerIdentity", "consumerIdentity")
     val customerIdentity: CustomerIdentityModel,
-    @SerializedName("visitor")
+    @SerialName("visitor")
     val visitor: Identifier?,
-    @SerializedName("destination")
+    @SerialName("destination")
     val destination: Identifier?,
-    @SerializedName("eventType")
+    @SerialName("eventType")
     val eventType: EventType,
 ) {
 

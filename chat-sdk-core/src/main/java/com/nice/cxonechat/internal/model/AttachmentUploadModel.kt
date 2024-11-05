@@ -17,23 +17,25 @@ package com.nice.cxonechat.internal.model
 
 import android.annotation.SuppressLint
 import android.util.Base64
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.message.ContentDescriptor
 import com.nice.cxonechat.message.ContentDescriptor.DataSource
 import com.nice.cxonechat.util.applyDefaultExtension
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStream
 
 @Suppress("UseDataClass")
+@Serializable
 internal class AttachmentUploadModel {
-    @SerializedName("content")
+    @SerialName("content")
     val content: String
 
-    @SerializedName("mimeType")
+    @SerialName("mimeType")
     val mimeType: String
 
-    @SerializedName("fileName")
+    @SerialName("fileName")
     val fileName: String
 
     /**

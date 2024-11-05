@@ -65,9 +65,15 @@ import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.storage.ValueStorage
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.tool.serialize
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
 import java.util.Date
 import java.util.UUID
 
+@Suppress(
+    "FunctionNaming",
+    "ExpressionBodySyntax"
+)
 internal object ServerRequest {
 
     fun LoadMore(connection: Connection, thread: ChatThread): String = ActionLoadMoreMessages(
@@ -124,9 +130,15 @@ internal object ServerRequest {
         return ActionReconnectCustomer(connection, TestUUIDValue, token).copy(eventId = TestUUIDValue).serialize().verifyReconnectConsumer()
     }
 
-    fun StoreVisitorEvent(connection: Connection, vararg events: VisitorEvent): String {
-        return ActionStoreVisitorEvent(connection, TestUUIDValue, TestUUIDValue, events = events).copy(eventId = TestUUIDValue).serialize().verifyStoreVisitorEvent()
-    }
+    fun StoreVisitorEvent(connection: Connection, vararg events: VisitorEvent): String = ActionStoreVisitorEvent(
+        connection,
+        TestUUIDValue,
+        TestUUIDValue,
+        events = events
+    )
+        .copy(eventId = TestUUIDValue)
+        .serialize()
+        .verifyStoreVisitorEvent()
 
     fun ExecuteTrigger(connection: Connection, id: UUID): String {
         return ActionExecuteTrigger(connection, TestUUIDValue, TestUUIDValue, id).copy(eventId = TestUUIDValue).serialize().verifyExecuteTrigger()
@@ -229,8 +241,12 @@ internal object ServerRequest {
         .verifySendOutbound(storage.deviceToken)
 
     object StoreVisitorEvents {
-        fun CustomVisitorEvent(data: String, date: Date = Date(0)): VisitorEvent {
-            return VisitorEvent(type = VisitorEventType.ProactiveActionDisplayed, createdAt = date, data = data, id = TestUUIDValue)
-        }
+        fun CustomVisitorEvent(data: String, date: Date = Date(0)) =
+            VisitorEvent(
+                type = VisitorEventType.ProactiveActionDisplayed,
+                createdAt = date,
+                data = Json.Default.encodeToJsonElement(data),
+                id = TestUUIDValue
+            )
     }
 }

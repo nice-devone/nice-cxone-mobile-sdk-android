@@ -15,12 +15,29 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
+import com.nice.cxonechat.enums.ContactStatus
 import com.nice.cxonechat.internal.model.CustomFieldModel
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import java.util.Date
+import java.util.UUID
 
+@Serializable
 internal data class ContactFieldData(
-    @SerializedName("id")
+    @SerialName("id")
     val id: String,
-    @SerializedName("customFields")
+    @SerialName("customFields")
     val customFields: List<CustomFieldModel>,
+    /** The id of the thread for which this contact applies. */
+    @SerialName("threadIdOnExternalPlatform")
+    @Contextual
+    val threadIdOnExternalPlatform: UUID,
+
+    @SerialName("status")
+    val status: ContactStatus,
+
+    @SerialName("createdAt")
+    @Contextual
+    val createdAt: Date,
 )
