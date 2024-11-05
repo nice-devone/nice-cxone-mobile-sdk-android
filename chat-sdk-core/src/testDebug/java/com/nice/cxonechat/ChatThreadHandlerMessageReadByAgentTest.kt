@@ -15,8 +15,6 @@
 
 package com.nice.cxonechat
 
-import com.google.gson.JsonObject
-import com.google.gson.JsonSerializer
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.model.MessageModel
 import com.nice.cxonechat.internal.model.network.MessagePolyContent.Noop
@@ -29,6 +27,7 @@ import org.junit.Test
 import java.util.Date
 import java.util.UUID
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 internal class ChatThreadHandlerMessageReadByAgentTest : AbstractChatTest() {
@@ -61,6 +60,7 @@ internal class ChatThreadHandlerMessageReadByAgentTest : AbstractChatTest() {
         val actual = testCallback(::get) {
             sendServerMessage(ServerResponse.MessageReadChanged(message))
         }
+        assertNotNull(actual)
         assertEquals(expected, actual.asCopyable().copy())
     }
 
@@ -74,17 +74,10 @@ internal class ChatThreadHandlerMessageReadByAgentTest : AbstractChatTest() {
 
     @Test
     fun read_event_without_message_is_ignored() {
-        val serializer = JsonSerializer<Noop> { _, _, _ ->
-            JsonObject().apply {
-                addProperty("type", "noop")
-            }
-        }
-        val pair = Noop::class.java to serializer
         val actual = testCallback(::get) {
             sendServerMessage(
                 ServerResponse.MessageReadChanged(
                     message = message.copy(messageContent = Noop),
-                    temporaryTypeAdapters = mapOf(pair)
                 )
             )
         }

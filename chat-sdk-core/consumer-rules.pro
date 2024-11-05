@@ -1,8 +1,16 @@
-## === GSON ===
-## Prevent R8 to replace instances of types that are never instantiated with null
-## https://r8.googlesource.com/r8/+/refs/heads/master/compatibility-faq.md#troubleshooting-gson
--keep,allowobfuscation,allowoptimization class *, **, **$**, **$**$**, **$**$**, **$**$**$** {
-    <init>(...);
-    @com.google.gson.annotations.SerializedName <fields>;
-    @com.google.gson.annotations.SerializedName <methods>;
+# Prevent false-positive unused method removal by the R8 in full mode
+-keepclassmembers, allowoptimization, allowobfuscation class
+    com.nice.cxonechat.SocketFactoryConfiguration$Companion,
+    com.nice.cxonechat.ChatBuilder$Companion,
+    com.nice.cxonechat.message.OutboundMessage$Companion
+ {
+    public *;
+}
+
+-keepclassmembers, allowoptimization, allowobfuscation interface
+    com.nice.cxonechat.SocketFactoryConfiguration,
+    com.nice.cxonechat.ChatBuilder,
+    com.nice.cxonechat.message.OutboundMessage
+ {
+    public static *;
 }

@@ -17,15 +17,16 @@ package com.nice.cxonechat.internal
 
 import com.nice.cxonechat.api.RemoteService
 import com.nice.cxonechat.api.RemoteServiceCaching
-import com.nice.cxonechat.internal.serializer.Default
+import com.nice.cxonechat.internal.serializer.Default.serializer
 import com.nice.cxonechat.state.Connection
 import okhttp3.Interceptor
 import okhttp3.Interceptor.Chain
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.jetbrains.annotations.TestOnly
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import retrofit2.create
 import java.util.concurrent.TimeUnit
 
@@ -56,7 +57,7 @@ internal class RemoteServiceBuilder {
         var service: RemoteService = Retrofit.Builder()
             .client(buildClient())
             .baseUrl(connection.environment.chatUrl)
-            .addConverterFactory(GsonConverterFactory.create(Default.serializer))
+            .addConverterFactory(serializer.asConverterFactory("application/json; charset=UTF-8".toMediaType()))
             .build()
             .create()
         service = RemoteServiceCaching(service)

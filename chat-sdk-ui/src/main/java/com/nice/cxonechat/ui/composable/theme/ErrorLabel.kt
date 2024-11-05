@@ -16,7 +16,7 @@
 package com.nice.cxonechat.ui.composable.theme
 
 import androidx.compose.foundation.background
-import androidx.compose.material.Text
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -28,9 +28,9 @@ internal fun ChatTheme.ErrorLabel(label: String?, error: String?) {
         error != null ->
             Text(
                 label?.let { stringResource(string.error_validation_label, it, error) } ?: error,
-                color = colors.error
+                color = colorScheme.error
             )
         label != null ->
-            Text(label, Modifier.background(colors.background))
+            Text(label, Modifier.background(colorScheme.background))
     }
 }

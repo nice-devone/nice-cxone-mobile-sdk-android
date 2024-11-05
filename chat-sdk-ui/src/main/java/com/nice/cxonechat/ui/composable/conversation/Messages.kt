@@ -15,7 +15,6 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -41,7 +40,6 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.util.isSameDay
 import java.util.Date
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun ColumnScope.Messages(
     scrollState: LazyListState,
@@ -86,13 +84,13 @@ internal fun ColumnScope.Messages(
                 // Display "Today" over today's messages
                 section.createdAt.isSameDay(Date()) ->
                     item(contentType = DateHeader) {
-                        DayHeader(dayString = stringResource(string.today), Modifier.animateItemPlacement())
+                        DayHeader(dayString = stringResource(string.today), Modifier.animateItem())
                     }
 
                 // display appropriate date over other messages
                 else ->
                     item(contentType = DateHeader) {
-                        DayHeader(dayString = section.createdAtDate, Modifier.animateItemPlacement())
+                        DayHeader(dayString = section.createdAtDate, Modifier.animateItem())
                     }
             }
         }

@@ -23,15 +23,15 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ButtonColors
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons.Outlined
-import androidx.compose.material.icons.outlined.Send
+import androidx.compose.material.icons.Icons.AutoMirrored.Outlined
+import androidx.compose.material.icons.automirrored.outlined.Send
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,9 +43,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 internal fun ChatTheme.buttonColors(isDefault: Boolean): ButtonColors {
-    val background = if (isDefault) colors.primary else colors.background
+    val background = if (isDefault) colorScheme.primary else colorScheme.background
     return ButtonDefaults.buttonColors(
-        backgroundColor = background,
+        containerColor = background,
         contentColor = contentColorFor(background)
     )
 }
@@ -97,7 +97,7 @@ internal fun ChatTheme.SelectableIconButton(
     backgroundModifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
-    val selectedColor = if (selected) colors.secondaryVariant else colors.secondary
+    val selectedColor = if (selected) colorScheme.tertiary else colorScheme.secondary
     val coloredBackgroundModifier = backgroundModifier.background(
         color = selectedColor,
         shape = RoundedCornerShape(8.dp)

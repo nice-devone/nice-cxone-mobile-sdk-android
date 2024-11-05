@@ -17,11 +17,17 @@ package com.nice.cxonechat.sample.data.models
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.sample.ui.theme.Colors.Dark
 import com.nice.cxonechat.sample.ui.theme.Colors.DefaultColors
 import com.nice.cxonechat.sample.ui.theme.Colors.Light
 import com.nice.cxonechat.sample.ui.theme.Images
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 
 /**
  * UI Settings as saved to file.
@@ -31,12 +37,13 @@ import com.nice.cxonechat.sample.ui.theme.Images
  * @param storedLogo Logo image which should be used for chat branding.
  */
 @Immutable
+@Serializable
 data class UISettingsModel(
-    @SerializedName("lightModeColors")
+    @SerialName("lightModeColors")
     val lightModeColors: Colors = Colors(Light),
-    @SerializedName("darkModeColors")
+    @SerialName("darkModeColors")
     val darkModeColors: Colors = Colors(Dark),
-    @SerializedName("logo")
+    @SerialName("logo")
     private val storedLogo: String? = null,
 ) {
 
@@ -58,26 +65,37 @@ data class UISettingsModel(
      * @param customerBackground Background color for customer cells in chat.
      * @param customerText Text color for customer cells in chat.
      */
+    @Serializable
     data class Colors(
-        @SerializedName("primary")
+        @SerialName("primary")
+        @Serializable(with = ColorSerializer::class)
         val primary: Color,
-        @SerializedName("onPrimary")
+        @SerialName("onPrimary")
+        @Serializable(with = ColorSerializer::class)
         val onPrimary: Color,
-        @SerializedName("accent")
+        @SerialName("accent")
+        @Serializable(with = ColorSerializer::class)
         val accent: Color,
-        @SerializedName("onAccent")
+        @SerialName("onAccent")
+        @Serializable(with = ColorSerializer::class)
         val onAccent: Color,
-        @SerializedName("background")
+        @SerialName("background")
+        @Serializable(with = ColorSerializer::class)
         val background: Color,
-        @SerializedName("onBackground")
+        @SerialName("onBackground")
+        @Serializable(with = ColorSerializer::class)
         val onBackground: Color,
-        @SerializedName("agentBubble")
+        @SerialName("agentBubble")
+        @Serializable(with = ColorSerializer::class)
         val agentBackground: Color,
-        @SerializedName("agentText")
+        @SerialName("agentText")
+        @Serializable(with = ColorSerializer::class)
         val agentText: Color,
-        @SerializedName("customerBubble")
+        @SerialName("customerBubble")
+        @Serializable(with = ColorSerializer::class)
         val customerBackground: Color,
-        @SerializedName("customerText")
+        @SerialName("customerText")
+        @Serializable(with = ColorSerializer::class)
         val customerText: Color,
     ) {
         constructor(defaults: DefaultColors) : this(
@@ -92,5 +110,15 @@ data class UISettingsModel(
             customerBackground = defaults.customerBackground,
             customerText = defaults.customerText
         )
+    }
+}
+
+private class ColorSerializer : KSerializer<Color> {
+    override val descriptor: SerialDescriptor = ULong.serializer().descriptor
+
+    override fun deserialize(decoder: Decoder): Color = ULong.serializer().deserialize(decoder).let(::Color)
+
+    override fun serialize(encoder: Encoder, value: Color) {
+        ULong.serializer().serialize(encoder, value.value)
     }
 }

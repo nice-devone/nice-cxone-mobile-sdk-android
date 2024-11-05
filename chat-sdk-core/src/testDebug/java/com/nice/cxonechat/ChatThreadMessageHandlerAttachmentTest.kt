@@ -139,7 +139,7 @@ internal class ChatThreadMessageHandlerAttachmentTest : AbstractChatTest() {
     @OptIn(ExperimentalEncodingApi::class)
     @Test
     fun send_attachment_notifies_about_failure_in_response() {
-        val expected = nextString()
+        val expected = nextString(8)
         val filename = nextString()
         val postback = nextString()
         val bytes = Base64.decode(expected)
@@ -179,10 +179,10 @@ internal class ChatThreadMessageHandlerAttachmentTest : AbstractChatTest() {
     @OptIn(ExperimentalEncodingApi::class)
     @Test
     fun send_attachment_notifies_about_failure_in_network_call() {
-        val expected = nextString()
+        val expected = nextString(length = 8)
         val filename = nextString()
         val postback = nextString()
-        val bytes = Base64.decode(expected)
+        val bytes = Base64.UrlSafe.decode(expected)
 
         mockAndroidBase64()
 

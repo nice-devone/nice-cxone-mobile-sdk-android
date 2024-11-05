@@ -15,12 +15,9 @@
 
 package com.nice.cxonechat.ui.composable.theme
 
-import com.nice.cxonechat.Public
-
 /**
  * Color values for the chat SDK.
  */
-@Public
 object ChatThemeDetails {
     /** Colors for dark mode. */
     var darkColors = DefaultColors.dark

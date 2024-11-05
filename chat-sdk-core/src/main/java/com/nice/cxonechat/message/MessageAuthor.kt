@@ -54,6 +54,9 @@ abstract class MessageAuthor {
      */
     abstract val imageUrl: String?
 
+    /** The optional nickname of the author. */
+    open val nickname: String? = null
+
     /**
      * Merges [firstName] and [lastName] in this order, separated by a space.
      * If both values are empty, then returns an empty string.

@@ -15,32 +15,51 @@
 
 package com.nice.cxonechat.event
 
-import com.google.gson.annotations.SerializedName
+import com.nice.cxonechat.analytics.ActionMetadata
 import com.nice.cxonechat.enums.VisitorEventType
+import com.nice.cxonechat.event.AnalyticsEvent.Data.ValueMapData
+import com.nice.cxonechat.internal.model.network.Conversion
+import com.nice.cxonechat.internal.model.network.ProactiveActionInfo
+import com.nice.cxonechat.internal.model.network.TimeSpentOnPageModel
 import com.nice.cxonechat.storage.ValueStorage
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.util.Date
 import java.util.UUID
+import com.nice.cxonechat.internal.model.network.PageViewData as PageViewDataModel
 
+@Serializable
 internal data class AnalyticsEvent(
-    @SerializedName("id")
+    @SerialName("id")
+    @Contextual
     val eventId: UUID,
-    @SerializedName("type")
+    @SerialName("type")
     val type: VisitorEventType,
-    @SerializedName("visitId")
+    @SerialName("visitId")
+    @Contextual
     val visitId: UUID,
-    @SerializedName("destination")
+    @SerialName("destination")
     val destinationId: Destination,
-    @SerializedName("createdAtWithMilliseconds")
+    @SerialName("createdAtWithMilliseconds")
+    @Contextual
     val createdAt: Date,
-    @SerializedName("data")
-    val data: Any
+    @SerialName("data")
+    val data: Data,
 ) {
+    @Serializable
     data class Destination(
-        @SerializedName("id")
-        val destinationId: UUID
+        @SerialName("id")
+        @Contextual
+        val destinationId: UUID,
     )
 
-    constructor(type: VisitorEventType, storage: ValueStorage, date: Date = Date(), data: Any = mapOf<String, String>()) : this(
+    constructor(
+        type: VisitorEventType,
+        storage: ValueStorage,
+        date: Date = Date(),
+        data: Data = ValueMapData(emptyMap()),
+    ) : this(
         UUID.randomUUID(),
         type,
         storage.visitId,
@@ -48,4 +67,31 @@ internal data class AnalyticsEvent(
         date,
         data
     )
+
+    @Serializable
+    sealed interface Data {
+        @Serializable
+        @JvmInline
+        value class ProactiveActionData(val data: ProactiveActionInfo) : Data {
+            companion object {
+                operator fun invoke(data: ActionMetadata) = ProactiveActionData(ProactiveActionInfo(data))
+            }
+        }
+
+        @Serializable
+        @JvmInline
+        value class ValueMapData(val data: Map<String, String>) : Data
+
+        @Serializable
+        @JvmInline
+        value class ConversionData(val data: Conversion) : Data
+
+        @Serializable
+        @JvmInline
+        value class PageViewData(val data: PageViewDataModel) : Data
+
+        @Serializable
+        @JvmInline
+        value class TimeSpentOnPageData(val data: TimeSpentOnPageModel) : Data
+    }
 }

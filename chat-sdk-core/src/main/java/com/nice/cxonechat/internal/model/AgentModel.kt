@@ -15,44 +15,37 @@
 
 package com.nice.cxonechat.internal.model
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.message.MessageAuthor
 import com.nice.cxonechat.thread.Agent
-import java.util.UUID
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal data class AgentModel(
-    @SerializedName("id")
+    @SerialName("id")
     val id: Int,
 
-    @SerializedName("inContactId")
-    val inContactId: UUID?,
-
-    @SerializedName("emailAddress")
-    val emailAddress: String?,
-
-    @SerializedName("firstName")
+    @SerialName("firstName")
     val firstName: String,
 
-    @SerializedName("surname")
+    @SerialName("surname")
     val surname: String,
 
-    @SerializedName("nickname")
-    val nickname: String?,
+    @SerialName("nickname")
+    val nickname: String? = null,
 
-    @SerializedName("isBotUser")
+    @SerialName("isBotUser")
     val isBotUser: Boolean,
 
-    @SerializedName("isSurveyUser")
+    @SerialName("isSurveyUser")
     val isSurveyUser: Boolean,
 
-    @SerializedName("imageUrl")
+    @SerialName("publicImageUrl")
     val imageUrl: String,
 ) {
 
     fun toAgent(): Agent = AgentInternal(
         id = id,
-        inContactId = inContactId,
-        emailAddress = emailAddress,
         firstName = firstName,
         lastName = surname,
         nickname = nickname,
@@ -67,5 +60,6 @@ internal data class AgentModel(
         firstName = firstName,
         lastName = surname,
         imageUrl = imageUrl,
+        nickname = nickname,
     )
 }

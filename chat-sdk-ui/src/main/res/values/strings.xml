@@ -19,6 +19,7 @@
     <string name="information">Information</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
+    <string name="dismiss">Dismiss</string>
     <string name="change_details_label">Change custom fields</string>
     <string name="change_thread_name">Set name</string>
     <string name="text_send">Send</string>
@@ -83,12 +84,9 @@
     <string name="send_audio_message_content_description">Send audio message</string>
 
     <string name="chat_state_connecting">SDK connecting</string>
-    <string name="chat_state_connecting_action_cancel">@string/cancel</string>
     <string name="chat_state_connected">SDK connected</string>
     <string name="chat_state_connection_lost">SDK unexpectedly disconnected</string>
     <string name="chat_state_connection_lost_action_reconnect">Reconnect</string>
-    <string name="chat_state_connection_closed">SDK closed</string>
-    <string name="chat_state_connection_closed_action_restart">Restart</string>
     <string name="chat_state_error_default_message">SDK has encountered error</string>
     <string name="chat_state_error_action_close">Close Chat</string>
 
@@ -112,11 +110,9 @@
     <string name="image_preview_title">Image preview</string>
     <string name="update_thread_name">Update Thread Name</string>
     <string name="enter_thread_name">Enter Thread Name</string>
-    <string name="default_thread_name">Thread</string>
     <string name="video_preview_title">Video preview</string>
     <string name="preparing_sdk">Preparing SDK</string>
     <string name="default_agent_name">Agent</string>
-    <string name="default_customer_name">Me</string>
     <string name="status_read">Read</string>
     <string name="status_received">Received</string>
     <string name="share_attachment_others">Share attachment %1$s +%2$d others</string>

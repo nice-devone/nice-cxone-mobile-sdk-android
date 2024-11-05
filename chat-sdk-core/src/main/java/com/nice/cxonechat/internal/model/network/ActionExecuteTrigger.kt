@@ -15,19 +15,23 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.EventAction
 import com.nice.cxonechat.enums.EventType.ExecuteTrigger
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.util.UUIDProvider
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
+@Serializable
 internal data class ActionExecuteTrigger(
-    @SerializedName("action")
+    @SerialName("action")
     val action: EventAction = EventAction.ChatWindowEvent,
-    @SerializedName("eventId")
+    @SerialName("eventId")
+    @Contextual
     val eventId: UUID = UUIDProvider.next(),
-    @SerializedName("payload")
+    @SerialName("payload")
     val payload: LegacyPayload<Data>,
 ) {
 
@@ -46,8 +50,9 @@ internal data class ActionExecuteTrigger(
         )
     )
 
+    @Serializable
     data class Data(
-        @SerializedName("trigger")
+        @SerialName("trigger")
         val trigger: Identifier,
     )
 }

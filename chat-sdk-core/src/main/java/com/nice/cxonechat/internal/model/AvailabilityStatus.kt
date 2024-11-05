@@ -15,13 +15,15 @@
 
 package com.nice.cxonechat.internal.model
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal enum class AvailabilityStatus {
-    @SerializedName("online")
+    @SerialName("online")
     Online,
 
-    @SerializedName("offline")
+    @SerialName("offline")
     Offline;
 
     val isOnline: Boolean

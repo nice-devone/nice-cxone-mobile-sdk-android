@@ -15,20 +15,24 @@
 
 package com.nice.cxonechat.internal.model
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.thread.ChatThread
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
 // ThreadView
 
 /** Represents info about a thread from the socket. */
+@Serializable
 internal data class Thread(
     /** The unique id for the thread. */
-    @SerializedName("idOnExternalPlatform")
+    @SerialName("idOnExternalPlatform")
+    @Contextual
     val idOnExternalPlatform: UUID,
 
     /** The name given to the thread (for multi-chat channels only). */
-    @SerializedName("threadName")
+    @SerialName("threadName")
     val threadName: String? = null,
 ) {
 

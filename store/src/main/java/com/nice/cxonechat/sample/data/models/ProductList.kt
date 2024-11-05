@@ -16,7 +16,8 @@
 package com.nice.cxonechat.sample.data.models
 
 import androidx.compose.runtime.Immutable
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * Product list as represented on DummyJson.com.
@@ -27,8 +28,9 @@ import com.google.gson.annotations.SerializedName
  * @param limit Paging details for further requests.
  */
 @Immutable
+@Serializable
 data class ProductList(
-    @SerializedName("products")
+    @SerialName("products")
     val items: List<Product>,
     val total: Int,
     val skip: Int,

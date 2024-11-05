@@ -15,10 +15,12 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.internal.model.CustomFieldModel
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal data class CustomFieldsData(
-    @SerializedName("customFields")
+    @SerialName("customFields")
     val customFields: List<CustomFieldModel>,
 )

@@ -33,7 +33,7 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme
 internal fun AgentAvatar(url: String, modifier: Modifier = Modifier) {
     val placeholder = forwardingPainter(
         painter = rememberVectorPainter(image = Outlined.AccountCircle),
-        colorFilter = ColorFilter.tint(ChatTheme.colors.onBackground)
+        colorFilter = ColorFilter.tint(ChatTheme.colorScheme.onBackground)
     )
 
     AsyncImage(

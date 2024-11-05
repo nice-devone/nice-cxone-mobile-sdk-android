@@ -15,15 +15,17 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.EventType.ThreadMetadataLoaded
 import com.nice.cxonechat.internal.model.AgentModel
 import com.nice.cxonechat.internal.model.MessageModel
 import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
 import com.nice.cxonechat.thread.ChatThread
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal data class EventThreadMetadataLoaded(
-    @SerializedName("postback")
+    @SerialName("postback")
     val postback: Postback<Data>,
 ) {
 
@@ -32,10 +34,11 @@ internal data class EventThreadMetadataLoaded(
 
     fun inThread(thread: ChatThread) = message?.threadId == thread.id
 
+    @Serializable
     data class Data(
-        @SerializedName("ownerAssignee")
+        @SerialName("ownerAssignee")
         val ownerAssignee: AgentModel? = null,
-        @SerializedName("lastMessage")
+        @SerialName("lastMessage")
         val lastMessage: MessageModel,
     )
 

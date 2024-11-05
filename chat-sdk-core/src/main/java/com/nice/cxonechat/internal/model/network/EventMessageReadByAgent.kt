@@ -15,17 +15,19 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.EventType.MessageReadChanged
 import com.nice.cxonechat.internal.model.MessageModel
 import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
 import com.nice.cxonechat.thread.ChatThread
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * Event received when an agent has read a message.
  */
+@Serializable
 internal data class EventMessageReadByAgent(
-    @SerializedName("data")
+    @SerialName("data")
     val data: Data,
 ) {
 
@@ -44,8 +46,9 @@ internal data class EventMessageReadByAgent(
                     threadMessage.id == messageId
                 }
 
+    @Serializable
     data class Data(
-        @SerializedName("message")
+        @SerialName("message")
         val message: MessageModel,
     )
 

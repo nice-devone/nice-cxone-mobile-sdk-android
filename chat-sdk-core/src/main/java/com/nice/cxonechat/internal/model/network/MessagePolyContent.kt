@@ -15,68 +15,87 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonClassDiscriminator
 
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable
+@JsonClassDiscriminator("type")
 internal sealed class MessagePolyContent {
 
+    @Serializable
+    @SerialName("TEXT")
     data class Text(
-        @SerializedName("payload")
+        @SerialName("payload")
         val payload: Payload,
-        @SerializedName("fallback")
+        @SerialName("fallback")
         val fallbackText: String? = null,
     ) : MessagePolyContent() {
 
+        @Serializable
         data class Payload(
-            @SerializedName("text")
+            @SerialName("text")
             val text: String,
         )
     }
 
+    @Serializable
+    @SerialName("QUICK_REPLIES")
     data class QuickReplies(
-        @SerializedName("fallbackText")
+        @SerialName("fallbackText")
         val fallbackText: String,
-        @SerializedName("payload")
+        @SerialName("payload")
         val payload: Payload
     ) : MessagePolyContent() {
+        @Serializable
         data class Payload(
-            @SerializedName("text")
+            @SerialName("text")
             val text: WrappedText,
-            @SerializedName("actions")
+            @SerialName("actions")
             val actions: List<PolyAction>
         )
     }
 
+    @Serializable
+    @SerialName("LIST_PICKER")
     data class ListPicker(
-        @SerializedName("fallbackText")
+        @SerialName("fallbackText")
         val fallbackText: String?,
-        @SerializedName("payload")
+        @SerialName("payload")
         val payload: Payload
     ) : MessagePolyContent() {
+        @Serializable
         data class Payload(
-            @SerializedName("title")
+            @SerialName("title")
             val title: WrappedText,
-            @SerializedName("text")
+            @SerialName("text")
             val text: WrappedText,
-            @SerializedName("actions")
+            @SerialName("actions")
             val actions: List<PolyAction>
         )
     }
 
+    @Serializable
+    @SerialName("RICH_LINK")
     data class RichLink(
-        @SerializedName("fallbackText")
+        @SerialName("fallbackText")
         val fallbackText: String,
-        @SerializedName("payload")
+        @SerialName("payload")
         val payload: Payload
     ) : MessagePolyContent() {
+        @Serializable
         data class Payload(
-            @SerializedName("media")
+            @SerialName("media")
             val media: MediaModel,
-            @SerializedName("title")
+            @SerialName("title")
             val title: WrappedText,
-            @SerializedName("url")
+            @SerialName("url")
             val url: String
         )
     }
 
-    object Noop : MessagePolyContent()
+    @Serializable
+    data object Noop : MessagePolyContent()
 }

@@ -15,11 +15,13 @@
 
 package com.nice.cxonechat.internal.model
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal data class PreContactCustomFieldDefinitionModel(
-    @SerializedName("isRequired")
+    @SerialName("isRequired")
     val isRequired: Boolean,
-    @SerializedName("definition")
+    @SerialName("definition")
     val definition: CustomFieldPolyType,
 )

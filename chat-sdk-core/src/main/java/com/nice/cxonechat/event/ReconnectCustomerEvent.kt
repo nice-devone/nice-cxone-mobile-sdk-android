@@ -19,7 +19,7 @@ import com.nice.cxonechat.internal.model.network.ActionReconnectCustomer
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.storage.ValueStorage
 
-internal object ReconnectCustomerEvent : ChatEvent() {
+internal object ReconnectCustomerEvent : ChatEvent<ActionReconnectCustomer>() {
 
     override fun getModel(
         connection: Connection,

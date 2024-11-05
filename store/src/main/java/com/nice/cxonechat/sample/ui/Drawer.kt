@@ -24,23 +24,22 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Divider
-import androidx.compose.material.Icon
-import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.Icons.AutoMirrored.Filled
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import coil.compose.AsyncImage
 import com.nice.cxonechat.sample.R
 import com.nice.cxonechat.sample.R.string
 import com.nice.cxonechat.sample.extensions.manifestVersionName
-import com.nice.cxonechat.sample.extensions.mipmapPainter
 import com.nice.cxonechat.sample.ui.theme.AppTheme
 
 /**
@@ -64,15 +63,15 @@ fun Drawer(
         val context = LocalContext.current
 
         Header()
-        Divider()
+        HorizontalDivider()
         Item(context.manifestVersionName ?: stringResource(string.default_version_name))
-        Divider()
+        HorizontalDivider()
         Item(stringResource(string.sdk_settings), onClick = onSdkSettings)
-        Divider()
+        HorizontalDivider()
         Item(stringResource(id = string.ui_settings), onClick = onUiSettings)
-        Divider()
+        HorizontalDivider()
         Spacer(modifier = Modifier.weight(1f))
-        Divider()
+        HorizontalDivider()
         Item(stringResource(string.logout), onClick = onLogout)
     }
 }
@@ -84,14 +83,12 @@ private fun Header() {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(AppTheme.space.large)
     ) {
-        val context = LocalContext.current
-        val launcherIcon = remember { context.mipmapPainter(R.mipmap.ic_launcher) }
+        AsyncImage(
+            model = R.mipmap.ic_launcher,
+            contentDescription = null,
+        )
 
-        launcherIcon?.let {
-            Image(painter = it, contentDescription = null)
-        }
-
-        Text(stringResource(string.app_name), style = AppTheme.typography.h4)
+        Text(stringResource(string.app_name), style = AppTheme.typography.headlineMedium)
     }
 }
 
@@ -117,7 +114,7 @@ private fun Item(
 
         if(clickable) {
             Spacer(Modifier.weight(1f))
-            Icon(Icons.Default.KeyboardArrowRight, null)
+            Icon(Filled.KeyboardArrowRight, null)
         }
     }
 }

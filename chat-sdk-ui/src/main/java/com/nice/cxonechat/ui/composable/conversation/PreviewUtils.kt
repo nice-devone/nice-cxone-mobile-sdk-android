@@ -18,7 +18,7 @@ package com.nice.cxonechat.ui.composable.conversation
 import android.net.Uri
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
-import androidx.compose.material.Surface
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
@@ -126,13 +126,10 @@ internal fun PreviewMessageItemBase(
 )
 internal fun previewUiState(
     messages: List<Message> = emptyList(),
-    isMultiThreaded: Boolean = true,
-    hasQuestions: Boolean = true,
     isArchived: Boolean = false,
     positionInQueue: Int? = null,
     isLiveChat: Boolean = true,
 ) = ConversationUiState(
-    threadName = flowOf("Preview Thread"),
     sdkMessages = MutableStateFlow(messages),
     typingIndicator = flowOf(true),
     positionInQueue = flowOf(positionInQueue),
@@ -144,8 +141,6 @@ internal fun previewUiState(
     onAttachmentClicked = {},
     onMoreClicked = { _, _ -> },
     onShare = {},
-    isMultiThreaded = isMultiThreaded,
-    hasQuestions = hasQuestions,
     isArchived = MutableStateFlow(isArchived),
     isLiveChat = isLiveChat,
 )

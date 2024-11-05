@@ -17,6 +17,7 @@ package com.nice.cxonechat.event
 
 import com.nice.cxonechat.analytics.ActionMetadata
 import com.nice.cxonechat.enums.VisitorEventType.ProactiveActionFailed
+import com.nice.cxonechat.event.AnalyticsEvent.Data.ProactiveActionData
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.storage.ValueStorage
 import java.util.Date
@@ -28,16 +29,16 @@ import java.util.Date
 internal class ProactiveActionFailureEvent(
     private val data: ActionMetadata,
     private val date: Date = Date()
-) : ChatEvent() {
+) : ChatEvent<AnalyticsEvent>() {
 
     override fun getModel(
         connection: Connection,
         storage: ValueStorage,
-    ): Any = AnalyticsEvent(
+    ) = AnalyticsEvent(
         ProactiveActionFailed,
         storage = storage,
         date = date,
-        data = data,
+        data = ProactiveActionData(data),
     )
 
     override fun toString() = "ProactiveActionFailureEvent(data=$data)"

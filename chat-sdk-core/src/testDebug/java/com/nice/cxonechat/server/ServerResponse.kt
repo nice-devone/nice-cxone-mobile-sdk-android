@@ -22,6 +22,8 @@ import com.nice.cxonechat.AbstractChatTestSubstrate.Companion.TestUUID
 import com.nice.cxonechat.AbstractChatTestSubstrate.Companion.TestUUIDValue
 import com.nice.cxonechat.enums.ActionType
 import com.nice.cxonechat.enums.ActionType.CustomPopupBox
+import com.nice.cxonechat.enums.ContactStatus
+import com.nice.cxonechat.enums.ContactStatus.New
 import com.nice.cxonechat.enums.EventType
 import com.nice.cxonechat.enums.EventType.CustomerAuthorized
 import com.nice.cxonechat.internal.model.AgentModel
@@ -37,12 +39,14 @@ import com.nice.cxonechat.thread.CustomField
 import com.nice.cxonechat.tool.nextString
 import com.nice.cxonechat.tool.serialize
 import com.nice.cxonechat.util.DateTime
-import java.lang.reflect.Type
 import java.util.Date
 import java.util.UUID
 
 @Suppress(
-    "unused" // serialization uses fields in objects
+    "unused", // serialization uses fields in objects
+    "TooManyFunctions",
+    "FunctionNaming",
+    "LongParameterList"
 )
 internal object ServerResponse {
 
@@ -97,7 +101,7 @@ internal object ServerResponse {
                                 object {
                                     val ident = key
                                     val value = value
-                                    val updatedAt = 0
+                                    val updatedAt = Date(0)
                                 }
                             }
                         }
@@ -201,7 +205,7 @@ internal object ServerResponse {
                 val contact = object {
                     val id = thread.contactId ?: TestContactId
                     val threadIdOnExternalPlatform = TestUUID
-                    val status = "New"
+                    val status = "new"
                     val createdAt = Date(0)
                     val customFields = thread.fields.map(::CustomFieldModel)
                 }
@@ -308,7 +312,6 @@ internal object ServerResponse {
 
     fun MessageReadChanged(
         message: MessageModel,
-        temporaryTypeAdapters: Map<Type, Any> = emptyMap(),
     ) = object {
         val eventId = TestUUID
         val eventType = "MessageReadChanged".also { assert(it == EventType.MessageReadChanged.value) }
@@ -317,17 +320,21 @@ internal object ServerResponse {
                 userStatistics = message.userStatistics.copy(readAt = Date(0))
             )
         }
-    }.serialize(temporaryTypeAdapters)
+    }.serialize()
 
     fun SetPositionInQueue(
         position: Int,
-        isAgentAvailable: Boolean
+        isAgentAvailable: Boolean,
+        threadId: UUID,
     ) = object {
         val eventId = TestUUID
         val eventType = "SetPositionInQueue".also { assert(it == EventType.SetPositionInQueue.value) }
         val data = object {
             val consumerContact = object {
                 val id = TestContactId
+                val threadIdOnExternalPlatform = threadId
+                val status = ContactStatus.Pending.value
+                val createdAt = Date(0)
             }
             val routingQueue = object {
                 val id = "a:b:c"
@@ -376,6 +383,7 @@ internal object ServerResponse {
         thread: ChatThread = makeChatThread(),
         agent: AgentModel? = makeAgent(),
         customerCustomFields: List<CustomField> = emptyList(),
+        status: ContactStatus = New,
         vararg messages: MessageModel,
     ) = object {
         val eventId = TestUUID
@@ -385,7 +393,7 @@ internal object ServerResponse {
                 val contact = object {
                     val id = thread.contactId ?: TestContactId
                     val threadIdOnExternalPlatform = TestUUID
-                    val status = "New"
+                    val status = status
                     val createdAt = Date(0)
                     val customFields = thread.fields.map(::CustomFieldModel)
                 }

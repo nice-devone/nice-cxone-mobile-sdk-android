@@ -15,9 +15,11 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-internal data class Referrer constructor(
-    @SerializedName("url")
+@Serializable
+internal data class Referrer(
+    @SerialName("url")
     val url: String,
 )

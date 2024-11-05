@@ -16,6 +16,7 @@
 package com.nice.cxonechat.sample.data.models
 
 import androidx.compose.runtime.Immutable
+import kotlinx.serialization.Serializable
 
 /**
  * A Product as represented on DummyJson.com.
@@ -33,6 +34,7 @@ import androidx.compose.runtime.Immutable
  * @param images Array of image urls to be displayed with product.
  */
 @Immutable
+@Serializable
 data class Product(
     val id: String,
     val title: String,

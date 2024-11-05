@@ -27,13 +27,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.AlertDialog
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -130,9 +130,9 @@ private fun SettingsView(
             .height(Min)
     ) {
         ImagePicker(settings, pickImage, onChanged)
-        Divider()
+        HorizontalDivider()
         ColorsSection(settings, onChanged)
-        Divider()
+        HorizontalDivider()
         Row(
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier

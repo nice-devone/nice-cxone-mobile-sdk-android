@@ -19,13 +19,16 @@ import android.app.Activity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -54,23 +57,23 @@ fun AppTheme.ScreenWithScaffold(
     drawerContent: @Composable ((() -> Unit) -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
-    val scaffoldState = rememberScaffoldState()
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
     val openDrawer: () -> Unit = {
         coroutineScope.launch {
-            scaffoldState.drawerState.open()
+            drawerState.open()
         }
     }
 
     val closeDrawer: () -> Unit = {
         coroutineScope.launch {
-            scaffoldState.drawerState.close()
+            drawerState.close()
         }
     }
 
-    val navigationIcon: @Composable (() -> Unit)? = when {
+    val navigationIcon: @Composable (() -> Unit) = when {
         drawerContent != null -> {
             {
                 IconButton(onClick = openDrawer) {
@@ -78,15 +81,41 @@ fun AppTheme.ScreenWithScaffold(
                 }
             }
         }
-        else -> null
+        else -> { {} }
     }
 
     val onOpenChat: (() -> Unit) = {
         (context as? Activity)?.run(ChatActivity::startChat)
     }
 
+    val scaffoldWithContent: @Composable () -> Unit = {
+        ScaffoldWithContent(title, navigationIcon, actions, onOpenChat, content)
+    }
+
+    if (drawerContent == null) {
+        scaffoldWithContent()
+    } else {
+        ModalNavigationDrawer(
+            drawerState = drawerState,
+            drawerContent = {
+                ModalDrawerSheet {
+                    drawerContent(closeDrawer)
+                }
+            },
+            content = scaffoldWithContent
+        )
+    }
+}
+
+@Composable
+private fun AppTheme.ScaffoldWithContent(
+    title: String,
+    navigationIcon: @Composable () -> Unit,
+    actions: @Composable (RowScope.() -> Unit),
+    onOpenChat: () -> Unit,
+    content: @Composable () -> Unit,
+) {
     Scaffold(
-        scaffoldState = scaffoldState,
         topBar = {
             TopBar(
                 title,
@@ -95,16 +124,11 @@ fun AppTheme.ScreenWithScaffold(
             )
         },
         floatingActionButton = { ChatFab(onClick = onOpenChat) },
-        drawerContent = drawerContent?.let {
-            {
-                drawerContent.invoke { closeDrawer() }
-            }
-        },
     ) { paddingValues ->
         Box(
             modifier = Modifier
-                .padding(paddingValues)
                 .padding(space.defaultPadding)
+                .padding(paddingValues)
         ) {
             content()
         }

@@ -17,7 +17,6 @@
 
 package com.nice.cxonechat.api
 
-import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
@@ -25,14 +24,18 @@ import com.google.gson.JsonParseException
 import com.google.gson.JsonPrimitive
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
+import com.nice.cxonechat.enums.ActionType
 import com.nice.cxonechat.enums.VisitorEventType.VisitorVisit
 import com.nice.cxonechat.event.AnalyticsEvent
+import com.nice.cxonechat.event.AnalyticsEvent.Data
 import com.nice.cxonechat.event.AnalyticsEvent.Destination
 import com.nice.cxonechat.internal.RemoteServiceBuilder
 import com.nice.cxonechat.internal.model.AttachmentUploadModel
 import com.nice.cxonechat.internal.model.AvailabilityStatus.Offline
 import com.nice.cxonechat.internal.model.AvailabilityStatus.Online
 import com.nice.cxonechat.internal.model.ChannelAvailability
+import com.nice.cxonechat.internal.model.network.ProactiveActionInfo
+import com.nice.cxonechat.internal.serializer.Default
 import com.nice.cxonechat.model.makeConnection
 import com.nice.cxonechat.tool.MockInterceptor
 import io.kotest.matchers.shouldBe
@@ -126,7 +129,7 @@ internal class RemoteServiceTest {
             kVisitId,
             Destination(kDestinationId),
             kNow,
-            mapOf<String, String>()
+           Data.ProactiveActionData(ProactiveActionInfo(UUID.randomUUID(), "name", ActionType.WelcomeMessage.value))
         )
 
         client.postEvent(
@@ -137,11 +140,6 @@ internal class RemoteServiceTest {
 
         assertEquals(1, recorder.requests.count())
         val dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'z'"
-        val gson = GsonBuilder()
-            .registerTypeAdapter(Date::class.java, GsonUTCDateAdapter())
-            .setDateFormat(dateFormat)
-            .setLenient()
-            .create()
 
         with(recorder.requests.first()) {
             assertEquals("POST", method)
@@ -151,7 +149,7 @@ internal class RemoteServiceTest {
             )
 
             val actual = body?.asString?.let {
-                gson.fromJson(it, AnalyticsEvent::class.java)
+                Default.serializer.decodeFromString(AnalyticsEvent.serializer(), it)
             }
 
             assertEquals(expect, actual)

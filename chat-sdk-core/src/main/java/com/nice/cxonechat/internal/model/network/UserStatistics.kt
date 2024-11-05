@@ -15,16 +15,21 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.internal.model.MessageMetadataInternal
 import com.nice.cxonechat.message.MessageMetadata
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.util.Date
 
+@Serializable
 internal data class UserStatistics(
-    @SerializedName("seenAt")
+    @SerialName("seenAt")
+    @Contextual
     val seenAt: Date?,
 
-    @SerializedName("readAt")
+    @SerialName("readAt")
+    @Contextual
     val readAt: Date?,
 ) {
 

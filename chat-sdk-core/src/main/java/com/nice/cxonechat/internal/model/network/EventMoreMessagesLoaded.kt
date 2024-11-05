@@ -15,14 +15,16 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.EventType.MoreMessagesLoaded
 import com.nice.cxonechat.internal.model.MessageModel
 import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
 import com.nice.cxonechat.thread.ChatThread
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal data class EventMoreMessagesLoaded(
-    @SerializedName("postback")
+    @SerialName("postback")
     val postback: Postback<Data>,
 ) {
 
@@ -31,10 +33,11 @@ internal data class EventMoreMessagesLoaded(
 
     fun inThread(thread: ChatThread) = messages.all { it.threadId == thread.id }
 
+    @Serializable
     data class Data(
-        @SerializedName("messages")
+        @SerialName("messages")
         val messages: List<MessageModel>,
-        @SerializedName("scrollToken")
+        @SerialName("scrollToken")
         val scrollToken: String,
     )
 

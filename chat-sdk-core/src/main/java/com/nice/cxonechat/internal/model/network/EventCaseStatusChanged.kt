@@ -15,20 +15,26 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.EventType.CaseStatusChanged
 import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.util.DateTime
 import com.nice.cxonechat.util.UUIDProvider
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
+@Serializable
 internal data class EventCaseStatusChanged(
-    @SerializedName("eventId")
+    @SerialName("eventId")
+    @Contextual
     val eventId: UUID = UUIDProvider.next(),
-    @SerializedName("createdAt")
+    @SerialName("createdAt")
+    @Contextual
     val createdAt: DateTime,
-    @SerializedName("data")
+    @SerialName("data")
+    @Contextual
     val data: Data,
 ) {
 
@@ -38,43 +44,47 @@ internal data class EventCaseStatusChanged(
     fun inThread(thread: ChatThread) =
         data.case.threadIdOnExternalPlatform == thread.id.toString()
 
+    @Serializable
     internal data class Data(
-        @SerializedName("case")
+        @SerialName("case")
         val case: Case,
     )
 
+    @Serializable
     internal data class Case(
-        @SerializedName("threadIdOnExternalPlatform")
+        @SerialName("threadIdOnExternalPlatform")
         val threadIdOnExternalPlatform: String,
-        @SerializedName("status")
+        @SerialName("status")
         val status: CaseStatus,
-        @SerializedName("statusUpdatedAt")
+        @SerialName("statusUpdatedAt")
+        @Contextual
         val statusUpdatedAt: DateTime,
     )
 
+    @Serializable
     internal enum class CaseStatus {
-        @SerializedName("new")
+        @SerialName("new")
         New,
 
-        @SerializedName("open")
+        @SerialName("open")
         Open,
 
-        @SerializedName("pending")
+        @SerialName("pending")
         Pending,
 
-        @SerializedName("escalated")
+        @SerialName("escalated")
         Escalated,
 
-        @SerializedName("resolved")
+        @SerialName("resolved")
         Resolved,
 
         /**
          * This state is terminal.
          */
-        @SerializedName("closed")
+        @SerialName("closed")
         Closed,
 
-        @SerializedName("trashed")
+        @SerialName("trashed")
         Trashed
     }
 

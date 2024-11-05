@@ -15,16 +15,18 @@
 
 package com.nice.cxonechat.internal.model
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 // ChannelView
 
 /**
  * Uniquely identifies a channel.
  */
+@Serializable
 internal data class ChannelIdentifier(
 
     /** The id of the channel. */
-    @SerializedName("id")
+    @SerialName("id")
     val id: String,
 )

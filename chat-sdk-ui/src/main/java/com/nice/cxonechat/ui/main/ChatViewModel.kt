@@ -23,37 +23,29 @@ import com.nice.cxonechat.ChatEventHandlerActions.chatWindowOpen
 import com.nice.cxonechat.ChatInstanceProvider
 import com.nice.cxonechat.ChatMode
 import com.nice.cxonechat.ChatMode.LiveChat
-import com.nice.cxonechat.ChatMode.MultiThread
 import com.nice.cxonechat.ChatMode.SingleThread
-import com.nice.cxonechat.ChatState.Offline
+import com.nice.cxonechat.ChatState
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerScope
 import com.nice.cxonechat.log.error
+import com.nice.cxonechat.log.warning
 import com.nice.cxonechat.prechat.PreChatSurvey
 import com.nice.cxonechat.ui.data.flow
 import com.nice.cxonechat.ui.domain.SelectedThreadRepository
 import com.nice.cxonechat.ui.main.ChatViewModel.Dialogs.None
 import com.nice.cxonechat.ui.main.ChatViewModel.Dialogs.Survey
-import com.nice.cxonechat.ui.main.ChatViewModel.NavigationState.MultiThreadEnabled
-import com.nice.cxonechat.ui.main.ChatViewModel.NavigationState.NavigationFinished
-import com.nice.cxonechat.ui.main.ChatViewModel.NavigationState.SingleThreadCreated
-import com.nice.cxonechat.ui.main.ChatViewModel.State.CreateSingleThread
-import com.nice.cxonechat.ui.main.ChatViewModel.State.Initial
-import com.nice.cxonechat.ui.main.ChatViewModel.State.SingleThreadCreationFailed
-import com.nice.cxonechat.ui.main.ChatViewModel.State.SingleThreadPreChatSurveyRequired
 import com.nice.cxonechat.ui.model.CreateThreadResult.Failure
 import com.nice.cxonechat.ui.model.CreateThreadResult.Success
 import com.nice.cxonechat.ui.model.foldToCreateThreadResult
 import com.nice.cxonechat.ui.model.prechat.PreChatResponse
 import com.nice.cxonechat.ui.storage.ValueStorage
 import com.nice.cxonechat.ui.storage.getCustomerCustomValues
+import com.nice.cxonechat.ui.util.Ignored
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.launch
 import org.koin.android.annotation.KoinViewModel
-import com.nice.cxonechat.ui.main.ChatViewModel.NavigationState.Offline as NavigationOffline
 
 @Suppress("TooManyFunctions")
 @KoinViewModel
@@ -70,11 +62,10 @@ internal class ChatViewModel(
 
     private val events by lazy { chat.events() }
 
-    private val internalState: MutableStateFlow<State> = MutableStateFlow(Initial)
-
     sealed interface Dialogs {
         data object None : Dialogs
-        class Survey(val survey: PreChatSurvey) : Dialogs
+        data class Survey(val survey: PreChatSurvey) : Dialogs
+        data class ThreadCreationFailed(val failure: Failure) : Dialogs
     }
 
     private val showDialog = MutableStateFlow<Dialogs>(None)
@@ -83,27 +74,16 @@ internal class ChatViewModel(
     val chatMode: ChatMode
         get() = chat.chatMode
 
-    val state
-        get() = internalState
-            .asStateFlow()
-            .onSubscription {
-                internalState.value = resolveCurrentState()
-            }
-
     val preChatSurvey
         get() = threads.preChatSurvey
 
-    internal fun setNavigationFinishedState() {
-        internalState.value = NavigationFinished
-    }
-
-    internal fun refreshThreadState(reset: Boolean = false) {
+    internal fun refreshThreadState() {
         viewModelScope.launch {
-            internalState.value = resolveCurrentState(reset)
+            resolveCurrentState()
         }
     }
 
-    internal fun createThread() {
+    private fun createThread() {
         createThread(emptySequence())
     }
 
@@ -120,42 +100,22 @@ internal class ChatViewModel(
             }.foldToCreateThreadResult()
 
             when (result) {
-                is Failure -> internalState.value = SingleThreadCreationFailed(result)
-                Success -> {
-                    internalState.value = SingleThreadCreated
-                    dismissDialog()
+                is Failure -> showDialog(Dialogs.ThreadCreationFailed(result))
+                Success -> dismissDialog()
+            }
+        }
+    }
+
+    private suspend fun resolveCurrentState() {
+        if (listOf(SingleThread, LiveChat).contains(chat.chatMode)) {
+            when {
+                selectFirstThread() -> Ignored
+                else -> when (val chatSurvey = preChatSurvey) {
+                    null -> createThread()
+                    else -> showDialog(Survey(chatSurvey))
                 }
             }
         }
-    }
-
-    private suspend fun resolveCurrentState(reset: Boolean = false): State {
-        if (internalState.value === NavigationFinished && !reset) return NavigationFinished
-
-        return when {
-            chatProvider.chatState === Offline -> NavigationOffline
-            chat.chatMode === MultiThread -> MultiThreadEnabled
-            listOf(SingleThread, LiveChat).contains(chat.chatMode) -> singleThreadChatState()
-            else -> {
-                error("Invalid chatMode/chatState combination: ${chat.chatMode}/${chatProvider.chatState}")
-                NavigationOffline
-            }
-        }
-    }
-
-    /**
-     * Determine the correct state for a single thread chat.
-     *
-     * when:
-     *
-     * - there's already a thread, use [SingleThreadCreated]
-     * - there's a survey, use [SingleThreadPreChatSurveyRequired]
-     * - otherwise use [CreateSingleThread]
-     */
-    private suspend fun singleThreadChatState() = if (selectFirstThread()) {
-        SingleThreadCreated
-    } else {
-        preChatSurvey?.let(::SingleThreadPreChatSurveyRequired) ?: CreateSingleThread
     }
 
     /**
@@ -193,73 +153,25 @@ internal class ChatViewModel(
         showDialog.value = None
     }
 
-    internal fun showPreChatSurvey(survey: PreChatSurvey) {
-        showDialog(Survey(survey))
-    }
-
     internal fun prepare(context: Context) {
-        chatProvider.prepare(context)
+        val chatState = chatProvider.chatState
+        if (chatState === ChatState.Initial) {
+            chatProvider.prepare(context)
+        } else {
+            warning("Chat already prepared, currentState: $chatState")
+        }
     }
 
     internal fun connect() {
+        val chatState = chatProvider.chatState
+        if (chatState !== ChatState.Prepared && chatState !== ChatState.ConnectionLost && chatState !== ChatState.Offline) {
+            error("Unable to connect chat in state: $chatState")
+            return
+        }
         chatProvider.connect()
     }
 
     internal fun close() {
         chatProvider.close()
-    }
-
-    /**
-     * Definition of navigation states for the view model.
-     */
-    sealed interface NavigationState : State {
-        /**
-         * Navigtation should display an offline indication.
-         */
-        data object Offline : NavigationState
-
-        /**
-         * Navigation should be directed to multi-thread flow.
-         */
-        data object MultiThreadEnabled : NavigationState
-
-        /**
-         * Navigation should be directed to single thread chat.
-         */
-        data object SingleThreadCreated : NavigationState
-
-        /**
-         * Final state of navigation, either the activity has successfully navigated to [MultiThreadEnabled]
-         * state or [SingleThreadCreated] state.
-         */
-        data object NavigationFinished : NavigationState
-    }
-
-    /**
-     * Definition of states for the view model.
-     */
-    sealed interface State {
-        /**
-         * Default state.
-         */
-        data object Initial : State
-
-        /**
-         * Single thread is ready to be created.
-         */
-        data object CreateSingleThread : State
-
-        /**
-         * Single thread creation requires prechat survey to be finished first, before thread can be created.
-         * @property survey Survey which should be presented to the user.
-         */
-        data class SingleThreadPreChatSurveyRequired(val survey: PreChatSurvey) : State
-
-        /**
-         * Single thread creation has resulted in an error.
-         *
-         * @property failure What type of failure has happened.
-         */
-        data class SingleThreadCreationFailed(val failure: Failure) : State
     }
 }

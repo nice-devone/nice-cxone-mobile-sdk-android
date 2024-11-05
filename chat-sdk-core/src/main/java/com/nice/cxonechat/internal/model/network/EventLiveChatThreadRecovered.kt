@@ -15,14 +15,18 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.internal.model.AgentModel
 import com.nice.cxonechat.internal.model.CustomFieldModel
 import com.nice.cxonechat.internal.model.MessageModel
 import com.nice.cxonechat.thread.ChatThread
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonNames
 
+@Serializable
 internal data class EventLiveChatThreadRecovered(
-    @SerializedName("postback")
+    @SerialName("postback")
     val postback: Postback<Data>,
 ) {
 
@@ -38,22 +42,26 @@ internal data class EventLiveChatThreadRecovered(
         )
     val scrollToken get() = data.messagesScrollToken
     val customerCustomFields get() = data.customer?.customFields.orEmpty().map(CustomFieldModel::toCustomField)
+    val lastContactStatus get() = data.contact?.status
 
     fun inThread(thread: ChatThread) = thread.id == this.thread?.id &&
             messages.all { it.threadId == thread.id }
 
+    @OptIn(ExperimentalSerializationApi::class)
+    @Serializable
     data class Data(
-        @SerializedName("messages")
-        val messages: List<MessageModel>?,
-        @SerializedName("inboxAssignee")
-        val inboxAssignee: AgentModel?,
-        @SerializedName("thread")
-        val thread: ReceivedThreadData?,
-        @SerializedName("messagesScrollToken")
+        @SerialName("messages")
+        val messages: List<MessageModel>? = null,
+        @SerialName("inboxAssignee")
+        val inboxAssignee: AgentModel? = null,
+        @SerialName("thread")
+        val thread: ReceivedThreadData? = null,
+        @SerialName("messagesScrollToken")
         val messagesScrollToken: String,
-        @SerializedName("customer")
+        @SerialName("customer")
         val customer: CustomFieldsData? = null,
-        @SerializedName("contact", alternate = ["consumerContact"])
+        @SerialName("contact")
+        @JsonNames("contact", "consumerContact")
         val contact: ContactFieldData? = null,
     )
 }

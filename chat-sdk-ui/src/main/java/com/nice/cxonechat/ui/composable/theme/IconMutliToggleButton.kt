@@ -25,12 +25,12 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Divider
-import androidx.compose.material.Icon
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons.AutoMirrored.Outlined
 import androidx.compose.material.icons.automirrored.outlined.ArrowBackIos
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -62,7 +62,7 @@ internal fun ChatTheme.IconMultiButton(
             val buttonIterable = remember(buttons::toList)
             buttonIterable.forEachIndexed { index, entry ->
                 if (index != 0) {
-                    Divider(
+                    HorizontalDivider(
                         color = Color.LightGray,
                         modifier = Modifier
                             .fillMaxWidth()

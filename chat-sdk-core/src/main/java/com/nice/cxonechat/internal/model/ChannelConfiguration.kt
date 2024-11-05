@@ -15,69 +15,75 @@
 
 package com.nice.cxonechat.internal.model
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.internal.model.AvailabilityStatus.Online
 import com.nice.cxonechat.state.FieldDefinitionImpl
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import com.nice.cxonechat.state.FileRestrictions as PublicFileRestrictions
 import com.nice.cxonechat.state.FileRestrictions.AllowedFileType as PublicAllowedFileType
 
+@Serializable
 internal data class ChannelConfiguration(
-    @SerializedName("settings")
+    @SerialName("settings")
     val settings: Settings,
 
-    @SerializedName("isAuthorizationEnabled")
+    @SerialName("isAuthorizationEnabled")
     val isAuthorizationEnabled: Boolean,
 
-    @SerializedName("preContactForm")
+    @SerialName("preContactForm")
     val preContactForm: PreContactFormModel?,
 
-    @SerializedName("caseCustomFields")
+    @SerialName("caseCustomFields")
     val contactCustomFields: List<CustomFieldPolyType>?,
 
-    @SerializedName("endUserCustomFields")
+    @SerialName("endUserCustomFields")
     val customerCustomFields: List<CustomFieldPolyType>?,
 
-    @SerializedName("isLiveChat")
+    @SerialName("isLiveChat")
     val isLiveChat: Boolean,
 
-    @SerializedName("availability")
+    @SerialName("availability")
     val availability: Availability,
 ) {
+    @Serializable
     data class Settings(
-        @SerializedName("hasMultipleThreadsPerEndUser")
+        @SerialName("hasMultipleThreadsPerEndUser")
         val hasMultipleThreadsPerEndUser: Boolean,
 
-        @SerializedName("isProactiveChatEnabled")
+        @SerialName("isProactiveChatEnabled")
         val isProactiveChatEnabled: Boolean,
 
-        @SerializedName("fileRestrictions")
+        @SerialName("fileRestrictions")
         val fileRestrictions: FileRestrictions,
 
-        @SerializedName("features")
+        @SerialName("features")
         val features: Map<String, Boolean>,
     )
 
+    @Serializable
     data class FileRestrictions(
-        @SerializedName("allowedFileSize")
+        @SerialName("allowedFileSize")
         val allowedFileSize: Int,
 
-        @SerializedName("allowedFileTypes")
+        @SerialName("allowedFileTypes")
         val allowedFileTypes: List<AllowedFileType>,
 
-        @SerializedName("isAttachmentsEnabled")
+        @SerialName("isAttachmentsEnabled")
         val isAttachmentsEnabled: Boolean,
     )
 
+    @Serializable
     data class AllowedFileType(
-        @SerializedName("mimeType")
+        @SerialName("mimeType")
         val mimeType: String,
 
-        @SerializedName("description")
+        @SerialName("description")
         val description: String,
     )
 
+    @Serializable
     data class Availability(
-        @SerializedName("status")
+        @SerialName("status")
         val status: AvailabilityStatus,
     )
 

@@ -15,23 +15,25 @@
 
 package com.nice.cxonechat.sample.data.models
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.state.Environment
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * Serializable version [SdkEnvironment].
  */
+@Serializable
 data class SdkEnvironment(
-    @SerializedName("name")
+    @SerialName("name")
     override val name: String,
-    @SerializedName("location")
+    @SerialName("location")
     override val location: String,
-    @SerializedName("baseUrl")
+    @SerialName("baseUrl")
     override val baseUrl: String,
-    @SerializedName("socketUrl")
+    @SerialName("socketUrl")
     override val socketUrl: String,
-    @SerializedName("originHeader")
+    @SerialName("originHeader")
     override val originHeader: String,
-    @SerializedName("chatUrl")
+    @SerialName("chatUrl")
     override val chatUrl: String,
 ) : Environment

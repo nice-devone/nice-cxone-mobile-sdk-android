@@ -17,8 +17,8 @@ package com.nice.cxonechat.sample.ui.theme
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.AlertDialog
-import androidx.compose.material.Text
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -49,7 +49,7 @@ internal fun AppTheme.Dialog(
         dismissButton = dismissButton,
         text = {
             Column {
-                title?.let { Text(title, modifier = Modifier.padding(bottom = space.medium), style = typography.h6) }
+                title?.let { Text(title, modifier = Modifier.padding(bottom = space.medium), style = typography.titleLarge) }
                 content()
             }
         }
@@ -82,7 +82,7 @@ internal fun AppTheme.Dialog(
         confirmButton = confirmButton,
         dismissButton = dismissButton,
     ) {
-        Text(text, style = typography.body2)
+        Text(text, style = typography.bodyMedium)
     }
 }
 

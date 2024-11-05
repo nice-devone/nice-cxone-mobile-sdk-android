@@ -15,17 +15,19 @@
 
 package com.nice.cxonechat.internal.model
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.message.Attachment
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 internal data class AttachmentModel(
-    @SerializedName("url")
+    @SerialName("url")
     val url: String,
 
-    @SerializedName("friendlyName")
+    @SerialName("friendlyName")
     val friendlyName: String,
 
-    @SerializedName("mimeType")
+    @SerialName("mimeType")
     val mimeType: String?,
 ) {
 

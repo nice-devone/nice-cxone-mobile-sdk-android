@@ -15,9 +15,11 @@
 
 package com.nice.cxonechat.internal.model
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.ContactStatus
-import java.util.Date
+import com.nice.cxonechat.internal.serializer.DateAsString
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
 // ContactView
@@ -25,19 +27,20 @@ import java.util.UUID
 /**
  * Represents all info about a contact (case).
  */
-
-internal data class Contact constructor(
+@Serializable
+internal data class Contact(
     /** The id of the contact. */
-    @SerializedName("id")
+    @SerialName("id")
     val id: String,
 
     /** The id of the thread for which this contact applies. */
-    @SerializedName("threadIdOnExternalPlatform")
+    @SerialName("threadIdOnExternalPlatform")
+    @Contextual
     val threadIdOnExternalPlatform: UUID,
 
-    @SerializedName("status")
+    @SerialName("status")
     val status: ContactStatus,
 
-    @SerializedName("createdAt")
-    val createdAt: Date,
+    @SerialName("createdAt")
+    val createdAt: DateAsString,
 )

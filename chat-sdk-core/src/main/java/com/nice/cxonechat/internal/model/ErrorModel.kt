@@ -15,16 +15,18 @@
 
 package com.nice.cxonechat.internal.model
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.ErrorType
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * Model for error event pushed from server.
  *
  * @property error Details about the error.
  */
+@Serializable
 internal data class ErrorModel(
-    @SerializedName("error")
+    @SerialName("error")
     val error: Error,
 ) {
     /**
@@ -34,10 +36,11 @@ internal data class ErrorModel(
      * @property transactionId Id of transaction which has triggered the error, usable for tracking down the cause in
      * server logs.
      */
+    @Serializable
     internal data class Error(
-        @SerializedName("errorCode")
+        @SerialName("errorCode")
         val errorCode: ErrorType,
-        @SerializedName("transactionId")
+        @SerialName("transactionId")
         val transactionId: String,
     )
 }

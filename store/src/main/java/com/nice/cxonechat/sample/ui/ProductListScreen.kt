@@ -17,23 +17,26 @@ package com.nice.cxonechat.sample.ui
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
-import androidx.compose.material.AlertDialog
-import androidx.compose.material.Card
-import androidx.compose.material.LocalTextStyle
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Photo
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -45,8 +48,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -81,7 +87,7 @@ object ProductListScreen : Screen {
     private val routeFormat = routeTo("{$categoryKey}")
 
     /** route to get back to this screen. */
-    val defaultRoute = routeFormat
+    val defaultRoute = routeTo()
 
     private fun routeTo(category: String = defaultCategory) = "products/$category"
 
@@ -114,8 +120,12 @@ object ProductListScreen : Screen {
                 viewModel = viewModel,
                 category = category,
                 attempt = attempt,
-                onError = { error = it },
-                onSuccess = { products = it }
+                onError = {
+                    error = it
+                },
+                onSuccess = {
+                    products = it
+                }
             )
 
             Screen(
@@ -217,7 +227,6 @@ object ProductListScreen : Screen {
         }
     }
 
-    @OptIn(ExperimentalFoundationApi::class)
     @Composable
     private fun ProductListView(
         products: List<Product>,
@@ -242,22 +251,30 @@ object ProductListScreen : Screen {
 
     @Composable
     private fun ProductCard(product: Product, modifier: Modifier = Modifier) {
+        val screenWidth = LocalConfiguration.current.screenWidthDp * 3 / 4 / 2
+        var size by remember { mutableIntStateOf(screenWidth) }
+
         Card(
-            modifier = modifier.fillMaxWidth(),
-            elevation = 3.dp,
+            modifier = modifier.fillMaxWidth().onSizeChanged { size = it.width * 3 / 4 },
+            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 AsyncImage(
                     model = product.thumbnail,
                     contentDescription = null,
-                    modifier = Modifier.absolutePadding(0.dp),
-                    contentScale = ContentScale.FillWidth
+                    modifier = Modifier
+                        .then(
+                            with(LocalDensity.current) {
+                                Modifier.height(size.toDp())
+                            }
+                        ),
+                    placeholder = rememberVectorPainter(Icons.Default.Photo),
+                    error = rememberVectorPainter(Icons.Default.Error),
                 )
-                Text(product.title, modifier = Modifier.padding(horizontal = space.medium))
+                Text(product.title, modifier = Modifier.padding(horizontal = space.medium), maxLines = 1)
                 Text(
                     product.price.asCurrency,
                     modifier = Modifier.padding(horizontal = space.medium),

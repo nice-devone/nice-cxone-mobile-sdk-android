@@ -17,7 +17,9 @@ package com.nice.cxonechat
 
 import com.nice.cxonechat.event.ChatEvent
 import com.nice.cxonechat.server.ServerRequest
+import com.nice.cxonechat.server.ServerResponse
 import io.mockk.every
+import kotlinx.serialization.Serializable
 import org.junit.Test
 import java.util.Date
 
@@ -28,13 +30,20 @@ internal class ChatEventHandlerTest : AbstractChatTest() {
     override fun prepare() {
         super.prepare()
         events = chat.events()
+        this serverResponds ServerResponse.ConsumerAuthorized()
     }
 
     // ---
 
     @Test
     fun trigger_sendExpectedMessage() {
-        assertSendText("""{"field":104}""") {
+        assertSendText(
+            """
+            {
+                "field": 104
+            }
+            """.trimIndent()
+        ) {
             events.trigger(ChatEvent.Custom { _, _ -> TestValue() })
         }
     }
@@ -44,12 +53,17 @@ internal class ChatEventHandlerTest : AbstractChatTest() {
         every { storage.authTokenExpDate } returns Date()
         assertSendTexts(
             ServerRequest.RefreshToken(connection),
-            """{"field":104}"""
+            """
+            {
+                "field": 104
+            }
+            """.trimIndent()
         ) {
             events.trigger(ChatEvent.Custom { _, _ -> TestValue() })
         }
     }
 
+    @Serializable
     data class TestValue(
         val field: Int = 104,
     )

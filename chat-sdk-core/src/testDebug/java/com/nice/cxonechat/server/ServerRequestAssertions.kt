@@ -27,7 +27,11 @@ import strucut.verifyStructureOf
  * Fixing these tests is permitted only in circumstances where the API
  * actually changes, not when this fails. Be warned.
  * */
-@Suppress("StringLiteralDuplication", "FunctionMaxLength")
+@Suppress(
+    "StringLiteralDuplication",
+    "FunctionMaxLength",
+    "TooManyFunctions",
+)
 internal object ServerRequestAssertions {
 
     private const val ChatWindowEvent = "chatWindowEvent"
@@ -97,6 +101,9 @@ internal object ServerRequestAssertions {
                     prop("authorizationCode")
                     prop("codeVerifier")
                 }
+                prop("disableChannelInfo", true)
+                prop("sdkPlatform", "android")
+                prop("sdkVersion")
             }
         }
     }

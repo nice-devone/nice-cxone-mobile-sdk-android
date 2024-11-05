@@ -15,21 +15,24 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
 import com.nice.cxonechat.enums.EventType.TokenRefreshed
 import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /** Event received when a token has been successfully refreshed. */
+@Serializable
 internal data class EventTokenRefreshed(
-    @SerializedName("postback")
+    @SerialName("postback")
     val postback: Postback<Data>,
 ) {
 
     val token get() = postback.data.accessToken.token
     val expiresAt get() = postback.data.accessToken.expiresAt
 
+    @Serializable
     data class Data(
-        @SerializedName("accessToken")
+        @SerialName("accessToken")
         val accessToken: AccessToken,
     )
 

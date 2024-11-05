@@ -16,10 +16,11 @@
 package com.nice.cxonechat.event
 
 import com.nice.cxonechat.enums.VisitorEventType.PageView
-import com.nice.cxonechat.internal.model.network.PageViewData
+import com.nice.cxonechat.event.AnalyticsEvent.Data.PageViewData
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.storage.ValueStorage
 import java.util.Date
+import com.nice.cxonechat.internal.model.network.PageViewData as PageViewDataModel
 
 /**
  * Event notifying the backend that user has visited a page in the host application.
@@ -28,13 +29,13 @@ internal class PageViewEvent(
     internal val title: String,
     internal val uri: String,
     internal val date: Date = Date()
-) : ChatEvent() {
+) : ChatEvent<AnalyticsEvent>() {
 
     override fun getModel(
         connection: Connection,
         storage: ValueStorage,
-    ): Any {
-        val model = PageViewData(
+    ): AnalyticsEvent {
+        val model = PageViewDataModel(
             url = uri,
             title = title
         )
@@ -42,7 +43,7 @@ internal class PageViewEvent(
             PageView,
             storage,
             date,
-            model
+            PageViewData(model)
         )
     }
 

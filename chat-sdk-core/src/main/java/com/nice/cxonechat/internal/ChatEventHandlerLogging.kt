@@ -32,7 +32,7 @@ internal class ChatEventHandlerLogging(
 ) : ChatEventHandler, LoggerScope by LoggerScope<ChatEventHandler>(logger) {
 
     override fun trigger(
-        event: ChatEvent,
+        event: ChatEvent<*>,
         listener: OnEventSentListener?,
         errorListener: OnEventErrorListener?,
     ) = scope("trigger") {

@@ -15,7 +15,7 @@
 
 package com.nice.cxonechat.sample.ui.theme
 
-import androidx.compose.material.Typography
+import androidx.compose.material3.Typography
 
 /** Material typography to apply. */
 val Typography = Typography()

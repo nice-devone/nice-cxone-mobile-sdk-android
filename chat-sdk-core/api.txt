@@ -83,7 +83,7 @@ package com.nice.cxonechat {
   }
 
   @com.nice.cxonechat.Public public interface ChatEventHandler {
-    method public void trigger(com.nice.cxonechat.event.ChatEvent event, optional com.nice.cxonechat.ChatEventHandler.OnEventSentListener? listener, optional com.nice.cxonechat.ChatEventHandler.OnEventErrorListener? errorListener);
+    method public void trigger(com.nice.cxonechat.event.ChatEvent<?> event, optional com.nice.cxonechat.ChatEventHandler.OnEventSentListener? listener, optional com.nice.cxonechat.ChatEventHandler.OnEventErrorListener? errorListener);
   }
 
   @com.nice.cxonechat.Public public static fun interface ChatEventHandler.OnEventErrorListener {
@@ -412,15 +412,7 @@ package com.nice.cxonechat.enums {
 
 package com.nice.cxonechat.event {
 
-  @com.nice.cxonechat.Public public abstract sealed class ChatEvent {
-  }
-
-  @Deprecated @com.nice.cxonechat.Public public final class CustomVisitorEvent extends com.nice.cxonechat.event.ChatEvent {
-    ctor @Deprecated public CustomVisitorEvent(Object data);
-  }
-
-  @Deprecated @com.nice.cxonechat.Public public final class TriggerEvent extends com.nice.cxonechat.event.ChatEvent {
-    ctor @Deprecated public TriggerEvent(java.util.UUID id);
+  @com.nice.cxonechat.Public public abstract sealed class ChatEvent<T> {
   }
 
 }
@@ -646,11 +638,13 @@ package com.nice.cxonechat.message {
     method public abstract String? getImageUrl();
     method public abstract String getLastName();
     method public final String getName();
+    method public String? getNickname();
     property public abstract String firstName;
     property public abstract String id;
     property public abstract String? imageUrl;
     property public abstract String lastName;
     property public final String name;
+    property public String? nickname;
   }
 
   @com.nice.cxonechat.Public public enum MessageDirection {
@@ -911,23 +905,23 @@ package com.nice.cxonechat.thread {
 
   @com.nice.cxonechat.Public public abstract class Agent {
     ctor public Agent();
-    method public abstract String? getEmailAddress();
+    method @Deprecated public abstract String? getEmailAddress();
     method public abstract String getFirstName();
     method public final String getFullName();
     method public abstract int getId();
     method public abstract String getImageUrl();
-    method public abstract java.util.UUID? getInContactId();
+    method @Deprecated public abstract java.util.UUID? getInContactId();
     method public abstract String getLastName();
     method public abstract String? getNickname();
     method public abstract boolean isBotUser();
     method public abstract boolean isSurveyUser();
     method public abstract boolean isTyping();
-    property public abstract String? emailAddress;
+    property @Deprecated public abstract String? emailAddress;
     property public abstract String firstName;
     property public final String fullName;
     property public abstract int id;
     property public abstract String imageUrl;
-    property public abstract java.util.UUID? inContactId;
+    property @Deprecated public abstract java.util.UUID? inContactId;
     property public abstract boolean isBotUser;
     property public abstract boolean isSurveyUser;
     property public abstract boolean isTyping;
@@ -980,3 +974,4 @@ package com.nice.cxonechat.thread {
   }
 
 }
+

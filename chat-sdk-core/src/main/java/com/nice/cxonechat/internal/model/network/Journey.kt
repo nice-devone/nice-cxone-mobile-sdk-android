@@ -15,11 +15,13 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-internal data class Journey constructor(
-    @SerializedName("referrer")
+@Serializable
+internal data class Journey(
+    @SerialName("referrer")
     val referrer: Referrer,
-    @SerializedName("utm")
+    @SerialName("utm")
     val utm: UTM,
 )

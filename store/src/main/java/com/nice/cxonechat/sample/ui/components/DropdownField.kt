@@ -23,17 +23,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.Divider
-import androidx.compose.material.DropdownMenu
-import androidx.compose.material.DropdownMenuItem
-import androidx.compose.material.Icon
-import androidx.compose.material.LocalContentAlpha
-import androidx.compose.material.LocalContentColor
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,7 +57,7 @@ data class SimpleDropdownItem<KeyType>(
  * @param label Label for field.
  * @param placeholder Text to be displayed if no value is chosen.
  * @param value Current value of the field.
-    constructor(entry: Map.Entry<String, KeyType>) : this(entry.key, entry.value)
+constructor(entry: Map.Entry<String, KeyType>) : this(entry.key, entry.value)
  * @param options List of options the field can take.
  * @param isError is the field in error.
  * @param onDismiss the dropdown menu was dismissed.
@@ -102,10 +101,11 @@ fun <KeyType> DropdownField(
                 modifier = Modifier.align(Alignment.BottomStart)
             ) {
                 if (placeholder.isNotBlank()) {
-                    DropdownMenuItem(onClick = { }) {
-                        Text(placeholder)
-                    }
-                    Divider()
+                    DropdownMenuItem(
+                        onClick = { },
+                        text = { Text(placeholder) },
+                    )
+                    HorizontalDivider()
                 }
                 options.forEach { item ->
                     DropdownMenuItem(
@@ -113,14 +113,15 @@ fun <KeyType> DropdownField(
                             expanded = false
                             onSelect(item.value)
                         },
-                    ) {
-                        when(value) {
-                            item.value -> SelectedIcon()
-                            "" -> Unit
-                            else -> Spacer(Modifier.width(16.dp))
-                        }
-                        Text(item.label)
-                    }
+                        leadingIcon = {
+                            when (value) {
+                                item.value -> SelectedIcon()
+                                "" -> Unit
+                                else -> Spacer(Modifier.width(16.dp))
+                            }
+                        },
+                        text = { Text(item.label) }
+                    )
                 }
             }
         }
@@ -185,9 +186,9 @@ private fun ErrorLabel(
     Text(
         text = label,
         color = if (isError) {
-            MaterialTheme.colors.error
+            MaterialTheme.colorScheme.error
         } else {
-            LocalContentColor.current.copy(LocalContentAlpha.current)
+            LocalContentColor.current.copy(alpha = 0.38f)
         }
     )
 }

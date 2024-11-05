@@ -64,6 +64,8 @@ internal class ChatImpl(
 
     override var isChatAvailable: Boolean = true
 
+    override var eventHandlerProvider = ChatEventHandlerProvider()
+
     override fun setDeviceToken(token: String?) {
         val currentToken = entrails.storage.deviceToken
         val newToken = token
@@ -91,15 +93,7 @@ internal class ChatImpl(
         return handler
     }
 
-    override fun events(): ChatEventHandler {
-        var handler: ChatEventHandler
-        handler = ChatEventHandlerImpl(this)
-        handler = ChatEventHandlerTokenGuard(handler, this)
-        handler = ChatEventHandlerVisitGuard(handler, this)
-        handler = ChatEventHandlerTimeOnPage(handler, this)
-        handler = ChatEventHandlerThreading(handler, this)
-        return handler
-    }
+    override fun events(): ChatEventHandler = eventHandlerProvider.events(this)
 
     override fun customFields(): ChatFieldHandler = ChatFieldHandlerGlobal(this)
 

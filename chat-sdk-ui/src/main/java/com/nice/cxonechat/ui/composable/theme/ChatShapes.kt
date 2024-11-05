@@ -20,8 +20,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -95,8 +95,8 @@ private fun PreviewShapes() {
             ) {
                 shapes.forEach { (label, shape) ->
                     Surface(
-                        color = ChatTheme.colors.primary,
-                        contentColor = ChatTheme.colors.onPrimary,
+                        color = ChatTheme.colorScheme.primary,
+                        contentColor = ChatTheme.colorScheme.onPrimary,
                         shape = shape,
                     ) {
                         Text(text = label, modifier = Modifier.padding(24.dp))

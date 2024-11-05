@@ -16,8 +16,9 @@
 package com.nice.cxonechat.sample.data.repository
 
 import android.content.Context
-import com.google.gson.Gson
-import com.google.gson.JsonIOException
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -26,7 +27,7 @@ import kotlin.reflect.KClass
 /**
  * Abstract concept of a named place to store "complex" data.
  *
- * Data will be converted to JSON (using Gson) and then saved via the described mechanism.
+ * Data will be converted to JSON and then saved via the described mechanism.
  *
  * @param Type type of data to be stored.
  * @param type class of data to be stored.
@@ -39,10 +40,10 @@ abstract class Repository<Type : Any>(
      *
      * @param context Android [Context] to be used for resource resolution and/or file access.
      * @param item item to be saved.
-     * @throws [JsonIOException] if Gson encounters an error.
+     * @throws [SerializationException] if Json encounters an error.
      * @throws [Exception] rethrows any exception thrown by [doStore]
      */
-    @Throws(JsonIOException::class)
+    @Throws(SerializationException::class)
     open fun save(context: Context, item: Type?) {
         if (item != null) {
             doStore(toJson(item), context)
@@ -56,10 +57,10 @@ abstract class Repository<Type : Any>(
      *
      * @param context Android [Context] to be used for resource resolution and/or file access.
      * @return item loaded.
-     * @throws [JsonIOException] if Gson encounters an error.
+     * @throws [SerializationException] if Json encounters an error.
      * @throws any exception thrown by [doLoad] will be rethrown.
      */
-    @Throws(JsonIOException::class)
+    @Throws(SerializationException::class)
     open fun load(context: Context) = doLoad(context)?.let(::fromJson)
 
     /**
@@ -128,16 +129,21 @@ abstract class Repository<Type : Any>(
      *
      * @param item Data item to convert to Json.
      * @return item converted to Json as a [String].
-     * @throws [JsonIOException] if any error is encountered during the conversion.
+     * @throws [SerializationException] if any error is encountered during the conversion.
      */
-    private fun toJson(item: Type) = Gson().toJson(item)
+    private fun toJson(item: Type) = json.encodeToString(serializer = json.serializersModule.serializer(type.java), value = item)
 
     /**
      * Parse an item of type Type from a Json-encoded [String].
      *
      * @param string [String] to parse as Json.
      * @return object of type Type parsed from [string].
-     * @throws [JsonIOException] if any error is encountered during the conversion.
+     * @throws [SerializationException] if any error is encountered during the conversion.
      */
-    private fun fromJson(string: String) = Gson().fromJson(string, type.java)
+    private fun fromJson(string: String): Type =
+        json.decodeFromString(deserializer = json.serializersModule.serializer(type.java), string = string) as Type
+}
+
+private val json = Json {
+    ignoreUnknownKeys = true
 }

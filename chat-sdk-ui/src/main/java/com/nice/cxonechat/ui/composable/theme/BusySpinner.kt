@@ -19,10 +19,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.Card
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,7 +42,11 @@ fun BusySpinner(message: String, onCancel: (() -> Unit)? = null) {
     Dialog(
         onDismissRequest = { },
     ) {
-        Card(backgroundColor = MaterialTheme.colors.background.copy(alpha = 0.75f)) {
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.background.copy(alpha = 0.75f)
+            )
+        ) {
             Column(
                 modifier = Modifier.padding(space.defaultPadding),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -49,7 +54,7 @@ fun BusySpinner(message: String, onCancel: (() -> Unit)? = null) {
             ) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(32.dp),
-                    color = MaterialTheme.colors.primary,
+                    color = MaterialTheme.colorScheme.primary,
                 )
                 Text(message)
                 onCancel?.let {
@@ -63,7 +68,7 @@ fun BusySpinner(message: String, onCancel: (() -> Unit)? = null) {
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
+@Preview
 @Composable
 private fun BusySpinnerPreview() {
     ChatTheme {

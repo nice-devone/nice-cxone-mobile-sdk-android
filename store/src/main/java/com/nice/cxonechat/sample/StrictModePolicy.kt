@@ -21,7 +21,9 @@ import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
 import android.os.StrictMode.VmPolicy
 import android.os.strictmode.DiskReadViolation
+import android.os.strictmode.ExplicitGcViolation
 import android.os.strictmode.LeakedClosableViolation
+import android.os.strictmode.UntaggedSocketViolation
 import androidx.annotation.RequiresApi
 import com.nice.cxonechat.sample.data.repository.ChatSettingsRepository
 import com.nice.cxonechat.sample.data.repository.UISettingsRepository
@@ -39,15 +41,16 @@ import java.util.concurrent.Executors
 
 @RequiresApi(Build.VERSION_CODES.P)
 internal object StrictModePolicy {
+    private const val VM_POLICY_TAG = "VMPolicy"
     private val threadPolicy = RuleBasedPenalty(
-        // DE-66838
+        // DE-117407
         allow(
             allOf(
                 violation(DiskReadViolation::class),
                 classNamed(UISettingsRepository::class.qualifiedName!!, "load"),
             ),
         ),
-        // DE-66839
+        // DE-117407
         allow(
             allOf(
                 violation(DiskReadViolation::class),
@@ -78,6 +81,13 @@ internal object StrictModePolicy {
                         PatternMatcher.PATTERN_PREFIX,
                     ),
                 )
+            )
+        ),
+        // Samsung A20 - ComposeActivity
+        allow(
+            allOf(
+                violation(DiskReadViolation::class),
+                classNamed("android.graphics.Typeface", "setFlipFonts")
             )
         ),
         // Samsung S22 - Android 13
@@ -128,6 +138,19 @@ internal object StrictModePolicy {
                 classNamed(StoreActivity::class.qualifiedName!!, "onCreatePerfectoMobile")
             )
         ),
+        // There seems to be an issue on Android 14 and 15 that results in releasing an Activity
+        // throwing an ExplicitGcViolation.  There may be something we're doing to trigger
+        // it, but I don't find any more information about it.
+        if (Build.VERSION.SDK_INT in Build.VERSION_CODES.UPSIDE_DOWN_CAKE until 36) {
+            allow(
+                allOf(
+                    violation(ExplicitGcViolation::class),
+                    classNamed("android.app.ActivityThread", "performDestroyActivity")
+                )
+            )
+        } else {
+            null
+        },
         // Default action is to log and crash
         Rule(any(), Actions.allOf(log("ThreadPolicy"), terminate()))
     )
@@ -145,7 +168,7 @@ internal object StrictModePolicy {
         // DE-66827
         Rule(
             violation(LeakedClosableViolation::class),
-            log("VMPolicy")
+            log(VM_POLICY_TAG)
         ),
         // Crashlytics
         allow(
@@ -156,8 +179,12 @@ internal object StrictModePolicy {
                 PatternMatcher("""com.google.firebase.""", PatternMatcher.PATTERN_PREFIX)
             )
         ),
+        Rule(
+            violation(UntaggedSocketViolation::class),
+            log(VM_POLICY_TAG)
+        ),
         // Default action is to log and crash
-        Rule(any(), Actions.allOf(log("VMPolicy"), terminate()))
+        Rule(any(), Actions.allOf(log(VM_POLICY_TAG), terminate()))
     )
 
     private val executor = Executors.newSingleThreadScheduledExecutor()

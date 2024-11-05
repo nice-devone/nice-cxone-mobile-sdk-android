@@ -15,7 +15,6 @@
 
 package com.nice.cxonechat
 
-import com.google.gson.JsonIOException
 import com.nice.cxonechat.event.ChatEvent
 import com.nice.cxonechat.exceptions.CXOneException
 import com.nice.cxonechat.exceptions.MissingCustomerId
@@ -39,7 +38,7 @@ interface ChatEventHandler {
      * @param listener nullable listener if the client wants to know when it was sent.
      * @param errorListener An optional listener for errors encountered when handling the event.
      */
-    fun trigger(event: ChatEvent, listener: OnEventSentListener? = null, errorListener: OnEventErrorListener? = null)
+    fun trigger(event: ChatEvent<*>, listener: OnEventSentListener? = null, errorListener: OnEventErrorListener? = null)
 
     /**
      * Listener to be notified when the triggered event is considered sent.

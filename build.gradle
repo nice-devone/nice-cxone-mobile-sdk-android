@@ -33,10 +33,12 @@ plugins {
     alias(libs.plugins.firebase.crashlytics) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.metalava) apply false
+    alias(libs.plugins.compose.compiler) apply false
+    alias(libs.plugins.kotlin.serialization) apply false
 }
 
 group = GROUP
-version = "2.1.1" // Fallback version
+version = "2.2.0" // Fallback version
 
 allprojects {
     group = rootProject.group
