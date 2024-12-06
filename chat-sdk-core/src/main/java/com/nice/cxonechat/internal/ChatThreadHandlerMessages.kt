@@ -45,6 +45,8 @@ internal class ChatThreadHandlerMessages(
             val message = event.message
             if (!event.inThread(thread) || thread.messages.contains(message)) return@addCallback
             thread += thread.asCopyable().copy(
+                contactId = event.contactId,
+                threadState = event.threadState,
                 messages = thread.messages.updateWith(listOfNotNull(message))
             )
             listener.onUpdated(thread)

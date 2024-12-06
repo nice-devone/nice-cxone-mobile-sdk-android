@@ -63,29 +63,55 @@ interface SocketFactoryConfiguration {
          *
          * @see SocketFactoryConfiguration
          */
-        @JvmName("create")
         @JvmStatic
-        @Suppress("DEPRECATION")
         operator fun invoke(
             environment: Environment,
             brandId: Long,
             channelId: String,
-        ) = invoke(environment, brandId, channelId, BuildConfig.VERSION_NAME)
+        ) = create(environment, brandId, channelId)
 
         /**
          * Helper method to create a new configuration.
          *
          * @see SocketFactoryConfiguration
          */
-        @JvmName("create")
         @JvmStatic
         @Deprecated("This method is deprecated for public usage and will be removed from public API.")
+        @Suppress("DEPRECATION")
         operator fun invoke(
             environment: Environment,
             brandId: Long,
             channelId: String,
             version: String = BuildConfig.VERSION_NAME,
-        ) = object : SocketFactoryConfiguration {
+        ) = create(environment, brandId, channelId, version)
+
+        /**
+         * Helper method to create a new configuration.
+         *
+         * @see SocketFactoryConfiguration
+         */
+        @JvmStatic
+        @Suppress("DEPRECATION")
+        fun create(
+            environment: Environment,
+            brandId: Long,
+            channelId: String,
+        ): SocketFactoryConfiguration = create(environment, brandId, channelId, BuildConfig.VERSION_NAME)
+
+        /**
+         * Helper method to create a new configuration.
+         *
+         * @see SocketFactoryConfiguration
+         */
+        @JvmStatic
+        @Suppress("DEPRECATION")
+        @Deprecated("This method is deprecated for public usage and will be removed from public API.")
+        fun create(
+            environment: Environment,
+            brandId: Long,
+            channelId: String,
+            version: String = BuildConfig.VERSION_NAME,
+        ): SocketFactoryConfiguration = object : SocketFactoryConfiguration {
             override val environment = environment
             override val brandId = brandId
             override val channelId = channelId

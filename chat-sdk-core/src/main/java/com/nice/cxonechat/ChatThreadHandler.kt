@@ -16,7 +16,9 @@
 package com.nice.cxonechat
 
 import androidx.annotation.CheckResult
+import com.nice.cxonechat.exceptions.InvalidStateException
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.thread.ChatThreadState
 
 /**
  * Instance of a thread handler. This instance will contain the most up-to-date
@@ -99,7 +101,10 @@ interface ChatThreadHandler {
     /**
      * Terminate the contact.
      *
-     * @throws InvalidStateException if the current channel is not a live chat.
+     * @throws InvalidStateException if the current channel is not a live chat,
+     * or if the [ChatThread.threadState] isn't in state [ChatThreadState.Ready],
+     * or [ChatThreadState.Closed].
+     *
      */
     fun endContact()
 

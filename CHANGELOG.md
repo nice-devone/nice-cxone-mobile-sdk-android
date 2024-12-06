@@ -1,6 +1,16 @@
 <a name="unreleased"></a>
 ## [Unreleased]
 
+<a name="2.2.1"></a>
+## [2.2.1]
+
+### Bug Fixes
+- default `invoke()` operators in public API don't use `@JvmName` annotation to avoid minification issues in ProGuard/R8
+  - The API was extended with methods which have the same signature as was previously covered by `invoke()` operators.
+    This should prevent binary compatibility issues.
+- Fix missing contactId for live chat thread
+  - This fixes issue where it wasn't possible to end the live chat session in certain scenarios
+
 <a name="2.2.0"></a>
 ## [2.2.0]
 
@@ -10,8 +20,7 @@
   - Updated consumer-rules.pro to prevent minification of several problematic methods
   - Added rules to the internal SDK minification
 - SDK awaits for authorization
-  - [!NOTE]
-    Event sending may be delayed until server confirms user authorization to use Chat service,
+  - ℹ️ Event sending may be delayed until server confirms user authorization to use Chat service,
     sending of events prior to this could lead to loss of such events.
 ### Dependency Change
 - Bump kotlin from 2.0.0 to 2.0.10
@@ -271,7 +280,8 @@
     - failure
   - typing start/end
 
-[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.2.0...HEAD
+[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.2.1...HEAD
+[2.2.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.2.1...2.2.0
 [2.2.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.1.1...2.2.0
 [2.1.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.1.0...2.1.1
 [2.1.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.0.0...2.1.0

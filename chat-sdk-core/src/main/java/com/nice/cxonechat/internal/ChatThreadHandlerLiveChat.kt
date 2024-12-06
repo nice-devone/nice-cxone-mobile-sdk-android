@@ -25,19 +25,21 @@ import com.nice.cxonechat.enums.EventType.LivechatRecovered
 import com.nice.cxonechat.enums.EventType.SetPositionInQueue
 import com.nice.cxonechat.event.RecoverLiveChatThreadEvent
 import com.nice.cxonechat.event.thread.EndContactEvent
+import com.nice.cxonechat.exceptions.InvalidStateException
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.updateWith
 import com.nice.cxonechat.internal.model.ChatThreadMutable
 import com.nice.cxonechat.internal.model.CustomFieldInternal.Companion.updateWith
 import com.nice.cxonechat.internal.model.network.EventCaseStatusChanged
 import com.nice.cxonechat.internal.model.network.EventContactInboxAssigneeChanged
+import com.nice.cxonechat.internal.model.network.EventLiveChatThreadRecovered
 import com.nice.cxonechat.internal.model.network.EventSetPositionInQueue
-import com.nice.cxonechat.internal.model.network.EventThreadRecovered
 import com.nice.cxonechat.internal.socket.EventCallback.Companion.addCallback
+import com.nice.cxonechat.log.warning
 import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.message.Message.Text
 import com.nice.cxonechat.thread.ChatThread
-import com.nice.cxonechat.thread.ChatThreadState.Loaded
+import com.nice.cxonechat.thread.ChatThreadState.Closed
 import com.nice.cxonechat.thread.ChatThreadState.Pending
 import com.nice.cxonechat.thread.ChatThreadState.Ready
 
@@ -91,7 +93,7 @@ internal class ChatThreadHandlerLiveChat(
                 }
             }
         val onSuccess = chat.socketListener
-            .addCallback<EventThreadRecovered>(LivechatRecovered) { event ->
+            .addCallback<EventLiveChatThreadRecovered>(LivechatRecovered) { event ->
                 updateFromEvent(event)
                 filteringListener.onUpdated(thread)
             }
@@ -108,7 +110,11 @@ internal class ChatThreadHandlerLiveChat(
     }
 
     override fun endContact() {
-        events().trigger(EndContactEvent)
+        when (thread.threadState) {
+            Closed -> chat.entrails.logger.warning("Unable to endContact for a thread that is already closed.")
+            Ready -> events().trigger(EndContactEvent)
+            else -> throw InvalidStateException("Unable to end contact before the thread is in the Ready state")
+        }
     }
 
     override fun refresh() {
@@ -117,17 +123,19 @@ internal class ChatThreadHandlerLiveChat(
         }
     }
 
-    private fun updateFromEvent(event: EventThreadRecovered) {
+    private fun updateFromEvent(event: EventLiveChatThreadRecovered) {
         val messages = event.messages.sortedBy(Message::createdAt)
+        val eventThread = event.thread
         thread += thread.asCopyable().copy(
-            threadName = event.thread.threadName,
+            contactId = if (eventThread != null) eventThread.contactId else thread.contactId,
+            threadName = eventThread?.threadName,
             messages = thread.messages.updateWith(messages),
             scrollToken = event.scrollToken,
             threadAgent = event.agent ?: thread.threadAgent,
             fields = thread.fields.updateWith(
-                event.thread.fields
+                eventThread?.fields.orEmpty()
             ),
-            threadState = if (event.agent != null) Ready else Loaded
+            threadState = event.threadState
         )
         chat.fields = chat.fields.updateWith(
             event.customerCustomFields

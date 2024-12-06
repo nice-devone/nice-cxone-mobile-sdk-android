@@ -58,8 +58,10 @@ package com.nice.cxonechat {
   @com.nice.cxonechat.Public public interface ChatBuilder {
     method @Deprecated @CheckResult public com.nice.cxonechat.Cancellable build(com.nice.cxonechat.ChatBuilder.OnChatBuiltCallback callback);
     method @CheckResult public com.nice.cxonechat.Cancellable build(com.nice.cxonechat.ChatBuilder.OnChatBuiltResultCallback resultCallback);
-    method public default static operator com.nice.cxonechat.ChatBuilder getDefault(android.content.Context context, com.nice.cxonechat.SocketFactoryConfiguration config);
-    method public default static operator com.nice.cxonechat.ChatBuilder getDefault(android.content.Context context, com.nice.cxonechat.SocketFactoryConfiguration config, optional com.nice.cxonechat.log.Logger logger);
+    method public default static com.nice.cxonechat.ChatBuilder getDefault(android.content.Context context, com.nice.cxonechat.SocketFactoryConfiguration config);
+    method public default static com.nice.cxonechat.ChatBuilder getDefault(android.content.Context context, com.nice.cxonechat.SocketFactoryConfiguration config, optional com.nice.cxonechat.log.Logger logger);
+    method public default static operator com.nice.cxonechat.ChatBuilder invoke(android.content.Context context, com.nice.cxonechat.SocketFactoryConfiguration config);
+    method public default static operator com.nice.cxonechat.ChatBuilder invoke(android.content.Context context, com.nice.cxonechat.SocketFactoryConfiguration config, optional com.nice.cxonechat.log.Logger logger);
     method public com.nice.cxonechat.ChatBuilder setAuthorization(com.nice.cxonechat.Authorization authorization);
     method public com.nice.cxonechat.ChatBuilder setChatStateListener(com.nice.cxonechat.ChatStateListener listener);
     method public com.nice.cxonechat.ChatBuilder setCustomerId(String customerId);
@@ -70,8 +72,10 @@ package com.nice.cxonechat {
   }
 
   @com.nice.cxonechat.Public public static final class ChatBuilder.Companion {
-    method public operator com.nice.cxonechat.ChatBuilder getDefault(android.content.Context context, com.nice.cxonechat.SocketFactoryConfiguration config);
-    method public operator com.nice.cxonechat.ChatBuilder getDefault(android.content.Context context, com.nice.cxonechat.SocketFactoryConfiguration config, optional com.nice.cxonechat.log.Logger logger);
+    method public com.nice.cxonechat.ChatBuilder getDefault(android.content.Context context, com.nice.cxonechat.SocketFactoryConfiguration config);
+    method public com.nice.cxonechat.ChatBuilder getDefault(android.content.Context context, com.nice.cxonechat.SocketFactoryConfiguration config, optional com.nice.cxonechat.log.Logger logger);
+    method public operator com.nice.cxonechat.ChatBuilder invoke(android.content.Context context, com.nice.cxonechat.SocketFactoryConfiguration config);
+    method public operator com.nice.cxonechat.ChatBuilder invoke(android.content.Context context, com.nice.cxonechat.SocketFactoryConfiguration config, optional com.nice.cxonechat.log.Logger logger);
   }
 
   @com.nice.cxonechat.Public public static fun interface ChatBuilder.OnChatBuiltCallback {
@@ -347,12 +351,14 @@ package com.nice.cxonechat {
   }
 
   @com.nice.cxonechat.Public public interface SocketFactoryConfiguration {
-    method public default static operator com.nice.cxonechat.SocketFactoryConfiguration create(com.nice.cxonechat.state.Environment environment, long brandId, String channelId);
-    method @Deprecated public default static operator com.nice.cxonechat.SocketFactoryConfiguration create(com.nice.cxonechat.state.Environment environment, long brandId, String channelId, optional String version);
+    method public default static com.nice.cxonechat.SocketFactoryConfiguration create(com.nice.cxonechat.state.Environment environment, long brandId, String channelId);
+    method @Deprecated public default static com.nice.cxonechat.SocketFactoryConfiguration create(com.nice.cxonechat.state.Environment environment, long brandId, String channelId, optional String version);
     method public long getBrandId();
     method public String getChannelId();
     method public com.nice.cxonechat.state.Environment getEnvironment();
     method @Deprecated public String getVersion();
+    method public default static operator com.nice.cxonechat.SocketFactoryConfiguration invoke(com.nice.cxonechat.state.Environment environment, long brandId, String channelId);
+    method @Deprecated public default static operator com.nice.cxonechat.SocketFactoryConfiguration invoke(com.nice.cxonechat.state.Environment environment, long brandId, String channelId, optional String version);
     property public abstract long brandId;
     property public abstract String channelId;
     property public abstract com.nice.cxonechat.state.Environment environment;
@@ -361,8 +367,10 @@ package com.nice.cxonechat {
   }
 
   @com.nice.cxonechat.Public public static final class SocketFactoryConfiguration.Companion {
-    method public operator com.nice.cxonechat.SocketFactoryConfiguration create(com.nice.cxonechat.state.Environment environment, long brandId, String channelId);
-    method @Deprecated public operator com.nice.cxonechat.SocketFactoryConfiguration create(com.nice.cxonechat.state.Environment environment, long brandId, String channelId, optional String version);
+    method public com.nice.cxonechat.SocketFactoryConfiguration create(com.nice.cxonechat.state.Environment environment, long brandId, String channelId);
+    method @Deprecated public com.nice.cxonechat.SocketFactoryConfiguration create(com.nice.cxonechat.state.Environment environment, long brandId, String channelId, optional String version);
+    method public operator com.nice.cxonechat.SocketFactoryConfiguration invoke(com.nice.cxonechat.state.Environment environment, long brandId, String channelId);
+    method @Deprecated public operator com.nice.cxonechat.SocketFactoryConfiguration invoke(com.nice.cxonechat.state.Environment environment, long brandId, String channelId, optional String version);
   }
 
   @com.nice.cxonechat.Public public interface UserName {

@@ -20,7 +20,7 @@ import com.nice.cxonechat.internal.model.network.EventCaseStatusChanged.CaseStat
 import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.server.ServerResponse
 import com.nice.cxonechat.thread.ChatThread
-import com.nice.cxonechat.thread.ChatThreadState.Ready
+import com.nice.cxonechat.thread.ChatThreadState
 import com.nice.cxonechat.thread.ChatThreadState.Received
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -40,7 +40,11 @@ internal class ChatThreadsHandlerLiveChatTest : AbstractChatTest() {
     fun threads_notifies_caseClosed() {
         connect()
         val initial = makeChatThread(threadState = Received)
-        val expected = initial.copy(canAddMoreMessages = false, threadState = Ready, contactId = TestContactId)
+        val expected = initial.copy(
+            canAddMoreMessages = false,
+            threadState = ChatThreadState.Closed,
+            contactId = TestContactId,
+        )
         val actual = testCallback(::threads) {
             sendServerMessage(ServerResponse.LivechatRecovered(thread = initial))
             sendServerMessage(ServerResponse.CaseStatusChanged(expected, Closed))

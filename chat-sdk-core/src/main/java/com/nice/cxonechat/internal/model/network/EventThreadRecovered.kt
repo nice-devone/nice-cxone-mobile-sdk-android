@@ -21,6 +21,7 @@ import com.nice.cxonechat.internal.model.CustomFieldModel
 import com.nice.cxonechat.internal.model.MessageModel
 import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
 import com.nice.cxonechat.thread.ChatThread
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonNames
@@ -47,6 +48,7 @@ internal data class EventThreadRecovered(
             messages.all { it.threadId == thread.id }
 
     @Serializable
+    @OptIn(ExperimentalSerializationApi::class)
     data class Data(
         @SerialName("messages")
         val messages: List<MessageModel>?,
