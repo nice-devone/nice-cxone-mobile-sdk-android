@@ -34,8 +34,6 @@ import com.nice.cxonechat.internal.model.network.EventLiveChatThreadRecovered
 import com.nice.cxonechat.internal.socket.ErrorCallback.Companion.addErrorCallback
 import com.nice.cxonechat.internal.socket.EventCallback.Companion.addCallback
 import com.nice.cxonechat.thread.ChatThread
-import com.nice.cxonechat.thread.ChatThreadState.Loaded
-import com.nice.cxonechat.thread.ChatThreadState.Ready
 
 internal class ChatThreadsHandlerLive(
     private val chat: ChatWithParameters,
@@ -103,7 +101,7 @@ internal class ChatThreadsHandlerLive(
         } else {
             eventThread.asCopyable().copy(
                 messages = event.messages.removeConversationStarter(),
-                threadState = if (event.agent != null) Ready else Loaded
+                threadState = event.threadState
             )
         }
         return recovered

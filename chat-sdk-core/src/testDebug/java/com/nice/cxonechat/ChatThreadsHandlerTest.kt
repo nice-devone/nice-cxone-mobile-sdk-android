@@ -28,6 +28,7 @@ import com.nice.cxonechat.model.makeMessageModel
 import com.nice.cxonechat.server.ServerRequest
 import com.nice.cxonechat.server.ServerResponse
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.thread.ChatThreadState
 import com.nice.cxonechat.thread.ChatThreadState.Loaded
 import com.nice.cxonechat.thread.ChatThreadState.Received
 import org.junit.Test
@@ -111,7 +112,10 @@ internal class ChatThreadsHandlerTest : AbstractChatTest() {
     fun threads_notifies_caseClosed() {
         val initial = List(2) { makeChatThread(threadState = Received) }
         val expected = initial.toMutableList().also {
-            it[0] = it[0].copy(canAddMoreMessages = false)
+            it[0] = it[0].copy(
+                canAddMoreMessages = false,
+                threadState = ChatThreadState.Closed,
+            )
         }
         assertEquals(true, initial[0].canAddMoreMessages)
         val actual = testCallback(::threads) {

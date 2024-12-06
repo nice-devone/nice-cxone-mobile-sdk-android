@@ -42,6 +42,7 @@ import com.nice.cxonechat.message.OutboundMessage
 import com.nice.cxonechat.prechat.PreChatSurvey
 import com.nice.cxonechat.thread.Agent
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.thread.ChatThreadState
 import com.nice.cxonechat.thread.CustomField
 import com.nice.cxonechat.ui.customvalues.CustomValueItemList
 import com.nice.cxonechat.ui.customvalues.extractStringValues
@@ -181,6 +182,10 @@ internal class ChatThreadViewModel(
             if (it && isLiveChat) showEndContactDialog()
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
+
+    val threadStateFlow: StateFlow<ChatThreadState> = chatThreadFlow
+        .mapLatest { it.threadState }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), ChatThreadState.Pending)
 
     val maxAttachmentSize: Int
         get() = chat.configuration.fileRestrictions.allowedFileSize

@@ -298,7 +298,7 @@ internal object ServerResponse {
         val data = object {
             val message = message
             val case = object {
-                val id = "id"
+                val id = TestContactId
                 val threadIdOnExternalPlatform = thread.id
                 val status = "new"
                 val createdAt = Date(0)

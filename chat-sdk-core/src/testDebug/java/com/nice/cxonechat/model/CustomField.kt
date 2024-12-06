@@ -13,19 +13,19 @@
  * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
  */
 
-package com.nice.cxonechat.ui.composable.conversation.model
+package com.nice.cxonechat.model
 
-import androidx.compose.runtime.Stable
-import com.nice.cxonechat.thread.ChatThreadState
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
+import com.nice.cxonechat.internal.model.CustomFieldInternal
+import com.nice.cxonechat.thread.CustomField
+import com.nice.cxonechat.tool.nextString
+import java.util.Date
 
-@Stable
-internal data class ConversationTopBarState(
-    val threadName: Flow<String?>,
-    val isMultiThreaded: Boolean,
-    val hasQuestions: Boolean,
-    val isLiveChat: Boolean,
-    val isArchived: StateFlow<Boolean>,
-    val threadState: StateFlow<ChatThreadState>,
+internal fun makeCustomField(
+    id: String = nextString(),
+    value: String = nextString(),
+    updatedAt: Date = Date(0),
+) : CustomField = CustomFieldInternal(
+    id = id,
+    value = value,
+    updatedAt = updatedAt,
 )

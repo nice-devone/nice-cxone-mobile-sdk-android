@@ -198,6 +198,7 @@ internal class ChatThreadHandlerTest : AbstractChatTest() {
             threadIdOnExternalPlatform = id
         )
         val expected = chatThread.asCopyable().copy(
+            contactId = TestContactId,
             messages = listOfNotNull(messageModel.toMessage())
         )
         val actual = testCallback(::get) {
@@ -214,7 +215,7 @@ internal class ChatThreadHandlerTest : AbstractChatTest() {
         )
         val message = messageModel.toMessage()
         assertNotNull(message)
-        updateChatThread(chatThread.asCopyable().copy(messages = listOf(message)))
+        updateChatThread(chatThread.asCopyable().copy(messages = listOf(message), contactId = TestContactId))
         val actual = testCallback(::get) {
             sendServerMessage(ServerResponse.MessageCreated(chatThread, messageModel))
         }
@@ -234,12 +235,13 @@ internal class ChatThreadHandlerTest : AbstractChatTest() {
             userStatistics = makeUserStatistics(seenAt = Date(0))
         )
         val expected = chatThread.asCopyable().copy(
+            contactId = TestContactId,
             messages = listOfNotNull(updatedMessage.toMessage())
         )
         val actual = testCallback(::get) {
             sendServerMessage(ServerResponse.MessageCreated(chatThread, updatedMessage))
         }
-        assertEquals(actual, expected)
+        assertEquals(expected, actual)
     }
 
     @Test

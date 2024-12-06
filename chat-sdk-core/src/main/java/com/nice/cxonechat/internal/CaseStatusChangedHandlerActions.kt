@@ -20,6 +20,7 @@ import com.nice.cxonechat.internal.model.ChatThreadMutable
 import com.nice.cxonechat.internal.model.network.EventCaseStatusChanged
 import com.nice.cxonechat.internal.model.network.EventCaseStatusChanged.CaseStatus.Closed
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.thread.ChatThreadState
 
 internal object CaseStatusChangedHandlerActions {
     inline fun handleCaseClosed(
@@ -31,7 +32,12 @@ internal object CaseStatusChangedHandlerActions {
             val notArchived = event.status !== Closed
             val canAddMoreMessagesChanged = notArchived != thread.canAddMoreMessages
             if (canAddMoreMessagesChanged) {
-                thread.update(thread.asCopyable().copy(canAddMoreMessages = notArchived))
+                thread.update(
+                    thread.asCopyable().copy(
+                        canAddMoreMessages = notArchived,
+                        threadState = if (!notArchived) ChatThreadState.Closed else thread.threadState
+                    )
+                )
                 onThreadUpdate(thread)
             }
         }

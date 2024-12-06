@@ -25,6 +25,7 @@ import java.util.Date
 import java.util.UUID
 
 @Serializable
+@SerialName("thread") // Not required, but it hides internal class name
 internal data class ReceivedThreadData(
     @SerialName("id")
     internal val id: String,

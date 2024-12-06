@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons.Filled
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,6 +39,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.nice.cxonechat.thread.ChatThreadState
 import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.composable.conversation.model.ConversationTopBarState
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
@@ -86,10 +88,14 @@ internal fun ChatThreadTopBar(
                         )
                     }
                 } else {
-                    IconButton(onClick = onEndContact) {
+                    val threadState by conversationState.threadState.collectAsState()
+                    IconButton(
+                        onClick = onEndContact,
+                        enabled = threadState == ChatThreadState.Ready,
+                        colors = IconButtonDefaults.iconButtonColors().copy(contentColor = ChatTheme.colorScheme.error)
+                    ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_baseline_cancel_24),
-                            tint = ChatTheme.colorScheme.error,
                             contentDescription = stringResource(id = R.string.action_end_conversation)
                         )
                     }
@@ -101,11 +107,16 @@ internal fun ChatThreadTopBar(
 
 @Composable
 @Preview
+@Suppress(
+    "LongMethod"
+)
 private fun PreviewChatThreadTopBar() {
     val threadNameFlow: MutableStateFlow<String?> = remember { MutableStateFlow(null) }
     val threadName by threadNameFlow.collectAsState()
     val isArchivedFlow: MutableStateFlow<Boolean> = remember { MutableStateFlow(false) }
     val isArchived by isArchivedFlow.collectAsState()
+    val conversationStateFlow = remember { MutableStateFlow(ChatThreadState.Pending) }
+    val conversationState by conversationStateFlow.collectAsState()
     val isMultiThreaded = remember { mutableStateOf(true) }
     val hasQuestions = remember { mutableStateOf(true) }
     val isLiveChat = remember { mutableStateOf(true) }
@@ -119,6 +130,7 @@ private fun PreviewChatThreadTopBar() {
                         hasQuestions = hasQuestions.value,
                         isLiveChat = isLiveChat.value,
                         isArchived = isArchivedFlow,
+                        threadState = conversationStateFlow,
                     ),
                     onEditThreadName = {},
                     onEditThreadValues = {},
@@ -148,6 +160,15 @@ private fun PreviewChatThreadTopBar() {
                 PreviewSwitch(isMultiThreaded, "Multi-threaded")
                 PreviewSwitch(hasQuestions, "Has questions")
                 PreviewSwitch(isLiveChat, "Live chat")
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Switch(
+                        checked = conversationState == ChatThreadState.Ready,
+                        onCheckedChange = {
+                            conversationStateFlow.value = if (!it) ChatThreadState.Closed else ChatThreadState.Ready
+                        }
+                    )
+                    Text("Chat Thread Ready")
+                }
             }
         }
     }
