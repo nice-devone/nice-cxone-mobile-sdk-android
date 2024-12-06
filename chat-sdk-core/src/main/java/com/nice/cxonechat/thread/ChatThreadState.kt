@@ -38,5 +38,10 @@ enum class ChatThreadState {
      * A thread that is completely ready for use, either because it was locally created or
      * because both the metadata and thread details have been recovered.
      */
-    Ready
+    Ready,
+
+    /**
+     * The thread was closed, no more messages or events should be sent via its handler.
+     */
+    Closed
 }

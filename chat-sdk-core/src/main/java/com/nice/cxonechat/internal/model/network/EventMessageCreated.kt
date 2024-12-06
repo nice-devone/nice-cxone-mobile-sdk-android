@@ -15,12 +15,14 @@
 
 package com.nice.cxonechat.internal.model.network
 
+import com.nice.cxonechat.enums.ContactStatus
 import com.nice.cxonechat.enums.EventType.MessageCreated
 import com.nice.cxonechat.internal.model.Contact
 import com.nice.cxonechat.internal.model.MessageModel
 import com.nice.cxonechat.internal.model.Thread
 import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.thread.ChatThreadState
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -38,6 +40,13 @@ internal data class EventMessageCreated(
     val threadName get() = data.thread.threadName
 
     val message get() = data.message.toMessage()
+
+    val threadState
+        get() = if (contactStatus === ContactStatus.Closed) {
+            ChatThreadState.Closed
+        } else {
+            ChatThreadState.Ready
+        }
 
     fun inThread(thread: ChatThread): Boolean = thread.id == threadId
 

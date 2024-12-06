@@ -43,6 +43,7 @@ internal data class RecoverThreadData(
         ) : ThreadSpecification
 
         @Serializable
+        @SerialName("no_thread_id") // Not required, but it hides internal class name
         data object EmptySpecification : ThreadSpecification
     }
 

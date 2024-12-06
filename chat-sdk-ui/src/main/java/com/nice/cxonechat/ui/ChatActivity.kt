@@ -307,6 +307,7 @@ class ChatActivity : ComponentActivity() {
                 isLiveChat = isLiveChat,
                 hasQuestions = chatThreadViewModel.hasQuestions,
                 isArchived = chatThreadViewModel.isArchived,
+                threadState = chatThreadViewModel.threadStateFlow,
             ),
             onEditThreadName = { chatThreadViewModel.editThreadName() },
             onEditThreadValues = chatThreadViewModel::startEditingCustomValues,

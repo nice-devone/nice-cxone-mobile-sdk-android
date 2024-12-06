@@ -162,10 +162,28 @@ interface ChatBuilder {
          * @see OnChatBuiltCallback
          * @see OnChatBuiltCallback.onChatBuilt
          * */
-        @JvmName("getDefault")
         @JvmOverloads
         @JvmStatic
         operator fun invoke(
+            context: Context,
+            config: SocketFactoryConfiguration,
+            logger: Logger = LoggerNoop,
+        ): ChatBuilder = getDefault(context, config, logger)
+
+        /**
+         * Returns an instance of [ChatBuilder] with Android specific parameters.
+         *
+         * @param context The [Context] used for persistent storage of values by the SDK.
+         * @param config [SocketFactoryConfiguration] connection configuration of the chat.
+         * @param logger [Logger] which will be used by the builder and the SDK, default is no-op implementation.
+         *
+         * @see build
+         * @see OnChatBuiltCallback
+         * @see OnChatBuiltCallback.onChatBuilt
+         * */
+        @JvmOverloads
+        @JvmStatic
+        fun getDefault(
             context: Context,
             config: SocketFactoryConfiguration,
             logger: Logger = LoggerNoop,

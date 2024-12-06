@@ -15,10 +15,12 @@
 
 package com.nice.cxonechat.internal.model.network
 
+import com.nice.cxonechat.enums.ContactStatus
 import com.nice.cxonechat.internal.model.AgentModel
 import com.nice.cxonechat.internal.model.CustomFieldModel
 import com.nice.cxonechat.internal.model.MessageModel
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.thread.ChatThreadState
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -43,6 +45,13 @@ internal data class EventLiveChatThreadRecovered(
     val scrollToken get() = data.messagesScrollToken
     val customerCustomFields get() = data.customer?.customFields.orEmpty().map(CustomFieldModel::toCustomField)
     val lastContactStatus get() = data.contact?.status
+    val threadState get() = if (lastContactStatus === ContactStatus.Closed) {
+        ChatThreadState.Closed
+    } else if (thread?.contactId != null) {
+        ChatThreadState.Ready
+    } else {
+        ChatThreadState.Loaded
+    }
 
     fun inThread(thread: ChatThread) = thread.id == this.thread?.id &&
             messages.all { it.threadId == thread.id }
