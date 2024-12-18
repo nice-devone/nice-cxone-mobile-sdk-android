@@ -966,6 +966,7 @@ package com.nice.cxonechat.thread {
   @com.nice.cxonechat.Public public enum ChatThreadState {
     method public static com.nice.cxonechat.thread.ChatThreadState valueOf(String value) throws java.lang.IllegalArgumentException, java.lang.NullPointerException;
     method public static com.nice.cxonechat.thread.ChatThreadState[] values();
+    enum_constant public static final com.nice.cxonechat.thread.ChatThreadState Closed;
     enum_constant public static final com.nice.cxonechat.thread.ChatThreadState Loaded;
     enum_constant public static final com.nice.cxonechat.thread.ChatThreadState Pending;
     enum_constant public static final com.nice.cxonechat.thread.ChatThreadState Ready;

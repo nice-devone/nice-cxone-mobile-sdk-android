@@ -169,9 +169,8 @@ class ChatActivity : ComponentActivity() {
     private fun setupComposableUi() {
         setContent {
             ChatTheme {
-                val chatState by chatStateViewModel.state.collectAsState()
                 val snackbarHostState = remember { SnackbarHostState() }
-                HandleEarlyChatState(snackbarHostState) {
+                HandleEarlyChatState(snackbarHostState) { chatState ->
                     ChatUi(chatState, snackbarHostState)
                 }
             }
@@ -179,7 +178,7 @@ class ChatActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun HandleEarlyChatState(snackbarHostState: SnackbarHostState, onChatReady: @Composable () -> Unit) {
+    private fun HandleEarlyChatState(snackbarHostState: SnackbarHostState, onChatReady: @Composable (ChatState) -> Unit) {
         val state by chatStateViewModel.state.collectAsState()
         val context = LocalContext.current
         when (state) {
@@ -197,7 +196,7 @@ class ChatActivity : ComponentActivity() {
                 )
             }
 
-            else -> onChatReady()
+            else -> onChatReady(state)
         }
     }
 
@@ -300,12 +299,13 @@ class ChatActivity : ComponentActivity() {
     @Composable
     private fun ThreadViewTopBar(isMultiThread: Boolean, isLiveChat: Boolean) {
         val threadNameFlow = remember { chatThreadViewModel.chatMetadata.map { it.threadName } }
+        val hasQuestions = remember { chatThreadViewModel.hasQuestions }
         ChatThreadTopBar(
             conversationState = ConversationTopBarState(
                 threadName = threadNameFlow,
                 isMultiThreaded = isMultiThread,
                 isLiveChat = isLiveChat,
-                hasQuestions = chatThreadViewModel.hasQuestions,
+                hasQuestions = hasQuestions,
                 isArchived = chatThreadViewModel.isArchived,
                 threadState = chatThreadViewModel.threadStateFlow,
             ),
