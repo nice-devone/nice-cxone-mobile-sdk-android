@@ -137,7 +137,7 @@ internal object Default {
         val dateFormatter: SimpleDateFormat
             get() = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.US)
         override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("IsoDateSerializer", PrimitiveKind.STRING)
-        override fun serialize(encoder: Encoder, value: IsoDate) = encoder.encodeString(dateFormatter.format(value))
+        override fun serialize(encoder: Encoder, value: IsoDate) = encoder.encodeString(dateFormatter.format(value.date))
         override fun deserialize(decoder: Decoder): IsoDate {
             val date = dateFormatter.parse(decoder.decodeString()) ?: throw IsoDateSerializationException()
             return IsoDate(

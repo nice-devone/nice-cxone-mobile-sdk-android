@@ -1,6 +1,15 @@
 <a name="unreleased"></a>
 ## [Unreleased]
 
+<a name="2.2.2"></a>
+## [2.2.2]
+
+### Bug Fixes
+- Livechat mode won't recover messages from closed case
+- In livechat mode the queue position will remain `null` as long as the agent is assigned to the case
+- SDK will supply Message object `createdAt` date with millisecond precision if possible
+- Fix missing `ChatThreadState.Closed` enum entry in api.txt
+
 <a name="2.2.1"></a>
 ## [2.2.1]
 
@@ -280,7 +289,8 @@
     - failure
   - typing start/end
 
-[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.2.1...HEAD
+[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.2.2...HEAD
+[2.2.2]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.2.2...2.2.1
 [2.2.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.2.1...2.2.0
 [2.2.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.1.1...2.2.0
 [2.1.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.1.0...2.1.1

@@ -89,6 +89,7 @@
     <string name="chat_state_connection_lost_action_reconnect">Reconnect</string>
     <string name="chat_state_error_default_message">SDK has encountered error</string>
     <string name="chat_state_error_action_close">Close Chat</string>
+    <string name="chat_state_offline">The chat is Offline</string>
 
     <string name="edit_custom_field_title">Edit pre-chat survey custom fields</string>
 

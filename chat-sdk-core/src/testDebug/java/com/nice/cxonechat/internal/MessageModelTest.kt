@@ -21,18 +21,25 @@ import com.nice.cxonechat.internal.model.MessageDirectionModel
 import com.nice.cxonechat.internal.model.MessageDirectionModel.ToAgent
 import com.nice.cxonechat.internal.model.MessageDirectionModel.ToClient
 import com.nice.cxonechat.internal.model.MessageModel
+import com.nice.cxonechat.util.IsoDate
 import io.mockk.mockk
 import org.junit.Test
 import java.util.Date
 import java.util.UUID
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 
 internal class MessageModelTest {
-    private fun messageModel(direction: MessageDirectionModel) = MessageModel(
+    private fun messageModel(
+        direction: MessageDirectionModel,
+        createdAt: Date = Date(),
+        createdAtMillis: Date? = createdAt,
+    ) = MessageModel(
         idOnExternalPlatform = UUID.randomUUID(),
         threadIdOnExternalPlatform = UUID.randomUUID(),
         messageContent = mockk(),
-        createdAt = Date(),
+        createdAtWithMilliseconds = createdAtMillis?.let(::IsoDate),
+        createdAtWithSeconds = createdAt,
         attachments = listOf(),
         direction = direction,
         userStatistics = mockk(),
@@ -63,5 +70,30 @@ internal class MessageModelTest {
             messageModel(direction = ToClient).author?.firstName,
             "Agent"
         )
+    }
+
+    @Test
+    fun testMessageCreatedAtMillisPrecedence() {
+        val createdAtMillis = Date(1000)
+        val createdAt = Date(1)
+        val message = messageModel(
+            direction = ToClient,
+            createdAt = createdAt,
+            createdAtMillis = createdAtMillis
+        )
+        val actual = message.createdAt.toInstant()
+        assertNotEquals(createdAt.toInstant(), actual)
+        assertEquals(createdAtMillis.toInstant(), actual)
+    }
+
+    @Test
+    fun testMessageCreatedAtFallback() {
+        val createdAtMillis = Date(1000)
+        val message = messageModel(
+            direction = ToClient,
+            createdAt = createdAtMillis,
+            createdAtMillis = null
+        )
+        assertEquals(createdAtMillis.toInstant(), message.createdAt.toInstant())
     }
 }
