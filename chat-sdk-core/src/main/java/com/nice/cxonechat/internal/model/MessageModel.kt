@@ -25,6 +25,7 @@ import com.nice.cxonechat.internal.model.network.MessagePolyContent.RichLink
 import com.nice.cxonechat.internal.model.network.MessagePolyContent.Text
 import com.nice.cxonechat.internal.model.network.UserStatistics
 import com.nice.cxonechat.message.MessageAuthor
+import com.nice.cxonechat.util.IsoDate
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -44,9 +45,12 @@ internal data class MessageModel(
     @SerialName("messageContent")
     val messageContent: MessagePolyContent,
 
+    @SerialName("createdAtWithMilliseconds")
+    @Contextual
+    private val createdAtWithMilliseconds: IsoDate? = null,
     @SerialName("createdAt")
     @Contextual
-    val createdAt: Date,
+    private val createdAtWithSeconds: Date,
 
     @SerialName("attachments")
     val attachments: List<AttachmentModel>,
@@ -63,11 +67,36 @@ internal data class MessageModel(
     @SerialName("authorEndUserIdentity")
     val authorEndUserIdentity: CustomerIdentityModel? = null,
 ) {
+    val createdAt: Date get() = createdAtWithMilliseconds?.date ?: createdAtWithSeconds
+
     val author: MessageAuthor?
         get() = when (direction) {
             ToAgent -> authorEndUserIdentity?.toMessageAuthor()
             ToClient -> authorUser?.toMessageAuthor()
         }
+
+    internal constructor(
+        idOnExternalPlatform: UUID,
+        threadIdOnExternalPlatform: UUID,
+        messageContent: MessagePolyContent,
+        createdAt: Date,
+        attachments: List<AttachmentModel>,
+        direction: MessageDirectionModel,
+        userStatistics: UserStatistics,
+        authorUser: AgentModel? = null,
+        authorEndUserIdentity: CustomerIdentityModel? = null,
+    ) : this(
+        idOnExternalPlatform,
+        threadIdOnExternalPlatform,
+        messageContent,
+        IsoDate(createdAt),
+        createdAt,
+        attachments,
+        direction,
+        userStatistics,
+        authorUser,
+        authorEndUserIdentity
+    )
 
     fun toMessage() = when (messageContent) {
         is Text -> MessageText(this)

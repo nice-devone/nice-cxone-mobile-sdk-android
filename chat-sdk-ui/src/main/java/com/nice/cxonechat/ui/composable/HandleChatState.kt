@@ -57,6 +57,13 @@ import kotlinx.coroutines.launch
 
 /**
  * Display a snackbar based on the current chat state.
+ *
+ * @param snackbarHostState The [SnackbarHostState] to show the snackbar in.
+ * @param chatStateFlow The [StateFlow] of the current chat state.
+ * @param onConnectChatAction The action to invoke when chat should attempt to connect.
+ * @param onReadyAction The action to invoke when chat is ready.
+ * @param onFinishAction The action to invoke when chat is has successfully connected.
+ * @param onOfflineAction The action to invoke when chat is offline.
  */
 @Composable
 internal fun HandleChatState(
@@ -70,14 +77,14 @@ internal fun HandleChatState(
     val context = LocalContext.current
     val state by chatStateFlow.collectAsStateWithLifecycle(null)
     val lifecycleState by LocalLifecycleOwner.current.lifecycle.currentStateAsState()
-    LaunchedEffect(state) {
+    LaunchedEffect(state, lifecycleState) {
         snackbarHostState.currentSnackbarData?.dismiss()
         when (state) {
             // Initial and Preparing states are handled separately
             null, Initial, Preparing -> Ignored
 
-            // if the chat is (or becomes) prepared, then start a connect attempt
-            Prepared -> if (lifecycleState.isAtLeast(State.STARTED)) {
+            // if the chat is (or becomes) prepared, then start a connect attempt, but this shouldn't happen when the ui is not visible
+            Prepared -> if (lifecycleState.isAtLeast(State.RESUMED)) {
                 onConnectChatAction()
             }
 
@@ -92,20 +99,25 @@ internal fun HandleChatState(
                 duration = Short,
             )
 
-            Ready -> snackbarHostState.showSnackbar(
-                "SDK ready",
-                duration = Short,
-            ).also {
-                onReadyAction()
+            Ready -> if (lifecycleState.isAtLeast(State.RESUMED)) {
+                snackbarHostState.showSnackbar(
+                    "SDK ready",
+                    duration = Short,
+                ).also {
+                    onReadyAction()
+                }
             }
 
             // TODO DE-87750: Figure out how to handle this properly.
             Offline -> {
                 onOfflineAction()
                 snackbarHostState.showSnackbar(
-                    "SDK OFFLINE",
-                    duration = Short,
-                ).also { onConnectChatAction() }
+                    message = context.getString(R.string.chat_state_offline),
+                )
+                if (lifecycleState.isAtLeast(State.RESUMED)) {
+                    // Automatically refresh the chat state when the UI is visible
+                    onConnectChatAction()
+                }
             }
 
             ConnectionLost -> snackbarHostState.showActionSnackbar(
