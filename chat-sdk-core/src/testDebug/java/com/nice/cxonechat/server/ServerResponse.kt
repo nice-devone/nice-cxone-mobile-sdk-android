@@ -34,6 +34,7 @@ import com.nice.cxonechat.model.makeAgent
 import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.model.makeMessageModel
 import com.nice.cxonechat.model.toReceived
+import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.CustomField
 import com.nice.cxonechat.tool.nextString
@@ -405,6 +406,32 @@ internal object ServerResponse {
                 val thread = thread.toReceived()
                 val messagesScrollToken = scrollToken
             }
+        }
+    }.serialize()
+
+    fun CaseInboxAssigneeChanged(
+        thread: ChatThread,
+        agent: AgentModel?,
+        connection: Connection,
+    ) = object {
+        val eventId = TestUUID
+        val eventType = "CaseInboxAssigneeChanged".also { assert(it == EventType.CaseInboxAssigneeChanged.value) }
+        val createdAt = DateTime(Date(0))
+        val data = object {
+            val channel = object {
+                val id = connection.channelId
+            }
+            val brand = object {
+                val id = connection.brandId
+            }
+            val case = object {
+                val id = thread.contactId ?: TestContactId
+                val threadIdOnExternalPlatform = thread.id
+                val status = New.value
+                val createdAt = DateTime(Date(0))
+                val statusUpdatedAt = DateTime(Date(0))
+            }
+            val inboxAssignee = agent
         }
     }.serialize()
 
