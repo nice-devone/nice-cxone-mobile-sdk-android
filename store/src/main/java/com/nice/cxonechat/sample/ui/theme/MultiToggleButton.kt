@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -73,11 +73,11 @@ fun AppTheme.MultiToggleButton(
                 val textColor = if (isSelected) Color.White else Color.Unspecified
 
                 if (index != 0) {
-                    Divider(
-                        color = Color.LightGray,
+                    HorizontalDivider(
                         modifier = Modifier
                             .fillMaxHeight()
-                            .width(1.dp)
+                            .width(1.dp),
+                        color = Color.LightGray
                     )
                 }
 

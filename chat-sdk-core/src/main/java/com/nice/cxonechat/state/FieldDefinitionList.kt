@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 package com.nice.cxonechat.state
 
 import com.nice.cxonechat.Public
+import com.nice.cxonechat.exceptions.InvalidCustomFieldValue
 import com.nice.cxonechat.exceptions.MissingPreChatCustomFieldsException
-import com.nice.cxonechat.exceptions.UndefinedCustomField
 
 /** Type alias for a list of [FieldDefinition]. */
 @Public
@@ -47,18 +47,17 @@ fun FieldDefinitionList.containsField(fieldId: String): Boolean = map { it.field
  * Validate a map of proposed fieldId, value pairs against the target
  * [FieldDefinitionList].
  *
- * The following checks are performed:
- * * all mentioned fieldId's must have a definition in the receiver
+ * The following checks are performed for values which have matching key in the definitions:
  * * [FieldDefinition.Text] fields will be checked for a proper email format if non-blank
  * and isEMail is set
  * * [FieldDefinition.Selector] and [FieldDefinition.Hierarchy]
  * fields will be checked to verify that the value matches an
  * included node [SelectorNode.nodeId] or [HierarchyNode.nodeId].
  * * [FieldDefinition.Hierarchy] fields will verify the selected node is a leaf node.
- * @throws UndefinedCustomField if the above-mentioned checks don't pass for any value.
+ * @throws InvalidCustomFieldValue see [FieldDefinition.validate].
  */
 @Throws(
-    UndefinedCustomField::class
+    InvalidCustomFieldValue::class
 )
 @Public
 fun FieldDefinitionList.validate(values: Map<String, String>) {
@@ -66,7 +65,6 @@ fun FieldDefinitionList.validate(values: Map<String, String>) {
         if (value.isNotBlank()) {
             firstOrNull { it.fieldId == fieldId }
                 ?.validate(value)
-                ?: throw UndefinedCustomField(fieldId)
         }
     }
 }

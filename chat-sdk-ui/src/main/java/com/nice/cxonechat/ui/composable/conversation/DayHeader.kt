@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,13 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
+import android.icu.util.Calendar.getInstance
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,12 +29,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.tooling.preview.MultiLocalePreview
 import com.nice.cxonechat.ui.util.toShortDateString
-import java.util.Date
+import java.util.Calendar
 
 @Composable
-internal fun DayHeader(dayString: String, modifier: Modifier = Modifier) {
+internal fun MessageGroupHeader(dayString: String, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .padding(vertical = ChatTheme.space.medium, horizontal = ChatTheme.space.large)
@@ -41,7 +46,7 @@ internal fun DayHeader(dayString: String, modifier: Modifier = Modifier) {
             text = dayString,
             modifier = Modifier.padding(horizontal = ChatTheme.space.large),
             style = ChatTheme.chatTypography.chatDayHeader,
-            color = ChatTheme.colorScheme.onBackground
+            color = ChatTheme.colorScheme.onBackground.copy(alpha = 0.5f)
         )
         DayHeaderLine()
     }
@@ -56,12 +61,48 @@ private fun RowScope.DayHeaderLine() {
     )
 }
 
+@MultiLocalePreview
+@PreviewLightDark
 @Preview
 @Composable
-private fun PreviewDayHeader() {
+private fun PreviewMessageGroupHeader() {
+    val context = LocalContext.current
+    val previewValues = listOf(
+        "Today" to context.toShortDateString(getInstance().time),
+        "Yesterday" to context.toShortDateString(
+            getDate(Calendar.DAY_OF_YEAR, -1)
+        ),
+        "The day before yesterday" to context.toShortDateString(
+            getDate(Calendar.DAY_OF_YEAR, -2)
+        ),
+        "Long time ago" to context.toShortDateString(
+            getDate(Calendar.YEAR, -2)
+        )
+    )
     ChatTheme {
         Surface {
-            DayHeader(LocalContext.current.toShortDateString(Date()))
+            Column {
+                previewValues.forEachIndexed { index, (label, dayString) ->
+                    if (index != 0) HorizontalDivider()
+                    PreviewItem(label, dayString)
+                }
+            }
         }
     }
 }
+
+@Composable
+private fun PreviewItem(
+    label: String,
+    dayString: String,
+) {
+    MessageGroupHeader(dayString)
+    Text(label, style = ChatTheme.typography.titleSmall)
+}
+
+private fun getDate(
+    field: Int,
+    amount: Int,
+) = getInstance().apply {
+    add(field, amount)
+}.time

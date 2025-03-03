@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.nice.cxonechat
 
 import com.nice.cxonechat.ChatEventHandler.OnEventErrorListener
 import com.nice.cxonechat.ChatEventHandler.OnEventSentListener
+import com.nice.cxonechat.ChatEventHandlerActions.proactiveActionClick
 import com.nice.cxonechat.analytics.ActionMetadata
 import com.nice.cxonechat.event.ChatWindowOpenEvent
 import com.nice.cxonechat.event.ConversionEvent
@@ -35,6 +36,7 @@ import java.util.UUID
 
 /**
  * Provides in-one-place interactions to trigger all available events.
+ * Analytic events usually can be sent once the chat instance is in at least [ChatState.Prepared] state.
  * @see ChatEventHandler
  */
 @Public
@@ -46,6 +48,8 @@ object ChatEventHandlerActions {
      *
      * `chatWindowOpen` should be invoked whenever the user opens the chat
      * window.
+     * This event will be sent only once the chat instance has been successfully authorized with the backend (in other
+     * words it will be delayed until the chat state is at least [ChatState.Connected]).
      *
      * @param date date of the event.
      * @param listener an optional listener to be notified after the event has been sent.

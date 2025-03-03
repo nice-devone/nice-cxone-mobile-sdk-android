@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -24,21 +24,33 @@ import androidx.compose.ui.unit.dp
 @Immutable
 internal data class Space(
     val customer: Dp = 40.dp,
+    val xxl: Dp = 40.dp,
+    val xl: Dp = 24.dp,
     val large: Dp = 16.dp,
+    val semiLarge: Dp = 12.dp,
     val medium: Dp = 8.dp,
     val small: Dp = 4.dp,
+    val xSmall: Dp = 2.dp,
 
     val defaultPadding: PaddingValues = PaddingValues(vertical = medium, horizontal = large),
     val customerPadding: PaddingValues = PaddingValues(start = customer),
     val agentPadding: PaddingValues = PaddingValues(end = customer),
-    val messagePadding: Dp = large,
+    val messagePadding: PaddingValues = PaddingValues(horizontal = xl, vertical = semiLarge),
+    val richListPickerTextPadding: PaddingValues = PaddingValues(horizontal = 10.dp, vertical = 17.dp),
+
     val clickableSize: Dp = 48.dp,
     val treeFieldIndent: Dp = large,
     val dismissThreshold: Dp = 56.dp,
+
     val agentImageSize: Dp = 56.dp,
-    val chipIconSize: Dp = 24.dp,
+    val messageAvatarBottomPadding: Dp = 22.dp,
+    val messageAvatarSize: Dp = 24.dp,
+    val listPickerIconSize: Dp = 64.dp,
+
+    val chipMinSize: Dp = xxl,
     val chipSpace: Dp = medium,
-    val chipPadding: PaddingValues = PaddingValues(vertical = medium, horizontal = large),
+    val chipPadding: PaddingValues = PaddingValues(vertical = 10.dp, horizontal = xl),
+    val chipIconSize: Dp = xl,
     val menuElementHeight: Dp = 100.dp,
     val titleBarLogoSize: Dp = 24.dp, // per android recommendations
     val titleBarLogoPadding: Float = 2f, // per android recommendations this is in Pixels, not Dp.
@@ -59,6 +71,9 @@ internal data class Space(
     val selectedFrameWidth: Dp = 3.dp,
     /** unselected frame stroke width. */
     val unselectedFrameWidth: Dp = 1.dp,
+
+    /** size of loading progress indicator. */
+    val loadingIndicatorSize: Dp = 72.dp,
 )
 
 internal val LocalSpace = staticCompositionLocalOf {

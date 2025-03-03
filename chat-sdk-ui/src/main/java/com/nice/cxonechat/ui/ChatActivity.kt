@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,9 @@ import com.nice.cxonechat.ChatMode.LiveChat
 import com.nice.cxonechat.ChatMode.MultiThread
 import com.nice.cxonechat.ChatState
 import com.nice.cxonechat.ChatState.Connected
+import com.nice.cxonechat.ChatState.Connecting
 import com.nice.cxonechat.ChatState.Initial
+import com.nice.cxonechat.ChatState.Prepared
 import com.nice.cxonechat.ChatState.Preparing
 import com.nice.cxonechat.ChatState.Ready
 import com.nice.cxonechat.message.Attachment
@@ -391,7 +393,7 @@ class ChatActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         lifecycleScope.launch {
-            chatStateViewModel.state.filter { it == Connected }.firstOrNull()?.also {
+            chatStateViewModel.state.filter { it.isAtLeastPrepared() }.firstOrNull()?.also {
                 chatViewModel.reportOnResume()
             }
         }
@@ -408,6 +410,8 @@ class ChatActivity : ComponentActivity() {
         }
     }
 
+    private fun ChatState.isAtLeastPrepared() = this === Connected || this === Ready || this === Prepared || this === Connecting
+
     private suspend fun Intent.handleDeeplink() {
         val data = data ?: return
         withContext(Dispatchers.Default) {
@@ -417,6 +421,9 @@ class ChatActivity : ComponentActivity() {
         }
     }
 
+    @Suppress(
+        "UndocumentedPublicClass", // Companion objects don't require documentation.
+    )
     companion object {
         private val requiredRecordAudioPermissions = if (VERSION.SDK_INT > VERSION_CODES.Q) {
             setOf(permission.RECORD_AUDIO)

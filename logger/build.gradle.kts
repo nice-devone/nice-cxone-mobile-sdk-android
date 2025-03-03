@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,8 @@
  * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
  */
 
-import com.vanniktech.maven.publish.KotlinJvm
 import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.KotlinJvm
 
 plugins {
     id("java-library-conventions")
@@ -24,12 +24,13 @@ plugins {
     id("docs-conventions")
     id("publish-conventions")
     id("api-conventions")
+    id("org.jetbrains.dokka-javadoc")
 }
 
 mavenPublishing {
     configure(
         KotlinJvm(
-            javadocJar = JavadocJar.Dokka("dokkaHtml"),
+            javadocJar = JavadocJar.Dokka(tasks.dokkaGeneratePublicationJavadoc.name),
             // whether to publish a sources jar
             sourcesJar = true,
         )

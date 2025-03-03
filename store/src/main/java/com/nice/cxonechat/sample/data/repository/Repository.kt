@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,9 @@ abstract class Repository<Type : Any>(
      * @throws any exception thrown by [doLoad] will be rethrown.
      */
     @Throws(SerializationException::class)
-    open fun load(context: Context) = doLoad(context)?.let(::fromJson)
+    open fun load(context: Context) = doLoad(context)
+        ?.takeIf(String::isNotEmpty)
+        ?.let(::fromJson)
 
     /**
      * Remove this repository.
@@ -134,14 +136,16 @@ abstract class Repository<Type : Any>(
     private fun toJson(item: Type) = json.encodeToString(serializer = json.serializersModule.serializer(type.java), value = item)
 
     /**
-     * Parse an item of type Type from a Json-encoded [String].
+     * Parse an item of the type Type from a Json-encoded [String].
      *
      * @param string [String] to parse as Json.
-     * @return object of type Type parsed from [string].
+     * @return object of type Type parsed from [string] or null if the deserialization fails.
      * @throws [SerializationException] if any error is encountered during the conversion.
      */
-    private fun fromJson(string: String): Type =
-        json.decodeFromString(deserializer = json.serializersModule.serializer(type.java), string = string) as Type
+    private fun fromJson(string: String): Type? = json.runCatching {
+        @Suppress("UNCHECKED_CAST") // Caught by runCatching
+        decodeFromString(deserializer = serializersModule.serializer(type.java), string = string) as? Type
+    }.getOrNull()
 }
 
 private val json = Json {

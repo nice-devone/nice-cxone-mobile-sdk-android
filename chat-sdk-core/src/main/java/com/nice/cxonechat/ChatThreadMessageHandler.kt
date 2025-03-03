@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -93,7 +93,7 @@ interface ChatThreadMessageHandler {
      *
      * @param message Message to be sent.
      * @param listener listener to be notified when the message has been sent.
-     * @throws InvalidParameterException if the message is empty, ie., has no attachment,
+     * @throws com.nice.cxonechat.exceptions.InvalidParameterException if the message is empty, ie., has no attachment,
      * message, or postback.
      * @throws IllegalStateException in case the [com.nice.cxonechat.thread.ChatThread.canAddMoreMessages] is false
      * and application tries to send a new message to such thread.
@@ -167,6 +167,9 @@ interface ChatThreadMessageHandler {
         fun onSent(id: UUID) = Unit
 
         @Public
+        @Suppress(
+            "UndocumentedPublicClass", // Companion objects don't require documentation.
+        )
         companion object {
 
             /**
@@ -175,9 +178,20 @@ interface ChatThreadMessageHandler {
              * @see [OnMessageTransferListener.onProcessed]
              * @see [OnMessageTransferListener.onSent]
              */
-            @JvmName("createFrom")
             @JvmStatic
             operator fun invoke(
+                onProcessed: OnUUIDListener? = null,
+                onSent: OnUUIDListener? = null,
+            ) = createFrom(onProcessed, onSent)
+
+            /**
+             * Helper method to create a compound [OnMessageTransferListener].
+             *
+             * @see [OnMessageTransferListener.onProcessed]
+             * @see [OnMessageTransferListener.onSent]
+             */
+            @JvmStatic
+            fun createFrom(
                 onProcessed: OnUUIDListener? = null,
                 onSent: OnUUIDListener? = null,
             ) = object : OnMessageTransferListener {

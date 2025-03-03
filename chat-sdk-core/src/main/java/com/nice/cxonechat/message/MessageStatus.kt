@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -23,20 +23,37 @@ import com.nice.cxonechat.Public
 @Public
 enum class MessageStatus {
     /**
-     * Status which can be used by UI implementation, for message passed to SDK, but not yet confirmed
-     * as [Sent].
+     * Message that has been presented to the SDK, but not yet full
+     * transmitted to the backend.
+     *
+     * Note: This message is currently not reported by the SDK, but is
+     * used internally by the UI.
      */
     Sending,
 
-    /** Default state of message when it has been processed by the SDK and sent to backend. */
+    /**
+     * Message has been fully sent to the backend but not yet acknowledged.
+     *
+     * Note: This message is currently not reported by the SDK, but is
+     * used internally by the UI.
+     */
     Sent,
 
-    /** Status which can be used by UI implementation. */
-    FailedToDeliver,
+    /** Message has been acknowledged by the backend. */
+    Delivered,
 
-    /** Status reported when the message is reported as delivered/seen on backend. */
+    /** Message to customer has been reported as seen by the UI. */
     Seen,
 
-    /** Status reported when the message is reported as read. */
+    /** Message to agent has been reported as read by the backend. */
     Read,
+
+    /**
+     * Message transmission failed to send or was reported as unacceptable
+     * by the backend.
+     *
+     * Note: This message is currently not reported by the SDK, but is
+     * used internally by the UI.
+     */
+    FailedToDeliver,
 }

@@ -1,0 +1,32 @@
+<!--
+  ~ Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
+  ~
+  ~ Licensed under the NICE License;
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
+  ~
+  ~ TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
+  ~ AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
+  ~ OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
+  ~ FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+  -->
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="27dp"
+    android:height="18dp"
+    android:viewportWidth="27"
+    android:viewportHeight="18">
+  <group>
+    <clip-path
+        android:pathData="M18,9M-9,0a9,9 0,1 1,18 0a9,9 0,1 1,-18 0M 0,0m-4.5,-4.5h27V22.5h-27zM27,9a9,9 0,0 0,-9 -9,9 9,0 0,0 -9,9 9,9 0,0 0,9 9,9 9,0 0,0 9,-9z"/>
+    <path
+        android:pathData="M9,17C4.631,17 1,13.369 1,9 1,4.624 4.624,1 8.992,1 13.369,1 17,4.624 17,9c0,4.369 -3.624,8 -8,8zM8.122,12.835c0.267,0 0.494,-0.125 0.659,-0.384L12.467,6.647c0.094,-0.165 0.196,-0.345 0.196,-0.518 0,-0.369 -0.322,-0.604 -0.667,-0.604 -0.204,0 -0.408,0.125 -0.557,0.361L8.09,11.267 6.498,9.212C6.302,8.953 6.129,8.882 5.902,8.882c-0.353,0 -0.627,0.29 -0.627,0.643 0,0.18 0.071,0.353 0.188,0.51l1.969,2.416c0.204,0.275 0.424,0.384 0.69,0.384z"
+        android:fillColor="#000000"/>
+  </group>
+  <path
+      android:pathData="M18, 17C13.631,17 10,13.369 10,9 10,4.624 13.624,1 17.992,1 22.369,1 26,4.624 26,9c0,4.369 -3.624,8 -8,8zM17.122,12.835c0.267,0 0.494,-0.125 0.659,-0.384L21.467,6.647c0.094,-0.165 0.196,-0.345 0.196,-0.518 0,-0.369 -0.322,-0.604 -0.667,-0.604 -0.204,0 -0.408,0.125 -0.557,0.361L17.09,11.267 15.498,9.212C15.302,8.953 15.129,8.882 14.902,8.882c-0.353,0 -0.627,0.29 -0.627,0.643 0,0.18 0.071,0.353 0.188,0.51l1.969,2.416c0.204,0.275 0.424,0.384 0.69,0.384z"
+      android:fillColor="#000000"/>
+
+</vector>

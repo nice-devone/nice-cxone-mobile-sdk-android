@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.nice.cxonechat.internal.model.ChatThreadInternal
 import com.nice.cxonechat.internal.model.ChatThreadMutable
 import com.nice.cxonechat.internal.model.ChatThreadMutable.Companion.asMutable
 import com.nice.cxonechat.internal.model.CustomFieldInternal
+import com.nice.cxonechat.internal.model.WelcomeMessage
 import com.nice.cxonechat.internal.model.network.EventCaseStatusChanged
 import com.nice.cxonechat.internal.model.network.EventThreadListFetched
 import com.nice.cxonechat.internal.socket.EventCallback.Companion.addCallback
@@ -114,8 +115,13 @@ internal class ChatThreadsHandlerImpl(
         handler = ChatThreadHandlerAgentUpdate(handler, chat, mutableThread)
         handler = ChatThreadHandlerAgentTyping(handler, chat)
         handler = ChatThreadHandlerMessageReadByAgent(handler, chat, mutableThread)
-        if (chat.chatMode === LiveChat) handler = ChatThreadHandlerLiveChat(handler, chat, mutableThread, isThreadCreated)
-        if (isThreadCreated) handler = ChatThreadHandlerWelcome(handler, chat, mutableThread)
+        if (chat.chatMode === LiveChat) {
+            handler = ChatThreadHandlerWelcomeLiveChat(handler, chat, mutableThread)
+            handler = ChatThreadHandlerLiveChat(handler, chat, mutableThread, isThreadCreated)
+        } else if (thread.threadState == Pending || thread.messages.firstOrNull() is WelcomeMessage) {
+            // The complex condition is used to avoid sending the welcome message in unit tests
+            handler = ChatThreadHandlerWelcome(handler, chat, mutableThread)
+        }
         handler = ChatThreadHandlerAggregatingListener(handler)
         return handler
     }

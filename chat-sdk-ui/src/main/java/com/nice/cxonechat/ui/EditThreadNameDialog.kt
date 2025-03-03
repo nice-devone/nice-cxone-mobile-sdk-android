@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,8 @@
 
 package com.nice.cxonechat.ui
 
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.nice.cxonechat.ui.R.string
@@ -34,21 +31,21 @@ internal fun EditThreadNameDialog(
     onCancel: () -> Unit,
     onAccept: (String) -> Unit,
 ) {
-    var name by remember { mutableStateOf(threadName) }
+    val name = rememberTextFieldState(threadName)
 
     ChatTheme.Dialog(
         title = stringResource(string.update_thread_name),
         onDismiss = onCancel,
         confirmButton = {
             ChatTheme.OutlinedButton(text = stringResource(string.ok)) {
-                onAccept(name)
+                onAccept(name.text.toString())
             }
         },
         dismissButton = {
             ChatTheme.OutlinedButton(text = stringResource(string.cancel), onClick = onCancel)
         }
     ) {
-        ChatTheme.TextField(label = stringResource(string.enter_thread_name), value = name) { name = it }
+        ChatTheme.TextField(label = stringResource(string.enter_thread_name), value = name)
     }
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,14 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,12 +30,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.nice.cxonechat.ui.composable.conversation.model.Action
 import com.nice.cxonechat.ui.composable.conversation.model.Action.ReplyButton
 import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
+import com.nice.cxonechat.ui.composable.theme.LocalSpace
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -41,9 +44,12 @@ internal fun ChipGroup(
     actions: Iterable<Action>,
     modifier: Modifier = Modifier,
     selection: Action? = null,
+    colors: ChipColors = ChipDefaults.chipColors(),
     onSelect: (Action) -> Unit = {},
 ) {
     FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(LocalSpace.current.medium),
+        verticalArrangement = Arrangement.spacedBy(LocalSpace.current.medium),
         modifier = modifier.selectableGroup(),
     ) {
         for (action in actions) {
@@ -55,69 +61,91 @@ internal fun ChipGroup(
                         it.onClick()
                     },
                     enabled = selection == null,
+                    colors = colors,
                 )
             }
         }
     }
 }
 
-private val actions = listOf(
-        ReplyButton(
-            action = PreviewMessageProvider.ReplyButton("Some text"),
-            sendMessage = { }
-        ),
-        ReplyButton(
-            action = PreviewMessageProvider.ReplyButton("Random cat", "https://http.cat/203"),
-            sendMessage = { }
+@Suppress(
+    "MaxLineLength",
+    "ArgumentListWrapping",
+)
+private fun actions(count: Int = 2): List<ReplyButton> = buildList(capacity = count) {
+    for (i in 0 until count - 1) {
+        add(
+            ReplyButton(
+                action = PreviewMessageProvider.ReplyButton("Chip $i"),
+                sendMessage = { }
+            )
         )
-    )
+    }
+    if (this.lastIndex % 2 == 0) {
+        add(
+            ReplyButton(
+                action = PreviewMessageProvider.ReplyButton("Some very very very loooooooong text, maybe too long for normal use, but you never know, right?"),
+                sendMessage = { }
+            )
+        )
+    } else {
+        add(
+            ReplyButton(
+                action = PreviewMessageProvider.ReplyButton("Random cat", "https://http.cat/203"),
+                sendMessage = { }
+            )
+        )
+    }
+}
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun SelectableChipGroupPreview() {
+    var selected: Action? by remember { mutableStateOf(null) }
     ChatTheme {
-        var selected: Action? by remember { mutableStateOf(null) }
-
-        Column {
-            ChipGroup(
-                actions = actions,
-                selection = selected,
-            ) {
-                selected = it
-            }
-            Button(onClick = { selected = null }) {
-                Text(text = "Reset selected")
-            }
-            Row {
-                Text(
-                    text = "Last selected: ${(selected as? ReplyButton)?.text.orEmpty()}",
-                    color = chatColors.agent.foreground
-                )
+        Surface {
+            Column {
+                ChipGroup(
+                    actions = actions(6),
+                    selection = selected,
+                ) {
+                    selected = it
+                }
+                OutlinedButton(onClick = { selected = null }) {
+                    Text(text = "Reset selected")
+                }
+                Row {
+                    Text(
+                        text = "Last selected: ${(selected as? ReplyButton)?.text.orEmpty()}",
+                        color = chatColors.agent.foreground
+                    )
+                }
             }
         }
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun ReusableChipGroupPreview() {
+    var selected: Action? by remember { mutableStateOf(null) }
     ChatTheme {
-        var selected: Action? by remember { mutableStateOf(null) }
-
-        Column {
-            ChipGroup(
-                actions = actions,
-            ) {
-                selected = it
-            }
-            Button(onClick = { selected = null }) {
-                Text(text = "Reset selected")
-            }
-            Row {
-                Text(
-                    text = "Last selected: ${(selected as? ReplyButton)?.text.orEmpty()}",
-                    color = chatColors.agent.foreground
-                )
+        Surface {
+            Column {
+                ChipGroup(
+                    actions = actions(),
+                ) {
+                    selected = it
+                }
+                OutlinedButton(onClick = { selected = null }) {
+                    Text(text = "Reset selected")
+                }
+                Row {
+                    Text(
+                        text = "Last selected: ${(selected as? ReplyButton)?.text.orEmpty()}",
+                        color = chatColors.agent.foreground
+                    )
+                }
             }
         }
     }

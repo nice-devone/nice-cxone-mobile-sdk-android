@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,17 @@
 package com.nice.cxonechat.ui.util
 
 import android.content.Context
-import android.text.format.DateFormat
+import android.icu.text.DateFormat
 import androidx.compose.runtime.Stable
-import java.util.Calendar
 import java.util.Date
 
-internal fun Date.isSameDay(date: Date): Boolean {
-    val cal1 = Calendar.getInstance().also { it.time = this }
-    val cal2 = Calendar.getInstance().apply { time = date }
-    return cal1.isSameDay(cal2)
-}
-
-internal fun Calendar.isSameDay(cal2: Calendar): Boolean = this[Calendar.ERA] == cal2[Calendar.ERA] &&
-        this[Calendar.YEAR] == cal2[Calendar.YEAR] &&
-        this[Calendar.DAY_OF_YEAR] == cal2[Calendar.DAY_OF_YEAR]
-
 @Stable
-internal fun Context.toShortDateString(date: Date): String = DateFormat.getDateFormat(this).format(date)
+internal fun Context.toShortDateString(date: Date): String {
+    val locale = resources.configuration.locales[0]
+    val formatter = DateFormat.getDateTimeInstance(
+        DateFormat.RELATIVE_SHORT,
+        DateFormat.RELATIVE_SHORT,
+        locale
+    )
+    return formatter.format(date).capitalizeFirstChar(locale)
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,10 @@ internal fun ChatTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Com
             onBackground = theme.onBackground,
             surface = theme.background,
             onSurface = theme.onBackground,
+            surfaceVariant = theme.surfaceVariant,
+            surfaceContainer = theme.surfaceContainer,
+            surfaceContainerHigh = theme.surfaceContainerHigh,
+            surfaceContainerHighest = theme.surfaceContainerHighest,
             secondary = theme.accent,
             onSecondary = theme.onAccent,
         )
@@ -52,6 +56,10 @@ internal fun ChatTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Com
             onBackground = theme.onBackground,
             surface = theme.background,
             onSurface = theme.onBackground,
+            surfaceVariant = theme.surfaceVariant,
+            surfaceContainer = theme.surfaceContainer,
+            surfaceContainerHigh = theme.surfaceContainerHigh,
+            surfaceContainerHighest = theme.surfaceContainerHighest,
             secondary = theme.accent,
             onSecondary = theme.onAccent,
         )

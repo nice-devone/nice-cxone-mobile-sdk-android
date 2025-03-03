@@ -81,6 +81,7 @@ package com.nice.cxonechat.log {
   }
 
   public interface LoggerScope extends com.nice.cxonechat.log.Logger {
+    method public default static com.nice.cxonechat.log.LoggerScope createNamedScope(String name, com.nice.cxonechat.log.Logger identity);
     method public com.nice.cxonechat.log.Logger getIdentity();
     method public String getScope();
     property public abstract com.nice.cxonechat.log.Logger identity;
@@ -89,6 +90,7 @@ package com.nice.cxonechat.log {
   }
 
   public static final class LoggerScope.Companion {
+    method public com.nice.cxonechat.log.LoggerScope createNamedScope(String name, com.nice.cxonechat.log.Logger identity);
     method public inline operator <reified T> com.nice.cxonechat.log.LoggerScope! invoke(com.nice.cxonechat.log.Logger identity);
     method public operator com.nice.cxonechat.log.LoggerScope invoke(String name, com.nice.cxonechat.log.Logger identity);
   }

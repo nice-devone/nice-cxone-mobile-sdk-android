@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -58,10 +58,16 @@ data class UISettingsModel(
      * @param onPrimary Material onPrimary color.
      * @param accent Material secondary color.
      * @param onAccent Material onSecondary color.
-     * @param background Material background color.
-     * @param onBackground Material onBackground color.
+     * @param background Material background and surface color.
+     * @param onBackground Material onBackground and onSurface color.
+     * @param surfaceVariant Material surface color.
+     * @param surfaceContainer Material onSurface color.
+     * @param surfaceContainerHigh Material onSurface color with high tonal elevation.
+     * @param surfaceContainerHighest Material onSurface color with highest tonal elevation.
      * @param agentBackground Background color for agent cells in chat.
      * @param agentText Text color for agent cells in chat.
+     * @param agentAvatarForeground Color for agent avatar outline in chat conversation.
+     * @param agentAvatarBackground Color for agent avatar background in chat conversation.
      * @param customerBackground Background color for customer cells in chat.
      * @param customerText Text color for customer cells in chat.
      */
@@ -85,12 +91,30 @@ data class UISettingsModel(
         @SerialName("onBackground")
         @Serializable(with = ColorSerializer::class)
         val onBackground: Color,
+        @SerialName("surfaceVariant")
+        @Serializable(with = ColorSerializer::class)
+        val surfaceVariant: Color,
+        @SerialName("surfaceContainer")
+        @Serializable(with = ColorSerializer::class)
+        val surfaceContainer: Color,
+        @SerialName("surfaceContainerHigh")
+        @Serializable(with = ColorSerializer::class)
+        val surfaceContainerHigh: Color,
+        @SerialName("surfaceContainerHighest")
+        @Serializable(with = ColorSerializer::class)
+        val surfaceContainerHighest: Color,
         @SerialName("agentBubble")
         @Serializable(with = ColorSerializer::class)
         val agentBackground: Color,
         @SerialName("agentText")
         @Serializable(with = ColorSerializer::class)
         val agentText: Color,
+        @SerialName("agentAvatarOutline")
+        @Serializable(with = ColorSerializer::class)
+        val agentAvatarForeground: Color,
+        @SerialName("agentAvatarBackground")
+        @Serializable(with = ColorSerializer::class)
+        val agentAvatarBackground: Color,
         @SerialName("customerBubble")
         @Serializable(with = ColorSerializer::class)
         val customerBackground: Color,
@@ -105,8 +129,14 @@ data class UISettingsModel(
             onAccent = defaults.onAccent,
             background = defaults.background,
             onBackground = defaults.onBackground,
+            surfaceVariant = defaults.surfaceVariant,
+            surfaceContainer = defaults.surfaceContainer,
+            surfaceContainerHigh = defaults.surfaceContainerHigh,
+            surfaceContainerHighest = defaults.surfaceContainerHighest,
             agentBackground = defaults.agentBackground,
             agentText = defaults.agentText,
+            agentAvatarForeground = defaults.agentAvatarForeground,
+            agentAvatarBackground = defaults.agentAvatarBackground,
             customerBackground = defaults.customerBackground,
             customerText = defaults.customerText
         )

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons.Filled
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Icon
@@ -32,6 +33,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -111,8 +113,7 @@ internal fun ChatThreadTopBar(
     "LongMethod"
 )
 private fun PreviewChatThreadTopBar() {
-    val threadNameFlow: MutableStateFlow<String?> = remember { MutableStateFlow(null) }
-    val threadName by threadNameFlow.collectAsState()
+    val threadNameState = rememberTextFieldState("")
     val isArchivedFlow: MutableStateFlow<Boolean> = remember { MutableStateFlow(false) }
     val isArchived by isArchivedFlow.collectAsState()
     val conversationStateFlow = remember { MutableStateFlow(ChatThreadState.Pending) }
@@ -125,7 +126,7 @@ private fun PreviewChatThreadTopBar() {
             topBar = {
                 ChatThreadTopBar(
                     conversationState = ConversationTopBarState(
-                        threadName = threadNameFlow,
+                        threadName = snapshotFlow { threadNameState.text.toString() },
                         isMultiThreaded = isMultiThreaded.value,
                         hasQuestions = hasQuestions.value,
                         isLiveChat = isLiveChat.value,
@@ -145,11 +146,14 @@ private fun PreviewChatThreadTopBar() {
                     .then(Modifier.padding(8.dp)),
                 horizontalAlignment = Alignment.Start,
             ) {
+                snapshotFlow {
+                    threadNameState.text
+                }
                 ChatTheme.TextField(
                     label = "Thread name",
-                    value = threadName.orEmpty(),
+                    value = threadNameState,
                     modifier = Modifier.fillMaxWidth(),
-                ) { name -> threadNameFlow.value = name }
+                )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Switch(
                         checked = isArchived,

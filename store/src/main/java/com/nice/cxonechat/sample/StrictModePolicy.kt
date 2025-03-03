@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -55,6 +55,13 @@ internal object StrictModePolicy {
             allOf(
                 violation(DiskReadViolation::class),
                 classNamed(ChatSettingsRepository::class.qualifiedName!!, "load"),
+            )
+        ),
+        // Appium automated test hooks into Android Activity are causing DiskReadViolation
+        allow(
+            allOf(
+                violation(DiskReadViolation::class),
+                classNamed(PatternMatcher("com.nexperience.android.", PatternMatcher.PATTERN_PREFIX))
             )
         ),
         // Samsung Galaxy Note 10 - Android 9

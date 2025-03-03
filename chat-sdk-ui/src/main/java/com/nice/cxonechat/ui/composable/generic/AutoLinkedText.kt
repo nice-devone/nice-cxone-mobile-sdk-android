@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.TextStyle
@@ -39,6 +40,7 @@ internal fun AutoLinkedText(
     text: String,
     modifier: Modifier = Modifier,
     style: TextStyle = TextStyle.Default,
+    color: Color = Color.Unspecified,
 ) {
     val linked = produceState(AnnotatedString(text)) {
         value = autoLinkedText(text)
@@ -47,6 +49,7 @@ internal fun AutoLinkedText(
         text = linked.value,
         modifier = modifier,
         style = style,
+        color = color,
     )
 }
 

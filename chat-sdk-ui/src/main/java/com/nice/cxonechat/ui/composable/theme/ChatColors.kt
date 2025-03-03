@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,9 @@ internal data class ChatColors(
     val chatInfoLabel: ColorPair,
     val positionInQueueBackground: Color,
     val positionInQueueForeground: Color,
+    val messageSent: Color,
+    val messageSending: Color,
+    val agentAvatar: ColorPair,
 ) {
 
     data class ColorPair(
@@ -54,6 +57,9 @@ internal data class ChatColors(
         chatInfoLabel = ColorPair(colors.background, colors.onBackground),
         positionInQueueBackground = colors.positionInQueueBackground,
         positionInQueueForeground = colors.positionInQueueForeground,
+        messageSent = colors.messageSent,
+        messageSending = colors.messageSending,
+        agentAvatar = ColorPair(colors.agentAvatarBackground, colors.agentAvatarForeground),
     )
 }
 

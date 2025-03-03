@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,11 @@
 package com.nice.cxonechat.internal.model.network
 
 import com.nice.cxonechat.enums.ContactStatus
+import com.nice.cxonechat.enums.EventType
 import com.nice.cxonechat.internal.model.AgentModel
 import com.nice.cxonechat.internal.model.CustomFieldModel
 import com.nice.cxonechat.internal.model.MessageModel
+import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -73,4 +75,8 @@ internal data class EventLiveChatThreadRecovered(
         @JsonNames("contact", "consumerContact")
         val contact: ContactFieldData? = null,
     )
+
+    companion object : ReceivedEvent<EventLiveChatThreadRecovered> {
+        override val type = EventType.LivechatRecovered
+    }
 }

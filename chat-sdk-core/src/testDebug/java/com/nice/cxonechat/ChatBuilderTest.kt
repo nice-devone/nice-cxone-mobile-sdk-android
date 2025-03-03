@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -241,7 +241,9 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
     @Test
     fun build_listensTo_welcomeMessage() {
         val expected = "Welcome, how was your day?"
-        build()
+        val result = build()
+        assert(result.isSuccess)
+        result.getOrThrow().connect()
         this serverResponds ServerResponse.WelcomeMessage(expected)
 
         verify { storage.welcomeMessage = expected }

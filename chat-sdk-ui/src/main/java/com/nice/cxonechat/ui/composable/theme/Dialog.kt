@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,29 @@
 package com.nice.cxonechat.ui.composable.theme
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.Dp
+import com.nice.cxonechat.ui.R
 
 @Composable
 internal fun ChatTheme.Dialog(
     modifier: Modifier = Modifier,
     title: String? = null,
+    titlePadding: Dp = space.large,
     onDismiss: () -> Unit,
     confirmButton: @Composable () -> Unit,
     dismissButton: (@Composable () -> Unit)? = null,
-    content: @Composable () -> Unit
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -42,7 +50,7 @@ internal fun ChatTheme.Dialog(
                 title?.let {
                     Text(
                         it,
-                        modifier = Modifier.padding(bottom = space.large),
+                        modifier = Modifier.padding(bottom = titlePadding),
                         style = chatTypography.dialogTitle
                     )
                 }
@@ -52,17 +60,18 @@ internal fun ChatTheme.Dialog(
     )
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun DialogPreviewTitle() {
     ChatTheme {
         ChatTheme.Dialog(
             title = "Title",
             onDismiss = { },
-            dismissButton = { ChatTheme.OutlinedButton(text = "Dismiss") {} },
-            confirmButton = { ChatTheme.OutlinedButton(text = "Confirm") {} }
+            dismissButton = { TextButton(onClick = {}) { Text("Dismiss") } },
+            confirmButton = { TextButton(onClick = {}) { Text(stringResource(R.string.ok)) } },
         ) {
-            ChatTheme.TextField(label = "Label", value = "Body", onValueChanged = { _ -> })
+            val body = rememberTextFieldState("Body")
+            ChatTheme.TextField(label = "Label", value = body)
         }
     }
 }
@@ -73,10 +82,11 @@ private fun DialogPreviewNoTitle() {
     ChatTheme {
         ChatTheme.Dialog(
             onDismiss = { },
-            dismissButton = { ChatTheme.OutlinedButton(text = "Dismiss") {} },
-            confirmButton = { ChatTheme.OutlinedButton(text = "Confirm") {} }
+            dismissButton = { TextButton(onClick = {}) { Text("Dismiss") } },
+            confirmButton = { TextButton(onClick = {}) { Text(stringResource(R.string.ok)) } },
         ) {
-            ChatTheme.TextField(label = "Label", value = "Body", onValueChanged = { _ -> })
+            val body = rememberTextFieldState("Body")
+            ChatTheme.TextField(label = "Label", value = body)
         }
     }
 }

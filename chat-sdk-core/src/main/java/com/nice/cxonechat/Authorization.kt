@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,9 @@ interface Authorization {
     val verifier: String
 
     @Public
+    @Suppress(
+        "UndocumentedPublicClass", // Companion objects don't require documentation.
+    )
     companion object {
         @JvmSynthetic
         internal val None = Authorization("", "")
@@ -44,8 +47,16 @@ interface Authorization {
          * @param verifier Code verifier provided in conjunction with authentication code.
          */
         @JvmStatic
-        @JvmName("create")
-        operator fun invoke(code: String, verifier: String): Authorization = AuthorizationImpl(code, verifier)
+        operator fun invoke(code: String, verifier: String): Authorization = create(code, verifier)
+
+        /**
+         * Create a new instance of Authorization with the indicated code and verifier.
+         *
+         * @param code Authentication code provided by -possibly- third party or your own server.
+         * @param verifier Code verifier provided in conjunction with authentication code.
+         */
+        @JvmStatic
+        fun create(code: String, verifier: String): Authorization = AuthorizationImpl(code, verifier)
     }
 }
 

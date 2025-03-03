@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -39,15 +39,20 @@ import com.nice.cxonechat.internal.socket.ProxyWebSocketListener
  */
 internal class ChatServerErrorReporting(private val origin: ChatWithParameters) : ChatWithParameters by origin {
 
-    private val callbacks = Cancellable(
-        socketListener.addErrorCallback(SendingMessageFailed),
-        socketListener.addErrorCallback(RecoveringThreadFailed),
-        socketListener.addErrorCallback(SendingOutboundFailed),
-        socketListener.addErrorCallback(UpdatingThreadFailed),
-        socketListener.addErrorCallback(ArchivingThreadFailed),
-        socketListener.addErrorCallback(SendingTranscriptFailed),
-        socketListener.addErrorCallback(SendingOfflineMessageFailed),
-    )
+    private var callbacks = Cancellable.noop
+
+    override fun connect(): Cancellable = origin.connect().also {
+        callbacks.cancel()
+        callbacks = Cancellable(
+            socketListener.addErrorCallback(SendingMessageFailed),
+            socketListener.addErrorCallback(RecoveringThreadFailed),
+            socketListener.addErrorCallback(SendingOutboundFailed),
+            socketListener.addErrorCallback(UpdatingThreadFailed),
+            socketListener.addErrorCallback(ArchivingThreadFailed),
+            socketListener.addErrorCallback(SendingTranscriptFailed),
+            socketListener.addErrorCallback(SendingOfflineMessageFailed),
+        )
+    }
 
     override fun close() {
         callbacks.cancel()

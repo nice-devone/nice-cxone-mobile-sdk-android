@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,9 @@ interface UserName {
         get () = lastName.isNotBlank() && firstName.isNotBlank()
 
     @Public
+    @Suppress(
+        "UndocumentedPublicClass", // Companion objects don't require documentation.
+    )
     companion object {
         /** No UserName has been assigned. */
         val Anonymous = UserName("", "")
@@ -46,8 +49,16 @@ interface UserName {
          * @param firstName Users first name.
          */
         @JvmStatic
-        @JvmName("create")
-        operator fun invoke(lastName: String, firstName: String): UserName = UserNameImpl(lastName, firstName)
+        operator fun invoke(lastName: String, firstName: String): UserName = create(lastName, firstName)
+
+        /**
+         * Create a default instance with the indicated first and last names.
+         *
+         * @param lastName Users last name.
+         * @param firstName Users first name.
+         */
+        @JvmStatic
+        fun create(lastName: String, firstName: String): UserName = UserNameImpl(lastName, firstName)
     }
 }
 

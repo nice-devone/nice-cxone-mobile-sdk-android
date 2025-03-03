@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -13,3 +13,10 @@
  * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
  */
 
+package com.nice.cxonechat.ui.model
+
+internal data class SimpleTreeFieldItem<ValueType>(
+    override val label: String,
+    override val value: ValueType,
+    override val children: List<TreeFieldItem<ValueType>>? = null,
+) : TreeFieldItem<ValueType>
