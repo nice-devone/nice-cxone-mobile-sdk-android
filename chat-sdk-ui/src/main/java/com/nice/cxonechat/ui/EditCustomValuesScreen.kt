@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -15,29 +15,35 @@
 
 package com.nice.cxonechat.ui
 
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
-import com.nice.cxonechat.ui.composable.theme.Dialog
-import com.nice.cxonechat.ui.composable.theme.OutlinedButton
+import com.nice.cxonechat.ui.composable.theme.ModalBottomSheet
 import com.nice.cxonechat.ui.customvalues.CVFieldList
 import com.nice.cxonechat.ui.customvalues.CustomValueItemList
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun EditCustomValuesDialog(
+internal fun EditCustomValuesScreen(
     title: String,
     fields: CustomValueItemList,
+    sheetState: SheetState,
     modifier: Modifier = Modifier,
+    canSubmit: Boolean = true,
+    onUpdated: (CustomValueItemList) -> Unit = {},
     onCancel: () -> Unit,
     onConfirm: (CustomValueItemList) -> Unit,
 ) {
-    ChatTheme.Dialog(
+    ChatTheme.ModalBottomSheet(
         title = title,
         onDismiss = onCancel,
         modifier = modifier,
-        confirmButton = { ChatTheme.OutlinedButton("Ok") { onConfirm(fields) } },
-        dismissButton = { ChatTheme.OutlinedButton(text = "Cancel", onClick = onCancel) }
+        onSubmit = { onConfirm(fields) },
+        sheetState = sheetState,
+        canSubmit = canSubmit,
     ) {
-        CVFieldList(fields)
+        CVFieldList(fields, onUpdated)
     }
 }

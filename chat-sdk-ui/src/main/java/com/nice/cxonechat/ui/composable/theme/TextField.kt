@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,18 @@
 
 package com.nice.cxonechat.ui.composable.theme
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement.spacedBy
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldLabelPosition
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -40,67 +48,87 @@ import com.nice.cxonechat.ui.composable.generic.Requirements.required
 @Composable
 internal fun ChatTheme.TextField(
     label: String?,
-    value: String,
+    value: TextFieldState,
     modifier: Modifier = Modifier,
-    singleLine: Boolean = true,
+    minimizedLabelBackground: Color? = null,
+    lineLimits: TextFieldLineLimits = TextFieldLineLimits.SingleLine,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     validate: Requirement = none,
-    onValueChanged: (String) -> Unit = { _ -> },
+    placeholder: String? = null,
+    onValueChange: (String) -> Unit = { }
 ) {
     var error by remember { mutableStateOf(null as String?) }
     var focused by remember { mutableStateOf(false) }
     val context = LocalContext.current
-
     OutlinedTextField(
-        value = value,
-        onValueChange = { onValueChanged(it) },
+        state = value,
         modifier = modifier
             .onFocusChanged {
                 if (it.isFocused != focused) {
+                    val textValue = value.text.toString()
                     error = if (it.isFocused) {
                         null
                     } else {
-                        validate(context, value)
+                        validate(context, textValue)
                     }
                     focused = it.isFocused
+                    onValueChange(textValue)
                 }
             },
-        label = { ErrorLabel(label, error) },
+        label = {
+            label?.let { labelText ->
+                Text(
+                    text = labelText,
+                    modifier = minimizedLabelBackground?.let {
+                        Modifier.background(minimizedLabelBackground)
+                            .padding(horizontal = space.small)
+                    } ?: Modifier
+                )
+            }
+        },
+        labelPosition = TextFieldLabelPosition.Attached(alwaysMinimize = minimizedLabelBackground != null),
+        placeholder = placeholder?.let { { Text(it) } },
         isError = error != null,
+        supportingText = error?.let { { Text(it) } },
         keyboardOptions = keyboardOptions,
-        singleLine = singleLine,
+        lineLimits = lineLimits,
     )
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 private fun ValidatedTextFieldPreview() {
     ChatTheme {
-        var text by remember { mutableStateOf("") }
-        var number by remember { mutableStateOf("") }
-        var mail by remember { mutableStateOf("") }
-
-        Column(modifier = Modifier.padding(ChatTheme.space.large)) {
+        val text = rememberTextFieldState("")
+        val number = rememberTextFieldState("")
+        val mail = rememberTextFieldState("")
+        Column(
+            verticalArrangement = spacedBy(ChatTheme.space.large),
+            modifier = Modifier.padding(ChatTheme.space.large)
+        ) {
             ChatTheme.TextField(
                 label = "Text",
+                placeholder = "This value is required",
                 value = text,
                 modifier = Modifier.fillMaxWidth(1f),
                 validate = required
-            ) { text = it }
+            )
             ChatTheme.TextField(
                 label = "Numeric",
+                placeholder = "Input number",
                 value = number,
                 modifier = Modifier.fillMaxWidth(1f),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 validate = allOf(required, floating)
-            ) { number = it }
+            )
             ChatTheme.TextField(
                 label = "E-Mail",
+                minimizedLabelBackground = Color.Green,
                 value = mail,
                 modifier = Modifier.fillMaxWidth(1f),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 validate = allOf(required, email)
-            ) { mail = it }
+            )
         }
     }
 }

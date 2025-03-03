@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@ package com.nice.cxonechat.ui.composable.theme
 
 import androidx.compose.foundation.layout.Arrangement.spacedBy
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -32,39 +32,46 @@ import androidx.compose.ui.unit.dp
 
 @Immutable
 internal data class ChatShapes(
-    val bubbleShapeToClient: Shape = DefaultChatShapes.bubbleShapeToClient,
-    val bubbleShapeToAgent: Shape = DefaultChatShapes.bubbleShapeToAgent,
-    val chatCardShape: Shape = DefaultChatShapes.chatCardShape,
-    val chatCardPadding: PaddingValues = DefaultChatShapes.chatCardPadding,
-    val chatVideoPlayer: Shape = DefaultChatShapes.chatVideoPlayerClip,
-    val chatAudioPlayer: Shape = DefaultChatShapes.chatAudioPlayerClip,
+    val bubbleShapeToClient: BubbleShapes = BubbleShapes(
+        bubbleFirstShape = DefaultChatShapes.bubbleSoloShape.copy(
+            bottomStart = DefaultChatShapes.bubbleSmallCornerSize,
+        ),
+        bubbleMiddleShape = DefaultChatShapes.bubbleSoloShape.copy(
+            topStart = DefaultChatShapes.bubbleSmallCornerSize,
+            bottomStart = DefaultChatShapes.bubbleSmallCornerSize,
+        ),
+        bubbleLastShape = DefaultChatShapes.bubbleSoloShape.copy(
+            topStart = DefaultChatShapes.bubbleSmallCornerSize,
+        ),
+    ),
+    val bubbleShapeToAgent: BubbleShapes = BubbleShapes(
+        bubbleFirstShape = DefaultChatShapes.bubbleSoloShape.copy(
+            bottomEnd = DefaultChatShapes.bubbleSmallCornerSize,
+        ),
+        bubbleMiddleShape = DefaultChatShapes.bubbleSoloShape.copy(
+            topEnd = DefaultChatShapes.bubbleSmallCornerSize,
+            bottomEnd = DefaultChatShapes.bubbleSmallCornerSize,
+        ),
+        bubbleLastShape = DefaultChatShapes.bubbleSoloShape.copy(
+            topEnd = DefaultChatShapes.bubbleSmallCornerSize,
+        ),
+    ),
+    val bubbleSoloShape: Shape = DefaultChatShapes.bubbleSoloShape,
     val chip: Shape = DefaultChatShapes.chip,
     val selectionFrame: Shape = DefaultChatShapes.selectionFrame,
 )
 
+@Immutable
+internal data class BubbleShapes(
+    val bubbleFirstShape: Shape,
+    val bubbleMiddleShape: Shape,
+    val bubbleLastShape: Shape,
+)
+
 internal object DefaultChatShapes {
+    val bubbleSmallCornerSize = CornerSize(4.dp)
 
-    val bubbleShapeToClient = RoundedCornerShape(
-        topStart = 20.dp,
-        topEnd = 20.dp,
-        bottomEnd = 20.dp,
-        bottomStart = 0.dp
-    )
-
-    val bubbleShapeToAgent = RoundedCornerShape(
-        topStart = 20.dp,
-        topEnd = 20.dp,
-        bottomEnd = 0.dp,
-        bottomStart = 20.dp
-    )
-
-    val chatCardShape = RoundedCornerShape(16.dp)
-
-    val chatCardPadding = PaddingValues(8.dp)
-
-    val chatVideoPlayerClip = RoundedCornerShape(24.dp)
-
-    val chatAudioPlayerClip = RoundedCornerShape(8.dp)
+    val bubbleSoloShape = RoundedCornerShape(20.dp)
 
     val chip = RoundedCornerShape(8.dp)
 
@@ -79,11 +86,13 @@ internal val LocalChatShapes = staticCompositionLocalOf {
 @Preview
 private fun PreviewShapes() {
     val shapes = listOf(
-        "bubbleShapeToAgent" to ChatTheme.chatShapes.bubbleShapeToAgent,
-        "bubbleShapeToClient" to ChatTheme.chatShapes.bubbleShapeToClient,
-        "chatCardShape" to ChatTheme.chatShapes.chatCardShape,
-        "chatVideoPlayer" to ChatTheme.chatShapes.chatVideoPlayer,
-        "chatAudioPlayer" to ChatTheme.chatShapes.chatAudioPlayer,
+        "bubbleShapeToClientFirst" to ChatTheme.chatShapes.bubbleShapeToClient.bubbleFirstShape,
+        "bubbleShapeToClientMiddle" to ChatTheme.chatShapes.bubbleShapeToClient.bubbleMiddleShape,
+        "bubbleShapeToClientLast" to ChatTheme.chatShapes.bubbleShapeToClient.bubbleLastShape,
+        "bubbleShapeToAgentFirst" to ChatTheme.chatShapes.bubbleShapeToAgent.bubbleFirstShape,
+        "bubbleShapeToAgentMiddle" to ChatTheme.chatShapes.bubbleShapeToAgent.bubbleMiddleShape,
+        "bubbleShapeToAgentLast" to ChatTheme.chatShapes.bubbleShapeToAgent.bubbleLastShape,
+        "bubbleSoloShape" to ChatTheme.chatShapes.bubbleSoloShape,
         "chip" to ChatTheme.chatShapes.chip,
         "selectionFrame" to ChatTheme.chatShapes.selectionFrame,
     )

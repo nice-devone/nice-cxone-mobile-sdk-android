@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,9 @@ interface OutboundMessage {
     val postback: String?
 
     @Public
+    @Suppress(
+        "UndocumentedPublicClass", // Companion objects don't require documentation.
+    )
     companion object {
         /**
          * Creates default instance of [OutboundMessage] for simple text messages.
@@ -46,10 +49,37 @@ interface OutboundMessage {
          * @param message see [OutboundMessage.message].
          * @param postback Optional - see [OutboundMessage.postback].
          */
-        @JvmName("create")
         @JvmOverloads
         @JvmStatic
         operator fun invoke(
+            message: String,
+            postback: String? = null,
+        ): OutboundMessage = create(message, postback)
+
+        /**
+         * Creates default instance of [OutboundMessage] for attachment messages.
+         *
+         * @param attachments see [OutboundMessage.attachments], should be non-empty.
+         * @param message Optional text message to be sent with attachment.
+         * @param postback Optional - see [OutboundMessage.postback].
+         */
+        @JvmOverloads
+        @JvmStatic
+        operator fun invoke(
+            attachments: Iterable<ContentDescriptor>,
+            message: String = "",
+            postback: String? = null,
+        ): OutboundMessage = create(attachments, message, postback)
+
+        /**
+         * Creates default instance of [OutboundMessage] for simple text messages.
+         *
+         * @param message see [OutboundMessage.message].
+         * @param postback Optional - see [OutboundMessage.postback].
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun create(
             message: String,
             postback: String? = null,
         ): OutboundMessage = DefaultOutboundMessage(
@@ -64,10 +94,9 @@ interface OutboundMessage {
          * @param message Optional text message to be sent with attachment.
          * @param postback Optional - see [OutboundMessage.postback].
          */
-        @JvmName("create")
-        @JvmOverloads
         @JvmStatic
-        operator fun invoke(
+        @JvmOverloads
+        fun create(
             attachments: Iterable<ContentDescriptor>,
             message: String = "",
             postback: String? = null,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.filter
@@ -105,14 +106,14 @@ internal class ChatThreadsViewModel(
         threadList.subscribeToThreadUpdates()
             .updateLocalThreadCopy()
             .filter(::isThreadUpdated)
-            .stateIn(viewModelScope, SharingStarted.Lazily, null)
+            .shareIn(viewModelScope, SharingStarted.Lazily, 0) // Prevent re-emission of the same thread
     } else {
-        MutableStateFlow(null)
+        MutableStateFlow(null).asSharedFlow()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun Flow<List<Thread>>.subscribeToThreadUpdates(): Flow<Thread> = flatMapLatest { threadList ->
-        threadList.asFlow().flatMapMerge(concurrency = 1) { thread ->
+        threadList.asFlow().flatMapMerge { thread ->
             threadsHandler.thread(thread.chatThread)
                 .flow
                 .map(thread::copy)

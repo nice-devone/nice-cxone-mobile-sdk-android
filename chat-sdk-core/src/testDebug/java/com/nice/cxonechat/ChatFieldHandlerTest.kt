@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.nice.cxonechat.internal.model.CustomFieldPolyType.Text
 import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.server.ServerRequest
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.thread.ChatThreadState.Pending
 import com.nice.cxonechat.tool.nextString
 import com.nice.cxonechat.tool.nextStringMap
 import org.junit.Test
@@ -98,5 +99,18 @@ internal class ChatFieldHandlerTest : AbstractChatTest() {
         }.toMap()
         fields.add(newFields)
         assertEquals(newFields, chat.fields.associate { it.id to it.value })
+    }
+
+    @Test
+    fun addFields_toPendingThread_only_appends_thread() {
+        val newFields = mapOf(
+            questionId to "oldValue"
+        )
+        thread = makeChatThread(threadState = Pending)
+        val handler = chat.threads().thread(thread)
+        assertSendsNothing {
+            handler.customFields().add(newFields)
+        }
+        assertEquals(newFields, handler.get().fields.associate { it.id to it.value })
     }
 }

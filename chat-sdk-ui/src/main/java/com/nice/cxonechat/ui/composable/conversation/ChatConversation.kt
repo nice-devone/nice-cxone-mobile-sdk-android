@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -159,8 +158,9 @@ internal fun MessageListView(
     scrollState: LazyListState,
     modifier: Modifier = Modifier,
 ) {
-    val isTyping = conversation.typingIndicator.collectAsState(initial = false).value
     val canLoadMore = conversation.canLoadMore.collectAsState().value
+    val agentDetails = conversation.agentTyping.collectAsState().value
+    val agentIsTyping = conversation.isAgentTyping.collectAsState().value
 
     Box(modifier) {
         Column {
@@ -169,11 +169,12 @@ internal fun MessageListView(
                 groupedMessages = messages,
                 loadMore = conversation.loadMore,
                 canLoadMore = canLoadMore,
+                agentIsTyping = agentIsTyping,
+                agentDetails = agentDetails,
                 onAttachmentClicked = conversation.onAttachmentClicked,
                 onMoreClicked = conversation.onMoreClicked,
                 onShare = conversation.onShare,
             )
-            TypingIndicator(isTyping)
         }
 
         conversation.positionInQueue.collectAsState(initial = null).value?.let {
@@ -184,18 +185,6 @@ internal fun MessageListView(
                     .padding(top = 8.dp)
             )
         }
-    }
-}
-
-@Composable
-private fun ColumnScope.TypingIndicator(isTyping: Boolean) {
-    if (isTyping) {
-        Text(
-            modifier = Modifier
-                .padding(ChatTheme.space.small)
-                .align(Alignment.End),
-            text = stringResource(string.text_agent_typing)
-        )
     }
 }
 

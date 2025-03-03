@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -111,6 +111,9 @@ class InvalidCustomFieldValue internal constructor(
  * [com.nice.cxonechat.ChatThreadsHandler.create] for an invalid (ie., missing) pre-chat survey field.
  */
 @Public
+@Deprecated(
+    "This exception is no longer used, as the SDK doesn't restrict custom fields passed to the server."
+)
 class UndefinedCustomField internal constructor(
     fieldId: String
 ) : CXOneException(

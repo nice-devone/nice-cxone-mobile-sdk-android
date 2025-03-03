@@ -64,6 +64,8 @@ import com.nice.cxonechat.ui.main.ChatThreadViewModel.ReportOnPopupAction.Clicke
 import com.nice.cxonechat.ui.main.ChatThreadViewModel.ReportOnPopupAction.Displayed
 import com.nice.cxonechat.ui.main.ChatThreadViewModel.ReportOnPopupAction.Failure
 import com.nice.cxonechat.ui.main.ChatThreadViewModel.ReportOnPopupAction.Success
+import com.nice.cxonechat.ui.model.Person
+import com.nice.cxonechat.ui.model.asPerson
 import com.nice.cxonechat.ui.util.isEmpty
 import com.nice.cxonechat.utilities.isEmpty
 import kotlinx.coroutines.Dispatchers
@@ -141,11 +143,10 @@ internal class ChatThreadViewModel(
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val agentState: StateFlow<Boolean> = chatThreadFlow
-        .mapLatest { chatThread -> chatThread.threadAgent }
+    val currentAgent: StateFlow<Person?> = chatThreadFlow
+        .mapLatest { chatThread -> chatThread.threadAgent?.asPerson }
         .distinctUntilChanged()
-        .map { threadAgent -> threadAgent?.isTyping == true }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
 
     val positionInQueue: StateFlow<Int?> = chatThreadFlow
         .mapLatest { chatThread -> chatThread.positionInQueue }
@@ -160,6 +161,10 @@ internal class ChatThreadViewModel(
 
     val canLoadMore: StateFlow<Boolean> = chatThreadFlow
         .map { it.hasMoreMessagesToLoad }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
+
+    val isAgentTyping: StateFlow<Boolean> = chatThreadFlow
+        .map { it.threadAgent?.isTyping == true }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
 
     private val mutableActionState: MutableStateFlow<PopupActionState> = MutableStateFlow(Empty)

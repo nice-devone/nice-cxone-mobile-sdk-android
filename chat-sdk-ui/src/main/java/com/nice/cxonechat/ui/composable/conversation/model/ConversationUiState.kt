@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.nice.cxonechat.ui.composable.conversation.model.Message.RichLink
 import com.nice.cxonechat.ui.composable.conversation.model.Message.Text
 import com.nice.cxonechat.ui.composable.conversation.model.Message.Unsupported
 import com.nice.cxonechat.ui.composable.conversation.model.Message.WithAttachments
+import com.nice.cxonechat.ui.model.Person
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -39,12 +40,13 @@ import com.nice.cxonechat.message.Message as SdkMessage
  *
  * @param sdkMessages Flow of messages for the active conversation, it is expected that the flow will be updated if
  * [sendMessage] is invoked.
- * @property typingIndicator Flow indicating that the agent handling the conversation is typing.
+ * @property agentTyping details of agent currently typing, if any.
  * @property positionInQueue Flow of current position in queue.
  * @property sendMessage An action which will be invoked if the user wants to post a new message to the conversation, or
  * if he has interacted with an element which generates a message.
  * @property loadMore An action which will be called when more messages can be displayed/loaded.
  * @property canLoadMore Flow indicating if there are more messages to load.
+ * @property isAgentTyping Flow indicating if there is an agent typing.
  * @property onStartTyping An action which will be called when the user has started to type a text message.
  * @property onStopTyping An action which will be called (with some delay) when the user has stopped typing a text message.
  * @property onAttachmentClicked An action which handles when users clicks on an Attachment
@@ -61,11 +63,12 @@ import com.nice.cxonechat.message.Message as SdkMessage
 @Stable
 internal data class ConversationUiState(
     private val sdkMessages: Flow<List<SdkMessage>>,
-    internal val typingIndicator: Flow<Boolean>,
+    internal val agentTyping: StateFlow<Person?>,
     internal val positionInQueue: Flow<Int?>,
     internal val sendMessage: (OutboundMessage) -> Unit,
     internal val loadMore: () -> Unit,
     internal val canLoadMore: StateFlow<Boolean>,
+    internal val isAgentTyping: StateFlow<Boolean>,
     internal val onStartTyping: () -> Unit,
     internal val onStopTyping: () -> Unit,
     internal val onAttachmentClicked: (Attachment) -> Unit,
@@ -80,7 +83,7 @@ internal data class ConversationUiState(
         .map { messageList ->
             messageList
                 .map { message -> message.toUiMessage() }
-                .groupBy { message -> message.createdAtDate(context) }
+                .groupMessages(context)
                 .entries
                 .map(::Section)
         }
@@ -99,5 +102,27 @@ internal data class ConversationUiState(
         is SdkMessage.ListPicker -> ListPicker(this, sendMessage)
         is SdkMessage.QuickReplies -> QuickReply(this, sendMessage)
         else -> Unsupported(this)
+    }
+
+    private companion object {
+        private const val TWO_MINUTES = 120_000L
+
+        fun List<Message>.groupMessages(context: Context): Map<String, List<Message>> {
+            if (isEmpty()) return emptyMap()
+
+            val initial = mutableListOf(mutableListOf(first()))
+            return drop(1)
+                .fold(initial) { groups: MutableList<MutableList<Message>>, curr: Message ->
+                    val lastGroup = groups.last()
+                    val prev = lastGroup.last()
+                    if (prev.createdAt.time - curr.createdAt.time <= TWO_MINUTES) {
+                        lastGroup.add(curr)
+                    } else {
+                        groups.add(mutableListOf(curr))
+                    }
+                    groups
+                }
+                .associateBy { group -> group.minBy(Message::createdAt).createdAtDate(context) }
+        }
     }
 }

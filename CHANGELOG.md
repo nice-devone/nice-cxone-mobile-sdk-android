@@ -1,6 +1,40 @@
 <a name="unreleased"></a>
 ## [Unreleased]
 
+<a name="2.3.0"></a>
+## [2.3.0] - 2025-03-03
+
+### Bug Fixes
+- Welcome message improvements
+  - In Messaging mode Welcome message is initially provided as placeholder
+  - Welcome Message in LiveChat mode is using different logic
+  - Improved support for late handling of a WelcomeMessage ProActive event
+- Custom fields handling
+  - Remove check which has allowed only the pre-chat survey fields to be
+      supplied during thread creation to align with iOS platform
+  - Don't send event about contact custom field change if the thread is in
+    the pending or closed state
+- Fix reconnect issues
+  - Events are properly delayed on reconnect
+- Allow SDK to reconnect in Offline state
+- The `ChatWindowOpen` event is delayed pending authorization
+- ProGuard/R8 fixes
+  - Split out create method from all invoke operators
+  - Added rules to the internal SDK minification
+### Dependency Change
+- Bump androidx.core:core-ktx from 1.13.1 to 1.15.0
+- Bump kotlin from 2.0.20 to 2.0.21
+- Bump org.jetbrains:annotations from 24.1.0 to 25.0.0
+- Bump org.jetbrains.kotlinx:kotlinx-serialization-json from 1.7.2 to 1.7.3
+- Bump kotlin from 2.0.10 to 2.0.20
+### Features
+- Raise targetSdk 34 -> 35
+- Update query parameters for web socket request
+### UI Features
+- Redesign message group header
+- Redesign pre-contact survey
+- Added progress dialog for initialization in single thread mode
+
 <a name="2.2.2"></a>
 ## [2.2.2]
 
@@ -289,7 +323,8 @@
     - failure
   - typing start/end
 
-[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.2.2...HEAD
+[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.3.0...HEAD
+[2.3.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.2.2...2.3.0
 [2.2.2]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.2.2...2.2.1
 [2.2.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.2.1...2.2.0
 [2.2.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.1.1...2.2.0

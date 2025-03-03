@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 
 package com.nice.cxonechat.model
 
+import com.nice.cxonechat.AbstractChatTestSubstrate.Companion.TestContactId
 import com.nice.cxonechat.internal.model.ChatThreadInternal
 import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.thread.Agent
@@ -35,6 +36,7 @@ internal fun makeChatThread(
     threadState: ChatThreadState = Ready,
     positionInQueue: Int? = null,
     hasOnlineAgent: Boolean = true,
+    contactId: String? = TestContactId,
 ) = ChatThreadInternal(
     id = id,
     threadName = threadName,
@@ -45,5 +47,6 @@ internal fun makeChatThread(
     fields = fields,
     threadState = threadState,
     positionInQueue = positionInQueue,
-    hasOnlineAgent = hasOnlineAgent
+    hasOnlineAgent = hasOnlineAgent,
+    contactId = contactId,
 )

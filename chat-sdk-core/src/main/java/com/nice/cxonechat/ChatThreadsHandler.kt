@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import com.nice.cxonechat.exceptions.CXOneException
 import com.nice.cxonechat.exceptions.InvalidCustomFieldValue
 import com.nice.cxonechat.exceptions.MissingPreChatCustomFieldsException
 import com.nice.cxonechat.exceptions.MissingThreadListFetchException
-import com.nice.cxonechat.exceptions.UndefinedCustomField
 import com.nice.cxonechat.exceptions.UnsupportedChannelConfigException
 import com.nice.cxonechat.prechat.PreChatSurvey
 import com.nice.cxonechat.prechat.PreChatSurveyResponse
@@ -84,7 +83,6 @@ interface ChatThreadsHandler {
      * @throws MissingPreChatCustomFieldsException when the configuration requires answers
      * for items in [preChatSurvey].
      * @throws InvalidCustomFieldValue in case of internal SDK error.
-     * @throws UndefinedCustomField in case of internal SDK error.
      *
      * @return A new instance of [ChatThreadsHandler].
      * @see [threads]
@@ -95,7 +93,6 @@ interface ChatThreadsHandler {
         MissingThreadListFetchException::class,
         MissingPreChatCustomFieldsException::class,
         InvalidCustomFieldValue::class,
-        UndefinedCustomField::class,
     )
     fun create(): ChatThreadHandler = create(customFields = emptyMap(), preChatSurveyResponse = emptySequence())
 
@@ -130,8 +127,6 @@ interface ChatThreadsHandler {
      * @throws MissingPreChatCustomFieldsException when the configuration requires answers
      * for items in [preChatSurvey].
      * @throws InvalidCustomFieldValue if a value in [customFields] is invalid for any reason.
-     * @throws UndefinedCustomField if a key in [customFields] is not defined by the
-     * channel configuration.
      *
      * @return A new instance of [ChatThreadsHandler].
      * @see [threads]
@@ -142,7 +137,6 @@ interface ChatThreadsHandler {
         MissingThreadListFetchException::class,
         MissingPreChatCustomFieldsException::class,
         InvalidCustomFieldValue::class,
-        UndefinedCustomField::class,
     )
     fun create(customFields: Map<String, String>): ChatThreadHandler = create(
         customFields = customFields,
@@ -180,7 +174,6 @@ interface ChatThreadsHandler {
      * for items in [preChatSurvey] and those were not supplied, or supplied answer is not valid
      * (non-leaf [com.nice.cxonechat.state.HierarchyNode] for [FieldDefinition.Hierarchy]).
      * @throws InvalidCustomFieldValue in case of internal SDK error.
-     * @throws UndefinedCustomField in case of internal SDK error.
      *
      * @return A new instance of [ChatThreadsHandler].
      * @see [threads]
@@ -191,7 +184,6 @@ interface ChatThreadsHandler {
         MissingThreadListFetchException::class,
         MissingPreChatCustomFieldsException::class,
         InvalidCustomFieldValue::class,
-        UndefinedCustomField::class
     )
     fun create(
         preChatSurveyResponse: Sequence<PreChatSurveyResponse<out FieldDefinition, out Any>>,
@@ -236,8 +228,6 @@ interface ChatThreadsHandler {
      * (non-leaf [com.nice.cxonechat.state.HierarchyNode] for [FieldDefinition.Hierarchy]).
      * @throws InvalidCustomFieldValue if a value in [customFields] or [preChatSurveyResponse]
      * is invalid for any reason.
-     * @throws UndefinedCustomField if a key in [customFields] is not defined by the
-     * channel configuration.
      *
      * @return A new instance of [ChatThreadsHandler].
      * @see [threads]
@@ -248,7 +238,6 @@ interface ChatThreadsHandler {
         MissingThreadListFetchException::class,
         MissingPreChatCustomFieldsException::class,
         InvalidCustomFieldValue::class,
-        UndefinedCustomField::class,
     )
     fun create(
         customFields: Map<String, String>,

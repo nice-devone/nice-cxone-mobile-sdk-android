@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,15 @@ package com.nice.cxonechat.internal
 import com.nice.cxonechat.ChatFieldHandler
 import com.nice.cxonechat.ChatThreadHandler
 import com.nice.cxonechat.event.thread.SetContactCustomFieldEvent
+import com.nice.cxonechat.exceptions.InvalidStateException
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.model.ChatThreadMutable
 import com.nice.cxonechat.internal.model.CustomFieldModel
+import com.nice.cxonechat.thread.ChatThreadState.Closed
+import com.nice.cxonechat.thread.ChatThreadState.Loaded
+import com.nice.cxonechat.thread.ChatThreadState.Pending
+import com.nice.cxonechat.thread.ChatThreadState.Ready
+import com.nice.cxonechat.thread.ChatThreadState.Received
 
 internal class ChatFieldHandlerThread(
     private val handler: ChatThreadHandler,
@@ -29,14 +35,21 @@ internal class ChatFieldHandlerThread(
 
     override fun add(fields: Map<String, String>) {
         val customFields = fields.map(::CustomFieldModel)
-        handler.events().trigger(
-            event = SetContactCustomFieldEvent(customFields),
-            listener = {
-                val mappedFields = customFields
-                    .map(CustomFieldModel::toCustomField)
-                thread += thread.asCopyable().copy(fields = mappedFields)
-            },
-            errorListener = null,
-        )
+        when (thread.threadState) {
+            Received, Loaded, Ready -> handler.events().trigger(
+                event = SetContactCustomFieldEvent(customFields),
+                listener = { updateContactCustomFields(customFields) },
+                errorListener = null,
+            )
+
+            Pending -> updateContactCustomFields(customFields)
+            Closed -> throw InvalidStateException("Cannot add custom fields to a closed thread")
+        }
+    }
+
+    private fun updateContactCustomFields(customFields: List<CustomFieldModel>) {
+        val mappedFields = customFields
+            .map(CustomFieldModel::toCustomField)
+        thread += thread.asCopyable().copy(fields = mappedFields)
     }
 }

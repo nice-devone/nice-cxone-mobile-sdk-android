@@ -1,0 +1,24 @@
+<!--
+  ~ Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
+  ~
+  ~ Licensed under the NICE License;
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
+  ~
+  ~ TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
+  ~ AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
+  ~ OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
+  ~ FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+  -->
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="17dp"
+    android:height="17dp"
+    android:viewportWidth="17"
+    android:viewportHeight="17">
+  <path
+      android:pathData="M8.367,16.328C4.016,16.328 0.398,12.711 0.398,8.359C0.398,4 4.008,0.391 8.359,0.391C12.719,0.391 16.336,4 16.336,8.359C16.336,12.711 12.727,16.328 8.367,16.328ZM8.367,15C12.055,15 15.008,12.047 15.008,8.359C15.008,4.672 12.047,1.719 8.359,1.719C4.672,1.719 1.734,4.672 1.734,8.359C1.734,12.047 4.68,15 8.367,15ZM8.359,9.766C7.969,9.766 7.75,9.547 7.742,9.148L7.641,5.016C7.633,4.617 7.93,4.328 8.352,4.328C8.766,4.328 9.078,4.625 9.07,5.023L8.953,9.148C8.945,9.555 8.727,9.766 8.359,9.766ZM8.359,12.305C7.906,12.305 7.516,11.938 7.516,11.492C7.516,11.047 7.898,10.68 8.359,10.68C8.813,10.68 9.195,11.039 9.195,11.492C9.195,11.945 8.805,12.305 8.359,12.305Z"
+      android:fillColor="#000000"/>
+</vector>

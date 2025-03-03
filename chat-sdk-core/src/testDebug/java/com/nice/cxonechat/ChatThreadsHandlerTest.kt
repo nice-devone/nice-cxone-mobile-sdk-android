@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ internal class ChatThreadsHandlerTest : AbstractChatTest() {
 
     @Test
     fun threads_notifies_withInitialList() {
-        val initial = List(2) { makeChatThread(threadState = Received) }
+        val initial = List(2) { makeChatThread(threadState = Received, contactId = null) }
         val message = makeMessageModel(threadIdOnExternalPlatform = initial[0].id)
         val agentModel = makeAgent()
         val expected = listOf(
@@ -110,7 +110,7 @@ internal class ChatThreadsHandlerTest : AbstractChatTest() {
 
     @Test
     fun threads_notifies_caseClosed() {
-        val initial = List(2) { makeChatThread(threadState = Received) }
+        val initial = List(2) { i -> makeChatThread(threadState = Received, contactId = null) }
         val expected = initial.toMutableList().also {
             it[0] = it[0].copy(
                 canAddMoreMessages = false,

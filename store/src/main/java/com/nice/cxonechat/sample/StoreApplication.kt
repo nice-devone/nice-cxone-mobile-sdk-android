@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,8 @@ import com.nice.cxonechat.sample.modules.StoreModule
 import com.nice.cxonechat.sample.utilities.logging.FirebaseLogger
 import com.nice.cxonechat.ui.UiModule.Companion.chatUiModule
 import com.nice.cxonechat.utilities.TaggingSocketFactory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asExecutor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.logging.HttpLoggingInterceptor.Level.BASIC
@@ -78,7 +80,7 @@ class StoreApplication : Application(), ImageLoaderFactory {
          since it will download the font which can be updated without the need to
          update the bundled artifact.
          */
-        EmojiCompat.init(BundledEmojiCompatConfig(this))
+        EmojiCompat.init(BundledEmojiCompatConfig(this, Dispatchers.IO.asExecutor()))
 
         /* set up Firebase */
         FirebaseApp.initializeApp(applicationContext)

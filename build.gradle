@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -35,10 +35,11 @@ plugins {
     alias(libs.plugins.metalava) apply false
     alias(libs.plugins.compose.compiler) apply false
     alias(libs.plugins.kotlin.serialization) apply false
+    alias(libs.plugins.build.config) apply false
 }
 
 group = GROUP
-version = "2.2.2" // Fallback version
+version = "2.3.0" // Fallback version
 
 allprojects {
     group = rootProject.group
@@ -50,8 +51,20 @@ if (!rootProject.hasProperty("VERSION_NAME")) { // Disable this plugin if overri
     apply plugin: "com.dipien.semantic-version" // Plugin can be applied after version is defined
 }
 
-tasks.dokkaHtmlMultiModule.configure {
-    outputDirectory.set(project.file("dist"))
+
+dependencies {
+    dokka(project(":utilities"))
+    dokka(project(":logger"))
+    dokka(project(":logger-android"))
+    dokka(project(":chat-sdk-core"))
+}
+
+dokka {
+    moduleName.set("CXone Mobile SDK")
+    dokkaPublications.html {
+        includes.from("readme.md")
+        outputDirectory.set(project.file("dist"))
+    }
 }
 
 tasks.register('metalavaGenerateSignature') {
@@ -112,7 +125,7 @@ static String getGitCurrentBranch(Project project) {
     return branch
 }
 
-tasks.register('clean', Delete) {
+tasks.register('cleanProject', Delete) {
     delete rootProject.layout.buildDirectory
 }
 

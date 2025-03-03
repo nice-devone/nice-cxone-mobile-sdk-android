@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,9 @@ interface LoggerScope : Logger {
     /** The wrapped [Logger]. */
     val identity: Logger
 
+    @Suppress(
+        "UndocumentedPublicClass", // Companion objects don't require documentation.
+    )
     companion object {
 
         /**
@@ -33,7 +36,16 @@ interface LoggerScope : Logger {
          * @param name The name of the scope.
          * @param identity The wrapped [Logger].
          */
-        operator fun invoke(name: String, identity: Logger): LoggerScope = NamedScope(scope = name, identity = identity)
+        operator fun invoke(name: String, identity: Logger): LoggerScope = createNamedScope(name, identity)
+
+        /**
+         * Creates an instance of [LoggerScope] with custom [name].
+         *
+         * @param name The name of the scope.
+         * @param identity The wrapped [Logger].
+         */
+        @JvmStatic
+        fun createNamedScope(name: String, identity: Logger): LoggerScope = NamedScope(scope = name, identity = identity)
 
         /**
          * Creates an instance of [LoggerScope] with [scope] set to class simple name.

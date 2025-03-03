@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,12 @@ package com.nice.cxonechat
 import com.nice.cxonechat.event.ChatEvent
 import com.nice.cxonechat.server.ServerRequest
 import com.nice.cxonechat.server.ServerResponse
+import com.nice.cxonechat.util.plus
 import io.mockk.every
 import kotlinx.serialization.Serializable
 import org.junit.Test
 import java.util.Date
+import kotlin.time.Duration.Companion.seconds
 
 internal class ChatEventHandlerTest : AbstractChatTest() {
 
@@ -50,14 +52,16 @@ internal class ChatEventHandlerTest : AbstractChatTest() {
 
     @Test
     fun trigger_refreshesToken() {
-        every { storage.authTokenExpDate } returns Date()
+        // Expiration must be greater than 1 second, otherwise the event will be delayed until authorization is confirmed
+        every { storage.authTokenExpDate } returns Date().plus(5.seconds.inWholeMilliseconds)
         assertSendTexts(
             ServerRequest.RefreshToken(connection),
             """
             {
                 "field": 104
             }
-            """.trimIndent()
+            """.trimIndent(),
+            except = emptyArray<String>(),
         ) {
             events.trigger(ChatEvent.Custom { _, _ -> TestValue() })
         }

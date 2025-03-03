@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import kotlinx.serialization.serializer
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import java.util.UUID
+import java.util.concurrent.Callable
+import java.util.concurrent.CountDownLatch
 
 internal abstract class EventCallback<Event>(
     private val type: EventType,
@@ -71,6 +73,28 @@ internal abstract class EventCallback<Event>(
             val listener = EventCallback(type, callback)
             addListener(listener)
             return Cancellable { removeListener(listener) }
+        }
+
+        /** Blocking event listener, which will self-remove once the filter condition has passed. */
+        inline fun <reified Event : Any> ProxyWebSocketListener.awaitEvent(
+            type: ReceivedEvent<Event>,
+            crossinline filter: (Event) -> Boolean = { true },
+        ) = Callable<Event?> {
+            val latch = CountDownLatch(1)
+            var result: Event? = null
+            val listener = EventCallback<Event>(type.type) { value ->
+                if (filter(value)) {
+                    result = value
+                    latch.countDown()
+                }
+            }
+            addListener(listener)
+            try {
+                latch.await()
+            } finally {
+                removeListener(listener)
+            }
+            result
         }
 
         inline fun <reified Received : ReceivedEvent<Event>, reified Event : EventWithId> ProxyWebSocketListener.acceptResponse(

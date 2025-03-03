@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -17,24 +17,32 @@ package com.nice.cxonechat.ui.composable.conversation
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.message.MessageDirection.ToAgent
-import com.nice.cxonechat.message.MessageStatus.FailedToDeliver
-import com.nice.cxonechat.message.MessageStatus.Read
-import com.nice.cxonechat.message.MessageStatus.Seen
-import com.nice.cxonechat.message.MessageStatus.Sending
-import com.nice.cxonechat.message.MessageStatus.Sent
 import com.nice.cxonechat.ui.R.string
+import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.FIRST
+import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.LAST
+import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.MIDDLE
+import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.SOLO
 import com.nice.cxonechat.ui.composable.conversation.model.Message
 import com.nice.cxonechat.ui.composable.conversation.model.Message.ListPicker
 import com.nice.cxonechat.ui.composable.conversation.model.Message.QuickReply
@@ -44,116 +52,189 @@ import com.nice.cxonechat.ui.composable.conversation.model.Message.Unsupported
 import com.nice.cxonechat.ui.composable.conversation.model.Message.WithAttachments
 import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider
 import com.nice.cxonechat.ui.composable.generic.AutoLinkedText
+import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
-import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatShapes
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
-import com.nice.cxonechat.ui.composable.theme.SmallSpacer
+import com.nice.cxonechat.ui.composable.theme.TinySpacer
+import com.nice.cxonechat.ui.model.asPerson
 
 @Composable
 internal fun LazyItemScope.MessageItem(
     message: Message,
-    showSender: Boolean,
+    showStatus: Boolean,
     modifier: Modifier = Modifier,
+    itemGroupState: MessageItemGroupState = SOLO,
     onAttachmentClicked: (Attachment) -> Unit,
     onMoreClicked: (List<Attachment>, String) -> Unit,
     onShare: (Collection<Attachment>) -> Unit,
 ) {
     val toAgent = message.direction == ToAgent
     val alignment = if (toAgent) Alignment.End else Alignment.Start
-    val chatColor = if (toAgent) chatColors.customer else chatColors.agent
-    val shape = if (toAgent) chatShapes.bubbleShapeToAgent else chatShapes.bubbleShapeToClient
-    val showAgentSender = showSender && !toAgent
+    val showAvatar = !toAgent && itemGroupState in listOf(SOLO, LAST)
 
-    Row(
-        modifier = modifier
-            .fillParentMaxWidth()
-            .wrapContentWidth(align = alignment)
-            .animateItem(),
-    ) {
-        Column(horizontalAlignment = alignment) {
-            if (showAgentSender) {
-                Text(
-                    message.sender?.ifBlank { null } ?: stringResource(id = string.default_agent_name),
-                    style = chatTypography.chatAgentName,
-                )
-            }
-            Surface(
-                color = chatColor.background,
-                contentColor = chatColor.foreground,
-                shape = shape,
-            ) {
+    Column {
+        Row(
+            modifier = modifier
+                .fillParentMaxWidth()
+                .wrapContentWidth(align = alignment)
+                .animateItem(),
+        ) {
+            Column(horizontalAlignment = alignment) {
                 MessageContent(
                     message = message,
-                    modifier = Modifier
-                        .weight(1f),
+                    position = itemGroupState,
                     onAttachmentClicked = onAttachmentClicked,
                     onMoreClicked = onMoreClicked,
                     onShare = onShare,
                 )
-            }
-            if (toAgent) {
-                MessageStatus(message)
+
+                if (toAgent && showStatus) {
+                    MessageStatusIndicator(message.status, modifier = Modifier.padding(top = space.small))
+                }
+
+                if (showAvatar) {
+                    Spacer(modifier = Modifier.height(space.messageAvatarBottomPadding))
+                }
             }
         }
+        if (!showAvatar) {
+            TinySpacer()
+        }
     }
-    SmallSpacer()
 }
 
-@Composable
-private fun MessageStatus(message: Message) {
-    Text(
-        when (message.status) {
-            Sending -> stringResource(string.status_sending)
-            Sent -> stringResource(string.status_sent)
-            FailedToDeliver -> stringResource(string.status_failed)
-            Seen -> stringResource(string.status_received)
-            Read -> stringResource(string.status_read)
-        },
-        style = chatTypography.chatStatus,
-    )
+/**
+ * Represents the state of a message regarding its position in a group of similar messages.
+ */
+internal enum class MessageItemGroupState {
+    /** Item is positioned as first in given group. */
+    FIRST,
+
+    /** Item is part of the group, but it is not first nor last. */
+    MIDDLE,
+
+    /** Item is last in the given group. */
+    LAST,
+
+    /** Item is not part of a group. */
+    SOLO
 }
 
 @Composable
 private fun MessageContent(
     message: Message,
+    position: MessageItemGroupState,
     modifier: Modifier = Modifier,
     onAttachmentClicked: (Attachment) -> Unit,
     onMoreClicked: (List<Attachment>, String) -> Unit,
     onShare: (Collection<Attachment>) -> Unit,
 ) = Column(modifier) {
-    val padding = Modifier.padding(space.large)
-    when (message) {
-        is Unsupported -> Text(
-            text = message.fallbackText ?: stringResource(string.text_unsupported_message_type),
-            modifier = padding,
-        )
+    val padding = Modifier.padding(space.messagePadding)
+    val toAgent = message.direction == ToAgent
+    val chatColor = if (toAgent) chatColors.customer else chatColors.agent
+    val avatar = remember { if (!toAgent && position in listOf(LAST, SOLO)) message.sender?.asPerson else null }
+    var isMessageExtraAvailable by rememberSaveable { mutableStateOf(true) }
+    MessageFrame(
+        position = position,
+        isAgent = !toAgent,
+        avatar = avatar,
+        colors = chatColor,
+        subFrameContent = {
+            SubFrameContent(message, isMessageExtraAvailable, { isMessageExtraAvailable = false })
+        },
+    ) {
+        when (message) {
+            is Unsupported -> Text(
+                text = message.fallbackText ?: stringResource(string.text_unsupported_message_type),
+                modifier = padding,
+            )
 
-        is Text -> AutoLinkedText(
-            text = message.text,
-            modifier = padding,
-            style = chatTypography.chatMessage,
-        )
-        is WithAttachments -> AttachmentMessage(
-            message,
-            modifier = padding,
-            onAttachmentClicked = onAttachmentClicked,
-            onMoreClicked = onMoreClicked,
-            onShare = onShare,
-        )
-        is ListPicker -> ListPickerMessage(message, modifier = padding)
-        is RichLink -> RichLinkMessage(message = message, modifier = padding)
-        is QuickReply -> QuickReplyMessage(message, modifier = padding)
+            is Text -> AutoLinkedText(
+                text = message.text,
+                modifier = padding,
+                style = chatTypography.chatMessage,
+            )
+
+            is WithAttachments -> AttachmentMessage(
+                message,
+                modifier = padding,
+                onAttachmentClicked = onAttachmentClicked,
+                onMoreClicked = onMoreClicked,
+                onShare = onShare,
+            )
+
+            is ListPicker -> ListPickerMessage(message, textColor = chatColor)
+            is RichLink -> RichLinkMessage(message = message, textColor = chatColor)
+            is QuickReply -> QuickReplyMessage(message, modifier = padding)
+        }
     }
 }
 
-@Preview
+@Composable
+private fun SubFrameContent(message: Message, isMessageExtraAvailable: Boolean, onClick: () -> Unit) {
+    when (message) {
+        is QuickReply -> QuickReplySubFrame(message, isMessageExtraAvailable, onClick)
+
+        else -> {}
+    }
+}
+
+@PreviewLightDark
+@Preview(showBackground = true)
 @Composable
 private fun PreviewContentTextMessage() {
-    PreviewMessageItemBase(
-        message = Text(PreviewMessageProvider.Text()),
-        showSender = true,
-    )
+    ChatTheme {
+        Surface {
+            LazyColumn {
+                item {
+                    PreviewMessageItem(
+                        message = Text(
+                            PreviewMessageProvider.Text(
+                                text = "Please send the videos! \uD83D\uDE4C\uD83C\uDFFC",
+                            )
+                        ),
+                        showStatus = true,
+                    )
+                }
+                item {
+                    PreviewMessageItem(
+                        message = Text(
+                            PreviewMessageProvider.Text(
+                                text = "Hi and thank you for your response. \n" +
+                                        "I can send the videos, sure.",
+                                direction = ToAgent
+                            )
+                        ),
+                        itemGroupState = FIRST,
+                    )
+                }
+                item {
+                    PreviewMessageItem(
+                        message = Text(
+                            PreviewMessageProvider.Text(
+                                text = "I’ll send four if that’s OK.",
+                                direction = ToAgent
+                            )
+                        ),
+                        itemGroupState = MIDDLE,
+                    )
+                }
+                item {
+                    PreviewMessageItem(
+                        message = Text(
+                            PreviewMessageProvider.Text(
+                                text = "Here they come!",
+                                direction = ToAgent
+                            )
+                        ),
+                        showStatus = true,
+                        itemGroupState = LAST,
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Preview
@@ -161,6 +242,5 @@ private fun PreviewContentTextMessage() {
 private fun PreviewContentUnsupported() {
     PreviewMessageItemBase(
         message = Unsupported(PreviewMessageProvider.Text()),
-        showSender = true,
     )
 }
