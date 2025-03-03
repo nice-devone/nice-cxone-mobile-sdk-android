@@ -26,7 +26,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Run build
-        run: ./gradlew dokkaHtmlMultiModule -Pandroid.experimental.settings.executionProfile=ci
+        run: ./gradlew dokkaGenerate -Pandroid.experimental.settings.executionProfile=ci
         env:
           GPR_USERNAME: ${{ github.repository_owner }}
           GPR_TOKEN: ${{ github.token }}
