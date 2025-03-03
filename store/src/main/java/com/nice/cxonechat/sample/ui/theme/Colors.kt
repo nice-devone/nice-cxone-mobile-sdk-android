@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.takeOrElse
+import com.nice.cxonechat.ui.composable.theme.DefaultColors as UIDefaultColors
 
 /** Default color palette used by the application. */
 object Colors {
@@ -35,11 +36,23 @@ object Colors {
         /** Material onPrimary color. */
         val onPrimary: Color
 
-        /** Material background color. */
+        /** Material background and surface color. */
         val background: Color
 
-        /** Material onBackground color. */
+        /** Material background and onSurface color. */
         val onBackground: Color
+
+        /** Material surface color. */
+        val surfaceVariant: Color
+
+        /**  Material surface color. */
+        val surfaceContainer: Color
+
+        /**  Material surface color with high tonal elevation. */
+        val surfaceContainerHigh: Color
+
+        /**  Material surface color with highest tonal elevation. */
+        val surfaceContainerHighest: Color
 
         /** Material secondary color. */
         val accent: Color
@@ -58,44 +71,52 @@ object Colors {
 
         /** Color for customer text (not really app-specific, will be applied to ChatTheme). */
         val customerText: Color
-    }
 
-    private val purple_500 = Color(0xFF6200EE)
-    private val teal_200 = Color(0xFF03DAC5)
-    private val white = Color(0xFFFFFFFF)
-    private val black = Color(0xFF000000)
-    private val gray_light = Color(0xFFe8e8e8)
-    private val dark_background = Color(0xFF424242)
-    private val light_background = Color(0xFFFFFFFF)
-    private val cornflower_blue_two = Color(0xFF4F62D7)
-    private val dark_gray_two = Color(0xFF191A1B)
+        /** Color for agent avatar foreground/outline (not really app-specific, will be applied to ChatTheme). */
+        val agentAvatarForeground: Color
+
+        /** Color for agent avatar background (not really app-specific, will be applied to ChatTheme). */
+        val agentAvatarBackground: Color
+    }
 
     /** default colors to use in light mode. */
     object Light: DefaultColors {
-        override val primary = purple_500
-        override val onPrimary = white
-        override val background = white
-        override val onBackground = black
-        override val accent = teal_200
-        override val onAccent = black
-        override val agentBackground = light_background
-        override val agentText = dark_gray_two
-        override val customerBackground = cornflower_blue_two
-        override val customerText = white
+        override val primary = UIDefaultColors.light.primary
+        override val onPrimary = UIDefaultColors.light.onPrimary
+        override val background = UIDefaultColors.light.background
+        override val onBackground = UIDefaultColors.light.onBackground
+        override val surfaceVariant = UIDefaultColors.light.surfaceVariant
+        override val surfaceContainer = UIDefaultColors.light.surfaceContainer
+        override val surfaceContainerHigh: Color = UIDefaultColors.light.surfaceContainerHigh
+        override val surfaceContainerHighest: Color = UIDefaultColors.light.surfaceContainerHighest
+        override val accent = UIDefaultColors.light.accent
+        override val onAccent = UIDefaultColors.light.onAccent
+        override val agentBackground = UIDefaultColors.light.agentBackground
+        override val agentText = UIDefaultColors.light.agentText
+        override val agentAvatarForeground: Color = UIDefaultColors.light.agentAvatarForeground
+        override val agentAvatarBackground: Color = UIDefaultColors.light.agentAvatarBackground
+        override val customerBackground = UIDefaultColors.light.customerBackground
+        override val customerText = UIDefaultColors.light.customerText
     }
 
     /** default colors to use in dark mode. */
     object Dark: DefaultColors {
-        override val primary = purple_500
-        override val onPrimary = white
-        override val background = dark_gray_two
-        override val onBackground = white
-        override val accent = teal_200
-        override val onAccent = white
-        override val agentBackground = dark_background
-        override val agentText = gray_light
-        override val customerBackground = cornflower_blue_two
-        override val customerText = white
+        override val primary = UIDefaultColors.dark.primary
+        override val onPrimary = UIDefaultColors.dark.onPrimary
+        override val background = UIDefaultColors.dark.background
+        override val onBackground = UIDefaultColors.dark.onBackground
+        override val surfaceVariant = UIDefaultColors.dark.surfaceVariant
+        override val surfaceContainer = UIDefaultColors.dark.surfaceContainer
+        override val surfaceContainerHigh: Color = UIDefaultColors.dark.surfaceContainerHigh
+        override val surfaceContainerHighest: Color = UIDefaultColors.dark.surfaceContainerHighest
+        override val accent = UIDefaultColors.dark.accent
+        override val onAccent = UIDefaultColors.dark.onAccent
+        override val agentBackground = UIDefaultColors.dark.agentBackground
+        override val agentText = UIDefaultColors.dark.agentText
+        override val agentAvatarForeground: Color = UIDefaultColors.dark.agentAvatarForeground
+        override val agentAvatarBackground: Color = UIDefaultColors.dark.agentAvatarBackground
+        override val customerBackground = UIDefaultColors.dark.customerBackground
+        override val customerText = UIDefaultColors.dark.customerText
     }
 }
 

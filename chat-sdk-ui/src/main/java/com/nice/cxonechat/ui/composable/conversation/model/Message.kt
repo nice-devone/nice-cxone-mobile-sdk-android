@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import com.nice.cxonechat.message.Message.QuickReplies
 import com.nice.cxonechat.message.MessageDirection
 import com.nice.cxonechat.message.MessageStatus
 import com.nice.cxonechat.message.OutboundMessage
+import com.nice.cxonechat.ui.model.Person
+import com.nice.cxonechat.ui.model.asPerson
 import com.nice.cxonechat.ui.util.toShortDateString
 import java.util.Date
 import com.nice.cxonechat.message.Attachment as SdkAttachment
@@ -35,8 +37,8 @@ internal sealed class Message(original: SdkMessage) {
     /** See [SdkMessage.id]. */
     val id = original.id
 
-    /** Friendly name of sender.  See [SdkMessage.author] */
-    val sender: String? = original.author?.name
+    /** Details of the sender. */
+    val sender: Person? = original.author?.asPerson
 
     /** See [com.nice.cxonechat.message.MessageAuthor.imageUrl]. */
     private val imageUrl: String? = original.author?.imageUrl

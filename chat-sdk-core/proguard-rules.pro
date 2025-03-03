@@ -1,5 +1,5 @@
 ## === Public APIs ===
-## Keep all public APIs from being removed
+## Keep all public APIs from being removed during minification of the library artifact
 -keep class java.lang.Object { *; }
 -keep class kotlin.Metadata
 -keep,allowoptimization @com.nice.cxonechat.Public class **, **$**, **$**$**, **$**$**, **$**$**$** {
@@ -51,10 +51,10 @@
 
 ## === Serialization ===
 ## Kotlinx.serialization rules are not effective if the classes are not used with R8 in fullmode
--keepclassmembers class com.nice.cxonechat.internal.model.**$**, com.nice.cxonechat.api.model.**$** {
+-keepclassmembers class com.nice.cxonechat.internal.model.**$**, com.nice.cxonechat.api.model.**$**, com.nice.cxonechat.event.**$** {
     kotlinx.serialization.KSerializer serializer();
 }
--keep class com.nice.cxonechat.internal.model.**, com.nice.cxonechat.api.model.** {
+-keep class com.nice.cxonechat.internal.model.**, com.nice.cxonechat.api.model.**, com.nice.cxonechat.event.** {
        public static <1> INSTANCE;
        kotlinx.serialization.KSerializer serializer(...);
 }

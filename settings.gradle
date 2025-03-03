@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -46,21 +46,6 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
-        exclusiveContent {
-            forRepository {
-                //noinspection ForeignDelegate
-                maven {
-                    url 'https://jitpack.io'
-                    content {
-                        includeModule("com.github.jeziellago", "Markwon")
-                        includeModule("com.github.jeziellago", "compose-markdown")
-                    }
-                }
-            }
-            filter {
-                includeGroup("com.github.jeziellago")
-            }
-        }
     }
     versionCatalogs {
         create("libs") {
@@ -72,7 +57,7 @@ dependencyResolutionManagement {
 rootProject.name = "cxone-chat-sdk"
 
 android {
-    compileSdk 34
+    compileSdk 35
     minSdk 24
     execution {
         profiles {

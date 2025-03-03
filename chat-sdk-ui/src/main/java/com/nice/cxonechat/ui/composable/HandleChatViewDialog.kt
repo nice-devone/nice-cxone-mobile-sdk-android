@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,38 @@ package com.nice.cxonechat.ui.composable
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.nice.cxonechat.prechat.PreChatSurvey
 import com.nice.cxonechat.state.FieldDefinition
 import com.nice.cxonechat.state.FieldDefinitionList
-import com.nice.cxonechat.ui.PreChatSurveyDialog
+import com.nice.cxonechat.ui.PreChatSurveyScreen
+import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
-import com.nice.cxonechat.ui.main.ChatViewModel.Dialogs
-import com.nice.cxonechat.ui.main.ChatViewModel.Dialogs.None
-import com.nice.cxonechat.ui.main.ChatViewModel.Dialogs.Survey
-import com.nice.cxonechat.ui.main.ChatViewModel.Dialogs.ThreadCreationFailed
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.typography
+import com.nice.cxonechat.ui.main.ChatViewModel.DialogState
+import com.nice.cxonechat.ui.main.ChatViewModel.DialogState.None
+import com.nice.cxonechat.ui.main.ChatViewModel.DialogState.Preparing
+import com.nice.cxonechat.ui.main.ChatViewModel.DialogState.Survey
+import com.nice.cxonechat.ui.main.ChatViewModel.DialogState.ThreadCreationFailed
 import com.nice.cxonechat.ui.model.describe
 import com.nice.cxonechat.ui.model.prechat.PreChatResponse
 import com.nice.cxonechat.ui.util.Ignored
@@ -42,11 +58,12 @@ import kotlinx.coroutines.flow.StateFlow
 import java.util.UUID
 
 /**
- * Display dialog used for thread creation based on the state of the [com.nice.cxonechat.ui.main.ChatViewModel.Dialogs] flow.
+ * Display dialog used for thread creation based on the state of the [com.nice.cxonechat.ui.main.ChatViewModel.DialogState] flow.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun HandleChatViewDialog(
-    dialogShownFlow: StateFlow<Dialogs>,
+    dialogShownFlow: StateFlow<DialogState>,
     cancelAction: () -> Unit,
     submitAction: (Sequence<PreChatResponse>) -> Unit = {},
     retryAction: () -> Unit,
@@ -54,7 +71,8 @@ internal fun HandleChatViewDialog(
     val context = LocalContext.current
     when (val dialog = dialogShownFlow.collectAsState().value) {
         None -> Ignored
-        is Survey -> PreChatSurveyDialog(
+        Preparing -> PreparingDialog(cancelAction)
+        is Survey -> PreChatSurveyScreen(
             survey = dialog.survey,
             onCancel = cancelAction,
             onValidSurveySubmission = submitAction,
@@ -64,10 +82,37 @@ internal fun HandleChatViewDialog(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+@Preview
+private fun PreparingDialog(cancelAction: () -> Unit = {}) {
+    Dialog(onDismissRequest = cancelAction, properties = DialogProperties(dismissOnClickOutside = false)) {
+        Card(
+            shape = ChatTheme.shapes.large
+        ) {
+            val center = Modifier.align(Alignment.CenterHorizontally)
+            Text(
+                modifier = center.padding(space.large),
+                text = stringResource(string.preparing),
+                style = typography.titleMedium
+            )
+            LoadingIndicator(
+                modifier = center
+                    .padding(space.xxl)
+                    .size(space.loadingIndicatorSize),
+                color = colorScheme.primary
+            )
+            TextButton(onClick = cancelAction, modifier = Modifier.align(Alignment.End)) {
+                Text(stringResource(string.cancel))
+            }
+        }
+    }
+}
+
 @Composable
 @Preview
 private fun ChatDialogPreview() {
-    val dialogFlow: MutableStateFlow<Dialogs> = remember { MutableStateFlow(None) }
+    val dialogFlow: MutableStateFlow<DialogState> = remember { MutableStateFlow(None) }
     ChatTheme {
         Column {
             Row {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,9 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.TextUnitType
+import androidx.compose.ui.unit.sp
 
 @Immutable
 internal data class ChatTypography(
@@ -30,9 +33,12 @@ internal data class ChatTypography(
     val chatStatus: TextStyle = Typography.bodySmall,
     val chatAttachmentCaption: TextStyle = Typography.bodySmall,
     val chatAttachmentMessage: TextStyle = Typography.titleSmall,
-    val chatDayHeader: TextStyle = Typography.titleMedium,
+    val chatDayHeader: TextStyle = Typography.titleMedium.copy(
+        fontSize = 12.sp,
+        fontWeight = FontWeight.Bold,
+    ),
     val chatLoadMoreCaption: TextStyle = Typography.bodySmall,
-    val dialogTitle: TextStyle = Typography.titleLarge,
+    val dialogTitle: TextStyle = Typography.headlineSmall,
     val dialogBody: TextStyle = Typography.bodyMedium,
     val chatCardTitle: TextStyle = Typography.titleMedium.copy(
         fontWeight = FontWeight.Bold,
@@ -44,7 +50,23 @@ internal data class ChatTypography(
     ),
     val offlineBanner: TextStyle = Typography.titleLarge,
     val offlineMessage: TextStyle = Typography.bodyLarge,
+    val messageAvatarText: TextStyle = Typography.labelSmall,
+    val listPickerTitle: TextStyle = Typography.titleMedium.copy(
+        fontWeight = FontWeight.SemiBold,
+        fontSize = TextUnit(15f, TextUnitType.Sp),
+    ),
+    val listPickerText: TextStyle = Typography.bodyMedium,
+    val quickReplySelectedText: TextStyle = Typography.labelSmall,
     val surveyListItem: TextStyle = Typography.bodySmall,
+    val surveyLabel: TextStyle = Typography.labelLarge.copy(
+        fontWeight = FontWeight.SemiBold,
+        fontSize = TextUnit(14f, TextUnitType.Sp),
+        lineHeight = TextUnit(32f, TextUnitType.Sp)
+    ),
+    val surveyTitle: TextStyle = Typography.titleMedium.copy(
+        fontWeight = FontWeight.Medium,
+        fontSize = TextUnit(20f, TextUnitType.Sp),
+    ),
 )
 
 internal val LocalChatTypography = staticCompositionLocalOf {

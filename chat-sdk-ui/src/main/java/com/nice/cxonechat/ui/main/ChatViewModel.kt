@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -32,15 +32,16 @@ import com.nice.cxonechat.log.warning
 import com.nice.cxonechat.prechat.PreChatSurvey
 import com.nice.cxonechat.ui.data.flow
 import com.nice.cxonechat.ui.domain.SelectedThreadRepository
-import com.nice.cxonechat.ui.main.ChatViewModel.Dialogs.None
-import com.nice.cxonechat.ui.main.ChatViewModel.Dialogs.Survey
+import com.nice.cxonechat.ui.main.ChatViewModel.DialogState.None
+import com.nice.cxonechat.ui.main.ChatViewModel.DialogState.Preparing
+import com.nice.cxonechat.ui.main.ChatViewModel.DialogState.Survey
+import com.nice.cxonechat.ui.main.ChatViewModel.DialogState.ThreadCreationFailed
 import com.nice.cxonechat.ui.model.CreateThreadResult.Failure
 import com.nice.cxonechat.ui.model.CreateThreadResult.Success
 import com.nice.cxonechat.ui.model.foldToCreateThreadResult
 import com.nice.cxonechat.ui.model.prechat.PreChatResponse
 import com.nice.cxonechat.ui.storage.ValueStorage
 import com.nice.cxonechat.ui.storage.getCustomerCustomValues
-import com.nice.cxonechat.ui.util.Ignored
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
@@ -54,6 +55,7 @@ internal class ChatViewModel(
     private val selectedThreadRepository: SelectedThreadRepository,
     private val chatProvider: ChatInstanceProvider,
     private val logger: Logger,
+    private val chatStateViewModel: ChatStateViewModel,
 ) : ViewModel(), LoggerScope by LoggerScope<ChatViewModel>(logger) {
     private val chat: Chat
         get() = requireNotNull(chatProvider.chat)
@@ -62,14 +64,32 @@ internal class ChatViewModel(
 
     private val events by lazy { chat.events() }
 
-    sealed interface Dialogs {
-        data object None : Dialogs
-        data class Survey(val survey: PreChatSurvey) : Dialogs
-        data class ThreadCreationFailed(val failure: Failure) : Dialogs
+    /** Possible dialog states. */
+    sealed interface DialogState {
+        /** No dialog should be shown. */
+        data object None : DialogState
+
+        /** Progress dialog should be shown until loading is finished. */
+        data object Preparing : DialogState
+
+        /** Show pre-chat survey dialog. */
+        data class Survey(val survey: PreChatSurvey) : DialogState
+
+        /** Show dialog with error message. */
+        data class ThreadCreationFailed(val failure: Failure) : DialogState
     }
 
-    private val showDialog = MutableStateFlow<Dialogs>(None)
-    val dialogShown = showDialog.asStateFlow()
+    private val showDialog by lazy { MutableStateFlow<DialogState>(refreshDialogState()) }
+    val dialogShown by lazy {
+        viewModelScope.launch {
+            chatStateViewModel.state.collect { state ->
+                if (state === ChatState.Offline && showDialog.value === Preparing) {
+                    dismissDialog()
+                }
+            }
+        }
+        showDialog.asStateFlow()
+    }
 
     val chatMode: ChatMode
         get() = chat.chatMode
@@ -77,7 +97,12 @@ internal class ChatViewModel(
     val preChatSurvey
         get() = threads.preChatSurvey
 
+    /** Prevent interaction with possibly uninitialized thread in single/livechat mode. */
+    private fun refreshDialogState(): DialogState =
+        if (chatMode === ChatMode.MultiThread || preChatSurvey == null) None else Preparing
+
     internal fun refreshThreadState() {
+        showDialog.value = refreshDialogState()
         viewModelScope.launch {
             resolveCurrentState()
         }
@@ -100,7 +125,7 @@ internal class ChatViewModel(
             }.foldToCreateThreadResult()
 
             when (result) {
-                is Failure -> showDialog(Dialogs.ThreadCreationFailed(result))
+                is Failure -> showDialog(ThreadCreationFailed(result))
                 Success -> dismissDialog()
             }
         }
@@ -108,8 +133,9 @@ internal class ChatViewModel(
 
     private suspend fun resolveCurrentState() {
         if (listOf(SingleThread, LiveChat).contains(chat.chatMode)) {
+            if (chatProvider.chatState === ChatState.Offline) dismissDialog()
             when {
-                selectFirstThread() -> Ignored
+                selectFirstThread() -> dismissDialog()
                 else -> when (val chatSurvey = preChatSurvey) {
                     null -> createThread()
                     else -> showDialog(Survey(chatSurvey))
@@ -133,8 +159,7 @@ internal class ChatViewModel(
             ?.let {
                 selectedThreadRepository.chatThreadHandler = threads.thread(it)
                 true
-            }
-            ?: false
+            } == true
     }
 
     private suspend fun setCustomFields() {
@@ -145,7 +170,7 @@ internal class ChatViewModel(
         events.chatWindowOpen()
     }
 
-    private fun showDialog(dialog: Dialogs) {
+    private fun showDialog(dialog: DialogState) {
         showDialog.value = dialog
     }
 

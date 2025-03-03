@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ android {
 }
 
 /* remove the superfluous files that happen to live in the shared assets directory */
-android.applicationVariants.all { variant ->
+android.applicationVariants.configureEach { variant ->
     def task = variant.getMergeAssetsProvider().get()
 
     task.doLast {
@@ -132,4 +132,7 @@ dependencies {
 
     // Immutable annotations
     implementation libs.findbugs
+
+    // Memory leak detection
+    debugImplementation libs.leakcanary.android
 }

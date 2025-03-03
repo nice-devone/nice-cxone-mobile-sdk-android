@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ interface ContentDescriptor {
         internal class Uri(
             val uri: android.net.Uri,
             val context: Context,
-        ): DataSource() {
+        ) : DataSource() {
             override fun equals(other: Any?): Boolean {
                 if (this === other) return true
                 if (javaClass != other?.javaClass) return false
@@ -109,6 +109,9 @@ interface ContentDescriptor {
     val friendlyName: String?
 
     @Public
+    @Suppress(
+        "UndocumentedPublicClass", // Companion objects don't require documentation.
+    )
     companion object {
         /**
          * Constructs new [ContentDescriptor] with [android.net.Uri] data.
@@ -120,15 +123,48 @@ interface ContentDescriptor {
          * @param friendlyName friendly name of file
          */
         @JvmStatic
-        @JvmName("create")
         operator fun invoke(
             content: android.net.Uri,
             context: Context,
             mimeType: String,
             fileName: String,
-            friendlyName: String? = null
+            friendlyName: String? = null,
+        ): ContentDescriptor = create(content, context, mimeType, fileName, friendlyName)
+
+        /**
+         * Constructs new [ContentDescriptor] with [ByteArray] data.
+         * @see ContentDescriptor
+         * @param content [DataSource] described
+         * @param mimeType MIME type of data
+         * @param fileName obscured name of file
+         * @param friendlyName friendly name of file
+         */
+        @JvmStatic
+        operator fun invoke(
+            content: ByteArray,
+            mimeType: String,
+            fileName: String,
+            friendlyName: String?,
+        ): ContentDescriptor = create(content, mimeType, fileName, friendlyName)
+
+        /**
+         * Constructs new [ContentDescriptor] with [android.net.Uri] data.
+         * @see ContentDescriptor
+         * @param content Uri for content to be attached, usually a content URI
+         * @param context [Context] used to resolve [content]
+         * @param mimeType MIME type of data
+         * @param fileName obscured name of file
+         * @param friendlyName friendly name of file
+         */
+        @JvmStatic
+        fun create(
+            content: android.net.Uri,
+            context: Context,
+            mimeType: String,
+            fileName: String,
+            friendlyName: String? = null,
         ): ContentDescriptor = ContentDescriptorInternal(
-            content = DataSource.Uri(content, context),
+            content = Uri(content, context),
             mimeType = mimeType,
             fileName = fileName,
             friendlyName = friendlyName
@@ -143,12 +179,11 @@ interface ContentDescriptor {
          * @param friendlyName friendly name of file
          */
         @JvmStatic
-        @JvmName("create")
-        operator fun invoke(
+        fun create(
             content: ByteArray,
             mimeType: String,
             fileName: String,
-            friendlyName: String?
+            friendlyName: String?,
         ): ContentDescriptor = ContentDescriptorInternal(
             content = Bytes(content),
             mimeType = mimeType,

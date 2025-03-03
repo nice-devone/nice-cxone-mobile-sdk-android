@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.SwipeToDismissBoxValue.EndToStart
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -40,6 +41,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -62,7 +64,7 @@ import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState
 import com.nice.cxonechat.thread.ChatThreadState.Ready
 import com.nice.cxonechat.thread.CustomField
-import com.nice.cxonechat.ui.PreChatSurveyDialog
+import com.nice.cxonechat.ui.PreChatSurveyScreen
 import com.nice.cxonechat.ui.R.array
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.generic.AgentAvatar
@@ -86,6 +88,7 @@ import com.nice.cxonechat.ui.util.Ignored
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.util.UUID
 import kotlin.random.Random
 
@@ -192,10 +195,13 @@ private fun ChatThreadsStateAlert(
         Initial -> Ignored
 
         is ThreadPreChatSurveyRequired -> {
-            PreChatSurveyDialog(
+            val coroutineScope = rememberCoroutineScope()
+            val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            PreChatSurveyScreen(
                 survey = state.survey,
                 onCancel = resetState,
                 onValidSurveySubmission = respondToSurvey,
+                sheetState = sheetState,
             )
 
             threadFailure?.let { failure ->
@@ -203,7 +209,12 @@ private fun ChatThreadsStateAlert(
 
                 ChatTheme.Alert(
                     context.describe(failure),
-                    onDismiss = resetCreateThreadState,
+                    onDismiss = {
+                        coroutineScope.launch {
+                            resetCreateThreadState()
+                            sheetState.show()
+                        }
+                    },
                     dismissLabel = context.getString(string.cancel),
                 )
             }
@@ -214,12 +225,11 @@ private fun ChatThreadsStateAlert(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ChatThreadWrapper(
     thread: Thread,
     onArchiveThread: (Thread) -> Unit,
-    content: @Composable ColumnScope.() -> Unit
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     if (thread.chatThread.canAddMoreMessages) {
         val currentThread by rememberUpdatedState(newValue = thread)
@@ -255,7 +265,7 @@ private fun ChatThreadView(thread: Thread, onThreadSelected: (Thread) -> Unit) {
             },
         verticalAlignment = CenterVertically,
     ) {
-        AgentAvatar(url = thread.agentImage)
+        AgentAvatar(url = thread.agent?.imageUrl)
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -356,12 +366,12 @@ private class PreviewModel(
         get() = stateFlow.asStateFlow()
 
     val createThreadFailure: StateFlow<Failure?>
-        get () = createThreadFailureFlow.asStateFlow()
+        get() = createThreadFailureFlow.asStateFlow()
 
     constructor(
         threads: List<Thread>,
         state: State = Initial,
-        failure: Failure? = null
+        failure: Failure? = null,
     ) : this(
         MutableStateFlow(threads),
         MutableStateFlow(state),
@@ -386,7 +396,7 @@ private class PreviewModel(
     }
 
     fun respondToSurvey(responses: Sequence<PreChatResponse>) {
-        if(responses.count() != 2) {
+        if (responses.count() != 2) {
             createThreadFailureFlow.value = Failure.REASON_PRECHAT_SURVEY_REQUIRED
         } else {
             createThread()
@@ -407,7 +417,7 @@ private class PreviewModel(
         fun nextModel(
             threadCount: Int,
             state: State = Initial,
-            failure: Failure? = null
+            failure: Failure? = null,
         ) = PreviewModel(
             threads = (0 until threadCount).map { PreviewThread.nextThread() },
             state = state,
@@ -419,7 +429,7 @@ private class PreviewModel(
 @Preview
 @Composable
 private fun PreviewThreadList(
-    @PreviewParameter(PreviewModelProvider::class) viewModel: PreviewModel = PreviewModelProvider().values.first()
+    @PreviewParameter(PreviewModelProvider::class) viewModel: PreviewModel = PreviewModelProvider().values.first(),
 ) {
     ChatTheme {
         MultiThreadContent(
@@ -435,7 +445,7 @@ private fun PreviewThreadList(
     }
 }
 
-private class PreviewModelProvider: PreviewParameterProvider<PreviewModel> {
+private class PreviewModelProvider : PreviewParameterProvider<PreviewModel> {
     private object Survey : PreChatSurvey {
         override val name = "PreChat Survey"
         override val fields: FieldDefinitionList = sequenceOf(

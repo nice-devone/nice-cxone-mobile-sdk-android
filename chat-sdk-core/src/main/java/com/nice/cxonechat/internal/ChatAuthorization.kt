@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -35,10 +35,10 @@ internal class ChatAuthorization(
     private val authorization: Authorization,
 ) : ChatWithParameters by origin {
 
-    private var cancellables = registerCallbacks()
-    private var delayEventsPendingAuthorization = true
-    private var delayedEventHandler: DelayUnauthorizedEventHandler =
+    private val delayedEventHandler: DelayUnauthorizedEventHandler =
         DelayUnauthorizedEventHandler(ChatEventHandlerImpl(this), this)
+
+    private var cancellables = registerCallbacks()
 
     init {
         if (storage.customerId == null) {
@@ -46,7 +46,7 @@ internal class ChatAuthorization(
         }
         authorizeCustomer()
         origin.eventHandlerProvider = ChatEventHandlerProvider { chat ->
-            var handler: ChatEventHandler = if (delayEventsPendingAuthorization) delayedEventHandler else ChatEventHandlerImpl(chat)
+            var handler: ChatEventHandler = delayedEventHandler
             handler = ChatEventHandlerTokenGuard(handler, chat)
             handler = ChatEventHandlerVisitGuard(handler, chat)
             handler = ChatEventHandlerTimeOnPage(handler, chat)
@@ -63,7 +63,6 @@ internal class ChatAuthorization(
     )
 
     private fun getCustomerAuthorized() = origin.socketListener.addCallback(EventCustomerAuthorized) { model ->
-        delayEventsPendingAuthorization = false
         val authorizationEnabled = origin.configuration.isAuthorizationEnabled
         connection = connection.asCopyable().copy(
             firstName = if (authorizationEnabled) {
@@ -81,14 +80,13 @@ internal class ChatAuthorization(
         storage.authToken = model.token
         storage.authTokenExpDate = model.tokenExpiresAt
         storage.customerId = connection.customerId
-        delayedEventHandler.triggerDelayedEvents(!authorizationEnabled)
+        delayedEventHandler.triggerDelayedEvents()
     }
 
     private fun getTokenRefresh() = socketListener.addCallback(EventTokenRefreshed) { model ->
-        delayEventsPendingAuthorization = false
         storage.authToken = model.token
         storage.authTokenExpDate = model.expiresAt
-        delayedEventHandler.triggerDelayedEvents(false)
+        delayedEventHandler.triggerDelayedEvents()
     }
 
     private fun getCustomerReconnectFailed() = socketListener.addErrorCallback(ConsumerReconnectionFailed) {
@@ -100,7 +98,7 @@ internal class ChatAuthorization(
     }
 
     private fun authorizeCustomer() {
-        delayEventsPendingAuthorization = true
+        delayedEventHandler.delayEvents()
         val event = when (storage.authToken == null) {
             true -> AuthorizeCustomerEvent(authorization.code, authorization.verifier)
             else -> ReconnectCustomerEvent
@@ -109,6 +107,7 @@ internal class ChatAuthorization(
     }
 
     override fun close() {
+        delayedEventHandler.delayEvents()
         cancellables.cancel()
         origin.close()
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,21 @@
 package com.nice.cxonechat.ui.composable.conversation
 
 import android.net.Uri
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.message.Message
+import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.SOLO
 import com.nice.cxonechat.ui.composable.conversation.model.ConversationUiState
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
+import com.nice.cxonechat.ui.model.Person
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import com.nice.cxonechat.ui.composable.conversation.model.Message as UiMessage
@@ -89,29 +94,44 @@ internal data class AttachmentProvider(
 @Composable
 internal fun PreviewMessageItemBase(
     message: UiMessage,
-    showSender: Boolean = true,
-    onAttachmentClicked: (Attachment) -> Unit = {},
-    onMoreClicked: (List<Attachment>, String) -> Unit = { _, _ -> },
-    onShare: (Collection<Attachment>) -> Unit = {},
+    itemGroupState: MessageItemGroupState = SOLO,
 ) {
     PreviewMessageItemBase {
-        MessageItem(
+        PreviewMessageItem(
             message = message,
-            showSender = showSender,
-            onAttachmentClicked = onAttachmentClicked,
-            onMoreClicked = onMoreClicked,
-            onShare = onShare
+            itemGroupState = itemGroupState,
         )
     }
 }
 
 @Composable
+internal fun LazyItemScope.PreviewMessageItem(
+    message: UiMessage,
+    itemGroupState: MessageItemGroupState = SOLO,
+    showStatus: Boolean = false,
+    onAttachmentClicked: (Attachment) -> Unit = {},
+    onMoreClicked: (List<Attachment>, String) -> Unit = { _, _ -> },
+    onShare: (Collection<Attachment>) -> Unit = {},
+) {
+    MessageItem(
+        message = message,
+        showStatus = showStatus,
+        itemGroupState = itemGroupState,
+        onAttachmentClicked = onAttachmentClicked,
+        onMoreClicked = onMoreClicked,
+        onShare = onShare
+    )
+}
+
+@Composable
 internal fun PreviewMessageItemBase(
-    content: @Composable LazyItemScope.() -> Unit
+    content: @Composable LazyItemScope.() -> Unit,
 ) {
     ChatTheme {
         Surface {
-            LazyColumn {
+            LazyColumn(
+                modifier = Modifier.padding(horizontal = space.medium),
+            ) {
                 item {
                     content()
                 }
@@ -131,11 +151,12 @@ internal fun previewUiState(
     isLiveChat: Boolean = true,
 ) = ConversationUiState(
     sdkMessages = MutableStateFlow(messages),
-    typingIndicator = flowOf(true),
+    agentTyping = MutableStateFlow(Person(firstName = "Some", lastName = "User")),
     positionInQueue = flowOf(positionInQueue),
     sendMessage = {},
     loadMore = {},
     canLoadMore = MutableStateFlow(true),
+    isAgentTyping = MutableStateFlow(true),
     onStartTyping = {},
     onStopTyping = {},
     onAttachmentClicked = {},

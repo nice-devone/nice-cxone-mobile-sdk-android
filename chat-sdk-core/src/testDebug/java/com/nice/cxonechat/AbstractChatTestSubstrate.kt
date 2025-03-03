@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -83,6 +83,8 @@ internal abstract class AbstractChatTestSubstrate {
             }
         )
 
+    protected open val testWelcomeMessage = "welcome"
+
     @Before
     fun prepareInternal() {
         socketServer = MockServer()
@@ -97,7 +99,7 @@ internal abstract class AbstractChatTestSubstrate {
     @CallSuper
     protected abstract fun prepare()
 
-    private fun mockLogger() = object : Logger {
+    protected fun mockLogger() = object : Logger {
         override fun log(level: Level, message: String, throwable: Throwable?) {
             @Suppress("ProhibitedCall")
             println(message)
@@ -110,7 +112,7 @@ internal abstract class AbstractChatTestSubstrate {
         every { visitorId } returns UUID.fromString(TestUUID)
         every { customerId } returns TestUUID
         every { destinationId } returns UUID.fromString(TestUUID)
-        every { welcomeMessage } returns "welcome"
+        every { welcomeMessage } returns testWelcomeMessage
         every { authToken } returns "token"
         every { authTokenExpDate } returns Date().plus(1.days.inWholeMilliseconds)
         every { deviceToken } returns null
@@ -191,9 +193,18 @@ internal abstract class AbstractChatTestSubstrate {
         val expectedArray = expected
             .map { if (replaceDate) replaceDate(it, emptyArray()) else it }
             .map { replaceUUID(it, except) }
-        arguments
+            .toMutableList()
+        val mappedArguments = arguments
             .map { replaceUUID(it, except) }
             .map { if (replaceDate) replaceDate(it, except) else it }
+            .toMutableList()
+        // It is better to align the arrays to the same size, so we can see the differences.
+        val sizeDiff = mappedArguments.size - expectedArray.size
+        when {
+            sizeDiff > 0 -> expectedArray += List(sizeDiff) { "" }
+            sizeDiff < 0 -> mappedArguments += List(-sizeDiff) { "" }
+        }
+        mappedArguments
             .forEachIndexed { index, argument ->
                 assertEquals(expectedArray[index], argument)
             }

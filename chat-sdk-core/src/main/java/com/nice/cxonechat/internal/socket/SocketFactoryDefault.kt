@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package com.nice.cxonechat.internal.socket
 
 import com.nice.cxonechat.SocketFactoryConfiguration
+import com.nice.cxonechat.core.BuildConfig
 import com.nice.cxonechat.internal.model.ConnectionInternal
 import com.nice.cxonechat.storage.ValueStorage
 import okhttp3.OkHttpClient
@@ -33,18 +34,6 @@ internal class SocketFactoryDefault(
     private val timeout: Long = 5.seconds.inWholeMilliseconds
     private val interval: Long = 10.seconds.inWholeMilliseconds
 
-    private val socketUrl: String by lazy {
-        buildString {
-            append(config.environment.socketUrl)
-            append("?brandId=${config.brandId}")
-            append("&channelId=${config.channelId}")
-            append("&applicationType=native")
-            append("&os=Android")
-            @Suppress("DEPRECATION")
-            append("&clientVersion=${config.version}")
-        }
-    }
-
     private val okHttpClient: OkHttpClient by lazy {
         sharedOkHttpClient.newBuilder()
             .connectTimeout(timeout, MILLISECONDS)
@@ -52,12 +41,25 @@ internal class SocketFactoryDefault(
             .build()
     }
 
-    override fun create(listener: WebSocketListener): WebSocket = okHttpClient.newWebSocket(
-        Request.Builder().url(socketUrl).build(),
+    override fun create(listener: WebSocketListener, visitorId: String): WebSocket = okHttpClient.newWebSocket(
+        Request.Builder().url(socketUrl(visitorId)).build(),
         listener,
     )
 
     override fun createProxyListener(): ProxyWebSocketListener = ProxyWebSocketListener()
+
+    private fun socketUrl(visitorId: String) = buildString {
+        append(config.environment.socketUrl)
+        append("?brandId=")
+        append(config.brandId.toString())
+        append("&channelId=")
+        append(config.channelId)
+        append("&visitorId=")
+        append(visitorId)
+        append("&sdkPlatform=android")
+        append("&sdkVersion=")
+        append(BuildConfig.VERSION_NAME)
+    }
 
     override fun getConfiguration(storage: ValueStorage) = ConnectionInternal(
         brandId = config.brandId.toInt(),

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,24 @@
 
 package com.nice.cxonechat.ui.composable.generic
 
-import androidx.compose.foundation.clickable
+import android.content.res.Configuration
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType.Companion.PrimaryNotEditable
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,24 +46,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.ui.R.string
+import com.nice.cxonechat.ui.composable.generic.TreeFieldDefaults.LeafNodeElevation
+import com.nice.cxonechat.ui.composable.generic.TreeFieldDefaults.ParentNodeElevation
+import com.nice.cxonechat.ui.composable.generic.TreeFieldDefaults.SelectedLeafNodeElevation
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
+import com.nice.cxonechat.ui.composable.theme.LocalChatTypography
 import com.nice.cxonechat.ui.composable.theme.LocalSpace
+import com.nice.cxonechat.ui.model.SimpleTreeFieldItem
+import com.nice.cxonechat.ui.model.TreeFieldItem
+import com.nice.cxonechat.ui.util.findRecursive
 import com.nice.cxonechat.ui.util.toggle
-
-internal interface TreeFieldItem<ValueType> {
-    val label: String
-    val value: ValueType
-    val children: Iterable<TreeFieldItem<ValueType>>?
-
-    val isLeaf: Boolean
-        get() = children == null
-}
-
-internal data class SimpleTreeFieldItem<ValueType>(
-    override val label: String,
-    override val value: ValueType,
-    override val children: List<TreeFieldItem<ValueType>>? = null,
-) : TreeFieldItem<ValueType>
 
 @Suppress("LongParameterList")
 @Composable
@@ -69,22 +69,24 @@ internal fun <ValueType> TreeField(
     onNodeClicked: (TreeFieldItem<ValueType>) -> Unit,
     onExpandClicked: (TreeFieldItem<ValueType>) -> Unit,
 ) {
-    Row(
-        verticalAlignment = Alignment.Top,
+    Box(
+        contentAlignment = Alignment.TopStart,
         modifier = modifier
             .fillMaxWidth()
             .defaultMinSize(minHeight = LocalSpace.current.clickableSize)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            if(label.isNotBlank()) {
-                Text(text = label, modifier = Modifier.padding(LocalSpace.current.treeFieldIndent))
-                Spacer(Modifier.size(16.dp))
+            if (label.isNotBlank()) {
+                Text(
+                    text = label,
+                    style = LocalChatTypography.current.surveyLabel,
+                )
             }
             items.forEach { item ->
                 TreeNode(
                     node = item,
                     modifier = modifier.fillMaxWidth(),
-                    indent = 8.dp,
+                    indent = LocalSpace.current.treeFieldIndent,
                     isExpanded = isExpanded,
                     isSelected = isSelected,
                     onNodeClicked = onNodeClicked,
@@ -95,6 +97,7 @@ internal fun <ValueType> TreeField(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Suppress("CognitiveComplexMethod", "LongParameterList")
 @Composable
 private fun <ValueType> TreeNode(
@@ -108,48 +111,109 @@ private fun <ValueType> TreeNode(
 ) {
     val expanded = isExpanded(node)
 
-    Column {
-        Row(
-            modifier = modifier.clickable {
-                onNodeClicked(node)
-            },
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            when {
-                node.isLeaf -> Spacer(Modifier.size(LocalSpace.current.clickableSize))
-                else -> ExpandableIcon(expanded = isExpanded(node)) {
-                    onExpandClicked(node)
-                }
-            }
-            Text(
-                node.label,
-            )
-            if (isSelected(node)) {
-                SelectedIcon(node.label, modifier = Modifier.padding(start = ChatTheme.space.small))
-            }
-        }
-
-        val children = node.children
-        if (children != null && expanded) {
-            Column(Modifier.padding(start = LocalSpace.current.treeFieldIndent)) {
-                children.forEach {
-                    TreeNode(
-                        node = it,
-                        modifier = modifier,
-                        indent = indent + LocalSpace.current.treeFieldIndent,
-                        isExpanded = isExpanded,
-                        isSelected = isSelected,
-                        onNodeClicked = onNodeClicked,
-                        onExpandClicked = onExpandClicked,
-                    )
-                }
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expandedStateChanged ->
+            if (expandedStateChanged) onExpandClicked(node)
+        },
+        modifier = modifier,
+    ) {
+        Column(modifier = Modifier.menuAnchor(PrimaryNotEditable)) {
+            TreeNodeMenuItem(node, expanded, isSelected, onNodeClicked)
+            val children = node.children
+            if (children != null) {
+                SubTree(
+                    expanded = expanded,
+                    children = children,
+                    indent = indent,
+                    isExpanded = isExpanded,
+                    isSelected = isSelected,
+                    onNodeClicked = onNodeClicked,
+                    onExpandClicked = onExpandClicked
+                )
             }
         }
     }
 }
 
 @Composable
-private fun SelectedIcon(label: String, modifier: Modifier = Modifier) {
+private fun <ValueType> ColumnScope.SubTree(
+    expanded: Boolean,
+    children: Iterable<TreeFieldItem<ValueType>>,
+    indent: Dp,
+    isExpanded: (TreeFieldItem<ValueType>) -> Boolean,
+    isSelected: (TreeFieldItem<ValueType>) -> Boolean,
+    onNodeClicked: (TreeFieldItem<ValueType>) -> Unit,
+    onExpandClicked: (TreeFieldItem<ValueType>) -> Unit,
+) {
+    HorizontalDivider()
+    if (expanded) {
+        children.forEach { childNode ->
+            TreeNode(
+                node = childNode,
+                modifier = Modifier
+                    .padding(start = if (childNode.isLeaf) 0.dp else indent),
+                indent = indent,
+                isExpanded = isExpanded,
+                isSelected = isSelected,
+                onNodeClicked = onNodeClicked,
+                onExpandClicked = onExpandClicked,
+            )
+        }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun <ValueType> TreeNodeMenuItem(
+    node: TreeFieldItem<ValueType>,
+    expanded: Boolean,
+    isSelected: (TreeFieldItem<ValueType>) -> Boolean,
+    onNodeClicked: (TreeFieldItem<ValueType>) -> Unit,
+) {
+    val isLeaf = node.isLeaf
+    val isNodeSelected = isSelected(node)
+    Surface(
+        color = nodeColor(isLeaf, isNodeSelected),
+        tonalElevation = nodeElevation(isLeaf, isNodeSelected),
+    ) {
+        DropdownMenuItem(
+            text = { Text(node.label) },
+            onClick = {
+                if (isLeaf || expanded) onNodeClicked(node)
+            },
+            trailingIcon = {
+                when {
+                    isLeaf -> Box(contentAlignment = Alignment.Center) {
+                        if (isNodeSelected) {
+                            SelectedIcon(node.label)
+                        }
+                    }
+
+                    else -> ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                }
+            },
+            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+        )
+    }
+}
+
+@Composable
+private fun nodeElevation(isLeaf: Boolean, isSelected: Boolean) = if (isLeaf) {
+    if (isSelected) SelectedLeafNodeElevation else LeafNodeElevation
+} else {
+    ParentNodeElevation
+}
+
+@Composable
+private fun nodeColor(isLeaf: Boolean, isSelected: Boolean) = if (isLeaf) {
+    if (isSelected) colorScheme.surfaceContainerHighest else colorScheme.surfaceContainer
+} else {
+    colorScheme.surface
+}
+
+@Composable
+private fun SelectedIcon(label: String) {
     Icon(
         imageVector = Icons.Default.Check,
         contentDescription = stringResource(
@@ -158,12 +222,23 @@ private fun SelectedIcon(label: String, modifier: Modifier = Modifier) {
                 label,
             )
         ),
-        modifier = modifier,
+        tint = colorScheme.primary,
     )
 }
 
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO or Configuration.UI_MODE_TYPE_UNDEFINED)
+@Composable
+private fun TreeFieldPreviewLight() {
+    TreeFieldPreview()
+}
+
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_UNDEFINED)
+@Composable
+private fun TreeFieldPreviewDark() {
+    TreeFieldPreview()
+}
+
 @Suppress("CognitiveComplexMethod", "LongParameterList", "UnusedPrivateMember")
-@Preview
 @Composable
 private fun TreeFieldPreview() {
     val nodes = listOf(
@@ -174,75 +249,58 @@ private fun TreeFieldPreview() {
                 SimpleTreeFieldItem(
                     "Node 0-0",
                     "0-0",
-                    listOf(SimpleTreeFieldItem("Node 0-0-0", "0-0-0"))
+                    listOf(
+                        SimpleTreeFieldItem("Node 0-0-0", "0-0-0"),
+                        SimpleTreeFieldItem("Node 0-0-1", "0-0-1"),
+                        SimpleTreeFieldItem(
+                            "Node 0-0-2",
+                            "0-0-2",
+                            listOf(
+                                SimpleTreeFieldItem("Node 0-0-2-0", "0-0-2-0"),
+                                SimpleTreeFieldItem("Node 0-0-2-1", "0-0-2-1"),
+                            )
+                        )
+                    )
                 ),
-                SimpleTreeFieldItem("Node 0-1", "0-1")
+                SimpleTreeFieldItem("Node 0-1", "0-1"),
+                SimpleTreeFieldItem("Node 0-2", "0-2"),
             ),
         ),
         SimpleTreeFieldItem("Node 1", "1")
     )
     var selected: TreeFieldItem<String>? by remember {
-        mutableStateOf(nodes.findRecursive { it.value == "0-0-0" })
+        mutableStateOf(nodes.findRecursive { it.value == "1" })
     }
     var expanded: Set<TreeFieldItem<String>> by remember { mutableStateOf(setOf()) }
 
-    Column {
-        Text(selected?.label ?: "")
-
-        TreeField(
-            label = "Label",
-            items = nodes,
-            isExpanded = expanded::contains,
-            isSelected = { selected == it },
-            onNodeClicked = { node ->
-                if (node.isLeaf) {
-                    selected = if (selected == node) null else node
-                } else {
-                    expanded = expanded.toggle(node)
-                }
-            },
-            onExpandClicked = { node ->
-                expanded = expanded.toggle(node)
+    ChatTheme {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            Column {
+                Text("Current selected: ${selected?.label ?: ""}")
+                HorizontalDivider()
+                TreeField(
+                    label = "Label",
+                    items = nodes,
+                    isExpanded = expanded::contains,
+                    isSelected = { selected == it },
+                    onNodeClicked = { node ->
+                        if (node.isLeaf) {
+                            selected = if (selected == node) null else node
+                        } else {
+                            expanded = expanded.toggle(node)
+                        }
+                    },
+                    onExpandClicked = { node ->
+                        expanded = expanded.toggle(node)
+                    }
+                )
             }
-        )
+        }
     }
 }
 
-/**
- * Recursive searches [TreeFieldItem] and builds a path to the node matching [test].
- *
- * @param Type type of value items in the included [TreeFieldItem].
- * @param test Test function to match the node being sought.
- * @return list of items to traverse to reach the matching node or null if no
- * match was found.
- */
-@Suppress("ReturnCount")
-internal fun <Type> Iterable<TreeFieldItem<Type>>.pathToNode(
-    test: (TreeFieldItem<Type>) -> Boolean
-): List<TreeFieldItem<Type>>? {
-    for(child in this) {
-        if (test(child)) {
-            return listOf(child)
-        }
-
-        child.children?.pathToNode(test)?.let {
-            return listOf(child) + it
-        }
-    }
-    return null
-}
-
-/**
- * Recursive searches [TreeFieldItem] and returns the matching item.
- *
- * @param Type type of value items in the included [TreeFieldItem].
- * @param test Test function to match the node being sought.
- * @return matching item or null if no match is found.
- */
-internal fun <Type> Iterable<TreeFieldItem<Type>>.findRecursive(
-    test: (TreeFieldItem<Type>) -> Boolean
-): TreeFieldItem<Type>? {
-    return fold(null as TreeFieldItem<Type>?) { found, node ->
-        found ?: if (test(node)) node else node.children?.findRecursive(test)
-    }
+internal object TreeFieldDefaults {
+    val ParentNodeElevation = 0.dp
+    val LeafNodeElevation = 1.dp
+    val SelectedLeafNodeElevation = 12.dp
 }

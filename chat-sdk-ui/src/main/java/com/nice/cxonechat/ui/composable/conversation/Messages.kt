@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -15,50 +15,78 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.nice.cxonechat.message.Attachment
-import com.nice.cxonechat.ui.R.string
+import com.nice.cxonechat.message.MessageDirection
+import com.nice.cxonechat.message.MessageDirection.ToAgent
 import com.nice.cxonechat.ui.composable.conversation.ContentType.DateHeader
 import com.nice.cxonechat.ui.composable.conversation.ContentType.Loading
+import com.nice.cxonechat.ui.composable.conversation.ContentType.Typing
+import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.FIRST
+import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.LAST
+import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.MIDDLE
+import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.SOLO
+import com.nice.cxonechat.ui.composable.conversation.model.Message
 import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider
+import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider.Companion.toPerson
 import com.nice.cxonechat.ui.composable.conversation.model.Section
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
-import com.nice.cxonechat.ui.util.isSameDay
-import java.util.Date
+import com.nice.cxonechat.ui.model.Person
 
+@Suppress("LongMethod")
 @Composable
 internal fun ColumnScope.Messages(
     scrollState: LazyListState,
     groupedMessages: List<Section>,
     loadMore: () -> Unit,
     canLoadMore: Boolean,
+    agentIsTyping: Boolean,
+    agentDetails: Person?,
     onAttachmentClicked: (Attachment) -> Unit,
     onMoreClicked: (List<Attachment>, String) -> Unit,
     onShare: (Collection<Attachment>) -> Unit,
 ) {
+    LaunchedEffect(agentIsTyping) {
+        if (agentIsTyping) {
+            scrollState.scrollToItem(0)
+        }
+    }
+
     LazyColumn(
         reverseLayout = true,
         state = scrollState,
         verticalArrangement = Arrangement.Top,
         modifier = Modifier
             .weight(1f)
+            .padding(horizontal = space.medium)
             .fillMaxSize(),
         contentPadding = PaddingValues(space.medium),
     ) {
+        if (agentIsTyping && agentDetails != null) {
+            item(contentType = Typing) {
+                TypingIndicatorMessage(
+                    agent = agentDetails,
+                    modifier = Modifier.padding(top = space.small)
+                )
+            }
+        }
+
         groupedMessages.forEach { section ->
             itemsIndexed(
                 items = section.messages,
@@ -66,10 +94,13 @@ internal fun ColumnScope.Messages(
                 contentType = { _, message -> message.contentType }
             ) { i, message ->
                 val isLast = i == section.messages.lastIndex
-                val showSender = isLast || message.sender != section.messages[i + 1].sender
+                val groupState = getGroupState(section, i, message, isLast)
+                val showStatus = message.direction == ToAgent && groupState in setOf(LAST, SOLO)
+
                 MessageItem(
                     message = message,
-                    showSender = showSender,
+                    showStatus = showStatus,
+                    itemGroupState = groupState,
                     onAttachmentClicked = onAttachmentClicked,
                     onMoreClicked = onMoreClicked,
                     onShare = onShare,
@@ -77,21 +108,9 @@ internal fun ColumnScope.Messages(
             }
 
             // Note that these will actually appear *above* the relevant messages because of `reverseLayout = true`
-            when {
-                // no header if only one day is displayed
-                groupedMessages.size <= 1 -> Unit
-
-                // Display "Today" over today's messages
-                section.createdAt.isSameDay(Date()) ->
-                    item(contentType = DateHeader) {
-                        DayHeader(dayString = stringResource(string.today), Modifier.animateItem())
-                    }
-
-                // display appropriate date over other messages
-                else ->
-                    item(contentType = DateHeader) {
-                        DayHeader(dayString = section.createdAtDate, Modifier.animateItem())
-                    }
+            // Display appropriate date over other messages
+            item(contentType = DateHeader) {
+                MessageGroupHeader(dayString = section.createdAtDate, Modifier.animateItem())
             }
         }
 
@@ -103,7 +122,25 @@ internal fun ColumnScope.Messages(
     }
 }
 
-@Preview
+private fun getGroupState(
+    section: Section,
+    i: Int,
+    message: Message,
+    isLast: Boolean,
+) = when {
+    section.messages.size == 1 -> SOLO
+    i == 0 || message.sender != section.messages[i - 1].sender -> when {
+        isLast || section.messages[i + 1].sender != message.sender -> SOLO
+        else -> LAST
+    }
+
+    isLast || section.messages[i - 1].sender == message.sender &&
+            section.messages[i + 1].sender != message.sender -> FIRST
+
+    else -> MIDDLE
+}
+
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO or Configuration.UI_MODE_TYPE_NORMAL)
 @Composable
 private fun MessagesPreview() {
     val context = LocalContext.current
@@ -121,6 +158,8 @@ private fun MessagesPreview() {
                 groupedMessages = section,
                 loadMore = {},
                 canLoadMore = false,
+                agentIsTyping = true,
+                agentDetails = MessageDirection.ToClient.toPerson(),
                 onAttachmentClicked = {},
                 onMoreClicked = { _, _ -> },
                 onShare = {},

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,13 @@ import com.nice.cxonechat.ChatEventHandler.OnEventSentListener
 import com.nice.cxonechat.event.AnalyticsEvent
 import com.nice.cxonechat.event.AuthorizeCustomerEvent
 import com.nice.cxonechat.event.ChatEvent
+import com.nice.cxonechat.event.ChatWindowOpenEvent
 import com.nice.cxonechat.event.LocalEvent
 import com.nice.cxonechat.event.ReconnectCustomerEvent
 import com.nice.cxonechat.event.RefreshToken
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerScope
-import com.nice.cxonechat.log.scope
+import com.nice.cxonechat.log.timedScope
 import com.nice.cxonechat.log.verbose
 import com.nice.cxonechat.util.expiresWithin
 import java.util.UUID
@@ -45,10 +46,18 @@ internal class DelayUnauthorizedEventHandler(
     private val delayedEvents = LinkedHashMap<UUID, () -> Unit>()
     private var disableDelay = false
 
-    override fun trigger(event: ChatEvent<*>, listener: OnEventSentListener?, errorListener: OnEventErrorListener?) = scope("trigger") {
+    fun delayEvents() = timedScope("delayEvents") {
+        disableDelay = false
+    }
+
+    override fun trigger(
+        event: ChatEvent<*>,
+        listener: OnEventSentListener?,
+        errorListener: OnEventErrorListener?,
+    ) = timedScope("trigger") {
         if (eventCanSkipAuthorization(event)) {
             events.trigger(event, listener, errorListener)
-            return@scope
+            return@timedScope
         }
         if (delayEvent()) {
             verbose(
@@ -66,9 +75,11 @@ internal class DelayUnauthorizedEventHandler(
         return authTokenExpDate == null || chat.storage.authToken == null || authTokenExpDate.expiresWithin(1.seconds)
     }
 
-    fun triggerDelayedEvents(disableFutureDelays: Boolean) = scope("triggerDelayedEvents") {
-        disableDelay = disableFutureDelays
-        if (delayedEvents.isEmpty()) return@scope
+    fun triggerDelayedEvents() = timedScope("triggerDelayedEvents") {
+        disableDelay = true
+        if (delayedEvents.isEmpty()) {
+            return@timedScope
+        }
         val toTrigger = delayedEvents.toMap()
         delayedEvents.keys.removeAll(toTrigger.keys)
         verbose("Triggering all delayed events")
@@ -81,7 +92,7 @@ internal class DelayUnauthorizedEventHandler(
      * Check if the event can be triggered without waiting for authorization by the backend.
      * Authorization events [AuthorizeCustomerEvent], [ReconnectCustomerEvent] and [RefreshToken] are always allowed by this filter.
      * [LocalEvent] are not sent to the backend and therefore are also allowed.
-     * And events with model [AnalyticsEvent] are also allowed since they are sent via a different route.
+     * And events with model [AnalyticsEvent], except [ChatWindowOpenEvent], are also allowed since they are sent via a different route.
      *
      * @return true iff the event can be triggered without waiting for authorization by the backend
      */
@@ -90,6 +101,7 @@ internal class DelayUnauthorizedEventHandler(
         is ReconnectCustomerEvent -> true
         is RefreshToken -> true
         is LocalEvent -> true
+        is ChatWindowOpenEvent -> disableDelay
         else -> when (event.getModel(chat.connection, chat.storage)) {
             is AnalyticsEvent -> true
             else -> disableDelay

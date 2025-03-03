@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ plugins {
     id "publish-conventions"
     id "api-conventions"
     id "org.jetbrains.kotlin.plugin.serialization"
+    id "com.github.gmazzo.buildconfig"
 }
 metalava {
     hiddenPackages = ["com.nice.cxonechat.internal"]
@@ -34,7 +35,6 @@ android {
     defaultConfig {
         consumerProguardFiles "consumer-rules.pro"
         versionName version
-        buildConfigField 'String', 'VERSION_NAME', "\"$version\""
     }
 
     buildTypes {
@@ -46,7 +46,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-
+    libraryVariants.configureEach { variant ->
+        buildConfig.sourceSets.named(variant.name) {
+            className.set("BuildConfig")
+            packageName("com.nice.cxonechat.core")
+            buildConfigField(String, "VERSION_NAME", provider { project.version })
+            buildConfigField(Boolean, "DEBUG", variant.buildType.isDebuggable())
+        }
+    }
     sourceSets {
         test {
             resources {
@@ -55,9 +62,6 @@ android {
         }
     }
 
-    buildFeatures {
-        buildConfig true // Library version is used for device fingerprint
-    }
 }
 
 kotlin {
@@ -86,4 +90,10 @@ dependencies {
     testImplementation libs.kotest.assertions.core
     testImplementation libs.kotlin.reflect
     testImplementation libs.gson
+}
+
+// Required for documentation generation
+afterEvaluate {
+    tasks.findByName("sourceDebugJar").dependsOn(generateDebugNonAndroidBuildConfig)
+    tasks.findByName("sourceReleaseJar").dependsOn(generateReleaseNonAndroidBuildConfig)
 }

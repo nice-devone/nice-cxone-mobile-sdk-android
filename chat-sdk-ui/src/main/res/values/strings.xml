@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+  ~ Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
   ~
   ~ Licensed under the NICE License;
   ~ you may not use this file except in compliance with the License.
@@ -19,10 +19,12 @@
     <string name="information">Information</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
+    <string name="done">Done</string>
     <string name="dismiss">Dismiss</string>
     <string name="change_details_label">Change custom fields</string>
     <string name="change_thread_name">Set name</string>
     <string name="text_send">Send</string>
+    <string name="selected">Selected</string>"
 
     <string-array name="thread_state_names">
         <item>Current</item>
@@ -107,13 +109,11 @@
     <string name="text_loading_more_messages">Loading more messages…</string>
     <string name="text_unsupported_message_type">Unsupported message type</string>
     <string name="content_description_text_input">Text input</string>
-    <string name="today">Today</string>
     <string name="image_preview_title">Image preview</string>
     <string name="update_thread_name">Update Thread Name</string>
     <string name="enter_thread_name">Enter Thread Name</string>
     <string name="video_preview_title">Video preview</string>
     <string name="preparing_sdk">Preparing SDK</string>
-    <string name="default_agent_name">Agent</string>
     <string name="status_read">Read</string>
     <string name="status_received">Received</string>
     <string name="share_attachment_others">Share attachment %1$s +%2$d others</string>
@@ -124,6 +124,7 @@
     <string name="attachments_title">Attachments</string>
     <string name="extra_attachments_count">+%1$s</string>
     <string name="status_sent">Sent</string>
+    <string name="status_delivered">Delivered</string>
     <string name="status_sending">Sending</string>
     <string name="status_failed">Failed</string>
     <string name="select_items">Select Items</string>
@@ -136,6 +137,8 @@
     <string name="position_in_queue_ordinal">All agents are currently busy.\nYou are {0,ordinal} in queue.</string>
     <string name="position_in_queue_cardinal">All agents are currently busy.\nYou are %1$d in queue.</string>
     <string name="label_thread_archived">This conversation was archived</string>
+    <string name="content_description_url_link">URL Link</string>
+    <string name="option_selected">Option Selected</string>
 
     <string name="attachment_upload_failure">Attachment upload failure</string>
     <string name="attachment_not_supported">Selected attachment type is not supported for upload by this application.</string>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 
 package com.nice.cxonechat.internal
 
-import androidx.annotation.VisibleForTesting
 import com.nice.cxonechat.Cancellable
 import com.nice.cxonechat.ChatThreadHandler
 import com.nice.cxonechat.ChatThreadHandler.OnThreadUpdatedListener
@@ -35,9 +34,12 @@ import com.nice.cxonechat.internal.model.network.EventContactInboxAssigneeChange
 import com.nice.cxonechat.internal.model.network.EventLiveChatThreadRecovered
 import com.nice.cxonechat.internal.model.network.EventSetPositionInQueue
 import com.nice.cxonechat.internal.socket.EventCallback.Companion.addCallback
+import com.nice.cxonechat.log.LoggerScope
+import com.nice.cxonechat.log.scope
 import com.nice.cxonechat.log.warning
 import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.message.Message.Text
+import com.nice.cxonechat.message.MessageDirection
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState.Closed
 import com.nice.cxonechat.thread.ChatThreadState.Pending
@@ -54,12 +56,16 @@ internal class ChatThreadHandlerLiveChat(
     private val chat: ChatWithParameters,
     private val thread: ChatThreadMutable,
     isThreadCreated: Boolean,
-) : ChatThreadHandler by origin {
+) : ChatThreadHandler by origin, LoggerScope by LoggerScope("ChatThreadHandlerLiveChat", chat.entrails.logger) {
 
     init {
-        if (isThreadCreated) {
-            chat.entrails.threading.background {
-                if (thread.messages.isEmpty() && thread.threadState === Pending) origin.messages().send(BEGIN_CONVERSATION_MESSAGE)
+        scope("init") {
+            if (isThreadCreated) {
+                chat.entrails.threading.background {
+                    if (thread.messages.none { it.direction === MessageDirection.ToAgent } && thread.threadState === Pending) {
+                        origin.messages().send(BEGIN_CONVERSATION_MESSAGE)
+                    }
+                }
             }
         }
     }
@@ -144,10 +150,9 @@ internal class ChatThreadHandlerLiveChat(
     }
 
     internal companion object {
-        @VisibleForTesting
         internal const val BEGIN_CONVERSATION_MESSAGE = "__Begin Livechat Conversation__"
 
-        internal fun Iterable<Message>.removeConversationStarter() = dropWhile(::isMessageConversationStart)
+        internal fun Iterable<Message>.removeConversationStarter() = filterNot(::isMessageConversationStart)
 
         private fun isMessageConversationStart(it: Message) = (it as? Text)?.text == BEGIN_CONVERSATION_MESSAGE
 

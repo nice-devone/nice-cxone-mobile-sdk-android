@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import com.nice.cxonechat.message.Action
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.message.MessageDirection
+import com.nice.cxonechat.message.MessageDirection.ToAgent
 import com.nice.cxonechat.message.MessageDirection.ToClient
 import com.nice.cxonechat.message.MessageStatus
 import com.nice.cxonechat.message.MessageStatus.Sent
@@ -28,6 +29,7 @@ import com.nice.cxonechat.ui.composable.conversation.model.Message.QuickReply
 import com.nice.cxonechat.ui.composable.conversation.model.Message.RichLink
 import com.nice.cxonechat.ui.composable.conversation.model.Message.Text
 import com.nice.cxonechat.ui.composable.conversation.model.Message.Unsupported
+import com.nice.cxonechat.ui.model.Person
 import com.nice.cxonechat.ui.util.DateProvider
 import java.util.Date
 import java.util.UUID
@@ -47,6 +49,7 @@ internal class PreviewMessageProvider: PreviewParameterProvider<Message> {
         get() = sequenceOf(
             Text("Text 1"),
             ListPicker(),
+            Text("Message to agent", direction = ToAgent),
             QuickReply(),
             RichLink(),
         )
@@ -66,13 +69,6 @@ internal class PreviewMessageProvider: PreviewParameterProvider<Message> {
         override val status: MessageStatus = Sent,
         override val seenAt: Date? = null,
     ) : SdkMetadata
-
-    internal data class Author(
-        override val id: String = "",
-        override val firstName: String = "firstName",
-        override val lastName: String = "lastName",
-        override val imageUrl: String? = null
-    ) : SdkAuthor()
 
     internal data class Media(
         override val fileName: String,
@@ -95,7 +91,7 @@ internal class PreviewMessageProvider: PreviewParameterProvider<Message> {
             description: String? = null,
         ) : this(
             text = text,
-            media = Media(mediaFileName, mediaUrl, mediaMimeType),
+            media = Media(fileName = mediaFileName, url = mediaUrl, mimeType = mediaMimeType),
             postback = postback,
             description = description,
         )
@@ -110,7 +106,7 @@ internal class PreviewMessageProvider: PreviewParameterProvider<Message> {
             }
         }
 
-        fun MessageDirection.toAuthor(id: String = "", imageUrl: String? = null) = Author(
+        fun MessageDirection.toPerson(id: String = "", imageUrl: String? = null) = Person(
             id = id,
             firstName = if (this === ToClient) "Agent" else "Customer",
             lastName = "Preview",
@@ -126,7 +122,7 @@ internal class PreviewMessageProvider: PreviewParameterProvider<Message> {
         override val threadId: UUID = UUID.randomUUID(),
         override val createdAt: Date = DateProvider.now(),
         override val direction: MessageDirection = ToClient,
-        override val author: SdkAuthor? = ToClient.toAuthor(),
+        override val author: SdkAuthor? = direction.toPerson(),
         override val metadata: SdkMetadata = Metadata(),
         override val fallbackText: String? = null,
     ) : SdkText()
@@ -136,14 +132,14 @@ internal class PreviewMessageProvider: PreviewParameterProvider<Message> {
         override val title: String = "List Picker",
         override val text: String = "List Picker Description",
         override val actions: Iterable<Action> = listOf(
-            ReplyButton("Some text"),
-            ReplyButton("Random cat", mediaUrl = "https://http.cat/203")
+            ReplyButton("Reply without media"),
+            ReplyButton("Reply with a cat image", mediaUrl = "https://http.cat/203", mediaMimeType = "image/jpeg")
         ),
         override val id: UUID = UUID.randomUUID(),
         override val threadId: UUID = UUID.randomUUID(),
         override val createdAt: Date = DateProvider.now(),
         override val direction: MessageDirection = ToClient,
-        override val author: SdkAuthor? = ToClient.toAuthor(),
+        override val author: SdkAuthor? = ToClient.toPerson(),
         override val metadata: SdkMetadata = Metadata(),
         override val attachments: Iterable<Attachment> = listOf(),
         override val fallbackText: String? = null,
@@ -161,7 +157,7 @@ internal class PreviewMessageProvider: PreviewParameterProvider<Message> {
         override val createdAt: Date = Date(),
         override val direction: MessageDirection = ToClient,
         override val metadata: SdkMetadata = Metadata(),
-        override val author: SdkAuthor? = ToClient.toAuthor(),
+        override val author: SdkAuthor? = ToClient.toPerson(),
         override val attachments: Iterable<Attachment> = emptyList(),
         override val fallbackText: String? = null,
     ) : SdkQuickReply()
@@ -171,16 +167,16 @@ internal class PreviewMessageProvider: PreviewParameterProvider<Message> {
         override val title: String = "Rich Link",
         override val url: String = "https://nice.com",
         override val media: Media = Media(
-            fileName = "https://thecatapi.com/api/images/get?format=src&type=jpeg",
-            url = "image/jpeg",
-            mimeType = "Preview Image",
+            url = "https://thecatapi.com/api/images/get?format=src&type=jpeg",
+            mimeType = "image/jpeg",
+            fileName = "Preview Image",
         ),
         override val id: UUID = UUID.randomUUID(),
         override val threadId: UUID = UUID.randomUUID(),
         override val createdAt: Date = Date(),
         override val direction: MessageDirection = ToClient,
         override val metadata: SdkMetadata = Metadata(),
-        override val author: SdkAuthor? = ToClient.toAuthor(),
+        override val author: SdkAuthor? = ToClient.toPerson(),
         override val attachments: Iterable<Attachment> = emptyList(),
         override val fallbackText: String? = null,
     ) : SdkRichLink()

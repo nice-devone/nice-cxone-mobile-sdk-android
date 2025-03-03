@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -30,14 +30,14 @@ import coil.compose.AsyncImage
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 
 @Composable
-internal fun AgentAvatar(url: String, modifier: Modifier = Modifier) {
+internal fun AgentAvatar(url: String?, modifier: Modifier = Modifier) {
     val placeholder = forwardingPainter(
         painter = rememberVectorPainter(image = Outlined.AccountCircle),
         colorFilter = ColorFilter.tint(ChatTheme.colorScheme.onBackground)
     )
 
     AsyncImage(
-        model = url.ifBlank { null },
+        model = url,
         placeholder = placeholder,
         fallback = placeholder,
         contentDescription = null,

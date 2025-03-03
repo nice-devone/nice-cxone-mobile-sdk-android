@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.nice.cxonechat
 
 import com.nice.cxonechat.FakeChatStateListener.ChatStateConnection
 import com.nice.cxonechat.FakeChatStateListener.ChatStateConnection.Ready
+import com.nice.cxonechat.enums.CXOneEnvironment
 import com.nice.cxonechat.enums.ContactStatus.Closed
 import com.nice.cxonechat.enums.ErrorType.RecoveringLivechatFailed
 import com.nice.cxonechat.internal.ChatThreadHandlerLiveChat.Companion.BEGIN_CONVERSATION_MESSAGE
@@ -28,6 +29,7 @@ import com.nice.cxonechat.model.makeMessageModel
 import com.nice.cxonechat.server.ServerRequest
 import com.nice.cxonechat.server.ServerResponse
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.tool.ChatEntrailsMock
 import io.kotest.matchers.shouldBe
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -37,9 +39,13 @@ import kotlin.test.assertNull
 
 internal class ChatLiveTest : AbstractChatTest() {
 
+    // Disable welcome message
+    override val testWelcomeMessage: String = ""
+
     override fun prepare() {
         isLiveChat = true
         features.clear()
+        entrails = ChatEntrailsMock(httpClient, storage, service, mockLogger(), CXOneEnvironment.EU1.value)
         super.prepare()
     }
 

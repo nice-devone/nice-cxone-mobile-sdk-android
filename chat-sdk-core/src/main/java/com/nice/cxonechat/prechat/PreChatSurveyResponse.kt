@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,9 @@ sealed interface PreChatSurveyResponse<T : FieldDefinition, R> {
     @Public
     interface Text : PreChatSurveyResponse<FieldDefinition.Text, String> {
         @Public
+        @Suppress(
+            "UndocumentedPublicClass", // Companion objects don't require documentation.
+        )
         companion object {
             /**
              * Creates instance of [Text] survey response.
@@ -51,9 +54,21 @@ sealed interface PreChatSurveyResponse<T : FieldDefinition, R> {
              * @param response The user provided text response to the survey.
              * An empty String is considered as an invalid answer, and the whole response will be later discarded.
              */
-            @JvmName("create")
             @JvmStatic
             operator fun invoke(
+                question: FieldDefinition.Text,
+                response: String,
+            ) = create(question, response)
+
+            /**
+             * Creates instance of [Text] survey response.
+             *
+             * @param question [FieldDefinition.Text] survey question which is being answered.
+             * @param response The user provided text response to the survey.
+             * An empty String is considered as an invalid answer, and the whole response will be later discarded.
+             */
+            @JvmStatic
+            fun create(
                 question: FieldDefinition.Text,
                 response: String,
             ) = object : Text {
@@ -69,6 +84,9 @@ sealed interface PreChatSurveyResponse<T : FieldDefinition, R> {
     @Public
     interface Selector : PreChatSurveyResponse<FieldDefinition.Selector, SelectorNode> {
         @Public
+        @Suppress(
+            "UndocumentedPublicClass", // Companion objects don't require documentation.
+        )
         companion object {
             /**
              * Creates instance of [Selector] survey response.
@@ -76,9 +94,20 @@ sealed interface PreChatSurveyResponse<T : FieldDefinition, R> {
              * @param question [FieldDefinition.Selector] survey question which is being answered.
              * @param response User selected [SelectorNode] instance as a response to the survey.
              */
-            @JvmName("create")
             @JvmStatic
             operator fun invoke(
+                question: FieldDefinition.Selector,
+                response: SelectorNode,
+            ) = create(question, response)
+
+            /**
+             * Creates instance of [Selector] survey response.
+             *
+             * @param question [FieldDefinition.Selector] survey question which is being answered.
+             * @param response User selected [SelectorNode] instance as a response to the survey.
+             */
+            @JvmStatic
+            fun create(
                 question: FieldDefinition.Selector,
                 response: SelectorNode,
             ) = object : Selector {
@@ -94,6 +123,9 @@ sealed interface PreChatSurveyResponse<T : FieldDefinition, R> {
     @Public
     interface Hierarchy : PreChatSurveyResponse<FieldDefinition.Hierarchy, HierarchyNode<String>> {
         @Public
+        @Suppress(
+            "UndocumentedPublicClass", // Companion objects don't require documentation.
+        )
         companion object {
             /**
              * Creates instance of [Hierarchy] survey response.
@@ -101,11 +133,22 @@ sealed interface PreChatSurveyResponse<T : FieldDefinition, R> {
              * @param question [FieldDefinition.Hierarchy] survey question which is being answered.
              * @param response User selected leaf [HierarchyNode] as a response to the survey.
              */
-            @JvmName("create")
             @JvmStatic
             operator fun invoke(
                 question: FieldDefinition.Hierarchy,
-                response: HierarchyNode<String>
+                response: HierarchyNode<String>,
+            ) = create(question, response)
+
+            /**
+             * Creates instance of [Hierarchy] survey response.
+             *
+             * @param question [FieldDefinition.Hierarchy] survey question which is being answered.
+             * @param response User selected leaf [HierarchyNode] as a response to the survey.
+             */
+            @JvmStatic
+            fun create(
+                question: FieldDefinition.Hierarchy,
+                response: HierarchyNode<String>,
             ) = object : Hierarchy {
                 override val question: FieldDefinition.Hierarchy = question
                 override val response: HierarchyNode<String> = response

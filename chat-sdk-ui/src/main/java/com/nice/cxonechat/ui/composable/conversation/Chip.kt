@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -28,14 +28,17 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import coil.compose.AsyncImage
 import com.nice.cxonechat.ui.composable.conversation.model.Action.ReplyButton
 import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider
@@ -53,13 +56,11 @@ internal fun Chip(
     description: String? = null,
     enabled: Boolean = true,
     selected: Boolean = false,
+    colors: ChipColors = ChipDefaults.chipColors(),
     onSelected: () -> Unit,
 ) {
-    val color = colorScheme.primary
-    val disabledColor = colorScheme.onSurface.copy(alpha = 0.38f)
-
     Surface(
-        color = if (enabled || selected) color else disabledColor,
+        color = colors.containerColor(enabled || selected),
         shape = chatShapes.chip,
         modifier = modifier
             .selectable(
@@ -71,13 +72,13 @@ internal fun Chip(
             .semantics {
                 description?.let { contentDescription = it }
             }
-            .padding(2.dp)
     ) {
         Row(
             horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .padding(space.chipPadding)
-                .defaultMinSize(space.clickableSize)
+                .defaultMinSize(space.chipMinSize, space.chipMinSize)
         ) {
             if (image != null) {
                 AsyncImage(
@@ -87,14 +88,13 @@ internal fun Chip(
                         colorFilter = ColorFilter.tint(LocalContentColor.current)
                     ),
                     contentDescription = null,
-                    modifier = Modifier.size(space.chipIconSize)
+                    modifier = Modifier
+                        .size(space.chipIconSize)
+                        .padding(end = space.small)
                 )
             }
             Text(
                 text = text,
-                modifier = modifier
-                    .padding(horizontal = 4.dp)
-                    .defaultMinSize(minHeight = space.chipIconSize)
             )
         }
     }
@@ -107,6 +107,7 @@ internal fun Chip(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     selected: Boolean = false,
+    colors: ChipColors = ChipDefaults.chipColors(),
 ) {
     Chip(
         text = action.text,
@@ -115,32 +116,70 @@ internal fun Chip(
         description = action.description,
         enabled = enabled,
         selected = selected,
+        colors = colors,
     ) {
         onSelected(action)
     }
 }
 
-@Preview
+internal object ChipDefaults {
+    @Composable
+    fun chipColors(
+        containerColor: Color = colorScheme.primary,
+        disabledContainerColor: Color = colorScheme.onSurface.copy(alpha = 0.38f),
+    ) = ChipColors(
+        containerColor = containerColor,
+        disabledContainerColor = disabledContainerColor,
+    )
+}
+
+@Immutable
+internal data class ChipColors(
+    private val containerColor: Color = Color.Unspecified,
+    private val disabledContainerColor: Color = Color.Unspecified,
+) {
+    @Stable
+    fun containerColor(enabled: Boolean): Color = if (enabled) containerColor else disabledContainerColor
+}
+
+@PreviewLightDark
 @Composable
+@Suppress("MaxLineLength")
 private fun ChipPreview() {
     ChatTheme {
-        Column {
-            Chip(
-                action = ReplyButton(
-                    action = PreviewMessageProvider.ReplyButton("Text"),
-                    sendMessage = {}
-                ),
-                onSelected = {},
-                selected = false,
-            )
-            Chip(
-                action = ReplyButton(
-                    action = PreviewMessageProvider.ReplyButton("Random cat", "https://http.cat/203"),
-                    sendMessage = {}
-                ),
-                onSelected = {},
-                selected = false,
-            )
+        Surface {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(space.medium)
+            ) {
+                Chip(
+                    action = ReplyButton(
+                        action = PreviewMessageProvider.ReplyButton("Yes"),
+                        sendMessage = {}
+                    ),
+                    onSelected = {},
+                    selected = false,
+                )
+                Chip(
+                    action = ReplyButton(
+                        action = PreviewMessageProvider.ReplyButton("Random cat", "https://http.cat/203"),
+                        sendMessage = {}
+                    ),
+                    onSelected = {},
+                    selected = false,
+                )
+                Chip(
+                    action = ReplyButton(
+                        action = PreviewMessageProvider.ReplyButton(
+                            "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. " +
+                                    "Morbi commodo, ipsum sed pharetra gravida," +
+                                    " orci magna rhoncus neque.",
+                        ),
+                        sendMessage = {}
+                    ),
+                    onSelected = {},
+                    selected = false,
+                )
+            }
         }
     }
 }

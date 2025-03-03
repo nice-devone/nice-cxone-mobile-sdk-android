@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.nice.cxonechat.state
 
 import com.nice.cxonechat.exceptions.InvalidCustomFieldValue
 import com.nice.cxonechat.exceptions.MissingPreChatCustomFieldsException
+import com.nice.cxonechat.tool.nextStringPair
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -42,6 +43,11 @@ internal class FieldDefinitionListTests {
         assertTrue(list.containsField(text))
         assertTrue(list.containsField(email))
         assertFalse(list.containsField("field3"))
+    }
+
+    @Test
+    fun undefinedKeyValueIsIgnored() {
+        list.validate(mapOf(nextStringPair()))
     }
 
     @Test

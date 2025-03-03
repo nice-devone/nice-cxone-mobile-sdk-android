@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -104,11 +104,12 @@ private fun uiState(
     onAttachmentClicked: (Attachment) -> Unit,
 ) = ConversationUiState(
     sdkMessages = chatThreadViewModel.messages,
-    typingIndicator = chatThreadViewModel.agentState,
+    agentTyping = chatThreadViewModel.currentAgent,
     positionInQueue = chatThreadViewModel.positionInQueue,
     sendMessage = chatThreadViewModel::sendMessage,
     loadMore = chatThreadViewModel::loadMore,
     canLoadMore = chatThreadViewModel.canLoadMore,
+    isAgentTyping = chatThreadViewModel.isAgentTyping,
     onStartTyping = {
         chatThreadViewModel.reportThreadRead()
         chatThreadViewModel.reportTypingStarted()

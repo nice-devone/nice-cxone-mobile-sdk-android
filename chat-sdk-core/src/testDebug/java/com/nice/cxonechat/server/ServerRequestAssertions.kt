@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -170,14 +170,14 @@ internal object ServerRequestAssertions {
         }
     }
 
-    fun String.verifySetContactCustomFields() = apply {
+    fun String.verifySetContactCustomFields(fields: Map<String, String>, contactId: String) = apply {
         verifyStructureOf(this) {
             eventBaseline(action = ChatWindowEvent)
             payload(type = "SetContactCustomFields") {
                 thread()
-                customFields()
+                customFields(fields)
                 prop("contact") {
-                    prop("id")
+                    prop("id", contactId)
                 }
             }
         }
@@ -321,6 +321,15 @@ internal object ServerRequestAssertions {
         prop("customFields") {
             prop("ident")
             prop("value")
+        }
+    }
+
+    private fun StructScope.customFields(map: Map<String, String>) {
+        prop("customFields") {
+            map.forEach { (key, value) ->
+                prop("ident", key)
+                prop("value", value)
+            }
         }
     }
 
