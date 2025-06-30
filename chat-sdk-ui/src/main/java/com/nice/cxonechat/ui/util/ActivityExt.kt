@@ -37,9 +37,10 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.storage.ValueStorage
+import com.nice.cxonechat.ui.storage.ValueStorage.Companion.getStringSet
+import com.nice.cxonechat.ui.storage.ValueStorage.Companion.setStringSet
 import com.nice.cxonechat.ui.storage.ValueStorage.StringKey.RequestedPermissionsKey
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
 /**
@@ -93,16 +94,12 @@ internal suspend fun Activity.checkPermissions(
                 onAcceptListener = { onAcceptPermissionRequest(missingPermissions) }
             )
         } else {
-            val requestedPermissions = valueStorage.getString(RequestedPermissionsKey)
-                .firstOrNull()
-                .orEmpty()
-                .split(", ")
-                .toSet()
+            val requestedPermissions = valueStorage.getStringSet(RequestedPermissionsKey)
             if (missingPermissionsSet.intersect(requestedPermissions).isEmpty()) {
                 // Permission are requested for the first time
-                valueStorage.setString(
+                valueStorage.setStringSet(
                     RequestedPermissionsKey,
-                    requestedPermissions.union(missingPermissionsSet).joinToString(", ")
+                    requestedPermissions.union(missingPermissionsSet)
                 )
                 onAcceptPermissionRequest(missingPermissions)
             } else {
@@ -158,7 +155,12 @@ internal fun Activity.overrideCloseAnimation(
     }
 }
 
-internal fun Activity.checkNotificationPermissions(permission: String, @StringRes rationale: Int, requestPermission: (String) -> Unit) {
+internal fun Activity.checkNotificationPermissions(
+    permission: String,
+    @StringRes rationale: Int,
+    requestPermission: (String) -> Unit,
+
+    ) {
     val isPermissionGranted = ContextCompat.checkSelfPermission(
         applicationContext,
         permission

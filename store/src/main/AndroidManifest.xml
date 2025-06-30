@@ -21,12 +21,6 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.HIDE_OVERLAY_WINDOWS" />
 
-    <permission
-        android:name="com.nice.cxonechat.sample.permission.CHAT_VIEW"
-        android:label="@string/label_chat_permission"
-        android:description="@string/desc_chat_permission"
-        android:protectionLevel="signature|internal" />
-
     <application
         android:name=".StoreApplication"
         android:allowBackup="true"
@@ -79,15 +73,15 @@
             </intent-filter>
         </activity>
 
+        <!-- This setup is required only to register correct intent filter for the push notifications. -->
         <activity
-            android:name="com.nice.cxonechat.ui.ChatActivity"
-            android:exported="true"
-            android:launchMode="singleTop"
-            android:permission="com.nice.cxonechat.sample.permission.CHAT_VIEW"
-            tools:replace="android:exported">
+            android:name="com.nice.cxonechat.ui.screen.ChatActivity"
+            android:exported="true">
+            <!-- The intent filter is required by the deeplinks in the push notifications. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
+                <!-- The intent filter data scheme has to match the scheme set in the channel settings. -->
                 <data android:scheme="com.nice.cxonechat.sample" />
             </intent-filter>
         </activity>

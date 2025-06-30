@@ -16,7 +16,7 @@
 package com.nice.cxonechat
 
 import androidx.annotation.CheckResult
-import com.nice.cxonechat.exceptions.CXOneException
+import com.nice.cxonechat.exceptions.CXoneException
 import com.nice.cxonechat.exceptions.InvalidCustomFieldValue
 import com.nice.cxonechat.exceptions.MissingPreChatCustomFieldsException
 import com.nice.cxonechat.exceptions.MissingThreadListFetchException
@@ -63,7 +63,7 @@ interface ChatThreadsHandler {
      * yet.
      *
      * Whenever the configuration doesn't permit creating new threads, this method throws
-     * [CXOneException] in response.
+     * [CXoneException] in response.
      * In cases where the configuration permits only a single thread, the method
      * requires the client to first call [threads] with a listener.
      * This is to ensure proper validation of creating threads.
@@ -102,7 +102,7 @@ interface ChatThreadsHandler {
      * yet.
      *
      * Whenever configuration doesn't permit creating new threads, this method throws
-     * [CXOneException] in response.
+     * [CXoneException] in response.
      * In cases where configuration permits only singular thread, the method
      * requires the client to first call [threads] with a listener.
      * This is to ensure proper validation of creating threads.
@@ -149,7 +149,7 @@ interface ChatThreadsHandler {
      * yet.
      *
      * Whenever configuration doesn't permit creating new threads, this method throws
-     * [CXOneException] in response.
+     * [CXoneException] in response.
      * In cases where configuration permits only singular thread, the method
      * requires the client to first call [threads] with a listener.
      * This is to ensure proper validation of creating threads.
@@ -198,7 +198,7 @@ interface ChatThreadsHandler {
      * yet.
      *
      * Whenever configuration doesn't permit creating new threads, this method throws
-     * [CXOneException] in response.
+     * [CXoneException] in response.
      * In cases where configuration permits only singular thread, the method
      * requires the client to first call [threads] with a listener.
      * This is to ensure proper validation of creating threads.

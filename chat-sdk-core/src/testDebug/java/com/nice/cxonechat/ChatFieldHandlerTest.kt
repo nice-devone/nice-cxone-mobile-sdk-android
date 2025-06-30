@@ -18,7 +18,6 @@
 package com.nice.cxonechat
 
 import com.nice.cxonechat.internal.model.ChannelConfiguration
-import com.nice.cxonechat.internal.model.CustomFieldPolyType.Text
 import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.server.ServerRequest
 import com.nice.cxonechat.thread.ChatThread
@@ -39,13 +38,7 @@ internal class ChatFieldHandlerTest : AbstractChatTest() {
     override val config: ChannelConfiguration
         get() {
             val config = super.config.let(::requireNotNull)
-            return config.copy(
-                contactCustomFields = listOf(
-                    Text(questionId, "first field")
-                ) + fields.entries.map {
-                    Text(it.key, it.value)
-                }
-            )
+            return config.copy()
         }
 
     override fun prepare() {

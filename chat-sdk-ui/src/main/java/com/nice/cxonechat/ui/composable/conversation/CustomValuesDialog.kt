@@ -18,11 +18,13 @@ package com.nice.cxonechat.ui.composable.conversation
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import com.nice.cxonechat.ui.EditCustomValuesScreen
 import com.nice.cxonechat.ui.R
-import com.nice.cxonechat.ui.customvalues.mergeWithCustomField
-import com.nice.cxonechat.ui.main.ChatThreadViewModel
+import com.nice.cxonechat.ui.composable.EditCustomValuesScreen
+import com.nice.cxonechat.ui.domain.model.mergeWithCustomField
+import com.nice.cxonechat.ui.viewmodel.ChatThreadViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,5 +44,6 @@ internal fun CustomValuesDialog(
         onCancel = chatViewModel::cancelEditingCustomValues,
         onConfirm = chatViewModel::confirmEditingCustomValues,
         canSubmit = true,
+        modifier = Modifier.testTag("custom_values_dialog"),
     )
 }

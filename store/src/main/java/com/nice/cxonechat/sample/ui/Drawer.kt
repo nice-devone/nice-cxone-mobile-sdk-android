@@ -34,9 +34,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.nice.cxonechat.sample.R
 import com.nice.cxonechat.sample.R.string
 import com.nice.cxonechat.sample.extensions.manifestVersionName
@@ -66,13 +67,13 @@ fun Drawer(
         HorizontalDivider()
         Item(context.manifestVersionName ?: stringResource(string.default_version_name))
         HorizontalDivider()
-        Item(stringResource(string.sdk_settings), onClick = onSdkSettings)
+        Item(stringResource(string.sdk_settings), modifier = Modifier.testTag("sdk_settings"), onClick = onSdkSettings)
         HorizontalDivider()
-        Item(stringResource(id = string.ui_settings), onClick = onUiSettings)
+        Item(stringResource(id = string.ui_settings), modifier = Modifier.testTag("ui_settings"), onClick = onUiSettings)
         HorizontalDivider()
         Spacer(modifier = Modifier.weight(1f))
         HorizontalDivider()
-        Item(stringResource(string.logout), onClick = onLogout)
+        Item(stringResource(string.logout), modifier = Modifier.testTag("logout"), onClick = onLogout)
     }
 }
 
@@ -95,14 +96,15 @@ private fun Header() {
 @Composable
 private fun Item(
     text: String,
+    modifier: Modifier = Modifier,
     icon: Painter? = null,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
 ) {
     val clickable = onClick != null
-    val modifier = onClick?.let { Modifier.clickable(onClick = it) } ?: Modifier
+    val clickableModifier = onClick?.let { modifier.clickable(onClick = it) } ?: modifier
 
     Row(
-        modifier = modifier
+        modifier = clickableModifier
             .height(AppTheme.space.clickableSize),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(AppTheme.space.large)

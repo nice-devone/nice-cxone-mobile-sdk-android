@@ -26,8 +26,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.Icons.Rounded
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -38,15 +38,15 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
-import com.nice.cxonechat.ui.model.Person
+import com.nice.cxonechat.ui.domain.model.Person
 
 @Composable
 internal fun MessageAvatar(agent: Person, modifier: Modifier = Modifier) {
     val foreground = ChatTheme.chatColors.agentAvatar.foreground
     val placeholder = forwardingPainter(
-        painter = rememberVectorPainter(image = Icons.Outlined.AccountCircle),
+        painter = rememberVectorPainter(image = Rounded.Person),
         colorFilter = ColorFilter.tint(foreground)
     )
     val monogram = agent.monogram
@@ -69,7 +69,9 @@ internal fun MessageAvatar(agent: Person, modifier: Modifier = Modifier) {
             Image(
                 placeholder,
                 null,
-                modifier = Modifier.fillMaxSize().padding(0.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(6.dp),
                 contentScale = ContentScale.Fit,
             )
         }

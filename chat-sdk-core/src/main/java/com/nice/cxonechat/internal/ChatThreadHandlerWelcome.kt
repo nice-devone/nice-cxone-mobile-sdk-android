@@ -29,6 +29,7 @@ import com.nice.cxonechat.internal.model.CustomFieldModel
 import com.nice.cxonechat.internal.model.MessageDirectionModel.ToClient
 import com.nice.cxonechat.internal.model.MessageModel
 import com.nice.cxonechat.internal.model.WelcomeMessage
+import com.nice.cxonechat.internal.model.network.CustomerStatistics
 import com.nice.cxonechat.internal.model.network.EventProactiveAction
 import com.nice.cxonechat.internal.model.network.MessagePolyContent.Text
 import com.nice.cxonechat.internal.model.network.MessagePolyContent.Text.Payload
@@ -205,6 +206,7 @@ internal class ChatThreadHandlerWelcome(
                     createdAt = Date(),
                     direction = ToClient,
                     messageContent = Text(Payload(welcomeMessage)),
+                    customerStatistics = CustomerStatistics(null),
                     userStatistics = UserStatistics(null, null),
                 )
             )

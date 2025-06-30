@@ -15,7 +15,7 @@
 
 package com.nice.cxonechat
 
-import com.nice.cxonechat.enums.CXOneEnvironment
+import com.nice.cxonechat.enums.CXoneEnvironment
 import com.nice.cxonechat.server.ServerRequest
 import com.nice.cxonechat.tool.ChatEntrailsMock
 import com.nice.cxonechat.tool.nextString
@@ -42,7 +42,7 @@ internal class ChatThreadHandlerCreateThreadTest : AbstractChatTest() {
             every { authTokenExpDate } returns Date().plus(1.days.inWholeMilliseconds)
             every { deviceToken } returns null
         }
-        entrails = ChatEntrailsMock(httpClient, storage, service, mockLogger(), CXOneEnvironment.EU1.value)
+        entrails = ChatEntrailsMock(httpClient, storage, service, mockLogger(), CXoneEnvironment.EU1.value)
         super.prepare()
     }
 

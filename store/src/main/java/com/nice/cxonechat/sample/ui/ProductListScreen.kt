@@ -53,6 +53,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -63,7 +64,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.nice.cxonechat.sample.R.string
 import com.nice.cxonechat.sample.data.models.Product
 import com.nice.cxonechat.sample.extensions.asCurrency
@@ -218,7 +219,8 @@ object ProductListScreen : Screen {
                         onLogout()
                     }
                 )
-            }
+            },
+            modifier = TestModifier.testTag("product_list_screen"),
         ) {
             ProductListView(
                 products,
@@ -241,8 +243,11 @@ object ProductListScreen : Screen {
             content = {
                 items(items = products, key = Product::id) { product ->
                     ProductCard(
-                        product,
-                        modifier.clickable(onClick = { onProductSelected(product) })
+                        product = product,
+                        modifier = Modifier
+                            .testTag("product_card")
+                            .then(modifier)
+                            .clickable(onClick = { onProductSelected(product) }),
                     )
                 }
             }
@@ -255,7 +260,9 @@ object ProductListScreen : Screen {
         var size by remember { mutableIntStateOf(screenWidth) }
 
         Card(
-            modifier = modifier.fillMaxWidth().onSizeChanged { size = it.width * 3 / 4 },
+            modifier = modifier
+                .fillMaxWidth()
+                .onSizeChanged { size = it.width * 3 / 4 },
             elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
         ) {
             Column(
@@ -289,16 +296,23 @@ object ProductListScreen : Screen {
         AlertDialog(
             onDismissRequest = onDismiss,
             confirmButton = {
-                OutlinedButton(onClick = onRetry) {
+                OutlinedButton(
+                    modifier = Modifier.testTag("retry_button"),
+                    onClick = onRetry
+                ) {
                     Text(stringResource(string.retry))
                 }
             },
             dismissButton = {
-                OutlinedButton(onClick = onDismiss) {
+                OutlinedButton(
+                    modifier = Modifier.testTag("ok_button"),
+                    onClick = onDismiss
+                ) {
                     Text(stringResource(string.ok))
                 }
             },
             text = { Text(message) },
+            modifier = TestModifier.testTag("product_list_error_dialog")
         )
     }
 }

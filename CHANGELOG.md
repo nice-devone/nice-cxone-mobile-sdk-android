@@ -1,10 +1,41 @@
 <a name="unreleased"></a>
 ## [Unreleased]
 
+<a name="3.0.0-RC2"></a>
+## [3.0.0-RC2] - 2025-06-30
+
+### Bug Fixes
+
+- ChatInstanceProvider - fix concurrency for state updates
+- Block multiple archival requests
+
+### Dependency Change
+
+- Bump androidx.datastore:datastore-preferences from 1.1.1 to 1.1.7
+- Bump retrofit from 2.11.0 to 3.0.0
+- Bump com.github.gmazzo.buildconfig from 5.5.4 to 5.6.6
+- Bump androidx.core:core-ktx from 1.15.0 to 1.16.0
+- Bump org.jetbrains:annotations from 26.0.1 to 26.0.2
+- Bump org.jetbrains.kotlinx:kotlinx-serialization-json from 1.7.3 to 1.8.1
+- Update Kotlin 2.0.21 -> 2.1.21
+
+### Features
+
+- Release Chat SDK UI module
+- Renamed all classes with name like `CXOne` to `CXone` - **Breaking Change**
+- Removed all deprecated methods and classes
+
+### UI Features
+
+- Redesign pre-contact survey
+- Allow to name pending thread
+
 <a name="2.3.0"></a>
+
 ## [2.3.0] - 2025-03-03
 
 ### Bug Fixes
+
 - Welcome message improvements
   - In Messaging mode Welcome message is initially provided as placeholder
   - Welcome Message in LiveChat mode is using different logic
@@ -323,7 +354,8 @@
     - failure
   - typing start/end
 
-[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.3.0...HEAD
+[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.0.0-RC2...HEAD
+[3.0.0-RC2]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.3.0...3.0.0-RC2
 [2.3.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.2.2...2.3.0
 [2.2.2]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.2.2...2.2.1
 [2.2.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.2.1...2.2.0

@@ -15,7 +15,6 @@
 
 package com.nice.cxonechat.event.thread
 
-import com.nice.cxonechat.Public
 import com.nice.cxonechat.internal.model.network.ActionLoadThreadMetadata
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.thread.ChatThread
@@ -23,14 +22,7 @@ import com.nice.cxonechat.thread.ChatThread
 /**
  * request thread metadata including name and last message.
  */
-@Public
-@Deprecated("Use ChatThreadEventHandler.loadMetadata()")
-object LoadThreadMetadataEvent : LoadThreadMetadataEventImpl()
-
-/**
- * request thread metadata including name and last message.
- */
-open class LoadThreadMetadataEventImpl: ChatThreadEvent() {
+internal class LoadThreadMetadataEvent : ChatThreadEvent() {
 
     override fun getModel(
         thread: ChatThread,

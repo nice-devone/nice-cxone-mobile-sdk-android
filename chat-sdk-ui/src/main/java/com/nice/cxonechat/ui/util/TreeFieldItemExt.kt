@@ -15,7 +15,7 @@
 
 package com.nice.cxonechat.ui.util
 
-import com.nice.cxonechat.ui.model.TreeFieldItem
+import com.nice.cxonechat.ui.domain.model.TreeFieldItem
 
 /**
  * Recursive searches [TreeFieldItem] and builds a path to the node matching [test].

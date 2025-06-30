@@ -50,8 +50,10 @@ class ChatSettingsHandler(
     private val chatSettingsRepository: ChatSettingsRepository,
     logger: Logger,
 ) : LoggerScope by LoggerScope(TAG, logger) {
+    private val flow by lazy { chatSettingsRepository.settings }
+
     private val settings: ChatSettings?
-        get() = chatSettingsRepository.settings.value
+        get() = flow.value
 
     /**
      * Set the sdk configuration to use for future attempts, if the configuration
@@ -111,7 +113,10 @@ class ChatSettingsHandler(
      * and saved storage.
      */
     fun clearAuthentication() = scope("clearAuthentication") {
-        AuthorizationManager.signOut(context, LoggingSignoutListener())
+        runCatching { AuthorizationManager.signOut(context, LoggingSignoutListener()) }
+            .onFailure {
+                error("signOut AuthorizationManager error: $it")
+            }
 
         apply(
             settings?.copy(authorization = null, userName = null, customerId = null)

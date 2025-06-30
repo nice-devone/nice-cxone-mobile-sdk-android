@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -184,7 +184,7 @@ internal object ServerResponse {
     ) = object {
         val eventId = TestUUID
         val postback = object {
-            val eventType = "ThreadMetadataLoaded"
+            val eventType = EventType.ThreadMetadataLoaded.value
             val data = object {
                 val ownerAssignee = makeAgent()
                 val lastMessage = message
@@ -454,6 +454,7 @@ internal object ServerResponse {
                 val friendlyName = "image.jpg"
                 val url = "https=//bla.com/image.jpg"
             })
+            val customerStatistics = object {}
             val userStatistics = object {}
         }
 

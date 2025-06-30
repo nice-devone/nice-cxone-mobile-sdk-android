@@ -45,15 +45,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.ImageLoader
-import coil.compose.AsyncImage
+import coil3.ImageLoader
+import coil3.compose.AsyncImage
 import com.nice.cxonechat.sample.R.string
 import com.nice.cxonechat.sample.data.models.UISettingsModel
 import com.nice.cxonechat.sample.data.repository.UISettings
 import com.nice.cxonechat.sample.data.repository.UISettingsState
+import com.nice.cxonechat.sample.ui.TestModifier
 import com.nice.cxonechat.sample.ui.theme.AppTheme
 import com.nice.cxonechat.sample.ui.theme.AppTheme.space
 import com.nice.cxonechat.sample.ui.theme.Dialog
@@ -86,10 +88,17 @@ fun UISettingsDialog(
         title = stringResource(id = string.ui_settings),
         onDismiss = onDismiss,
         dismissButton = {
-            AppTheme.OutlinedButton(text = stringResource(string.cancel), onClick = onDismiss)
+            AppTheme.OutlinedButton(
+                text = stringResource(string.cancel),
+                modifier = Modifier.testTag("ui_setting_cancel_button"),
+                onClick = onDismiss
+            )
         },
         confirmButton = {
-            AppTheme.OutlinedButton(text = stringResource(string.ok)) {
+            AppTheme.OutlinedButton(
+                text = stringResource(string.ok),
+                modifier = Modifier.testTag("ui_setting_ok_button")
+            ) {
                 UISettingsState.value = current
                 try {
                     onConfirm(current)
@@ -98,7 +107,8 @@ fun UISettingsDialog(
                 }
                 onDismiss()
             }
-        }
+        },
+        modifier = TestModifier
     ) {
         SettingsView(settings = current, pickImage, onChanged = { current = it }, onReset = onReset)
 
@@ -106,12 +116,16 @@ fun UISettingsDialog(
             AlertDialog(
                 onDismissRequest = { error = null },
                 confirmButton = {
-                    AppTheme.OutlinedButton(text = stringResource(string.ok)) {
+                    AppTheme.OutlinedButton(
+                        text = stringResource(string.ok),
+                        modifier = Modifier.testTag("ui_setting_error_ok_button"),
+                    ) {
                         error = null
                     }
                 },
                 title = { Text(stringResource(string.error_saving_settings)) },
-                text = { Text(error?.localizedMessage ?: stringResource(string.unknown_error)) }
+                text = { Text(error?.localizedMessage ?: stringResource(string.unknown_error)) },
+                modifier = TestModifier,
             )
         }
     }
@@ -125,7 +139,7 @@ private fun SettingsView(
     onReset: () -> Unit,
 ) {
     Column(
-        modifier = Modifier
+        modifier = TestModifier
             .verticalScroll(rememberScrollState())
             .height(Min)
     ) {
@@ -139,7 +153,11 @@ private fun SettingsView(
                 .fillMaxWidth()
                 .padding(top = space.large),
         ) {
-            AppTheme.OutlinedButton(text = stringResource(string.set_defaults), onClick = onReset)
+            AppTheme.OutlinedButton(
+                text = stringResource(string.set_defaults),
+                modifier = Modifier.testTag("ui_setting_set_default_button"),
+                onClick = onReset
+            )
         }
     }
 }
@@ -183,7 +201,7 @@ private fun ImagePicker(
         modifier = modifier,
     ) {
         AsyncImage(
-            imageLoader = ImageLoader.Builder(LocalContext.current).interceptorDispatcher(Dispatchers.IO).build(),
+            imageLoader = ImageLoader.Builder(LocalContext.current).coroutineContext(Dispatchers.IO).build(),
             placeholder = rememberVectorPainter(image = Icons.Default.Image),
             model = settings.logo,
             contentDescription = null,
@@ -198,6 +216,7 @@ private fun ImagePicker(
                 }
             },
             modifier = Modifier
+                .testTag("pick_logo_button")
                 .padding(horizontal = space.medium)
                 .fillMaxWidth()
         ) {
@@ -262,7 +281,7 @@ private fun ColorsView(colors: UISettingsModel.Colors, onColorsChanged: (UISetti
     }
 }
 
-@Preview(apiLevel = 31, showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview(apiLevel = 35, showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
 private fun UISettingsDialogPreview() {
     val current = UISettings.collectAsState().value

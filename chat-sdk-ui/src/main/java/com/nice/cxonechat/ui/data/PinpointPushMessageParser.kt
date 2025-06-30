@@ -17,10 +17,6 @@ package com.nice.cxonechat.ui.data
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.pm.PackageManager
-import android.content.pm.PackageManager.ApplicationInfoFlags
-import android.os.Build.VERSION
-import android.os.Build.VERSION_CODES
 import androidx.annotation.DrawableRes
 import com.nice.cxonechat.ui.domain.PushMessage
 import com.nice.cxonechat.ui.domain.PushMessageParser
@@ -86,23 +82,12 @@ internal class PinpointPushMessageParser(
         private fun getNotificationIconResourceId(context: Context, drawableResourceName: String?): Int =
             context.runCatching {
                 val packageName = packageName
-                val appInfo = packageManager.getApplicationInfoMeta(packageName)
                 if (drawableResourceName != null) {
                     @SuppressLint("DiscouragedApi")
-                    val drawableId = resources.getIdentifier(drawableResourceName, "drawable", packageName)
-                    if (drawableId != 0) {
-                        return@runCatching drawableId
-                    }
+                    resources.getIdentifier(drawableResourceName, "drawable", packageName)
+                } else {
+                    0
                 }
-                appInfo.icon
             }.getOrDefault(0)
-
-        private fun PackageManager.getApplicationInfoMeta(packageName: String) =
-            if (VERSION.SDK_INT >= VERSION_CODES.TIRAMISU) {
-                getApplicationInfo(packageName, ApplicationInfoFlags.of(PackageManager.GET_META_DATA.toLong()))
-            } else {
-                @Suppress("DEPRECATION")
-                getApplicationInfo(packageName, PackageManager.GET_META_DATA)
-            }
     }
 }

@@ -49,19 +49,6 @@ package com.nice.cxonechat.log {
     field public static final com.nice.cxonechat.log.Level.Warning INSTANCE;
   }
 
-  public final class LevelTest {
-    ctor public LevelTest();
-    method public void all_hasLevelMinValue();
-    method public void compareTo_returnsValidInteger();
-    method public void custom_hasLevelUnmodified();
-    method public void debug_hasLevel400();
-    method public void error_hasLevel1000();
-    method public void info_hasLevel800();
-    method public void verbose_hasLevel300();
-    method public void verify_order();
-    method public void warning_hasLevel900();
-  }
-
   public interface Logger {
     method public void log(com.nice.cxonechat.log.Level level, String message, optional Throwable? throwable);
   }
@@ -81,7 +68,7 @@ package com.nice.cxonechat.log {
   }
 
   public interface LoggerScope extends com.nice.cxonechat.log.Logger {
-    method public default static com.nice.cxonechat.log.LoggerScope createNamedScope(String name, com.nice.cxonechat.log.Logger identity);
+    method public static com.nice.cxonechat.log.LoggerScope createNamedScope(String name, com.nice.cxonechat.log.Logger identity);
     method public com.nice.cxonechat.log.Logger getIdentity();
     method public String getScope();
     property public abstract com.nice.cxonechat.log.Logger identity;
@@ -91,7 +78,7 @@ package com.nice.cxonechat.log {
 
   public static final class LoggerScope.Companion {
     method public com.nice.cxonechat.log.LoggerScope createNamedScope(String name, com.nice.cxonechat.log.Logger identity);
-    method public inline operator <reified T> com.nice.cxonechat.log.LoggerScope! invoke(com.nice.cxonechat.log.Logger identity);
+    method public inline operator <reified T> com.nice.cxonechat.log.LoggerScope invoke(com.nice.cxonechat.log.Logger identity);
     method public operator com.nice.cxonechat.log.LoggerScope invoke(String name, com.nice.cxonechat.log.Logger identity);
   }
 

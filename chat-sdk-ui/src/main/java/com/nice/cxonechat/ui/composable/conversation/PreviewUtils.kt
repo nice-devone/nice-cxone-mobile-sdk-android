@@ -16,9 +16,10 @@
 package com.nice.cxonechat.ui.composable.conversation
 
 import android.net.Uri
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -26,13 +27,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.message.Message
+import com.nice.cxonechat.message.MessageDirection
 import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.SOLO
 import com.nice.cxonechat.ui.composable.conversation.model.ConversationUiState
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
-import com.nice.cxonechat.ui.model.Person
+import com.nice.cxonechat.ui.domain.model.Person
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlin.time.Duration
 import com.nice.cxonechat.ui.composable.conversation.model.Message as UiMessage
 
 // Shared preview methods
@@ -40,7 +43,9 @@ import com.nice.cxonechat.ui.composable.conversation.model.Message as UiMessage
 @Stable
 internal fun previewAudioState(): AudioRecordingUiState {
     val isRecordingFlow = MutableStateFlow(true)
+    val durationFlow = MutableStateFlow(Duration.ZERO)
     return AudioRecordingUiState(
+        isRecordingAllowedFlow = MutableStateFlow(true),
         uriFlow = MutableStateFlow(Uri.EMPTY),
         onDismiss = { },
         onApprove = { },
@@ -48,15 +53,23 @@ internal fun previewAudioState(): AudioRecordingUiState {
             isRecordingFlow.value = !isRecordingFlow.value
             isRecordingFlow.value
         },
-        isRecordingFlow = isRecordingFlow
+        isRecordingFlow = isRecordingFlow,
+        durationFlow = durationFlow,
     )
 }
 
 internal object PreviewAttachments {
+    const val JPEG_MIME_TYPE = "image/jpeg"
     val image = object : Attachment {
         override val url: String = "https://http.cat/203"
-        override val friendlyName: String = "cat_no_content.jpeg"
-        override val mimeType: String = "image/jpeg"
+        override val friendlyName: String = "A with some very looong filename.jpeg"
+        override val mimeType: String = JPEG_MIME_TYPE
+    }
+
+    val image2 = object : Attachment {
+        override val url: String = "https://cataas.com/cat"
+        override val friendlyName: String = "cat_no_content2.jpeg"
+        override val mimeType: String = JPEG_MIME_TYPE
     }
 
     val movie = object : Attachment {
@@ -77,15 +90,35 @@ internal object PreviewAttachments {
         override val mimeType: String = "application/pdf"
     }
 
-    val choices = listOf(image, movie, sound, pdf)
+    val evil = object : Attachment {
+        override val url: String = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types"
+        override val friendlyName: String = "evil"
+        override val mimeType: String? = null
+    }
 
-    val attachments: Sequence<Attachment>
-        get() = generateSequence(choices[0]) { index ->
-            choices[(choices.indexOf(index) + 1) % choices.count()]
+    val choices = listOf(image, image2, movie, sound, pdf, evil)
+
+    fun getAttachments(count: Int = 1): Sequence<Attachment> {
+        var index = count
+        return generateSequence {
+            index--.takeIf { it >= 0 }?.let {
+                SampleAttachment(
+                    "https://cataas.com/cat/says/$it",
+                    "random_cat_$it.jpeg",
+                    JPEG_MIME_TYPE
+                )
+            }
         }
+    }
 
-    fun with(count: Int): Iterable<Attachment> = attachments.take(count).toList()
+    fun with(count: Int): Iterable<Attachment> = getAttachments(maxOf(0, count - choices.size)).toList() + choices.take(count)
 }
+
+private data class SampleAttachment(
+    override val url: String,
+    override val friendlyName: String,
+    override val mimeType: String?,
+) : Attachment
 
 internal data class AttachmentProvider(
     override val values: Sequence<Attachment> = PreviewAttachments.choices.asSequence(),
@@ -105,12 +138,12 @@ internal fun PreviewMessageItemBase(
 }
 
 @Composable
-internal fun LazyItemScope.PreviewMessageItem(
+internal fun PreviewMessageItem(
     message: UiMessage,
     itemGroupState: MessageItemGroupState = SOLO,
-    showStatus: Boolean = false,
+    showStatus: Boolean = message.direction === MessageDirection.ToAgent,
     onAttachmentClicked: (Attachment) -> Unit = {},
-    onMoreClicked: (List<Attachment>, String) -> Unit = { _, _ -> },
+    onMoreClicked: (List<Attachment>) -> Unit = { _ -> },
     onShare: (Collection<Attachment>) -> Unit = {},
 ) {
     MessageItem(
@@ -119,22 +152,21 @@ internal fun LazyItemScope.PreviewMessageItem(
         itemGroupState = itemGroupState,
         onAttachmentClicked = onAttachmentClicked,
         onMoreClicked = onMoreClicked,
-        onShare = onShare
+        onShare = onShare,
+        modifier = Modifier.fillMaxWidth()
     )
 }
 
 @Composable
 internal fun PreviewMessageItemBase(
-    content: @Composable LazyItemScope.() -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     ChatTheme {
         Surface {
-            LazyColumn(
+            Column(
                 modifier = Modifier.padding(horizontal = space.medium),
             ) {
-                item {
-                    content()
-                }
+                content()
             }
         }
     }
@@ -149,6 +181,7 @@ internal fun previewUiState(
     isArchived: Boolean = false,
     positionInQueue: Int? = null,
     isLiveChat: Boolean = true,
+    pendingAttachments: List<Attachment> = emptyList(),
 ) = ConversationUiState(
     sdkMessages = MutableStateFlow(messages),
     agentTyping = MutableStateFlow(Person(firstName = "Some", lastName = "User")),
@@ -160,8 +193,10 @@ internal fun previewUiState(
     onStartTyping = {},
     onStopTyping = {},
     onAttachmentClicked = {},
-    onMoreClicked = { _, _ -> },
+    onMoreClicked = { _ -> },
     onShare = {},
     isArchived = MutableStateFlow(isArchived),
     isLiveChat = isLiveChat,
+    pendingAttachments = MutableStateFlow(pendingAttachments),
+    onRemovePendingAttachment = {}
 )

@@ -13,6 +13,8 @@
  * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
  */
 
+import com.vanniktech.maven.publish.AndroidMultiVariantLibrary
+
 plugins {
     id "android-library-conventions"
     id "android-ui-conventions"
@@ -23,6 +25,7 @@ plugins {
     id "android-library-style-conventions"
     id 'androidx.navigation.safeargs.kotlin'
     id "org.jetbrains.kotlin.plugin.serialization"
+    id "publish-conventions"
 }
 
 android {
@@ -48,27 +51,49 @@ android {
             java.srcDirs += new File(buildDir, "generated/ksp/main/kotlin")
         }
     }
+
+    testOptions {
+        unitTests {
+            it.includeAndroidResources = true
+        }
+    }
+}
+
+// Setup publishing of all library variants.
+// Dependent will get matching variant automatically (eg.: buildType:debug will get buildType:debug)
+// Alternatively they can provide transformation mapping.
+mavenPublishing {
+    configure(new AndroidMultiVariantLibrary(true, true))
 }
 
 dependencies {
+    // Chat Activity is public API
+    api libs.androidx.compose.activity
+    api libs.koin.android
     // Handling of push notification sent via FCM
     implementation platform(libs.firebase.bom)
     implementation libs.firebase.messaging
     // Lifecycle-process is used to suppress push notifications when app is in foreground
     implementation libs.androidx.lifecycle
 
-    // Async Image
+    // Async Image & Video Frame
     implementation libs.coil.compose
+    implementation libs.coil.network
+    implementation libs.coil.video
+
     // Zoomable composable elements like Image & AsyncImage
     implementation libs.zoomable
 
     // Multimedia message playback
+    implementation libs.androidx.compose.animation
     implementation libs.media.exoplayer
+    implementation libs.media.exoplayer.hls
     implementation libs.media.datasource.okhttp
     implementation libs.media.ui
 
-    // CXOne Chat SDK
-    implementation project(":chat-sdk-core")
+    // CXone Chat SDK
+    api project(":chat-sdk-core")
+    api project(":logger")
     implementation project(":logger-android")
     implementation project(':utilities')
 
@@ -77,4 +102,12 @@ dependencies {
 
     // Kotlinx serialization
     implementation libs.kotlinx.serialization.json
+
+    // Jetpack Compose - 1.8.0-alpha
+    implementation libs.androidx.compose.foundation
+
+    // Emoji support
+    implementation libs.androidx.emoji2
+    testImplementation("org.robolectric:robolectric:4.15.1")
+    testImplementation libs.androidx.emoji.bundled
 }

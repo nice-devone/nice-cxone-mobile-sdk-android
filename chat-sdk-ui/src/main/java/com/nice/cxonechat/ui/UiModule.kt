@@ -16,8 +16,12 @@
 package com.nice.cxonechat.ui
 
 import com.nice.cxonechat.ChatInstanceProvider
+import com.nice.cxonechat.Public
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerNoop
+import com.nice.cxonechat.ui.api.CustomFieldProviderType
+import com.nice.cxonechat.ui.api.NoExtraCustomFields
+import com.nice.cxonechat.ui.api.UiCustomFieldsProvider
 import com.nice.cxonechat.ui.data.PinpointPushMessageParser
 import com.nice.cxonechat.ui.domain.PushMessageParser
 import com.nice.cxonechat.utilities.TaggingSocketFactory
@@ -29,53 +33,88 @@ import org.koin.core.annotation.Module
 import org.koin.core.annotation.Singleton
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.qualifier.named
+import org.koin.dsl.KoinConfiguration
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.koin.ksp.generated.module
 
+/**
+ * Koin module for the UI layer of the application.
+ *
+ * This module provides dependencies required for the UI layer, such as
+ * notification management, logging, and chat-related services.
+ */
 @Module
 @ComponentScan("com.nice.cxonechat.ui")
-@Suppress("UndocumentedPublicClass")
 class UiModule internal constructor() {
+
+    /**
+     * Provides an instance of [ChatInstanceProvider].
+     *
+     * @return The [ChatInstanceProvider] instance.
+     */
     @Factory
     internal fun produceChatInstanceProvider() = ChatInstanceProvider.get()
 
+    /**
+     * Provides the chat instance from the [ChatInstanceProvider].
+     *
+     * @return The chat instance.
+     * @throws IllegalStateException if the chat instance is null.
+     */
     @Factory
     internal fun produceChat() = requireNotNull(produceChatInstanceProvider().chat)
 
+    /**
+     * Provides a singleton instance of [OkHttpClient] configured with a custom socket factory.
+     *
+     * @return The [OkHttpClient] instance.
+     */
     @Singleton
     internal fun produceOkHttpClient() = OkHttpClient.Builder()
         .socketFactory(TaggingSocketFactory)
         .build()
 
+    @Suppress("UndocumentedPublicClass")
     companion object {
         internal const val loggerName = "com.nice.cxonechat.ui.logger"
 
         /**
-         * Initialize the Ui Module.
+         * Configures the UI module for Koin dependency injection.
          *
-         * Invoked as:
+         * This method sets up the required dependencies for the UI layer, including
+         * notification management, logging, and chat-related services.
          *
+         * Example usage:
          * ```
          *    startKoin {
-         *      UiModule.setup()
+         *      UiModule.chatUiModule()
          *    }
          * ```
          *
-         * @note Must be called before [ChatActivity] is created.
+         * @note Must be called before [com.nice.cxonechat.ui.screen.ChatActivity] is created.
          *
-         * @receiver KoinApplication instance to configure.
-         * @param logger Logger to use if logging is desired.
+         * @receiver The [KoinApplication] instance to configure.
+         * @param logger The [Logger] to use for logging. Defaults to [LoggerNoop].
+         * @param customerFieldsProvider [UiCustomFieldsProvider] for extra customer field definitions, default is [NoExtraCustomFields].
+         * @param contactFieldsProvider [UiCustomFieldsProvider] for extra contact field definitions, default is [NoExtraCustomFields].
          */
-        fun KoinApplication.chatUiModule(logger: Logger = LoggerNoop) {
+        @Public
+        fun chatUiModule(
+            logger: Logger = LoggerNoop,
+            customerFieldsProvider: UiCustomFieldsProvider = NoExtraCustomFields,
+            contactFieldsProvider: UiCustomFieldsProvider = NoExtraCustomFields,
+        ) = KoinConfiguration {
             modules(
-                listOf(
-                    UiModule().module,
                     module {
+                        // Provides a factory for parsing push messages from the Amazon Pinpoint.
                         factoryOf(::PinpointPushMessageParser).bind(PushMessageParser::class)
+                        // Provides a named logger instance.
                         factory(named(loggerName)) { logger }
-                    }
-                )
+                        single(named(CustomFieldProviderType.Customer)) { customerFieldsProvider }
+                        single(named(CustomFieldProviderType.Contact)) { contactFieldsProvider }
+                    },
+                UiModule().module,
             )
         }
     }

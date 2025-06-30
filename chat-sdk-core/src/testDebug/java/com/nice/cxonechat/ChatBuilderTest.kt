@@ -17,7 +17,7 @@
 
 package com.nice.cxonechat
 
-import com.nice.cxonechat.event.thread.ArchiveThreadEventImpl
+import com.nice.cxonechat.event.thread.ArchiveThreadEvent
 import com.nice.cxonechat.internal.ChatWithParameters
 import com.nice.cxonechat.internal.copy.ConnectionCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.model.ChannelConfiguration
@@ -40,6 +40,7 @@ import java.io.IOException
 import java.util.UUID
 import kotlin.test.assertEquals
 
+@Suppress("RemoveRedundantCallsOfConversionMethods")
 internal class ChatBuilderTest : AbstractChatTestSubstrate() {
 
     private var isAuthorizationEnabled = true
@@ -181,7 +182,7 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
         val expected = connection.asCopyable().copy(customerId = uuid, firstName = firstName, lastName = lastName)
         // tests that data has been updated
         assertSendText(ServerRequest.ArchiveThread(expected, thread), uuid.toString(), thread.id.toString()) {
-            chat.threads().thread(thread).events().trigger(ArchiveThreadEventImpl())
+            chat.threads().thread(thread).events().trigger(ArchiveThreadEvent())
         }
     }
 
@@ -218,7 +219,7 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
         val chat = connect(builder)
         val thread = makeChatThread()
         assertSendText(ServerRequest.ArchiveThread(connection, thread), expected.toString(), thread.id.toString()) {
-            chat.threads().thread(thread).events().trigger(ArchiveThreadEventImpl())
+            chat.threads().thread(thread).events().trigger(ArchiveThreadEvent())
         }
     }
 
@@ -288,7 +289,7 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
         val expected = connection.asCopyable().copy(customerId = uuid, firstName = firstName, lastName = lastName)
         // tests that data has been updated
         assertSendText(ServerRequest.ArchiveThread(expected, thread), uuid.toString(), thread.id.toString()) {
-            chat.threads().thread(thread).events().trigger(ArchiveThreadEventImpl())
+            chat.threads().thread(thread).events().trigger(ArchiveThreadEvent())
         }
     }
 
@@ -353,11 +354,11 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
     private fun build(
         builder: ChatBuilder = prepareBuilder().second,
         body: ChatBuilder.() -> ChatBuilder = { this },
-    ): Result<Chat> = awaitResult {
+    ): Result<Chat> = awaitResult { callback ->
         builder
             .setDevelopmentMode(true)
             .body()
-            .build(it)
+            .build(callback)
     }
 
     private fun connect(

@@ -15,16 +15,34 @@
 
 package com.nice.cxonechat.ui.composable.theme
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons.Outlined
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,46 +50,149 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.dp
+import com.nice.cxonechat.ui.R
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatShapes
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 
 @Composable
 internal fun ChatTheme.SelectionFrame(
     modifier: Modifier = Modifier,
+    framed: Boolean = false,
+    selectionCircle: Boolean = framed,
     selected: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    val strokeWidth = if (selected) space.selectedFrameWidth else space.unselectedFrameWidth
-
-    Surface(
+    ShapedFrame(
         modifier = modifier,
-        shape = chatShapes.selectionFrame,
-        shadowElevation = strokeWidth,
-        tonalElevation = strokeWidth,
+        framed = framed,
         content = content,
-        border = BorderStroke(
-            strokeWidth,
-            if (selected) MaterialTheme.colorScheme.primary else LocalContentColor.current
-        )
-    )
+    ) {
+        SelectionFrameOverlay(selectionCircle, selected)
+    }
 }
 
 @Composable
-@Preview
+internal fun ChatTheme.SelectionFrameOverlay(
+    showSelectionOverlay: Boolean = false,
+    selected: Boolean = false,
+) {
+    AnimatedVisibility(
+        visible = showSelectionOverlay,
+        enter = fadeIn() + scaleIn(),
+        exit = scaleOut() + fadeOut()
+    ) {
+        val imageMod = Modifier
+            .padding(10.dp)
+            .size(16.dp)
+            .shadow(1.dp, shape = CircleShape)
+        Crossfade(selected) { isSelected ->
+            if (isSelected) {
+                Image(
+                    painter = painterResource(R.drawable.ic_selection_frame_selected),
+                    contentDescription = stringResource(R.string.content_description_selection_frame_selected),
+                    modifier = imageMod,
+                )
+            } else {
+                Image(
+                    painter = painterResource(R.drawable.ic_selection_frame),
+                    contentDescription = stringResource(R.string.content_description_selection_frame),
+                    modifier = imageMod,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+internal fun ChatTheme.ShapedFrame(
+    modifier: Modifier = Modifier,
+    framed: Boolean = false,
+    shape: Shape = chatShapes.selectionFrame,
+    content: @Composable () -> Unit,
+    overlayContent: @Composable () -> Unit = {},
+) {
+    Box(
+        contentAlignment = Alignment.TopEnd,
+        modifier = modifier,
+    ) {
+        Box(
+            propagateMinConstraints = true,
+            modifier = Modifier
+                .fillMaxSize()
+                .let {
+                    if (framed) {
+                        it.border(
+                            border = BorderStroke(space.framePreviewWidth, chatColors.leadingMessageIconBorder),
+                            shape = shape
+                        )
+                    } else {
+                        it
+                    }
+                }
+                .padding(space.framePreviewWidth * 0.9f)
+                .clip(shape),
+        ) {
+            content()
+        }
+        overlayContent()
+    }
+}
+
+@Composable
+@PreviewLightDark
 private fun PreviewSelectionFrame() {
     var selected by remember { mutableStateOf(false) }
+    var framed by remember { mutableStateOf(true) }
+    var selectionCircle by remember { mutableStateOf(true) }
     ChatTheme {
-        Column(
-            modifier = Modifier.padding(space.small),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            ChatTheme.SelectionFrame(
-                modifier = Modifier.padding(space.medium),
-                selected = selected
+        Surface {
+            Column(
+                modifier = Modifier
+                    .padding(space.small)
+                    .width(IntrinsicSize.Max),
+                verticalArrangement = Arrangement.spacedBy(space.small),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Icon(Outlined.Favorite, contentDescription = null, modifier = Modifier.padding(space.medium))
+                ChatTheme.SelectionFrame(
+                    modifier = Modifier
+                        .size(100.dp),
+                    framed = framed,
+                    selected = selected,
+                    selectionCircle = selectionCircle,
+                ) {
+                    Icon(Outlined.Favorite, contentDescription = null, Modifier.background(Color.Green))
+                }
+                PreviewSwitchRow("Selected", selected, onCheckedChange = { selected = it })
+                PreviewSwitchRow("Framed", framed, onCheckedChange = { framed = it })
+                PreviewSwitchRow("Selection circle", selectionCircle, onCheckedChange = { selectionCircle = it })
             }
-            Switch(selected, onCheckedChange = { selected = it })
         }
+    }
+}
+
+@Composable
+private fun PreviewSwitchRow(
+    text: String,
+    selected: Boolean,
+    onCheckedChange: (Boolean) -> Unit = {},
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier
+            .border(BorderStroke(space.framePreviewWidth, LocalContentColor.current.copy(alpha = 0.5f)), chatShapes.chip)
+            .padding(horizontal = space.xSmall)
+            .fillMaxWidth()
+    ) {
+        Text(text, modifier = Modifier.padding(horizontal = space.small))
+        Switch(selected, onCheckedChange = onCheckedChange)
     }
 }

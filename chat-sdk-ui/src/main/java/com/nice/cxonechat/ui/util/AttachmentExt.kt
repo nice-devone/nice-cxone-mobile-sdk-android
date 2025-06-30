@@ -15,12 +15,12 @@
 
 package com.nice.cxonechat.ui.util
 
-import android.net.Uri
+import androidx.core.net.toUri
 import com.nice.cxonechat.message.Attachment
 
 internal val Attachment.contentDescription: String?
     get() = friendlyName.ifBlank {
         runCatching {
-            Uri.parse(url).lastPathSegment
+            url.toUri().lastPathSegment
         }.getOrNull()
     }

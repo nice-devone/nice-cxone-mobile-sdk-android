@@ -17,12 +17,11 @@ package com.nice.cxonechat.ui.composable.conversation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import com.nice.cxonechat.ui.composable.theme.ChatTheme
-import com.nice.cxonechat.ui.main.ChatThreadViewModel
-import com.nice.cxonechat.ui.main.ChatViewModel
-import com.nice.cxonechat.ui.model.EndConversationChoice.CLOSE_CHAT
-import com.nice.cxonechat.ui.model.EndConversationChoice.NEW_CONVERSATION
-import com.nice.cxonechat.ui.model.EndConversationChoice.SHOW_TRANSCRIPT
+import com.nice.cxonechat.ui.domain.model.EndConversationChoice.CLOSE_CHAT
+import com.nice.cxonechat.ui.domain.model.EndConversationChoice.NEW_CONVERSATION
+import com.nice.cxonechat.ui.domain.model.EndConversationChoice.SHOW_TRANSCRIPT
+import com.nice.cxonechat.ui.viewmodel.ChatThreadViewModel
+import com.nice.cxonechat.ui.viewmodel.ChatViewModel
 
 @Composable
 internal fun EndContactDialog(
@@ -30,20 +29,19 @@ internal fun EndContactDialog(
     chatViewModel: ChatThreadViewModel,
     chatModel: ChatViewModel,
 ) {
-    ChatTheme {
-        ChatTheme.EndConversationDialog(
-            assignedAgent = chatViewModel.chatMetadata.collectAsState(initial = null).value?.agent,
-            onDismiss = chatViewModel::dismissDialog,
-            onUserSelection = {
-                when (it) {
-                    SHOW_TRANSCRIPT -> {
-                        // no-op required
-                    }
-
-                    NEW_CONVERSATION -> chatModel.refreshThreadState()
-                    CLOSE_CHAT -> closeChat()
+    val agent = chatViewModel.assignedAgentFlow.collectAsState(initial = null)
+    EndConversation(
+        assignedAgent = agent,
+        onDismiss = chatViewModel::dismissDialog,
+        onUserSelection = {
+            when (it) {
+                SHOW_TRANSCRIPT -> {
+                    // no-op required
                 }
+
+                NEW_CONVERSATION -> chatModel.refreshThreadState()
+                CLOSE_CHAT -> closeChat()
             }
-        )
-    }
+        }
+    )
 }

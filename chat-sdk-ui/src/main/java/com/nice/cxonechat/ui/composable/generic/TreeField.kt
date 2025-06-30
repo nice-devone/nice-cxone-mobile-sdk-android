@@ -53,8 +53,8 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
 import com.nice.cxonechat.ui.composable.theme.LocalChatTypography
 import com.nice.cxonechat.ui.composable.theme.LocalSpace
-import com.nice.cxonechat.ui.model.SimpleTreeFieldItem
-import com.nice.cxonechat.ui.model.TreeFieldItem
+import com.nice.cxonechat.ui.domain.model.SimpleTreeFieldItem
+import com.nice.cxonechat.ui.domain.model.TreeFieldItem
 import com.nice.cxonechat.ui.util.findRecursive
 import com.nice.cxonechat.ui.util.toggle
 

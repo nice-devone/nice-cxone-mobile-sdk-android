@@ -17,22 +17,23 @@ package com.nice.cxonechat.ui.composable.generic
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons.Outlined
-import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.Icons.Rounded
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 
 @Composable
 internal fun AgentAvatar(url: String?, modifier: Modifier = Modifier) {
     val placeholder = forwardingPainter(
-        painter = rememberVectorPainter(image = Outlined.AccountCircle),
+        painter = rememberVectorPainter(image = Rounded.Person),
         colorFilter = ColorFilter.tint(ChatTheme.colorScheme.onBackground)
     )
 
@@ -41,7 +42,9 @@ internal fun AgentAvatar(url: String?, modifier: Modifier = Modifier) {
         placeholder = placeholder,
         fallback = placeholder,
         contentDescription = null,
-        modifier = modifier
+        modifier = Modifier
+            .testTag("agent_avatar_$url")
+            .then(modifier)
             .size(ChatTheme.space.agentImageSize)
             .clip(CircleShape),
         alignment = Alignment.Center,

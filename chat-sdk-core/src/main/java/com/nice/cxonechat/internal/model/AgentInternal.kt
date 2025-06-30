@@ -16,14 +16,9 @@
 package com.nice.cxonechat.internal.model
 
 import com.nice.cxonechat.thread.Agent
-import java.util.UUID
 
 internal data class AgentInternal(
     override val id: Int,
-    @Deprecated("inContactId is internal field and should not be used. It is now always null.")
-    override val inContactId: UUID? = null,
-    @Deprecated("emailAddress is internal field and should not be used. It is now always null.")
-    override val emailAddress: String? = null,
     override val firstName: String,
     override val lastName: String,
     override val nickname: String?,

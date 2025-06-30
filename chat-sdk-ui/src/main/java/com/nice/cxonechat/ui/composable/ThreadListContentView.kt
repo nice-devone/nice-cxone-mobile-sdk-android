@@ -21,7 +21,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.Lifecycle.State
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.nice.cxonechat.ui.main.ChatThreadsViewModel
+import com.nice.cxonechat.ui.composable.conversation.ThreadsDialogView
+import com.nice.cxonechat.ui.viewmodel.ChatThreadsViewModel
 
 @Composable
 internal fun ThreadListContentView(chatThreadsViewModel: ChatThreadsViewModel, onThreadSelected: () -> Unit) {
@@ -30,19 +31,29 @@ internal fun ThreadListContentView(chatThreadsViewModel: ChatThreadsViewModel, o
         if (lifecycleState === State.RESUMED) chatThreadsViewModel.refreshThreads()
     }
     val chatThreadsState by chatThreadsViewModel.state.collectAsState()
+    val refreshThreadName by chatThreadsViewModel.refreshThreadName.collectAsState()
+    val threads by chatThreadsViewModel.threads.collectAsState()
+
     LaunchedEffect(chatThreadsState) {
         if (chatThreadsState === ChatThreadsViewModel.State.ThreadSelected) {
             onThreadSelected()
         }
     }
+
+    LaunchedEffect(refreshThreadName) {
+        chatThreadsViewModel.refreshThreads()
+    }
+
     MultiThreadContent(
         state = chatThreadsState,
-        threads = chatThreadsViewModel.threads.collectAsState().value,
+        threads = threads,
         threadFailure = chatThreadsViewModel.createThreadFailure.collectAsState().value,
         onThreadSelected = chatThreadsViewModel::selectThread,
         onArchiveThread = chatThreadsViewModel::archiveThread,
         resetState = chatThreadsViewModel::resetState,
         respondToSurvey = chatThreadsViewModel::respondToSurvey,
         resetCreateThreadState = chatThreadsViewModel::resetCreateThreadState,
+        editThreadName = chatThreadsViewModel::editThreadName,
     )
+    ThreadsDialogView(threadsViewModel = chatThreadsViewModel)
 }

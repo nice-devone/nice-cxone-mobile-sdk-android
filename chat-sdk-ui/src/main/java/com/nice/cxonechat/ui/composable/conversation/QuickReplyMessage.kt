@@ -38,16 +38,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.conversation.model.Action
 import com.nice.cxonechat.ui.composable.conversation.model.Message.QuickReply
-import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
+import com.nice.cxonechat.ui.util.preview.message.UiSdkQuickReply
 
 @Composable
 internal fun QuickReplyMessage(
@@ -77,6 +78,7 @@ internal fun QuickReplySubFrame(
                     bottom = space.medium + space.messageAvatarSize / 2, // workaround to keep avatar as simple overlay
                 )
                 .alpha(0.5f)
+                .testTag("quick_reply_option_selected")
                 .then(modifier)
         ) {
             Row(
@@ -113,7 +115,9 @@ internal fun QuickReplySubFrame(
 @Composable
 private fun QuickReplyOptions(message: QuickReply, onOptionSelected: () -> Unit, modifier: Modifier = Modifier) {
     Column(
-        modifier = modifier,
+        modifier = Modifier
+            .testTag("quick_reply_options")
+            .then(modifier),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         var selected: Action? by remember { mutableStateOf(null) }
@@ -134,6 +138,6 @@ private fun QuickReplyOptions(message: QuickReply, onOptionSelected: () -> Unit,
 @Composable
 private fun QuickReplyMessagePreview() {
     PreviewMessageItemBase(
-        message = QuickReply(PreviewMessageProvider.QuickReply()) {},
+        message = QuickReply(UiSdkQuickReply()) {},
     )
 }

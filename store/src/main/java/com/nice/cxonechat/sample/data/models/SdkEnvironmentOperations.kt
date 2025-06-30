@@ -15,7 +15,7 @@
 
 package com.nice.cxonechat.sample.data.models
 
-import com.nice.cxonechat.enums.CXOneEnvironment
+import com.nice.cxonechat.enums.CXoneEnvironment
 import com.nice.cxonechat.state.Environment
 
 /** return the receiver as an cxonechat environment. */
@@ -23,7 +23,7 @@ val SdkEnvironment.asEnvironment: Environment
     get() = this
 
 /** return the receiver as an SdkEnvironment. */
-val CXOneEnvironment.asSdkEnvironment: SdkEnvironment
+val CXoneEnvironment.asSdkEnvironment: SdkEnvironment
     get() = SdkEnvironment(
         name,
         value.location,

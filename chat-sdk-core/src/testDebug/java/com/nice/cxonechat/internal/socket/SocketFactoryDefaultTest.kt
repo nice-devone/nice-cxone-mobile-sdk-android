@@ -17,7 +17,7 @@ package com.nice.cxonechat.internal.socket
 
 import com.nice.cxonechat.SocketFactoryConfiguration
 import com.nice.cxonechat.core.BuildConfig
-import com.nice.cxonechat.enums.CXOneEnvironment
+import com.nice.cxonechat.enums.CXoneEnvironment
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -84,7 +84,7 @@ class SocketFactoryDefaultTest {
         val channelId = UUID.randomUUID().toString()
         val visitorId = UUID.randomUUID().toString()
         val configuration = SocketFactoryConfiguration(
-            CXOneEnvironment.EU1.value,
+            CXoneEnvironment.EU1.value,
             brandId = brandId,
             channelId = channelId
         )

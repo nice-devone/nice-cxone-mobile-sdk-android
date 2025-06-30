@@ -17,10 +17,10 @@ package com.nice.cxonechat.sample.data.repository
 
 import android.content.Context
 import androidx.annotation.Keep
+import androidx.compose.ui.graphics.Brush.Companion.horizontalGradient
 import com.nice.cxonechat.sample.data.models.UISettingsModel
 import com.nice.cxonechat.sample.data.models.UISettingsModel.Colors
 import com.nice.cxonechat.ui.composable.theme.ChatThemeDetails
-import com.nice.cxonechat.ui.composable.theme.Images
 import com.nice.cxonechat.ui.composable.theme.ThemeColors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,13 +40,16 @@ val UISettings: StateFlow<UISettingsModel> = UISettingsState.asStateFlow()
  * Repository to save and restore UI settings to a json file.
  *
  * @param context Application context for file access.
+ * @param applicationScope CoroutineScope for file access.
  */
 @Single
 class UISettingsRepository(
     val context: Context,
+    applicationScope: CoroutineScope,
 ) : FileRepository<UISettingsModel>(
     fileName = "UISettings.json",
-    type = UISettingsModel::class
+    type = UISettingsModel::class,
+    applicationScope
 ) {
     private val Colors.asChatThemeColors: ThemeColors
         get() = ThemeColors(
@@ -54,6 +57,8 @@ class UISettingsRepository(
             onPrimary = onPrimary,
             background = background,
             onBackground = onBackground,
+            surface = surface,
+            onSurface = onSurface,
             surfaceContainer = surfaceContainer,
             surfaceVariant = surfaceVariant,
             onSurfaceHigh = surfaceContainerHigh,
@@ -66,6 +71,14 @@ class UISettingsRepository(
             agentAvatarBackground = agentAvatarBackground,
             customerBackground = customerBackground,
             customerText = customerText,
+            subtle = subtle,
+            muted = muted,
+            error = error,
+            accentHeader = horizontalGradient(listOf(accentHeaderStart, accentHeaderEnd)),
+            onAccentHeader = onAccentHeader,
+            surfaceContainerHigh = surfaceContainerHigh,
+            textFieldLabelBackground = textFieldLabelBackground,
+            textFieldLabelText = textFieldLabelText,
         )
 
     /**
@@ -103,6 +116,5 @@ class UISettingsRepository(
     private fun UISettingsModel.applyToChatSdk() {
         ChatThemeDetails.darkColors = darkModeColors.asChatThemeColors
         ChatThemeDetails.lightColors = lightModeColors.asChatThemeColors
-        ChatThemeDetails.images = Images(logo)
     }
 }

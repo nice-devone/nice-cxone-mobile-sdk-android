@@ -45,6 +45,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -118,7 +119,7 @@ object CartScreen : Screen {
     @Composable
     fun ActionForCart(cart: Cart?, navHostController: NavHostController) {
         if (cart?.isEmpty == false) {
-            IconButton(onClick = { navigateTo(navHostController) }) {
+            IconButton(onClick = { navigateTo(navHostController) }, modifier = Modifier.testTag("cart_button")) {
                 Icon(Icons.Default.ShoppingCart, stringResource(string.shopping_cart))
             }
         }
@@ -130,9 +131,12 @@ object CartScreen : Screen {
         onContinue: () -> Unit,
         updateItem: (Item) -> Unit,
     ) {
-        AppTheme.ScreenWithScaffold(title = stringResource(string.shopping_cart)) {
+        AppTheme.ScreenWithScaffold(
+            title = stringResource(string.shopping_cart),
+            modifier = TestModifier.testTag("cart_screen"),
+        ) {
             CartView(
-                cart,
+                cart = cart,
                 updateItem = updateItem,
                 onContinue = onContinue,
             )
@@ -156,7 +160,7 @@ object CartScreen : Screen {
     private fun CartListView(
         cart: Cart,
         modifier: Modifier = Modifier,
-        updateItem: (Item) -> Unit
+        updateItem: (Item) -> Unit,
     ) {
         // Creating a values and variables to remember
         // focus requester, manager and state
@@ -225,7 +229,7 @@ object CartScreen : Screen {
         more: Boolean,
         modifier: Modifier = Modifier,
         focusRequester: FocusRequester,
-        updateItem: (Item) -> Unit
+        updateItem: (Item) -> Unit,
     ) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -235,9 +239,10 @@ object CartScreen : Screen {
             val focusManager = LocalFocusManager.current
 
             OutlinedTextField(
-                quantity,
+                value = quantity,
                 onValueChange = { quantity = it },
                 modifier = Modifier
+                    .testTag("cart_line_item_quantity")
                     .width(Dimensions.quantityWidth)
                     .focusRequester(focusRequester)
                     .onFocusChanged {
@@ -248,7 +253,7 @@ object CartScreen : Screen {
                 textStyle = AppTheme.typography.bodyLarge.copy(textAlign = TextAlign.End),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Decimal,
-                    imeAction = if(more) ImeAction.Next else ImeAction.Done
+                    imeAction = if (more) ImeAction.Next else ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions(
                     onNext = { focusManager.moveFocus(FocusDirection.Down) },

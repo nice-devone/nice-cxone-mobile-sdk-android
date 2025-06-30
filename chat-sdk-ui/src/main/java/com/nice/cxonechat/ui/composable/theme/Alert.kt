@@ -23,6 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -34,11 +35,13 @@ internal fun ChatTheme.Alert(
     dismissLabel: String,
 ) {
     Dialog(
-        modifier = modifier,
+        modifier = Modifier
+            .testTag("alert_dialog")
+            .then(modifier),
         title = title,
         onDismiss = onDismiss,
         confirmButton = {
-            OutlinedButton(text = dismissLabel, onClick = onDismiss)
+            OutlinedButton(text = dismissLabel, onClick = onDismiss, modifier = Modifier.testTag("alert_confirm_button"))
         }
     ) {
         Text(message, modifier = Modifier.fillMaxWidth(), style = chatTypography.dialogBody)

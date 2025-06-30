@@ -16,7 +16,6 @@
 package com.nice.cxonechat.internal.model
 
 import com.nice.cxonechat.internal.model.AvailabilityStatus.Online
-import com.nice.cxonechat.state.FieldDefinitionImpl
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import com.nice.cxonechat.state.FileRestrictions as PublicFileRestrictions
@@ -32,12 +31,6 @@ internal data class ChannelConfiguration(
 
     @SerialName("preContactForm")
     val preContactForm: PreContactFormModel?,
-
-    @SerialName("caseCustomFields")
-    val contactCustomFields: List<CustomFieldPolyType>?,
-
-    @SerialName("endUserCustomFields")
-    val customerCustomFields: List<CustomFieldPolyType>?,
 
     @SerialName("isLiveChat")
     val isLiveChat: Boolean,
@@ -92,8 +85,6 @@ internal data class ChannelConfiguration(
         isProactiveChatEnabled = settings.isProactiveChatEnabled,
         isAuthorizationEnabled = isAuthorizationEnabled,
         preContactSurvey = preContactForm?.toPreContactSurvey(channelId),
-        contactCustomFields = contactCustomFields.orEmpty().mapNotNull(FieldDefinitionImpl::invoke).asSequence(),
-        customerCustomFields = customerCustomFields.orEmpty().mapNotNull(FieldDefinitionImpl::invoke).asSequence(),
         fileRestrictions = settings.fileRestrictions.toPublic(),
         isLiveChat = isLiveChat,
         isOnline = availability.status == Online,
@@ -112,11 +103,20 @@ internal data class ChannelConfiguration(
                     it.toPublic()
                 }
             override val isAttachmentsEnabled = this@toPublic.isAttachmentsEnabled
+
+            override fun toString(): String = buildString {
+                append("FileRestrictions(")
+                append("allowedFileSize=$allowedFileSize")
+                append(", allowedFileTypes=${allowedFileTypes.joinToString()}")
+                append(", isAttachmentsEnabled=$isAttachmentsEnabled")
+                append(")")
+            }
         }
 
         private fun AllowedFileType.toPublic() = object : PublicAllowedFileType {
             override val mimeType = this@toPublic.mimeType
             override val description = this@toPublic.description
+            override fun toString(): String = "AllowedFileType(mimeType='$mimeType', description='$description')"
         }
     }
 }

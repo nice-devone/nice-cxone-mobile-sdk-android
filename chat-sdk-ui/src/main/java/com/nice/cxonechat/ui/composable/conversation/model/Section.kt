@@ -23,5 +23,4 @@ internal data class Section(
 ) {
     val messages = entry.value
     val createdAtDate = entry.key
-    val createdAt = messages.first().createdAt
 }

@@ -18,7 +18,6 @@ package com.nice.cxonechat.internal
 import com.nice.cxonechat.Authorization
 import com.nice.cxonechat.Cancellable
 import com.nice.cxonechat.ChatBuilder
-import com.nice.cxonechat.ChatBuilder.OnChatBuiltCallback
 import com.nice.cxonechat.ChatBuilder.OnChatBuiltResultCallback
 import com.nice.cxonechat.ChatStateListener
 import com.nice.cxonechat.log.LoggerScope
@@ -56,22 +55,6 @@ internal class ChatBuilderLogging(
 
     override fun setCustomerId(customerId: String): ChatBuilder = scope("setCustomerId") {
         origin.setCustomerId(customerId)
-    }
-
-    @Deprecated(
-        "Please migrate to build method with OnChatBuildResultCallback",
-        replaceWith = ReplaceWith(
-            "build(resultCallback = OnChatBuiltResultCallback { callback.onChatBuilt(it.getOrThrow()) })",
-            "com.nice.cxonechat.ChatBuilder.OnChatBuiltResultCallback"
-        )
-    )
-    override fun build(callback: OnChatBuiltCallback): Cancellable = scope("build") {
-        return try {
-            duration { origin.build(resultCallback = { callback.onChatBuilt(it.getOrThrow()) }) }
-        } catch (expected: Throwable) {
-            if (developmentMode) error("Failed to initialize", expected)
-            throw expected
-        }
     }
 
     override fun build(resultCallback: OnChatBuiltResultCallback): Cancellable = scope("build") {

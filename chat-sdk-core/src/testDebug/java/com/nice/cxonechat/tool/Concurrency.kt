@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,28 @@ internal inline fun <T> awaitResult(
     var result: T? = null
     val bodyResult = body {
         result = it
+        latch.countDown()
+    }
+    try {
+        when (timeout) {
+            null -> latch.await()
+            else -> latch.await(timeout.inWholeMilliseconds, MILLISECONDS)
+        }
+    } finally {
+        if (bodyResult is Cancellable) bodyResult.cancel()
+    }
+    @Suppress("UNCHECKED_CAST")
+    return result as T
+}
+
+internal inline fun <T> awaitWrappedResult(
+    timeout: Duration? = null,
+    body: (trigger: (Result<T>) -> Unit) -> Any,
+): T {
+    val latch = CountDownLatch(1)
+    var result: T? = null
+    val bodyResult = body {
+        result = it.getOrThrow()
         latch.countDown()
     }
     try {

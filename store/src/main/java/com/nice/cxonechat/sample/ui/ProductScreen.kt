@@ -42,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -140,6 +141,7 @@ object ProductScreen : Screen {
         AppTheme.ScreenWithScaffold(
             title = product?.title ?: stringResource(string.unknown_product),
             actions = showCart,
+            modifier = TestModifier.testTag("product_screen"),
         ) {
             product?.let { product ->
                 ProductView(product = product) {
@@ -154,16 +156,17 @@ object ProductScreen : Screen {
         AlertDialog(
             onDismissRequest = onDismiss,
             confirmButton = {
-                OutlinedButton(onClick = onRetry) {
+                OutlinedButton(onClick = onRetry, modifier = Modifier.testTag("retry_button")) {
                     Text(stringResource(string.retry))
                 }
             },
             dismissButton = {
-                OutlinedButton(onClick = onDismiss) {
+                OutlinedButton(onClick = onDismiss, modifier = Modifier.testTag("ok_button")) {
                     Text(stringResource(string.ok))
                 }
             },
             text = { Text(message) },
+            modifier = TestModifier.testTag("product_error_dialog")
         )
     }
 
@@ -174,7 +177,8 @@ object ProductScreen : Screen {
         addToCart: (Product) -> Unit
     ) {
         Column(
-            modifier = Modifier
+            modifier = TestModifier
+                .testTag("product_view")
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -200,7 +204,7 @@ object ProductScreen : Screen {
             }
             Description(product.description)
             Spacer(modifier = Modifier.weight(1f))
-            OutlinedButton(onClick = { addToCart(product) }) {
+            OutlinedButton(onClick = { addToCart(product) }, modifier = Modifier.testTag("add_to_cart_button")) {
                 Text(stringResource(string.add_to_cart))
             }
         }

@@ -30,6 +30,7 @@ import com.nice.cxonechat.internal.model.ChatThreadMutable
 import com.nice.cxonechat.internal.model.CustomFieldInternal.Companion.updateWith
 import com.nice.cxonechat.internal.model.network.EventThreadRecovered
 import com.nice.cxonechat.internal.model.network.EventThreadUpdated
+import com.nice.cxonechat.internal.serializer.Default
 import com.nice.cxonechat.internal.socket.EventCallback.Companion.addCallback
 import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.thread.ChatThread
@@ -89,12 +90,17 @@ internal class ChatThreadHandlerImpl(
     }
 
     override fun setName(name: String) {
-        events().trigger(
-            event = UpdateThreadEvent(name),
-            listener = {
-                thread += thread.asCopyable().copy(threadName = name)
-            },
-        )
+        if (thread.threadState === Pending) {
+            thread += thread.asCopyable().copy(threadName = name)
+            sendThreadUpdated()
+        } else {
+            events().trigger(
+                event = UpdateThreadEvent(name),
+                listener = {
+                    thread += thread.asCopyable().copy(threadName = name)
+                },
+            )
+        }
     }
 
     override fun messages(): ChatThreadMessageHandler {
@@ -120,4 +126,14 @@ internal class ChatThreadHandlerImpl(
     }
 
     override fun customFields(): ChatFieldHandler = ChatFieldHandlerThread(this, thread)
+
+    private fun sendThreadUpdated() {
+        // send thread updated to host application
+        chat.socket?.let { socket ->
+            chat.socketListener.onMessage(
+                socket,
+                Default.serializer.encodeToString(EventThreadUpdated(thread))
+            )
+        }
+    }
 }

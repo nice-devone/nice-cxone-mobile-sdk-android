@@ -41,7 +41,7 @@ internal data class WelcomeMessage(
     override val direction: MessageDirection
         get() = model.direction.toMessageDirection()
     override val metadata: MessageMetadata
-        get() = model.userStatistics.toMessageMetadata()
+        get() = model.metadata
     override val author: MessageAuthor?
         get() = model.author
     override val attachments: Iterable<Attachment>

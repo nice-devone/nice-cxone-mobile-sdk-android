@@ -15,8 +15,7 @@
 
 package com.nice.cxonechat
 
-import com.nice.cxonechat.core.BuildConfig
-import com.nice.cxonechat.enums.CXOneEnvironment
+import com.nice.cxonechat.enums.CXoneEnvironment
 import com.nice.cxonechat.state.Environment
 
 /**
@@ -29,7 +28,7 @@ interface SocketFactoryConfiguration {
      * Current environment to connect to.
      * Consult a representative to discover which is right for you.
      *
-     * @see CXOneEnvironment
+     * @see CXoneEnvironment
      */
     val environment: Environment
 
@@ -46,14 +45,6 @@ interface SocketFactoryConfiguration {
      * your given channel id.
      */
     val channelId: String
-
-    /**
-     * Client version to be reported.
-     * The library always supplies its own version, though you might be asked
-     * (or willing to try) to change it in case of beta features, for example.
-     */
-    @Deprecated("This field is deprecated for public usage and will be removed from public API.")
-    val version: String
 
     @Public
     @Suppress(
@@ -79,48 +70,15 @@ interface SocketFactoryConfiguration {
          * @see SocketFactoryConfiguration
          */
         @JvmStatic
-        @Deprecated("This method is deprecated for public usage and will be removed from public API.")
-        @Suppress("DEPRECATION")
-        operator fun invoke(
-            environment: Environment,
-            brandId: Long,
-            channelId: String,
-            version: String = BuildConfig.VERSION_NAME,
-        ) = create(environment, brandId, channelId, version)
-
-        /**
-         * Helper method to create a new configuration.
-         *
-         * @see SocketFactoryConfiguration
-         */
-        @JvmStatic
         @Suppress("DEPRECATION")
         fun create(
             environment: Environment,
             brandId: Long,
             channelId: String,
-        ): SocketFactoryConfiguration = create(environment, brandId, channelId, BuildConfig.VERSION_NAME)
-
-        /**
-         * Helper method to create a new configuration.
-         *
-         * @see SocketFactoryConfiguration
-         */
-        @JvmStatic
-        @Suppress("DEPRECATION")
-        @Deprecated("This method is deprecated for public usage and will be removed from public API.")
-        fun create(
-            environment: Environment,
-            brandId: Long,
-            channelId: String,
-            version: String = BuildConfig.VERSION_NAME,
         ): SocketFactoryConfiguration = object : SocketFactoryConfiguration {
             override val environment = environment
             override val brandId = brandId
             override val channelId = channelId
-
-            @Deprecated("This field is deprecated for public usage and will be removed from public API.")
-            override val version = version
         }
     }
 }

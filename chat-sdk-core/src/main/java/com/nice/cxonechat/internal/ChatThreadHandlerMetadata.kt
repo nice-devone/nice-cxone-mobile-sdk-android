@@ -36,7 +36,7 @@ internal class ChatThreadHandlerMetadata(
             thread += thread.asCopyable().copy(
                 messages = thread.messages.ifEmpty { listOfNotNull(event.message) },
                 threadAgent = event.agent ?: thread.threadAgent,
-                threadState = Loaded,
+                threadState = if (thread.threadState.ordinal < Loaded.ordinal) Loaded else thread.threadState,
             )
             listener.onUpdated(thread)
         }

@@ -37,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
@@ -103,6 +104,7 @@ private fun ToggleButton(
 ) {
     Row(
         modifier = Modifier
+            .testTag("toggle_button_$label")
             .background(backgroundColor)
             .padding(vertical = 6.dp, horizontal = 8.dp)
             .toggleable(

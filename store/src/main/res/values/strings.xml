@@ -81,6 +81,12 @@
     <string name="default_version_name">Preview</string>
     <string name="pick_a_logo_image">Pick a logo image</string>
 
-    <string name="label_chat_permission">Open chat view</string>
-    <string name="desc_chat_permission">Allows the app to open the chat view.</string>
+    <!-- UI Overrides -->
+    <string name="thread_list_title">Conversations</string>
+    <string name="remove_custom_field">Remove custom field %1$s</string>
+    <string name="add_custom_field">Add custom field</string>
+    <string name="new_custom_key">Key</string>
+    <string name="new_custom_value">Value</string>
+    <string name="extra_customer_fields">Additional customer fields</string>
+    <string name="extra_contact_fields">Additional contact fields</string>
 </resources>

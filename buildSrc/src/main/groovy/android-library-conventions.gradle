@@ -15,6 +15,7 @@
 
 plugins {
     id "com.android.library"
+    id("android-kotlin-conventions")
 }
 
 android {

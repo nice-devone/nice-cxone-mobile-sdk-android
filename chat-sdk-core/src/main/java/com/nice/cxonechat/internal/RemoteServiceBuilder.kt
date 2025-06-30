@@ -32,10 +32,7 @@ import java.util.concurrent.TimeUnit
 
 internal class RemoteServiceBuilder {
 
-    @Suppress(
-        "LateinitUsage" // Connection instance is required & checked during build()
-    )
-    private lateinit var connection: Connection
+    private var connection: Connection? = null
     private var interceptor: Interceptor? = null
     private var okHttpClientBuilder: OkHttpClient.Builder? = null
 
@@ -53,7 +50,7 @@ internal class RemoteServiceBuilder {
     }
 
     fun build(): RemoteService {
-        require(this::connection.isInitialized) { "Connection needs to be set, before build() is called." }
+        val connection = requireNotNull(connection) { "Connection needs to be set, before build() is called." }
         var service: RemoteService = Retrofit.Builder()
             .client(buildClient())
             .baseUrl(connection.environment.chatUrl)

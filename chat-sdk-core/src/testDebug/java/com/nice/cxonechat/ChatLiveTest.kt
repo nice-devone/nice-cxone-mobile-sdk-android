@@ -17,7 +17,7 @@ package com.nice.cxonechat
 
 import com.nice.cxonechat.FakeChatStateListener.ChatStateConnection
 import com.nice.cxonechat.FakeChatStateListener.ChatStateConnection.Ready
-import com.nice.cxonechat.enums.CXOneEnvironment
+import com.nice.cxonechat.enums.CXoneEnvironment
 import com.nice.cxonechat.enums.ContactStatus.Closed
 import com.nice.cxonechat.enums.ErrorType.RecoveringLivechatFailed
 import com.nice.cxonechat.internal.ChatThreadHandlerLiveChat.Companion.BEGIN_CONVERSATION_MESSAGE
@@ -45,7 +45,7 @@ internal class ChatLiveTest : AbstractChatTest() {
     override fun prepare() {
         isLiveChat = true
         features.clear()
-        entrails = ChatEntrailsMock(httpClient, storage, service, mockLogger(), CXOneEnvironment.EU1.value)
+        entrails = ChatEntrailsMock(httpClient, storage, service, mockLogger(), CXoneEnvironment.EU1.value)
         super.prepare()
     }
 

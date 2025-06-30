@@ -29,7 +29,7 @@ import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.SOLO
 import com.nice.cxonechat.ui.composable.generic.TypingIndicator
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
-import com.nice.cxonechat.ui.model.Person
+import com.nice.cxonechat.ui.domain.model.Person
 
 @Composable
 internal fun TypingIndicatorMessage(
@@ -44,6 +44,7 @@ internal fun TypingIndicatorMessage(
         modifier = modifier,
         avatar = agent,
         colors = ChatTheme.chatColors.agent,
+        showFrame = true
     ) {
         TypingIndicator(
             modifier = Modifier

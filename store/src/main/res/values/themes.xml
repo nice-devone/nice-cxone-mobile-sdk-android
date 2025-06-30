@@ -15,5 +15,8 @@
   -->
 
 <resources>
-    <style name="StoreFrontTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar" />
+
+    <style name="StoreFrontTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/primary</item>
+    </style>
 </resources>

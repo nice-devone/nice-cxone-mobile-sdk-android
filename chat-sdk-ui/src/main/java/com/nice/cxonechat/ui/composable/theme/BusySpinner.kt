@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -43,6 +44,7 @@ fun BusySpinner(message: String, onCancel: (() -> Unit)? = null) {
         onDismissRequest = { },
     ) {
         Card(
+            modifier = Modifier.testTag("busy_spinner"),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.background.copy(alpha = 0.75f)
             )
@@ -60,6 +62,7 @@ fun BusySpinner(message: String, onCancel: (() -> Unit)? = null) {
                 onCancel?.let {
                     ChatTheme.OutlinedButton(
                         text = stringResource(id = R.string.cancel),
+                        modifier = Modifier.testTag("cancel_button"),
                         onClick = onCancel
                     )
                 }

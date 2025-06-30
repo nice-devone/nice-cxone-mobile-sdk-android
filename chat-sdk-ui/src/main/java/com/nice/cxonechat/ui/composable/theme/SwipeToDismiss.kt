@@ -18,9 +18,11 @@ package com.nice.cxonechat.ui.composable.theme
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,6 +30,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,41 +39,52 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxState
 import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.SwipeToDismissBoxValue.EndToStart
+import androidx.compose.material3.SwipeToDismissBoxValue.Settled
+import androidx.compose.material3.SwipeToDismissBoxValue.StartToEnd
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ChatTheme.SwipeToDismiss(
     dismissState: SwipeToDismissBoxState,
-    icon: ImageVector,
-    contentDescription: String,
+    directions: Map<SwipeToDismissBoxValue, SwipeBackground>,
     modifier: Modifier = Modifier,
-    directions: Set<SwipeToDismissBoxValue> = setOf(SwipeToDismissBoxValue.EndToStart),
     background: @Composable RowScope.() -> Unit = {
         SwipeToDismissBackground(
             dismissState = dismissState,
-            icon = icon,
-            contentDescription = contentDescription
+            directions
         )
     },
+    onDismiss: suspend (SwipeToDismissBoxValue) -> Unit = {},
     content: @Composable ColumnScope.() -> Unit,
 ) {
     SwipeToDismissBox(
         state = dismissState,
-        modifier = modifier,
-        enableDismissFromStartToEnd = directions.contains(SwipeToDismissBoxValue.StartToEnd),
-        enableDismissFromEndToStart = directions.contains(SwipeToDismissBoxValue.EndToStart),
+        modifier = Modifier
+            .testTag("swipe_box")
+            .then(modifier),
+        enableDismissFromStartToEnd = directions.contains(StartToEnd),
+        enableDismissFromEndToStart = directions.contains(EndToStart),
         backgroundContent = background,
+        onDismiss = onDismiss,
         content = {
             // Wrap the row content in a card or the dismiss background bleeds through
             // the content when swiping.
@@ -80,41 +95,55 @@ internal fun ChatTheme.SwipeToDismiss(
     )
 }
 
+@Immutable
+internal data class SwipeBackground(
+    val color: Color? = null,
+    val icon: ImageVector? = null,
+    val iconTint: Color? = null,
+    val contentDescription: String? = null,
+)
+
 @ExperimentalMaterial3Api
 @Composable
-internal fun ChatTheme.SwipeToDismissBackground(
+internal fun RowScope.SwipeToDismissBackground(
     dismissState: SwipeToDismissBoxState,
-    icon: ImageVector,
-    contentDescription: String,
+    directions: Map<SwipeToDismissBoxValue, SwipeBackground>,
 ) {
     // Don't draw background if there's no swipe happening
     dismissState.dismissDirection
-
-    val color by animateColorAsState(
-        when (dismissState.targetValue) {
-            SwipeToDismissBoxValue.Settled -> colorScheme.background
-            else -> Color.Red
-        },
-        label = "color"
+    val entry = remember(directions, dismissState.targetValue) {
+        directions[dismissState.targetValue] ?: SwipeBackground()
+    }
+    val animatedColor by animateColorAsState(
+        entry.color ?: colorScheme.background
     )
-    val alignment = Alignment.CenterEnd
-    val scale by animateFloatAsState(
-        if (dismissState.targetValue == SwipeToDismissBoxValue.Settled) 0.75f else 1f,
+    val animatedScale by animateFloatAsState(
+        if (dismissState.targetValue == Settled) 0f else 1f,
         label = "scale"
     )
 
-    Box(
-        Modifier
+    Row(
+        modifier = Modifier
             .fillMaxSize()
-            .background(color)
-            .padding(horizontal = 20.dp),
-        contentAlignment = alignment
+            .background(animatedColor),
+        horizontalArrangement = if (dismissState.targetValue == EndToStart) Arrangement.End else Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            icon,
-            contentDescription = contentDescription,
-            modifier = Modifier.scale(scale)
-        )
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 20.dp)
+                .minimumInteractiveComponentSize(),
+        ) {
+            val icon = entry.icon
+            if (icon != null) {
+                Icon(
+                    icon,
+                    contentDescription = entry.contentDescription,
+                    tint = entry.iconTint ?: Color.Unspecified,
+                    modifier = Modifier.graphicsLayer(scaleX = animatedScale, scaleY = animatedScale)
+                )
+            }
+        }
     }
 }
 
@@ -125,23 +154,41 @@ private fun SwipeToDismissPreview() {
     val dismissState = rememberSwipeToDismissBoxState()
 
     ChatTheme {
-        Card(colors = CardDefaults.cardColors(containerColor = Color.Yellow)) {
-            ChatTheme.SwipeToDismiss(
-                dismissState = dismissState,
-                icon = Icons.Default.Delete,
-                contentDescription = "Delete",
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = ChatTheme.colorScheme.background),
+        Column(Modifier.padding(8.dp)) {
+            val scope = rememberCoroutineScope()
+            Button(onClick = { scope.launch { dismissState.reset() } }) {
+                Text("Dismiss")
+            }
+            Card(colors = CardDefaults.cardColors(containerColor = Color.Yellow)) {
+                ChatTheme.SwipeToDismiss(
+                    dismissState = dismissState,
+                    directions = mapOf(
+                        EndToStart to SwipeBackground(
+                            color = Color.Red,
+                            icon = Icons.Default.Delete,
+                            iconTint = Color.White,
+                            contentDescription = "Delete"
+                        ),
+                        StartToEnd to SwipeBackground(
+                            color = Color.Green,
+                            icon = Icons.Default.Settings,
+                            iconTint = Color.White,
+                            contentDescription = "Settings"
+                        )
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(ChatTheme.space.defaultPadding)
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = colorScheme.background),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Some Row")
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(ChatTheme.space.defaultPadding)
+                        ) {
+                            Text("Some Row")
+                        }
                     }
                 }
             }

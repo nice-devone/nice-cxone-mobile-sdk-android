@@ -38,7 +38,7 @@ internal abstract class AbstractChatTest : AbstractChatTestSubstrate() {
     protected open val authorization
         get() = Authorization.None
 
-    fun buildChat() = awaitResult(100.milliseconds) { finished ->
+    fun buildChat() = awaitResult(100.milliseconds) { finished: (Chat) -> Unit ->
         val factory = SocketFactoryMock(socket, proxyListener)
         ChatBuilder(entrails, factory)
             .setAuthorization(authorization)

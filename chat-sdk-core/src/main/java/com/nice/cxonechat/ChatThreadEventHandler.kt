@@ -16,7 +16,7 @@
 package com.nice.cxonechat
 
 import com.nice.cxonechat.event.thread.ChatThreadEvent
-import com.nice.cxonechat.exceptions.CXOneException
+import com.nice.cxonechat.exceptions.CXoneException
 import com.nice.cxonechat.exceptions.MissingCustomerId
 import com.nice.cxonechat.thread.ChatThread
 
@@ -70,6 +70,6 @@ interface ChatThreadEventHandler {
          * @param exception The cause of failure. Possible cause can be:
          * * [MissingCustomerId] in case of internal invalid state.
          */
-        fun onError(exception: CXOneException)
+        fun onError(exception: CXoneException)
     }
 }

@@ -19,7 +19,13 @@ import android.net.Uri
 import java.util.UUID
 
 internal fun Uri.parseThreadDeeplink(): Result<UUID> = runCatching {
-    val threadIdString = getQueryParameter("idOnExternalPlatform")
+    val threadIdString = getQueryParameter(PARAM_DEEPLINK)
     require(!threadIdString.isNullOrEmpty()) { "Invalid threadId in $this" }
     UUID.fromString(threadIdString)
 }
+
+internal fun Uri.addThreadDeeplink(uid: UUID): Uri = buildUpon()
+    .appendQueryParameter(PARAM_DEEPLINK, uid.toString())
+    .build()
+
+private const val PARAM_DEEPLINK = "idOnExternalPlatform"

@@ -17,11 +17,10 @@ package com.nice.cxonechat
 
 import com.nice.cxonechat.ChatThreadEventHandler.OnEventErrorListener
 import com.nice.cxonechat.ChatThreadEventHandler.OnEventSentListener
-import com.nice.cxonechat.event.thread.ArchiveThreadEventImpl
-import com.nice.cxonechat.event.thread.LoadThreadMetadataEventImpl
-import com.nice.cxonechat.event.thread.MarkThreadReadEventImpl
-import com.nice.cxonechat.event.thread.TypingEndEventImpl
-import com.nice.cxonechat.event.thread.TypingStartEventImpl
+import com.nice.cxonechat.event.thread.LoadThreadMetadataEvent
+import com.nice.cxonechat.event.thread.MarkThreadReadEvent
+import com.nice.cxonechat.event.thread.TypingEndEvent
+import com.nice.cxonechat.event.thread.TypingStartEvent
 
 /**
  * Provides in-one-place interactions to trigger all available events.
@@ -31,17 +30,6 @@ import com.nice.cxonechat.event.thread.TypingStartEventImpl
 object ChatThreadEventHandlerActions {
 
     /**
-     * Archive the thread.
-     */
-    @JvmOverloads
-    @JvmStatic
-    @Deprecated("Use ChatThread.archive() instead.")
-    fun ChatThreadEventHandler.archiveThread(
-        listener: OnEventSentListener? = null,
-        errorListener: OnEventErrorListener? = null,
-    ) = trigger(ArchiveThreadEventImpl(), listener, errorListener)
-
-    /**
      * Mark the thread as read.
      */
     @JvmOverloads
@@ -49,7 +37,7 @@ object ChatThreadEventHandlerActions {
     fun ChatThreadEventHandler.markThreadRead(
         listener: OnEventSentListener? = null,
         errorListener: OnEventErrorListener? = null,
-    ) = trigger(MarkThreadReadEventImpl(), listener, errorListener)
+    ) = trigger(MarkThreadReadEvent(), listener, errorListener)
 
     /**
      * Notify the server that the user has stopped typing.
@@ -59,7 +47,7 @@ object ChatThreadEventHandlerActions {
     fun ChatThreadEventHandler.typingEnd(
         listener: OnEventSentListener? = null,
         errorListener: OnEventErrorListener? = null,
-    ) = trigger(TypingEndEventImpl(), listener, errorListener)
+    ) = trigger(TypingEndEvent(), listener, errorListener)
 
     /**
      * Notify the agent that the user has started typing.
@@ -69,7 +57,7 @@ object ChatThreadEventHandlerActions {
     fun ChatThreadEventHandler.typingStart(
         listener: OnEventSentListener? = null,
         errorListener: OnEventErrorListener? = null,
-    ) = trigger(TypingStartEventImpl(), listener, errorListener)
+    ) = trigger(TypingStartEvent(), listener, errorListener)
 
     /**
      * Request additonal thread metadata.
@@ -79,5 +67,5 @@ object ChatThreadEventHandlerActions {
     fun ChatThreadEventHandler.loadMetadata(
         listener: OnEventSentListener? = null,
         errorListener: OnEventErrorListener? = null,
-    ) = trigger(LoadThreadMetadataEventImpl(), listener, errorListener)
+    ) = trigger(LoadThreadMetadataEvent(), listener, errorListener)
 }

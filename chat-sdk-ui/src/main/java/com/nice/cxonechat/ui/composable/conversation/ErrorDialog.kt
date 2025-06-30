@@ -16,6 +16,8 @@
 package com.nice.cxonechat.ui.composable.conversation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.composable.theme.Alert
@@ -25,12 +27,16 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme
 internal fun ErrorDialog(
     title: String,
     message: String,
-    onDismiss: () -> Unit
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit,
 ) {
     ChatTheme.Alert(
         title = title,
         message = message,
         dismissLabel = stringResource(id = R.string.ok),
-        onDismiss = onDismiss
+        modifier = Modifier
+            .testTag("error_dialog")
+            .then(modifier),
+        onDismiss = onDismiss,
     )
 }

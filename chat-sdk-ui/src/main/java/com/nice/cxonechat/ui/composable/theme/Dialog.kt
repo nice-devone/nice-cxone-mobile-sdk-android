@@ -45,13 +45,15 @@ internal fun ChatTheme.Dialog(
         confirmButton = confirmButton,
         modifier = modifier,
         dismissButton = dismissButton,
+        containerColor = colorScheme.surface,
         text = {
             Column {
                 title?.let {
                     Text(
                         it,
                         modifier = Modifier.padding(bottom = titlePadding),
-                        style = chatTypography.dialogTitle
+                        style = chatTypography.dialogTitle,
+                        color = colorScheme.onSurface
                     )
                 }
                 content()

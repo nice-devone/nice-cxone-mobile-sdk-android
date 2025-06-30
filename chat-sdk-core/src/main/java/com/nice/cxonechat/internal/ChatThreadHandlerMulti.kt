@@ -17,14 +17,13 @@ package com.nice.cxonechat.internal
 
 import com.nice.cxonechat.ChatThreadHandler
 import com.nice.cxonechat.enums.ErrorType.ArchivingThreadFailed
-import com.nice.cxonechat.event.thread.ArchiveThreadEventImpl
+import com.nice.cxonechat.event.thread.ArchiveThreadEvent
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.model.ChatThreadMutable
 import com.nice.cxonechat.internal.model.network.EventThreadArchived
 import com.nice.cxonechat.internal.model.network.EventThreadUpdated
 import com.nice.cxonechat.internal.serializer.Default
 import com.nice.cxonechat.internal.socket.EventCallback.Companion.acceptResponse
-import kotlinx.serialization.encodeToString
 
 internal class ChatThreadHandlerMulti(
     private val chat: ChatWithParameters,
@@ -32,7 +31,12 @@ internal class ChatThreadHandlerMulti(
     private val origin: ChatThreadHandler,
 ) : ChatThreadHandler by origin {
     override fun archive(onComplete: (Boolean) -> Unit) {
-        val event = ArchiveThreadEventImpl()
+        if (!thread.canAddMoreMessages) {
+            // Thread is already archived, no need to archive again
+            onComplete(true)
+            return
+        }
+        val event = ArchiveThreadEvent()
 
         // Mark the thread as archived until we get a response
         val wasArchived = markArchived(archived = true)

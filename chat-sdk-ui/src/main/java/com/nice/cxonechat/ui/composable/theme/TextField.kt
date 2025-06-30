@@ -25,6 +25,7 @@ import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldLabelPosition
 import androidx.compose.runtime.Composable
@@ -37,7 +38,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.nice.cxonechat.ui.composable.generic.Requirement
 import com.nice.cxonechat.ui.composable.generic.Requirements.allOf
 import com.nice.cxonechat.ui.composable.generic.Requirements.email
@@ -80,9 +81,15 @@ internal fun ChatTheme.TextField(
                 Text(
                     text = labelText,
                     modifier = minimizedLabelBackground?.let {
-                        Modifier.background(minimizedLabelBackground)
+                        Modifier
+                            .background(it)
                             .padding(horizontal = space.small)
-                    } ?: Modifier
+                    } ?: Modifier,
+                    color = if (error == null) {
+                        chatColors.textFieldLabelText
+                    } else {
+                        colorScheme.error
+                    }
                 )
             }
         },
@@ -95,40 +102,42 @@ internal fun ChatTheme.TextField(
     )
 }
 
-@Preview(showBackground = true)
+@PreviewLightDark
 @Composable
 private fun ValidatedTextFieldPreview() {
     ChatTheme {
         val text = rememberTextFieldState("")
         val number = rememberTextFieldState("")
         val mail = rememberTextFieldState("")
-        Column(
-            verticalArrangement = spacedBy(ChatTheme.space.large),
-            modifier = Modifier.padding(ChatTheme.space.large)
-        ) {
-            ChatTheme.TextField(
-                label = "Text",
-                placeholder = "This value is required",
-                value = text,
-                modifier = Modifier.fillMaxWidth(1f),
-                validate = required
-            )
-            ChatTheme.TextField(
-                label = "Numeric",
-                placeholder = "Input number",
-                value = number,
-                modifier = Modifier.fillMaxWidth(1f),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                validate = allOf(required, floating)
-            )
-            ChatTheme.TextField(
-                label = "E-Mail",
-                minimizedLabelBackground = Color.Green,
-                value = mail,
-                modifier = Modifier.fillMaxWidth(1f),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                validate = allOf(required, email)
-            )
+        Surface {
+            Column(
+                verticalArrangement = spacedBy(ChatTheme.space.large),
+                modifier = Modifier.padding(ChatTheme.space.large)
+            ) {
+                ChatTheme.TextField(
+                    label = "Text",
+                    placeholder = "This value is required",
+                    value = text,
+                    modifier = Modifier.fillMaxWidth(1f),
+                    validate = required
+                )
+                ChatTheme.TextField(
+                    label = "Numeric",
+                    placeholder = "Input number",
+                    value = number,
+                    modifier = Modifier.fillMaxWidth(1f),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    validate = allOf(required, floating)
+                )
+                ChatTheme.TextField(
+                    label = "E-Mail",
+                    minimizedLabelBackground = ChatTheme.colorScheme.surfaceContainerHigh,
+                    value = mail,
+                    modifier = Modifier.fillMaxWidth(1f),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    validate = allOf(required, email)
+                )
+            }
         }
     }
 }

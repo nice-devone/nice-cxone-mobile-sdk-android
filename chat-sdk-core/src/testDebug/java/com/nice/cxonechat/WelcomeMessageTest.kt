@@ -18,7 +18,6 @@ package com.nice.cxonechat
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.model.ChannelConfiguration
 import com.nice.cxonechat.internal.model.CustomFieldInternal
-import com.nice.cxonechat.internal.model.CustomFieldPolyType.Text
 import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.server.ServerRequest
@@ -41,10 +40,6 @@ import kotlin.test.assertNotEquals
 
 internal class WelcomeMessageTest : AbstractChatTest() {
 
-    private val customerCustomFields = listOf<CustomField>(
-        CustomFieldInternal("1", nextString(), Date(0)),
-        CustomFieldInternal("2", nextString(), Date(0))
-    )
     private val contactCustomFields = listOf<CustomField>(
         CustomFieldInternal("1", nextString(), Date(0)),
         CustomFieldInternal("2", nextString(), Date(0))
@@ -53,16 +48,7 @@ internal class WelcomeMessageTest : AbstractChatTest() {
     private val enteredCustomerCustomFields = mapOf("testField" to "testValue")
 
     override val config: ChannelConfiguration
-        get() {
-            return requireNotNull(super.config).copy(
-                contactCustomFields = contactCustomFields.map {
-                    Text(it.id, it.value)
-                },
-                customerCustomFields = customerCustomFields.map {
-                    Text(it.id, it.value)
-                }
-            )
-        }
+        get() = requireNotNull(super.config)
 
     @Test
     fun get_contains_welcome_message() {

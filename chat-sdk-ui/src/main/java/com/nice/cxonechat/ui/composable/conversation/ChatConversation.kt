@@ -15,7 +15,7 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
-import android.content.res.Configuration
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,8 +23,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -32,18 +30,24 @@ import androidx.compose.material.icons.Icons.Filled
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.nice.cxonechat.ui.AttachmentType
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.conversation.model.ConversationUiState
 import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider
@@ -67,7 +71,7 @@ import kotlinx.coroutines.launch
 internal fun ChatConversation(
     conversationState: ConversationUiState,
     audioRecordingState: AudioRecordingUiState,
-    onAttachmentTypeSelection: (mimeType: Collection<String>) -> Unit,
+    onAttachmentTypeSelection: (attachmentType: AttachmentType) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scrollState = rememberLazyListState()
@@ -83,13 +87,18 @@ internal fun ChatConversation(
     }
 
     Column(
-        modifier.fillMaxSize(),
+        modifier = Modifier
+            .testTag("chat_conversation_column")
+            .then(modifier)
+            .fillMaxSize(),
     ) {
         MessageListView(
             messages,
             conversation = conversationState,
             scrollState = scrollState,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .testTag("message_list_view")
+                .weight(1f)
         )
         UserInputView(
             conversationState = conversationState,
@@ -107,38 +116,44 @@ private fun UserInputView(
     scope: CoroutineScope,
     scrollState: LazyListState,
     audioRecordingState: AudioRecordingUiState,
-    onAttachmentTypeSelection: (mimeTypes: Collection<String>) -> Unit,
+    modifier: Modifier = Modifier,
+    onAttachmentTypeSelection: (attachmentType: AttachmentType) -> Unit,
 ) {
     if (!conversationState.isArchived.collectAsState().value) {
         UserInput(
             conversationUiState = conversationState,
+            audioRecordingUiState = audioRecordingState,
+            onAttachmentTypeSelection = onAttachmentTypeSelection,
             resetScroll = {
                 scope.launch {
                     scrollState.scrollToItem(0)
                 }
             },
             modifier = Modifier
-                .navigationBarsPadding()
-                .imePadding(),
-            audioRecordingUiState = audioRecordingState,
-            onAttachmentTypeSelection = onAttachmentTypeSelection,
+                .testTag("user_input")
+                .then(modifier)
         )
     } else {
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
+                .testTag("archived_info_box")
+                .then(modifier)
                 .fillMaxWidth()
                 .background(ChatTheme.chatColors.chatInfoLabel.background)
         ) {
             Row(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(4.dp)
+                modifier = Modifier
+                    .padding(4.dp)
+                    .testTag("archived_info_row")
             ) {
                 Icon(
                     imageVector = Filled.Archive,
                     contentDescription = null,
-                    tint = ChatTheme.chatColors.chatInfoLabel.foreground
+                    tint = ChatTheme.chatColors.chatInfoLabel.foreground,
+                    modifier = Modifier.testTag("archive_icon")
                 )
                 Text(
                     text = stringResource(
@@ -159,11 +174,23 @@ internal fun MessageListView(
     modifier: Modifier = Modifier,
 ) {
     val canLoadMore = conversation.canLoadMore.collectAsState().value
-    val agentDetails = conversation.agentTyping.collectAsState().value
+    val agentDetails = conversation.agentTyping.collectAsState(null).value
     val agentIsTyping = conversation.isAgentTyping.collectAsState().value
 
-    Box(modifier) {
-        Column {
+    Box(
+        modifier = Modifier
+            .testTag("message_list_view_box")
+            .then(modifier)
+    ) {
+        Column(
+            modifier = Modifier.testTag("message_list_column")
+        ) {
+            val positionInQueue by conversation.positionInQueue.collectAsState(initial = null)
+            AnimatedVisibility(positionInQueue != null, Modifier.align(CenterHorizontally)) {
+                positionInQueue?.let { position ->
+                    PositionInQueue(position = position)
+                }
+            }
             Messages(
                 scrollState = scrollState,
                 groupedMessages = messages,
@@ -176,43 +203,38 @@ internal fun MessageListView(
                 onShare = conversation.onShare,
             )
         }
+    }
+}
 
-        conversation.positionInQueue.collectAsState(initial = null).value?.let {
-            PositionInQueue(
-                position = it,
-                modifier = Modifier
-                    .fillMaxWidth(1f)
-                    .padding(top = 8.dp)
+@Preview(device = "spec:width=673dp,height=841dp")
+@Composable
+private fun PreviewChat() {
+    ChatTheme {
+        Surface {
+            val scrollState = rememberLazyListState()
+            val messages = PreviewMessageProvider().messages.toList()
+            val conversation = previewUiState(messages, positionInQueue = 4)
+            val context = LocalContext.current
+            MessageListView(
+                messages = conversation.messages(context).collectAsState(initial = emptyList()).value,
+                scrollState = scrollState,
+                conversation = conversation
             )
         }
     }
 }
 
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
-@Composable
-private fun PreviewChat() {
-    ChatTheme(true) {
-        val scrollState = rememberLazyListState()
-        val messages = PreviewMessageProvider().messages.toList()
-        val conversation = previewUiState(messages, positionInQueue = 4)
-        val context = LocalContext.current
-        MessageListView(
-            messages = conversation.messages(context).collectAsState(initial = emptyList()).value,
-            scrollState = scrollState,
-            conversation = conversation
-        )
-    }
-}
-
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@PreviewLightDark
 @Composable
 private fun PreviewChatMessageInput() {
     val messages = PreviewMessageProvider().messages.toList()
-    ChatTheme(darkTheme = true) {
-        ChatConversation(
-            conversationState = previewUiState(messages, positionInQueue = 4),
-            audioRecordingState = previewAudioState(),
-            onAttachmentTypeSelection = {},
-        )
+    ChatTheme {
+        Surface {
+            ChatConversation(
+                conversationState = previewUiState(messages, positionInQueue = 4),
+                audioRecordingState = previewAudioState(),
+                onAttachmentTypeSelection = {},
+            )
+        }
     }
 }

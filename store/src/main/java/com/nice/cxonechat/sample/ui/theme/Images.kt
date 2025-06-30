@@ -15,12 +15,16 @@
 
 package com.nice.cxonechat.sample.ui.theme
 
+import androidx.compose.runtime.Immutable
 import com.nice.cxonechat.sample.R.mipmap
-import com.nice.cxonechat.ui.composable.theme.Images
 
 /**
  * Default images used in the application.
  */
-object Images : Images {
-    override val logo: Any = mipmap.ic_launcher
+@Immutable
+object Images {
+    /**
+     * Image which will be used to display a brand logo.
+     */
+    val logo = mipmap.ic_launcher
 }

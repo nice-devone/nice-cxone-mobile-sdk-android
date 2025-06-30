@@ -33,10 +33,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.nice.cxonechat.ui.composable.conversation.model.Action
 import com.nice.cxonechat.ui.composable.conversation.model.Action.ReplyButton
-import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.LocalSpace
+import com.nice.cxonechat.ui.util.preview.message.UiSdkReplyButton
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -76,7 +76,7 @@ private fun actions(count: Int = 2): List<ReplyButton> = buildList(capacity = co
     for (i in 0 until count - 1) {
         add(
             ReplyButton(
-                action = PreviewMessageProvider.ReplyButton("Chip $i"),
+                action = UiSdkReplyButton("Chip $i"),
                 sendMessage = { }
             )
         )
@@ -84,14 +84,14 @@ private fun actions(count: Int = 2): List<ReplyButton> = buildList(capacity = co
     if (this.lastIndex % 2 == 0) {
         add(
             ReplyButton(
-                action = PreviewMessageProvider.ReplyButton("Some very very very loooooooong text, maybe too long for normal use, but you never know, right?"),
+                action = UiSdkReplyButton("Some very very very loooooooong text, maybe too long for normal use, but you never know, right?"),
                 sendMessage = { }
             )
         )
     } else {
         add(
             ReplyButton(
-                action = PreviewMessageProvider.ReplyButton("Random cat", "https://http.cat/203"),
+                action = UiSdkReplyButton("Random cat", "https://http.cat/203"),
                 sendMessage = { }
             )
         )

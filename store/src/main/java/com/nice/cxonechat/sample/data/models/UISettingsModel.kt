@@ -60,7 +60,9 @@ data class UISettingsModel(
      * @param onAccent Material onSecondary color.
      * @param background Material background and surface color.
      * @param onBackground Material onBackground and onSurface color.
-     * @param surfaceVariant Material surface color.
+     * @param surface Material surface color.
+     * @param onSurface Material on-surface color.
+     * @param surfaceVariant Material surface variant color.
      * @param surfaceContainer Material onSurface color.
      * @param surfaceContainerHigh Material onSurface color with high tonal elevation.
      * @param surfaceContainerHighest Material onSurface color with highest tonal elevation.
@@ -70,6 +72,14 @@ data class UISettingsModel(
      * @param agentAvatarBackground Color for agent avatar background in chat conversation.
      * @param customerBackground Background color for customer cells in chat.
      * @param customerText Text color for customer cells in chat.
+     * @param subtle Subtle color for less prominent UI elements, e.g. action to download all attachments.
+     * @param muted Muted color for disabled or less important UI elements, e.g. a rim for subtle element.
+     * @param error Color for error content.
+     * @param accentHeaderStart Starting color for the gradient in the header.
+     * @param accentHeaderEnd Ending color for the gradient in the header.
+     * @param onAccentHeader Content color for the header gradient.
+     * @param textFieldLabelBackground Background color for text field label.
+     * @param textFieldLabelText Text color for text field label.
      */
     @Serializable
     data class Colors(
@@ -91,6 +101,12 @@ data class UISettingsModel(
         @SerialName("onBackground")
         @Serializable(with = ColorSerializer::class)
         val onBackground: Color,
+        @SerialName("surface")
+        @Serializable(with = ColorSerializer::class)
+        val surface: Color,
+        @SerialName("onSurface")
+        @Serializable(with = ColorSerializer::class)
+        val onSurface: Color,
         @SerialName("surfaceVariant")
         @Serializable(with = ColorSerializer::class)
         val surfaceVariant: Color,
@@ -121,7 +137,37 @@ data class UISettingsModel(
         @SerialName("customerText")
         @Serializable(with = ColorSerializer::class)
         val customerText: Color,
+        @SerialName("subtle")
+        @Serializable(with = ColorSerializer::class)
+        val subtle: Color,
+        @SerialName("muted")
+        @Serializable(with = ColorSerializer::class)
+        val muted: Color,
+        @SerialName("error")
+        @Serializable(with = ColorSerializer::class)
+        val error: Color,
+        @SerialName("accentHeaderStart")
+        @Serializable(with = ColorSerializer::class)
+        val accentHeaderStart: Color,
+        @SerialName("accentHeaderEnd")
+        @Serializable(with = ColorSerializer::class)
+        val accentHeaderEnd: Color,
+        @SerialName("onAccentHeader")
+        @Serializable(with = ColorSerializer::class)
+        val onAccentHeader: Color,
+        @SerialName("textFieldLabelBackground")
+        @Serializable(with = ColorSerializer::class)
+        val textFieldLabelBackground: Color,
+        @SerialName("textFieldLabelText")
+        @Serializable(with = ColorSerializer::class)
+        val textFieldLabelText: Color,
     ) {
+
+        /**
+         * A secondary constructor to initialize Colors with default values.
+         *
+         * @param defaults DefaultColors object containing default color values.
+         */
         constructor(defaults: DefaultColors) : this(
             primary = defaults.primary,
             onPrimary = defaults.onPrimary,
@@ -129,6 +175,8 @@ data class UISettingsModel(
             onAccent = defaults.onAccent,
             background = defaults.background,
             onBackground = defaults.onBackground,
+            surface = defaults.surface,
+            onSurface = defaults.onSurface,
             surfaceVariant = defaults.surfaceVariant,
             surfaceContainer = defaults.surfaceContainer,
             surfaceContainerHigh = defaults.surfaceContainerHigh,
@@ -138,11 +186,22 @@ data class UISettingsModel(
             agentAvatarForeground = defaults.agentAvatarForeground,
             agentAvatarBackground = defaults.agentAvatarBackground,
             customerBackground = defaults.customerBackground,
-            customerText = defaults.customerText
+            customerText = defaults.customerText,
+            subtle = defaults.subtle,
+            muted = defaults.muted,
+            error = defaults.error,
+            accentHeaderStart = defaults.accentHeaderStart,
+            accentHeaderEnd = defaults.accentHeaderEnd,
+            onAccentHeader = defaults.onAccentHeader,
+            textFieldLabelBackground = defaults.textFieldLabelBackground,
+            textFieldLabelText = defaults.textFieldLabelText
         )
     }
 }
 
+/**
+ * Serializer for Color class to handle serialization and deserialization.
+ */
 private class ColorSerializer : KSerializer<Color> {
     override val descriptor: SerialDescriptor = ULong.serializer().descriptor
 

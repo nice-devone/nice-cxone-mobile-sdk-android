@@ -15,7 +15,6 @@
 
 package com.nice.cxonechat.event.thread
 
-import com.nice.cxonechat.Public
 import com.nice.cxonechat.internal.model.network.ActionCustomerTyping
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.thread.ChatThread
@@ -23,14 +22,7 @@ import com.nice.cxonechat.thread.ChatThread
 /**
  * Event notifying the agent that the user has started typing.
  */
-@Public
-@Deprecated("Use ChatThreadEventHandler.typingStart()")
-object TypingStartEvent : TypingStartEventImpl()
-
-/**
- * Event notifying the agent that the user has started typing.
- */
-open class TypingStartEventImpl: ChatThreadEvent() {
+internal class TypingStartEvent : ChatThreadEvent() {
 
     override fun getModel(
         thread: ChatThread,

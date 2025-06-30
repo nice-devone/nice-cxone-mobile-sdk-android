@@ -24,7 +24,9 @@ import com.nice.cxonechat.ui.composable.conversation.model.Message.WithAttachmen
 internal val Message.contentType: ContentType
     get() = when (this) {
         is WithAttachments -> Attachment
+        is Message.AudioAttachment -> ContentType.AudioAttachment
         is Message.Text -> ContentType.Text
+        is Message.EmojiText -> ContentType.NoBackgroundText
         is Message.ListPicker -> ContentType.ListPicker
         is Message.RichLink -> ContentType.RichLink
         is Message.QuickReply -> ContentType.QuickReply
@@ -36,7 +38,9 @@ internal enum class ContentType {
     Typing,
     DateHeader,
     Attachment,
+    AudioAttachment,
     Text,
+    NoBackgroundText,
     QuickReply,
     Loading,
     ListPicker,

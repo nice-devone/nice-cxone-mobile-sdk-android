@@ -29,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import com.nice.cxonechat.sample.utilities.Requirement
@@ -77,7 +78,9 @@ internal fun AppTheme.TextField(
     OutlinedTextField(
         value = value,
         onValueChange = { onValueChanged(it) },
-        modifier = modifier
+        modifier = Modifier
+            .testTag(if (label.isNullOrEmpty()) "text_field" else "text_field_$label")
+            .then(modifier)
             .onFocusChanged {
                 if (it.isFocused != focused) {
                     error = if (it.isFocused) {

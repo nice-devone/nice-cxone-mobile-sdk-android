@@ -24,7 +24,4 @@ object ChatThemeDetails {
 
     /** Colors for light mode. */
     var lightColors = DefaultColors.light
-
-    /** Images used for decoration and branding. **/
-    var images = Images(DefaultImages.logo)
 }

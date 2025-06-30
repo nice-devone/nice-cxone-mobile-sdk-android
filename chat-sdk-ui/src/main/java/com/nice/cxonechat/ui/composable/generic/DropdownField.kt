@@ -44,6 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.Typography
 
@@ -135,6 +136,7 @@ internal fun <KeyType> DropdownField(
 private fun Label(label: String, labelBackground: Color) {
     Text(
         text = label,
+        color = chatColors.textFieldLabelText,
         modifier = Modifier
             .background(labelBackground)
             .padding(horizontal = space.small)

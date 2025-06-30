@@ -15,7 +15,7 @@
 
 package com.nice.cxonechat.tool
 
-import com.nice.cxonechat.enums.CXOneEnvironment.EU1
+import com.nice.cxonechat.enums.CXoneEnvironment.EU1
 import com.nice.cxonechat.internal.model.ConnectionInternal
 import com.nice.cxonechat.internal.socket.ProxyWebSocketListener
 import com.nice.cxonechat.internal.socket.SocketFactory

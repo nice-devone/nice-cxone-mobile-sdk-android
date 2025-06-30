@@ -20,7 +20,6 @@ package com.nice.cxonechat
 import com.nice.cxonechat.FakeChatStateListener.ChatStateConnection.Ready
 import com.nice.cxonechat.internal.model.ChannelConfiguration
 import com.nice.cxonechat.internal.model.ChatThreadMutable.Companion.asMutable
-import com.nice.cxonechat.internal.model.CustomFieldPolyType.Text
 import com.nice.cxonechat.internal.model.network.EventCaseStatusChanged.CaseStatus.Closed
 import com.nice.cxonechat.model.makeAgent
 import com.nice.cxonechat.model.makeChatThread
@@ -41,14 +40,7 @@ internal class ChatThreadsHandlerTest : AbstractChatTest() {
     private lateinit var threads: ChatThreadsHandler
 
     override val config: ChannelConfiguration
-        get() {
-            return requireNotNull(super.config).copy(
-                contactCustomFields = listOf(
-                    Text("testField", "first field"),
-                    Text("testField2", "first field")
-                )
-            )
-        }
+        get() = requireNotNull(super.config)
 
     override fun prepare() {
         super.prepare()

@@ -108,9 +108,6 @@ internal class ChatImpl(
         socketSession.getAndSet(null)?.close(WebSocketSpec.CLOSE_NORMAL_CODE, null)
     }
 
-    @Deprecated("Deprecated in Chat", replaceWith = ReplaceWith("connect()"))
-    override fun reconnect() = connect()
-
     override fun connect(): Cancellable {
         socketSession.set(
             WebsocketLogging(

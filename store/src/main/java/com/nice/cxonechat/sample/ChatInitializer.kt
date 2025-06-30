@@ -25,13 +25,17 @@ import com.nice.cxonechat.log.ProxyLogger
 import com.nice.cxonechat.sample.data.repository.ChatSettingsRepository
 import com.nice.cxonechat.sample.data.repository.UISettingsRepository
 import com.nice.cxonechat.sample.utilities.logging.FirebaseLogger
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 /** Automatic initialization of ChatInstanceProvider. */
 class ChatInitializer : Initializer<ChatInstanceProvider> {
     override fun create(context: Context): ChatInstanceProvider {
         /* set up the chat instance provider */
-        val settings = ChatSettingsRepository(context).load()
-        UISettingsRepository(context).load()
+        val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        val settings = ChatSettingsRepository(context, coroutineScope).load()
+        UISettingsRepository(context, coroutineScope).load()
         return ChatInstanceProvider.create(
             configuration = settings?.sdkConfiguration?.asSocketFactoryConfiguration,
             authorization = null,
