@@ -39,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -70,12 +71,12 @@ fun ColorField(
     color: Color,
     label: String,
     modifier: Modifier = Modifier,
-    onColorChanged: (Color) -> Unit
+    onColorChanged: (Color) -> Unit,
 ) {
     var text by remember { mutableStateOf(color.asHexString) }
     var lastColor by remember { mutableStateOf(color) }
 
-    if(lastColor != color) {
+    if (lastColor != color) {
         lastColor = color
         text = color.asHexString
     }
@@ -91,7 +92,10 @@ fun ColorField(
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.fillMaxWidth()
+        modifier = Modifier
+            .testTag("color_field_$label")
+            .then(modifier)
+            .fillMaxWidth()
     ) {
         ColorButton(color = color, modifier = modifier.padding(LocalSpace.current.medium)) {
             showPicker = true
@@ -99,7 +103,9 @@ fun ColorField(
         AppTheme.TextField(
             label = label,
             value = text,
-            modifier = modifier
+            modifier = Modifier
+                .testTag("color_text_field_$label")
+                .then(modifier)
                 .fillMaxWidth(1f)
                 .onFocusChanged {
                     if (!it.isFocused) {
@@ -114,7 +120,7 @@ fun ColorField(
             },
         )
 
-        if(showPicker) {
+        if (showPicker) {
             ColorPickerAlert(color = color, title = label, modifier = modifier, dismiss = { showPicker = false }) { picked ->
                 showPicker = false
                 onColorChanged(picked)
@@ -132,21 +138,31 @@ private fun ColorPickerAlert(color: Color, title: String, modifier: Modifier, di
 
     AlertDialog(
         dismiss,
-        modifier = modifier,
+        modifier = Modifier
+            .testTag("color_picker_$title")
+            .then(modifier),
         confirmButton = {
-            TextButton(onClick = { onConfirm(updatedHsvColor.toColor()) }) {
+            TextButton(
+                onClick = { onConfirm(updatedHsvColor.toColor()) },
+                modifier = Modifier.testTag("ok_button")
+            ) {
                 Text(stringResource(string.ok))
             }
         },
         dismissButton = {
-            TextButton(onClick = dismiss) {
+            TextButton(
+                onClick = dismiss,
+                modifier = Modifier.testTag("cancel_button")
+            ) {
                 Text(stringResource(string.cancel))
             }
         },
         title = { Text(title) },
         text = {
             HarmonyColorPicker(
-                modifier = Modifier.size(400.dp),
+                modifier = Modifier
+                    .testTag("color_picker_surface_$title")
+                    .size(400.dp),
                 harmonyMode = ColorHarmonyMode.NONE,
                 color = updatedHsvColor,
                 onColorChanged = { hsvColor ->
@@ -188,7 +204,7 @@ private fun ColorButton(color: Color, modifier: Modifier, onClick: () -> Unit) {
     }
 }
 
-@Preview(apiLevel = 31, showBackground = true)
+@Preview(apiLevel = 35, showBackground = true)
 @Composable
 private fun ColorFieldPreview() {
     AppTheme {

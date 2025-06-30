@@ -36,11 +36,17 @@ object Colors {
         /** Material onPrimary color. */
         val onPrimary: Color
 
-        /** Material background and surface color. */
+        /** Material background color. */
         val background: Color
 
-        /** Material background and onSurface color. */
+        /** Material background color. */
         val onBackground: Color
+
+        /** Material surface color. */
+        val surface: Color
+
+        /** Material onSurface color. */
+        val onSurface: Color
 
         /** Material surface color. */
         val surfaceVariant: Color
@@ -77,14 +83,40 @@ object Colors {
 
         /** Color for agent avatar background (not really app-specific, will be applied to ChatTheme). */
         val agentAvatarBackground: Color
+
+        /** Color for extra icons next the message, e.g. share attachments, will be applied to ChatTheme. */
+        val subtle: Color
+
+        /** Color for edge of extra icons, will be applied to ChatTheme. */
+        val muted: Color
+
+        /** Error color. */
+        val error: Color
+
+        /** Color for the header gradient start. */
+        val accentHeaderStart: Color
+
+        /** Color for the header gradient end. */
+        val accentHeaderEnd: Color
+
+        /** Color for the content on the header gradient. */
+        val onAccentHeader: Color
+
+        /** Color for text field label background. */
+        val textFieldLabelBackground: Color
+
+        /** Color for text field label text. */
+        val textFieldLabelText: Color
     }
 
     /** default colors to use in light mode. */
-    object Light: DefaultColors {
+    object Light : DefaultColors {
         override val primary = UIDefaultColors.light.primary
         override val onPrimary = UIDefaultColors.light.onPrimary
         override val background = UIDefaultColors.light.background
         override val onBackground = UIDefaultColors.light.onBackground
+        override val surface: Color = UIDefaultColors.light.surface
+        override val onSurface: Color = UIDefaultColors.light.onSurface
         override val surfaceVariant = UIDefaultColors.light.surfaceVariant
         override val surfaceContainer = UIDefaultColors.light.surfaceContainer
         override val surfaceContainerHigh: Color = UIDefaultColors.light.surfaceContainerHigh
@@ -97,14 +129,24 @@ object Colors {
         override val agentAvatarBackground: Color = UIDefaultColors.light.agentAvatarBackground
         override val customerBackground = UIDefaultColors.light.customerBackground
         override val customerText = UIDefaultColors.light.customerText
+        override val subtle = UIDefaultColors.light.subtle
+        override val muted = UIDefaultColors.light.muted
+        override val error: Color = UIDefaultColors.light.error
+        override val accentHeaderStart: Color = UIDefaultColors.accentHeaderStartLight
+        override val accentHeaderEnd: Color = UIDefaultColors.accentHeaderEndLight
+        override val onAccentHeader: Color = UIDefaultColors.light.onAccentHeader
+        override val textFieldLabelBackground: Color = UIDefaultColors.light.textFieldLabelBackground
+        override val textFieldLabelText: Color = UIDefaultColors.light.textFieldLabelText
     }
 
     /** default colors to use in dark mode. */
-    object Dark: DefaultColors {
+    object Dark : DefaultColors {
         override val primary = UIDefaultColors.dark.primary
         override val onPrimary = UIDefaultColors.dark.onPrimary
         override val background = UIDefaultColors.dark.background
         override val onBackground = UIDefaultColors.dark.onBackground
+        override val surface: Color = UIDefaultColors.dark.surface
+        override val onSurface: Color = UIDefaultColors.dark.onSurface
         override val surfaceVariant = UIDefaultColors.dark.surfaceVariant
         override val surfaceContainer = UIDefaultColors.dark.surfaceContainer
         override val surfaceContainerHigh: Color = UIDefaultColors.dark.surfaceContainerHigh
@@ -117,6 +159,14 @@ object Colors {
         override val agentAvatarBackground: Color = UIDefaultColors.dark.agentAvatarBackground
         override val customerBackground = UIDefaultColors.dark.customerBackground
         override val customerText = UIDefaultColors.dark.customerText
+        override val subtle = UIDefaultColors.dark.subtle
+        override val muted = UIDefaultColors.dark.muted
+        override val error: Color = UIDefaultColors.dark.error
+        override val accentHeaderStart: Color = UIDefaultColors.accentHeaderStartDark
+        override val accentHeaderEnd: Color = UIDefaultColors.accentHeaderEndDark
+        override val onAccentHeader: Color = UIDefaultColors.dark.onAccentHeader
+        override val textFieldLabelBackground: Color = UIDefaultColors.dark.textFieldLabelBackground
+        override val textFieldLabelText: Color = UIDefaultColors.dark.textFieldLabelText
     }
 }
 

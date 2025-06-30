@@ -15,7 +15,10 @@
 
 package com.nice.cxonechat
 
+import androidx.annotation.Keep
+
 /** Mark a class, function, or typealias as public so it is not mangled by proguard. */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.TYPEALIAS)
 @Retention(AnnotationRetention.BINARY)
+@Keep
 annotation class Public

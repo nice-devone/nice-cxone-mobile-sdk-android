@@ -36,7 +36,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.nice.cxonechat.sample.ui.theme.Strings.content
 import com.nice.cxonechat.sample.ui.theme.Strings.title
-import com.nice.cxonechat.ui.ChatActivity
+import com.nice.cxonechat.ui.screen.ChatActivity
 import kotlinx.coroutines.launch
 
 /**
@@ -46,6 +46,7 @@ import kotlinx.coroutines.launch
  * a Fab to open Chat, a slide out drawer, and defined back button and action menu.
  *
  * @param title Title to be displayed in TopAppBar
+ * @param modifier The Composable Modifier applied to the root view.
  * @param actions Actions to be displayed in TopAppBar
  * @param drawerContent Composable to be displayed in the slide out drawer.
  * @param content Content to be displayed in the body of the scaffold.
@@ -53,6 +54,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun AppTheme.ScreenWithScaffold(
     title: String,
+    modifier: Modifier = Modifier,
     actions: @Composable RowScope.() -> Unit = {},
     drawerContent: @Composable ((() -> Unit) -> Unit)? = null,
     content: @Composable () -> Unit,
@@ -89,19 +91,27 @@ fun AppTheme.ScreenWithScaffold(
     }
 
     val scaffoldWithContent: @Composable () -> Unit = {
-        ScaffoldWithContent(title, navigationIcon, actions, onOpenChat, content)
+        ScaffoldWithContent(
+            title = title,
+            modifier = modifier,
+            navigationIcon = navigationIcon,
+            actions = actions,
+            onOpenChat = onOpenChat,
+            content = content
+        )
     }
 
     if (drawerContent == null) {
         scaffoldWithContent()
     } else {
         ModalNavigationDrawer(
-            drawerState = drawerState,
             drawerContent = {
                 ModalDrawerSheet {
                     drawerContent(closeDrawer)
                 }
             },
+            modifier = modifier,
+            drawerState = drawerState,
             content = scaffoldWithContent
         )
     }
@@ -110,6 +120,7 @@ fun AppTheme.ScreenWithScaffold(
 @Composable
 private fun AppTheme.ScaffoldWithContent(
     title: String,
+    modifier: Modifier = Modifier,
     navigationIcon: @Composable () -> Unit,
     actions: @Composable (RowScope.() -> Unit),
     onOpenChat: () -> Unit,
@@ -126,7 +137,7 @@ private fun AppTheme.ScaffoldWithContent(
         floatingActionButton = { ChatFab(onClick = onOpenChat) },
     ) { paddingValues ->
         Box(
-            modifier = Modifier
+            modifier = modifier
                 .padding(space.defaultPadding)
                 .padding(paddingValues)
         ) {

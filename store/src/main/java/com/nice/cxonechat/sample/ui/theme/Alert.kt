@@ -23,6 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -38,7 +39,7 @@ internal fun AppTheme.Alert(
         title = title,
         onDismiss = onDismiss,
         confirmButton = {
-            OutlinedButton(text = dismissLabel, onClick = onDismiss)
+            OutlinedButton(text = dismissLabel, onClick = onDismiss, modifier = Modifier.testTag("dismiss_button"))
         }
     ) {
         Text(message, modifier = Modifier.fillMaxWidth(), style = typography.bodyMedium)

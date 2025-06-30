@@ -16,8 +16,10 @@
 package com.nice.cxonechat
 
 import com.nice.cxonechat.event.ChatEvent
-import com.nice.cxonechat.exceptions.CXOneException
+import com.nice.cxonechat.exceptions.CXoneException
 import com.nice.cxonechat.exceptions.MissingCustomerId
+import kotlinx.serialization.SerializationException
+import java.text.ParseException
 
 /**
  * Event handler allows for triggering events regarding the overall [Chat]
@@ -63,9 +65,9 @@ interface ChatEventHandler {
          *
          * @param exception The cause of failure. Possible causes are:
          * * [MissingCustomerId] in case of internal invalid state of the SDK.
-         * * [JsonIOException] in case of internal SDK error during
-         *  the events' serialization.
+         * * [ParseException] or [SerializationException] in case of internal SDK error during
+         *  the events' de/serialization.
          */
-        fun onError(exception: CXOneException)
+        fun onError(exception: CXoneException)
     }
 }

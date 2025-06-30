@@ -2,10 +2,10 @@
 package com.nice.cxonechat {
 
   @com.nice.cxonechat.Public public interface Authorization {
-    method public default static com.nice.cxonechat.Authorization create(String code, String verifier);
+    method public static com.nice.cxonechat.Authorization create(String code, String verifier);
     method public String getCode();
     method public String getVerifier();
-    method public default static operator com.nice.cxonechat.Authorization invoke(String code, String verifier);
+    method public static operator com.nice.cxonechat.Authorization invoke(String code, String verifier);
     property public abstract String code;
     property public abstract String verifier;
     field public static final com.nice.cxonechat.Authorization.Companion Companion;
@@ -36,7 +36,6 @@ package com.nice.cxonechat {
     method public com.nice.cxonechat.state.Environment getEnvironment();
     method public java.util.Collection<com.nice.cxonechat.thread.CustomField> getFields();
     method public boolean isChatAvailable();
-    method @Deprecated public com.nice.cxonechat.Cancellable reconnect();
     method public void setDeviceToken(String? token);
     method public void setUserName(String firstName, String lastName);
     method public void signOut();
@@ -54,16 +53,15 @@ package com.nice.cxonechat {
   }
 
   @com.nice.cxonechat.Public public static fun interface ChatActionHandler.OnPopupActionListener {
-    method public void onShowPopup(java.util.Map<java.lang.String,?> variables, com.nice.cxonechat.analytics.ActionMetadata metadata);
+    method public void onShowPopup(java.util.Map<java.lang.String,? extends java.lang.Object?> variables, com.nice.cxonechat.analytics.ActionMetadata metadata);
   }
 
   @com.nice.cxonechat.Public public interface ChatBuilder {
-    method @Deprecated @CheckResult public com.nice.cxonechat.Cancellable build(com.nice.cxonechat.ChatBuilder.OnChatBuiltCallback callback);
     method @CheckResult public com.nice.cxonechat.Cancellable build(com.nice.cxonechat.ChatBuilder.OnChatBuiltResultCallback resultCallback);
-    method public default static com.nice.cxonechat.ChatBuilder getDefault(android.content.Context context, com.nice.cxonechat.SocketFactoryConfiguration config);
-    method public default static com.nice.cxonechat.ChatBuilder getDefault(android.content.Context context, com.nice.cxonechat.SocketFactoryConfiguration config, optional com.nice.cxonechat.log.Logger logger);
-    method public default static operator com.nice.cxonechat.ChatBuilder invoke(android.content.Context context, com.nice.cxonechat.SocketFactoryConfiguration config);
-    method public default static operator com.nice.cxonechat.ChatBuilder invoke(android.content.Context context, com.nice.cxonechat.SocketFactoryConfiguration config, optional com.nice.cxonechat.log.Logger logger);
+    method public static com.nice.cxonechat.ChatBuilder getDefault(android.content.Context context, com.nice.cxonechat.SocketFactoryConfiguration config);
+    method public static com.nice.cxonechat.ChatBuilder getDefault(android.content.Context context, com.nice.cxonechat.SocketFactoryConfiguration config, optional com.nice.cxonechat.log.Logger logger);
+    method public static operator com.nice.cxonechat.ChatBuilder invoke(android.content.Context context, com.nice.cxonechat.SocketFactoryConfiguration config);
+    method public static operator com.nice.cxonechat.ChatBuilder invoke(android.content.Context context, com.nice.cxonechat.SocketFactoryConfiguration config, optional com.nice.cxonechat.log.Logger logger);
     method public com.nice.cxonechat.ChatBuilder setAuthorization(com.nice.cxonechat.Authorization authorization);
     method public com.nice.cxonechat.ChatBuilder setChatStateListener(com.nice.cxonechat.ChatStateListener listener);
     method public com.nice.cxonechat.ChatBuilder setCustomerId(String customerId);
@@ -80,8 +78,8 @@ package com.nice.cxonechat {
     method public operator com.nice.cxonechat.ChatBuilder invoke(android.content.Context context, com.nice.cxonechat.SocketFactoryConfiguration config, optional com.nice.cxonechat.log.Logger logger);
   }
 
-  @com.nice.cxonechat.Public public static fun interface ChatBuilder.OnChatBuiltCallback {
-    method public void onChatBuilt(com.nice.cxonechat.Chat chat);
+  @Deprecated @com.nice.cxonechat.Public public static fun interface ChatBuilder.OnChatBuiltCallback {
+    method @Deprecated public void onChatBuilt(com.nice.cxonechat.Chat chat);
   }
 
   @com.nice.cxonechat.Public public static fun interface ChatBuilder.OnChatBuiltResultCallback {
@@ -89,11 +87,11 @@ package com.nice.cxonechat {
   }
 
   @com.nice.cxonechat.Public public interface ChatEventHandler {
-    method public void trigger(com.nice.cxonechat.event.ChatEvent<?> event, optional com.nice.cxonechat.ChatEventHandler.OnEventSentListener? listener, optional com.nice.cxonechat.ChatEventHandler.OnEventErrorListener? errorListener);
+    method public void trigger(com.nice.cxonechat.event.ChatEvent<? extends java.lang.Object?> event, optional com.nice.cxonechat.ChatEventHandler.OnEventSentListener? listener, optional com.nice.cxonechat.ChatEventHandler.OnEventErrorListener? errorListener);
   }
 
   @com.nice.cxonechat.Public public static fun interface ChatEventHandler.OnEventErrorListener {
-    method public void onError(com.nice.cxonechat.exceptions.CXOneException exception);
+    method public void onError(com.nice.cxonechat.exceptions.CXoneException exception);
   }
 
   @com.nice.cxonechat.Public public static fun interface ChatEventHandler.OnEventSentListener {
@@ -171,7 +169,6 @@ package com.nice.cxonechat {
     method public void onUnexpectedDisconnect();
     method @kotlin.jvm.Throws(exceptionClasses=InvalidStateException::class) public void prepare(android.content.Context context) throws com.nice.cxonechat.exceptions.InvalidStateException;
     method @kotlin.jvm.Throws(exceptionClasses=InvalidStateException::class) public void prepare(android.content.Context context, optional com.nice.cxonechat.SocketFactoryConfiguration? newConfig) throws com.nice.cxonechat.exceptions.InvalidStateException;
-    method @Deprecated @kotlin.jvm.Throws(exceptionClasses=InvalidStateException::class) public void reconnect() throws com.nice.cxonechat.exceptions.InvalidStateException;
     method public void removeListener(com.nice.cxonechat.ChatInstanceProvider.Listener listener);
     method public com.nice.cxonechat.ChatInstanceProvider setCustomerValues(java.util.Map<java.lang.String,java.lang.String> values);
     method public void setUserName(com.nice.cxonechat.UserName name);
@@ -237,16 +234,12 @@ package com.nice.cxonechat {
   }
 
   @com.nice.cxonechat.Public public enum ChatMode {
-    method public static com.nice.cxonechat.ChatMode valueOf(String value) throws java.lang.IllegalArgumentException, java.lang.NullPointerException;
-    method public static com.nice.cxonechat.ChatMode[] values();
     enum_constant public static final com.nice.cxonechat.ChatMode LiveChat;
     enum_constant public static final com.nice.cxonechat.ChatMode MultiThread;
     enum_constant public static final com.nice.cxonechat.ChatMode SingleThread;
   }
 
   @com.nice.cxonechat.Public public enum ChatState {
-    method public static com.nice.cxonechat.ChatState valueOf(String value) throws java.lang.IllegalArgumentException, java.lang.NullPointerException;
-    method public static com.nice.cxonechat.ChatState[] values();
     enum_constant public static final com.nice.cxonechat.ChatState Connected;
     enum_constant public static final com.nice.cxonechat.ChatState Connecting;
     enum_constant public static final com.nice.cxonechat.ChatState ConnectionLost;
@@ -269,7 +262,7 @@ package com.nice.cxonechat {
   }
 
   @com.nice.cxonechat.Public public static fun interface ChatThreadEventHandler.OnEventErrorListener {
-    method public void onError(com.nice.cxonechat.exceptions.CXOneException exception);
+    method public void onError(com.nice.cxonechat.exceptions.CXoneException exception);
   }
 
   @com.nice.cxonechat.Public public static fun interface ChatThreadEventHandler.OnEventSentListener {
@@ -277,9 +270,6 @@ package com.nice.cxonechat {
   }
 
   @com.nice.cxonechat.Public public final class ChatThreadEventHandlerActions {
-    method @Deprecated public static void archiveThread(com.nice.cxonechat.ChatThreadEventHandler);
-    method @Deprecated public static void archiveThread(com.nice.cxonechat.ChatThreadEventHandler, optional com.nice.cxonechat.ChatThreadEventHandler.OnEventSentListener? listener);
-    method @Deprecated public static void archiveThread(com.nice.cxonechat.ChatThreadEventHandler, optional com.nice.cxonechat.ChatThreadEventHandler.OnEventSentListener? listener, optional com.nice.cxonechat.ChatThreadEventHandler.OnEventErrorListener? errorListener);
     method public static void loadMetadata(com.nice.cxonechat.ChatThreadEventHandler);
     method public static void loadMetadata(com.nice.cxonechat.ChatThreadEventHandler, optional com.nice.cxonechat.ChatThreadEventHandler.OnEventSentListener? listener);
     method public static void loadMetadata(com.nice.cxonechat.ChatThreadEventHandler, optional com.nice.cxonechat.ChatThreadEventHandler.OnEventSentListener? listener, optional com.nice.cxonechat.ChatThreadEventHandler.OnEventErrorListener? errorListener);
@@ -319,8 +309,8 @@ package com.nice.cxonechat {
   }
 
   @com.nice.cxonechat.Public public static interface ChatThreadMessageHandler.OnMessageTransferListener {
-    method public default static com.nice.cxonechat.ChatThreadMessageHandler.OnMessageTransferListener createFrom(optional com.nice.cxonechat.ChatThreadMessageHandler.OnUUIDListener? onProcessed, optional com.nice.cxonechat.ChatThreadMessageHandler.OnUUIDListener? onSent);
-    method public default static operator com.nice.cxonechat.ChatThreadMessageHandler.OnMessageTransferListener invoke(optional com.nice.cxonechat.ChatThreadMessageHandler.OnUUIDListener? onProcessed, optional com.nice.cxonechat.ChatThreadMessageHandler.OnUUIDListener? onSent);
+    method public static com.nice.cxonechat.ChatThreadMessageHandler.OnMessageTransferListener createFrom(optional com.nice.cxonechat.ChatThreadMessageHandler.OnUUIDListener? onProcessed, optional com.nice.cxonechat.ChatThreadMessageHandler.OnUUIDListener? onSent);
+    method public static operator com.nice.cxonechat.ChatThreadMessageHandler.OnMessageTransferListener invoke(optional com.nice.cxonechat.ChatThreadMessageHandler.OnUUIDListener? onProcessed, optional com.nice.cxonechat.ChatThreadMessageHandler.OnUUIDListener? onSent);
     method public default void onProcessed(java.util.UUID id);
     method public default void onSent(java.util.UUID id);
     field public static final com.nice.cxonechat.ChatThreadMessageHandler.OnMessageTransferListener.Companion Companion;
@@ -351,39 +341,33 @@ package com.nice.cxonechat {
     method public void onThreadsUpdated(java.util.List<? extends com.nice.cxonechat.thread.ChatThread> threads);
   }
 
-  @kotlin.annotation.Retention(kotlin.annotation.AnnotationRetention.BINARY) @kotlin.annotation.Target(allowedTargets={kotlin.annotation.AnnotationTarget.CLASS, kotlin.annotation.AnnotationTarget.FUNCTION, kotlin.annotation.AnnotationTarget.TYPEALIAS}) public @interface Public {
+  @Keep @kotlin.annotation.Retention(kotlin.annotation.AnnotationRetention.BINARY) @kotlin.annotation.Target(allowedTargets={kotlin.annotation.AnnotationTarget.CLASS, kotlin.annotation.AnnotationTarget.FUNCTION, kotlin.annotation.AnnotationTarget.TYPEALIAS}) public @interface Public {
   }
 
   @com.nice.cxonechat.Public public interface SocketFactoryConfiguration {
-    method public default static com.nice.cxonechat.SocketFactoryConfiguration create(com.nice.cxonechat.state.Environment environment, long brandId, String channelId);
-    method @Deprecated public default static com.nice.cxonechat.SocketFactoryConfiguration create(com.nice.cxonechat.state.Environment environment, long brandId, String channelId, optional String version);
+    method public static com.nice.cxonechat.SocketFactoryConfiguration create(com.nice.cxonechat.state.Environment environment, long brandId, String channelId);
     method public long getBrandId();
     method public String getChannelId();
     method public com.nice.cxonechat.state.Environment getEnvironment();
-    method @Deprecated public String getVersion();
-    method public default static operator com.nice.cxonechat.SocketFactoryConfiguration invoke(com.nice.cxonechat.state.Environment environment, long brandId, String channelId);
-    method @Deprecated public default static operator com.nice.cxonechat.SocketFactoryConfiguration invoke(com.nice.cxonechat.state.Environment environment, long brandId, String channelId, optional String version);
+    method public static operator com.nice.cxonechat.SocketFactoryConfiguration invoke(com.nice.cxonechat.state.Environment environment, long brandId, String channelId);
     property public abstract long brandId;
     property public abstract String channelId;
     property public abstract com.nice.cxonechat.state.Environment environment;
-    property @Deprecated public abstract String version;
     field public static final com.nice.cxonechat.SocketFactoryConfiguration.Companion Companion;
   }
 
   @com.nice.cxonechat.Public public static final class SocketFactoryConfiguration.Companion {
     method public com.nice.cxonechat.SocketFactoryConfiguration create(com.nice.cxonechat.state.Environment environment, long brandId, String channelId);
-    method @Deprecated public com.nice.cxonechat.SocketFactoryConfiguration create(com.nice.cxonechat.state.Environment environment, long brandId, String channelId, optional String version);
     method public operator com.nice.cxonechat.SocketFactoryConfiguration invoke(com.nice.cxonechat.state.Environment environment, long brandId, String channelId);
-    method @Deprecated public operator com.nice.cxonechat.SocketFactoryConfiguration invoke(com.nice.cxonechat.state.Environment environment, long brandId, String channelId, optional String version);
   }
 
   @com.nice.cxonechat.Public public interface UserName {
-    method public default static com.nice.cxonechat.UserName create(String lastName, String firstName);
+    method public static com.nice.cxonechat.UserName create(String lastName, String firstName);
     method public String getFirstName();
     method public default String getFullName();
     method public String getLastName();
     method public default boolean getValid();
-    method public default static operator com.nice.cxonechat.UserName invoke(String lastName, String firstName);
+    method public static operator com.nice.cxonechat.UserName invoke(String lastName, String firstName);
     property public abstract String firstName;
     property public default String fullName;
     property public abstract String lastName;
@@ -409,17 +393,15 @@ package com.nice.cxonechat.analytics {
 
 package com.nice.cxonechat.enums {
 
-  @com.nice.cxonechat.Public public enum CXOneEnvironment {
-    method public final com.nice.cxonechat.state.Environment! getValue();
-    method public static com.nice.cxonechat.enums.CXOneEnvironment valueOf(String value) throws java.lang.IllegalArgumentException, java.lang.NullPointerException;
-    method public static com.nice.cxonechat.enums.CXOneEnvironment[] values();
-    property public final com.nice.cxonechat.state.Environment! value;
-    enum_constant public static final com.nice.cxonechat.enums.CXOneEnvironment AU1;
-    enum_constant public static final com.nice.cxonechat.enums.CXOneEnvironment CA1;
-    enum_constant public static final com.nice.cxonechat.enums.CXOneEnvironment EU1;
-    enum_constant public static final com.nice.cxonechat.enums.CXOneEnvironment JP1;
-    enum_constant public static final com.nice.cxonechat.enums.CXOneEnvironment NA1;
-    enum_constant public static final com.nice.cxonechat.enums.CXOneEnvironment UK1;
+  @com.nice.cxonechat.Public public enum CXoneEnvironment {
+    method public com.nice.cxonechat.state.Environment getValue();
+    property public final com.nice.cxonechat.state.Environment value;
+    enum_constant public static final com.nice.cxonechat.enums.CXoneEnvironment AU1;
+    enum_constant public static final com.nice.cxonechat.enums.CXoneEnvironment CA1;
+    enum_constant public static final com.nice.cxonechat.enums.CXoneEnvironment EU1;
+    enum_constant public static final com.nice.cxonechat.enums.CXoneEnvironment JP1;
+    enum_constant public static final com.nice.cxonechat.enums.CXoneEnvironment NA1;
+    enum_constant public static final com.nice.cxonechat.enums.CXoneEnvironment UK1;
   }
 
 }
@@ -433,88 +415,45 @@ package com.nice.cxonechat.event {
 
 package com.nice.cxonechat.event.thread {
 
-  @Deprecated @com.nice.cxonechat.Public public final class ArchiveThreadEvent extends com.nice.cxonechat.event.thread.ArchiveThreadEventImpl {
-    property @Deprecated public java.util.UUID eventId;
-    field @Deprecated public static final com.nice.cxonechat.event.thread.ArchiveThreadEvent INSTANCE;
-  }
-
-  public class ArchiveThreadEventImpl extends com.nice.cxonechat.event.thread.ChatThreadEvent {
-    ctor public ArchiveThreadEventImpl(optional java.util.UUID eventId);
-    method public java.util.UUID getEventId();
-    property public java.util.UUID eventId;
-  }
-
   @com.nice.cxonechat.Public public abstract sealed class ChatThreadEvent {
-  }
-
-  @Deprecated @com.nice.cxonechat.Public public final class LoadThreadMetadataEvent extends com.nice.cxonechat.event.thread.LoadThreadMetadataEventImpl {
-    field @Deprecated public static final com.nice.cxonechat.event.thread.LoadThreadMetadataEvent INSTANCE;
-  }
-
-  public class LoadThreadMetadataEventImpl extends com.nice.cxonechat.event.thread.ChatThreadEvent {
-    ctor public LoadThreadMetadataEventImpl();
-  }
-
-  @Deprecated @com.nice.cxonechat.Public public final class MarkThreadReadEvent extends com.nice.cxonechat.event.thread.MarkThreadReadEventImpl {
-    field @Deprecated public static final com.nice.cxonechat.event.thread.MarkThreadReadEvent INSTANCE;
-  }
-
-  public class MarkThreadReadEventImpl extends com.nice.cxonechat.event.thread.ChatThreadEvent {
-    ctor public MarkThreadReadEventImpl();
-  }
-
-  @Deprecated @com.nice.cxonechat.Public public final class TypingEndEvent extends com.nice.cxonechat.event.thread.TypingEndEventImpl {
-    field @Deprecated public static final com.nice.cxonechat.event.thread.TypingEndEvent INSTANCE;
-  }
-
-  public class TypingEndEventImpl extends com.nice.cxonechat.event.thread.ChatThreadEvent {
-    ctor public TypingEndEventImpl();
-  }
-
-  @Deprecated @com.nice.cxonechat.Public public final class TypingStartEvent extends com.nice.cxonechat.event.thread.TypingStartEventImpl {
-    field @Deprecated public static final com.nice.cxonechat.event.thread.TypingStartEvent INSTANCE;
-  }
-
-  public class TypingStartEventImpl extends com.nice.cxonechat.event.thread.ChatThreadEvent {
-    ctor public TypingStartEventImpl();
   }
 
 }
 
 package com.nice.cxonechat.exceptions {
 
-  @com.nice.cxonechat.Public public final class AnalyticsEventDispatchException extends com.nice.cxonechat.exceptions.CXOneException {
+  @com.nice.cxonechat.Public public final class AnalyticsEventDispatchException extends com.nice.cxonechat.exceptions.CXoneException {
     ctor public AnalyticsEventDispatchException(String message, Throwable? throwable);
   }
 
-  @com.nice.cxonechat.Public public abstract sealed class CXOneException extends java.lang.Exception {
+  @com.nice.cxonechat.Public public abstract sealed class CXoneException extends java.lang.Exception {
     field public static final long serialVersionUID = -7049214473807003049L; // 0x9e2c28c8cf310257L
   }
 
-  @com.nice.cxonechat.Public public final class InternalError extends com.nice.cxonechat.exceptions.CXOneException {
+  @com.nice.cxonechat.Public public final class InternalError extends com.nice.cxonechat.exceptions.CXoneException {
   }
 
-  @com.nice.cxonechat.Public public final class InvalidCustomFieldValue extends com.nice.cxonechat.exceptions.CXOneException {
+  @com.nice.cxonechat.Public public final class InvalidCustomFieldValue extends com.nice.cxonechat.exceptions.CXoneException {
   }
 
-  @com.nice.cxonechat.Public public final class InvalidParameterException extends com.nice.cxonechat.exceptions.CXOneException {
+  @com.nice.cxonechat.Public public final class InvalidParameterException extends com.nice.cxonechat.exceptions.CXoneException {
   }
 
-  @com.nice.cxonechat.Public public final class InvalidStateException extends com.nice.cxonechat.exceptions.CXOneException {
+  @com.nice.cxonechat.Public public final class InvalidStateException extends com.nice.cxonechat.exceptions.CXoneException {
   }
 
-  @com.nice.cxonechat.Public public final class MissingCustomerId extends com.nice.cxonechat.exceptions.CXOneException {
+  @com.nice.cxonechat.Public public final class MissingCustomerId extends com.nice.cxonechat.exceptions.CXoneException {
   }
 
-  @com.nice.cxonechat.Public public final class MissingPreChatCustomFieldsException extends com.nice.cxonechat.exceptions.CXOneException {
+  @com.nice.cxonechat.Public public final class MissingPreChatCustomFieldsException extends com.nice.cxonechat.exceptions.CXoneException {
     method public Iterable<java.lang.String> getMissing();
     property public final Iterable<java.lang.String> missing;
   }
 
-  @com.nice.cxonechat.Public public final class MissingThreadListFetchException extends com.nice.cxonechat.exceptions.CXOneException {
+  @com.nice.cxonechat.Public public final class MissingThreadListFetchException extends com.nice.cxonechat.exceptions.CXoneException {
   }
 
-  @com.nice.cxonechat.Public public abstract sealed class RuntimeChatException extends com.nice.cxonechat.exceptions.CXOneException {
+  @com.nice.cxonechat.Public public abstract sealed class RuntimeChatException extends com.nice.cxonechat.exceptions.CXoneException {
   }
 
   @com.nice.cxonechat.Public public static final class RuntimeChatException.AttachmentUploadError extends com.nice.cxonechat.exceptions.RuntimeChatException {
@@ -528,10 +467,7 @@ package com.nice.cxonechat.exceptions {
   @com.nice.cxonechat.Public public static final class RuntimeChatException.ServerCommunicationError extends com.nice.cxonechat.exceptions.RuntimeChatException {
   }
 
-  @Deprecated @com.nice.cxonechat.Public public final class UndefinedCustomField extends com.nice.cxonechat.exceptions.CXOneException {
-  }
-
-  @com.nice.cxonechat.Public public final class UnsupportedChannelConfigException extends com.nice.cxonechat.exceptions.CXOneException {
+  @com.nice.cxonechat.Public public final class UnsupportedChannelConfigException extends com.nice.cxonechat.exceptions.CXoneException {
   }
 
 }
@@ -562,14 +498,14 @@ package com.nice.cxonechat.message {
   }
 
   @com.nice.cxonechat.Public public interface ContentDescriptor {
-    method public default static com.nice.cxonechat.message.ContentDescriptor create(android.net.Uri content, android.content.Context context, String mimeType, String fileName, optional String? friendlyName);
-    method public default static com.nice.cxonechat.message.ContentDescriptor create(byte[] content, String mimeType, String fileName, String? friendlyName);
+    method public static com.nice.cxonechat.message.ContentDescriptor create(android.net.Uri content, android.content.Context context, String mimeType, String fileName, optional String? friendlyName);
+    method public static com.nice.cxonechat.message.ContentDescriptor create(byte[] content, String mimeType, String fileName, String? friendlyName);
     method public com.nice.cxonechat.message.ContentDescriptor.DataSource getContent();
     method public String getFileName();
     method public String? getFriendlyName();
     method public String getMimeType();
-    method public default static operator com.nice.cxonechat.message.ContentDescriptor invoke(android.net.Uri content, android.content.Context context, String mimeType, String fileName, optional String? friendlyName);
-    method public default static operator com.nice.cxonechat.message.ContentDescriptor invoke(byte[] content, String mimeType, String fileName, String? friendlyName);
+    method public static operator com.nice.cxonechat.message.ContentDescriptor invoke(android.net.Uri content, android.content.Context context, String mimeType, String fileName, optional String? friendlyName);
+    method public static operator com.nice.cxonechat.message.ContentDescriptor invoke(byte[] content, String mimeType, String fileName, String? friendlyName);
     property public abstract com.nice.cxonechat.message.ContentDescriptor.DataSource content;
     property public abstract String fileName;
     property public abstract String? friendlyName;
@@ -666,8 +602,6 @@ package com.nice.cxonechat.message {
   }
 
   @com.nice.cxonechat.Public public enum MessageDirection {
-    method public static com.nice.cxonechat.message.MessageDirection valueOf(String value) throws java.lang.IllegalArgumentException, java.lang.NullPointerException;
-    method public static com.nice.cxonechat.message.MessageDirection[] values();
     enum_constant public static final com.nice.cxonechat.message.MessageDirection ToAgent;
     enum_constant public static final com.nice.cxonechat.message.MessageDirection ToClient;
   }
@@ -675,15 +609,15 @@ package com.nice.cxonechat.message {
   @com.nice.cxonechat.Public public interface MessageMetadata {
     method public java.util.Date? getReadAt();
     method public java.util.Date? getSeenAt();
+    method public java.util.Date? getSeenByCustomerAt();
     method public com.nice.cxonechat.message.MessageStatus getStatus();
     property public abstract java.util.Date? readAt;
     property public abstract java.util.Date? seenAt;
+    property public abstract java.util.Date? seenByCustomerAt;
     property public abstract com.nice.cxonechat.message.MessageStatus status;
   }
 
   @com.nice.cxonechat.Public public enum MessageStatus {
-    method public static com.nice.cxonechat.message.MessageStatus valueOf(String value) throws java.lang.IllegalArgumentException, java.lang.NullPointerException;
-    method public static com.nice.cxonechat.message.MessageStatus[] values();
     enum_constant public static final com.nice.cxonechat.message.MessageStatus Delivered;
     enum_constant public static final com.nice.cxonechat.message.MessageStatus FailedToDeliver;
     enum_constant public static final com.nice.cxonechat.message.MessageStatus Read;
@@ -693,19 +627,19 @@ package com.nice.cxonechat.message {
   }
 
   @com.nice.cxonechat.Public public interface OutboundMessage {
-    method public default static com.nice.cxonechat.message.OutboundMessage create(Iterable<? extends com.nice.cxonechat.message.ContentDescriptor> attachments);
-    method public default static com.nice.cxonechat.message.OutboundMessage create(Iterable<? extends com.nice.cxonechat.message.ContentDescriptor> attachments, optional String message);
-    method public default static com.nice.cxonechat.message.OutboundMessage create(Iterable<? extends com.nice.cxonechat.message.ContentDescriptor> attachments, optional String message, optional String? postback);
-    method public default static com.nice.cxonechat.message.OutboundMessage create(String message);
-    method public default static com.nice.cxonechat.message.OutboundMessage create(String message, optional String? postback);
+    method public static com.nice.cxonechat.message.OutboundMessage create(Iterable<? extends com.nice.cxonechat.message.ContentDescriptor> attachments);
+    method public static com.nice.cxonechat.message.OutboundMessage create(Iterable<? extends com.nice.cxonechat.message.ContentDescriptor> attachments, optional String message);
+    method public static com.nice.cxonechat.message.OutboundMessage create(Iterable<? extends com.nice.cxonechat.message.ContentDescriptor> attachments, optional String message, optional String? postback);
+    method public static com.nice.cxonechat.message.OutboundMessage create(String message);
+    method public static com.nice.cxonechat.message.OutboundMessage create(String message, optional String? postback);
     method public Iterable<com.nice.cxonechat.message.ContentDescriptor> getAttachments();
     method public String getMessage();
     method public String? getPostback();
-    method public default static operator com.nice.cxonechat.message.OutboundMessage invoke(Iterable<? extends com.nice.cxonechat.message.ContentDescriptor> attachments);
-    method public default static operator com.nice.cxonechat.message.OutboundMessage invoke(Iterable<? extends com.nice.cxonechat.message.ContentDescriptor> attachments, optional String message);
-    method public default static operator com.nice.cxonechat.message.OutboundMessage invoke(Iterable<? extends com.nice.cxonechat.message.ContentDescriptor> attachments, optional String message, optional String? postback);
-    method public default static operator com.nice.cxonechat.message.OutboundMessage invoke(String message);
-    method public default static operator com.nice.cxonechat.message.OutboundMessage invoke(String message, optional String? postback);
+    method public static operator com.nice.cxonechat.message.OutboundMessage invoke(Iterable<? extends com.nice.cxonechat.message.ContentDescriptor> attachments);
+    method public static operator com.nice.cxonechat.message.OutboundMessage invoke(Iterable<? extends com.nice.cxonechat.message.ContentDescriptor> attachments, optional String message);
+    method public static operator com.nice.cxonechat.message.OutboundMessage invoke(Iterable<? extends com.nice.cxonechat.message.ContentDescriptor> attachments, optional String message, optional String? postback);
+    method public static operator com.nice.cxonechat.message.OutboundMessage invoke(String message);
+    method public static operator com.nice.cxonechat.message.OutboundMessage invoke(String message, optional String? postback);
     property public abstract Iterable<com.nice.cxonechat.message.ContentDescriptor> attachments;
     property public abstract String message;
     property public abstract String? postback;
@@ -726,14 +660,12 @@ package com.nice.cxonechat.message {
   }
 
   @com.nice.cxonechat.Public public enum TextFormat {
-    method public final String! getMimeType();
-    method public final boolean isHtml();
-    method public final boolean isMarkdown();
-    method public static com.nice.cxonechat.message.TextFormat valueOf(String value) throws java.lang.IllegalArgumentException, java.lang.NullPointerException;
-    method public static com.nice.cxonechat.message.TextFormat[] values();
+    method public String getMimeType();
+    method public boolean isHtml();
+    method public boolean isMarkdown();
     property public final boolean isHtml;
     property public final boolean isMarkdown;
-    property public final String! mimeType;
+    property public final String mimeType;
     enum_constant public static final com.nice.cxonechat.message.TextFormat Html;
     enum_constant public static final com.nice.cxonechat.message.TextFormat Markdown;
     enum_constant public static final com.nice.cxonechat.message.TextFormat Plain;
@@ -758,8 +690,8 @@ package com.nice.cxonechat.prechat {
   }
 
   @com.nice.cxonechat.Public public static interface PreChatSurveyResponse.Hierarchy extends com.nice.cxonechat.prechat.PreChatSurveyResponse<com.nice.cxonechat.state.FieldDefinition.Hierarchy,com.nice.cxonechat.state.HierarchyNode<java.lang.String>> {
-    method public default static com.nice.cxonechat.prechat.PreChatSurveyResponse.Hierarchy create(com.nice.cxonechat.state.FieldDefinition.Hierarchy question, com.nice.cxonechat.state.HierarchyNode<java.lang.String> response);
-    method public default static operator com.nice.cxonechat.prechat.PreChatSurveyResponse.Hierarchy invoke(com.nice.cxonechat.state.FieldDefinition.Hierarchy question, com.nice.cxonechat.state.HierarchyNode<java.lang.String> response);
+    method public static com.nice.cxonechat.prechat.PreChatSurveyResponse.Hierarchy create(com.nice.cxonechat.state.FieldDefinition.Hierarchy question, com.nice.cxonechat.state.HierarchyNode<java.lang.String> response);
+    method public static operator com.nice.cxonechat.prechat.PreChatSurveyResponse.Hierarchy invoke(com.nice.cxonechat.state.FieldDefinition.Hierarchy question, com.nice.cxonechat.state.HierarchyNode<java.lang.String> response);
     field public static final com.nice.cxonechat.prechat.PreChatSurveyResponse.Hierarchy.Companion Companion;
   }
 
@@ -769,8 +701,8 @@ package com.nice.cxonechat.prechat {
   }
 
   @com.nice.cxonechat.Public public static interface PreChatSurveyResponse.Selector extends com.nice.cxonechat.prechat.PreChatSurveyResponse<com.nice.cxonechat.state.FieldDefinition.Selector,com.nice.cxonechat.state.SelectorNode> {
-    method public default static com.nice.cxonechat.prechat.PreChatSurveyResponse.Selector create(com.nice.cxonechat.state.FieldDefinition.Selector question, com.nice.cxonechat.state.SelectorNode response);
-    method public default static operator com.nice.cxonechat.prechat.PreChatSurveyResponse.Selector invoke(com.nice.cxonechat.state.FieldDefinition.Selector question, com.nice.cxonechat.state.SelectorNode response);
+    method public static com.nice.cxonechat.prechat.PreChatSurveyResponse.Selector create(com.nice.cxonechat.state.FieldDefinition.Selector question, com.nice.cxonechat.state.SelectorNode response);
+    method public static operator com.nice.cxonechat.prechat.PreChatSurveyResponse.Selector invoke(com.nice.cxonechat.state.FieldDefinition.Selector question, com.nice.cxonechat.state.SelectorNode response);
     field public static final com.nice.cxonechat.prechat.PreChatSurveyResponse.Selector.Companion Companion;
   }
 
@@ -780,8 +712,8 @@ package com.nice.cxonechat.prechat {
   }
 
   @com.nice.cxonechat.Public public static interface PreChatSurveyResponse.Text extends com.nice.cxonechat.prechat.PreChatSurveyResponse<com.nice.cxonechat.state.FieldDefinition.Text,java.lang.String> {
-    method public default static com.nice.cxonechat.prechat.PreChatSurveyResponse.Text create(com.nice.cxonechat.state.FieldDefinition.Text question, String response);
-    method public default static operator com.nice.cxonechat.prechat.PreChatSurveyResponse.Text invoke(com.nice.cxonechat.state.FieldDefinition.Text question, String response);
+    method public static com.nice.cxonechat.prechat.PreChatSurveyResponse.Text create(com.nice.cxonechat.state.FieldDefinition.Text question, String response);
+    method public static operator com.nice.cxonechat.prechat.PreChatSurveyResponse.Text invoke(com.nice.cxonechat.state.FieldDefinition.Text question, String response);
     field public static final com.nice.cxonechat.prechat.PreChatSurveyResponse.Text.Companion Companion;
   }
 
@@ -795,10 +727,6 @@ package com.nice.cxonechat.prechat {
 package com.nice.cxonechat.state {
 
   @com.nice.cxonechat.Public public interface Configuration {
-    method @Deprecated public default boolean allowsFieldId(String fieldId);
-    method @Deprecated public default kotlin.sequences.Sequence<com.nice.cxonechat.state.FieldDefinition> getAllCustomFields();
-    method @Deprecated public kotlin.sequences.Sequence<com.nice.cxonechat.state.FieldDefinition> getContactCustomFields();
-    method @Deprecated public kotlin.sequences.Sequence<com.nice.cxonechat.state.FieldDefinition> getCustomerCustomFields();
     method public com.nice.cxonechat.state.FileRestrictions getFileRestrictions();
     method public boolean getHasMultipleThreadsPerEndUser();
     method public default boolean hasFeature(com.nice.cxonechat.state.Configuration.Feature feature);
@@ -807,9 +735,6 @@ package com.nice.cxonechat.state {
     method public boolean isLiveChat();
     method public boolean isOnline();
     method public boolean isProactiveChatEnabled();
-    property @Deprecated public default kotlin.sequences.Sequence<com.nice.cxonechat.state.FieldDefinition> allCustomFields;
-    property @Deprecated public abstract kotlin.sequences.Sequence<com.nice.cxonechat.state.FieldDefinition> contactCustomFields;
-    property @Deprecated public abstract kotlin.sequences.Sequence<com.nice.cxonechat.state.FieldDefinition> customerCustomFields;
     property public abstract com.nice.cxonechat.state.FileRestrictions fileRestrictions;
     property public abstract boolean hasMultipleThreadsPerEndUser;
     property public abstract boolean isAuthorizationEnabled;
@@ -819,8 +744,6 @@ package com.nice.cxonechat.state {
   }
 
   @com.nice.cxonechat.Public public enum Configuration.Feature {
-    method public static com.nice.cxonechat.state.Configuration.Feature valueOf(String value) throws java.lang.IllegalArgumentException, java.lang.NullPointerException;
-    method public static com.nice.cxonechat.state.Configuration.Feature[] values();
     enum_constant public static final com.nice.cxonechat.state.Configuration.Feature LiveChatLogoHidden;
     enum_constant public static final com.nice.cxonechat.state.Configuration.Feature ProactiveChatEnabled;
     enum_constant public static final com.nice.cxonechat.state.Configuration.Feature RecoverLiveChatDoesNotFail;
@@ -940,23 +863,19 @@ package com.nice.cxonechat.thread {
 
   @com.nice.cxonechat.Public public abstract class Agent {
     ctor public Agent();
-    method @Deprecated public abstract String? getEmailAddress();
     method public abstract String getFirstName();
     method public final String getFullName();
     method public abstract int getId();
     method public abstract String getImageUrl();
-    method @Deprecated public abstract java.util.UUID? getInContactId();
     method public abstract String getLastName();
     method public abstract String? getNickname();
     method public abstract boolean isBotUser();
     method public abstract boolean isSurveyUser();
     method public abstract boolean isTyping();
-    property @Deprecated public abstract String? emailAddress;
     property public abstract String firstName;
     property public final String fullName;
     property public abstract int id;
     property public abstract String imageUrl;
-    property @Deprecated public abstract java.util.UUID? inContactId;
     property public abstract boolean isBotUser;
     property public abstract boolean isSurveyUser;
     property public abstract boolean isTyping;
@@ -991,8 +910,6 @@ package com.nice.cxonechat.thread {
   }
 
   @com.nice.cxonechat.Public public enum ChatThreadState {
-    method public static com.nice.cxonechat.thread.ChatThreadState valueOf(String value) throws java.lang.IllegalArgumentException, java.lang.NullPointerException;
-    method public static com.nice.cxonechat.thread.ChatThreadState[] values();
     enum_constant public static final com.nice.cxonechat.thread.ChatThreadState Closed;
     enum_constant public static final com.nice.cxonechat.thread.ChatThreadState Loaded;
     enum_constant public static final com.nice.cxonechat.thread.ChatThreadState Pending;

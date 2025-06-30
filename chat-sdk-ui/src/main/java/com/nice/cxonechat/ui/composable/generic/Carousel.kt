@@ -60,7 +60,6 @@ import kotlin.math.absoluteValue
  * auto scrolling.
  * @param content @Composable to generate each page in the carousel.
  */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun <Item> Carousel(
     items: List<Item>,

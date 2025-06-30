@@ -17,12 +17,16 @@ package com.nice.cxonechat.ui.composable.conversation
 
 import android.net.Uri
 import androidx.compose.runtime.Stable
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlin.time.Duration
 
 @Stable
 internal data class AudioRecordingUiState(
+    val isRecordingAllowedFlow: Flow<Boolean>,
     val uriFlow: StateFlow<Uri>,
     val isRecordingFlow: StateFlow<Boolean>,
+    val durationFlow: StateFlow<Duration>,
     val onDismiss: () -> Unit,
     val onApprove: (Uri) -> Unit,
     val onAudioRecordToggle: suspend () -> Boolean,

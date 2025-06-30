@@ -17,13 +17,18 @@ package com.nice.cxonechat.ui.util
 
 import com.nice.cxonechat.prechat.PreChatSurvey
 import com.nice.cxonechat.state.FieldDefinition
-import com.nice.cxonechat.ui.model.prechat.PreChatResponse
+import com.nice.cxonechat.ui.domain.model.prechat.PreChatResponse
 
 /**
  * Check if all required survey items have an appropriate response.
  */
 fun isSurveyResponseValid(survey: PreChatSurvey, responses: Iterable<PreChatResponse>): Boolean {
-    val required = survey.fields.filter(FieldDefinition::isRequired).toSet()
-    val answeredRequired = responses.asSequence().filter { it.question.isRequired }.map { it.question }.toSet()
+    val required = survey.fields
+        .filter(FieldDefinition::isRequired)
+        .toSet()
+    val answeredRequired = responses.asSequence()
+        .map(PreChatResponse::question)
+        .filter(FieldDefinition::isRequired)
+        .toSet()
     return answeredRequired.containsAll(required)
 }

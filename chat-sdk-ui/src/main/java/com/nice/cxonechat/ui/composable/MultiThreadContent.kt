@@ -15,28 +15,38 @@
 
 package com.nice.cxonechat.ui.composable
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBoxValue.EndToStart
+import androidx.compose.material3.SwipeToDismissBoxValue.StartToEnd
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.NonRestartableComposable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,16 +55,21 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow.Companion.Ellipsis
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.prechat.PreChatSurvey
 import com.nice.cxonechat.state.FieldDefinition
@@ -64,27 +79,31 @@ import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState
 import com.nice.cxonechat.thread.ChatThreadState.Ready
 import com.nice.cxonechat.thread.CustomField
-import com.nice.cxonechat.ui.PreChatSurveyScreen
 import com.nice.cxonechat.ui.R.array
 import com.nice.cxonechat.ui.R.string
+import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider
+import com.nice.cxonechat.ui.composable.conversation.orDefaultThreadName
 import com.nice.cxonechat.ui.composable.generic.AgentAvatar
+import com.nice.cxonechat.ui.composable.generic.describe
 import com.nice.cxonechat.ui.composable.theme.Alert
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
-import com.nice.cxonechat.ui.composable.theme.MultiToggleButton
+import com.nice.cxonechat.ui.composable.theme.SingleChoiceSegmentedButton
+import com.nice.cxonechat.ui.composable.theme.SwipeBackground
 import com.nice.cxonechat.ui.composable.theme.SwipeToDismiss
-import com.nice.cxonechat.ui.main.ChatThreadsViewModel.State
-import com.nice.cxonechat.ui.main.ChatThreadsViewModel.State.Initial
-import com.nice.cxonechat.ui.main.ChatThreadsViewModel.State.ThreadPreChatSurveyRequired
-import com.nice.cxonechat.ui.main.ChatThreadsViewModel.State.ThreadSelected
-import com.nice.cxonechat.ui.model.ChatThreadCopy.Companion.copy
-import com.nice.cxonechat.ui.model.CreateThreadResult.Failure
-import com.nice.cxonechat.ui.model.Thread
-import com.nice.cxonechat.ui.model.describe
-import com.nice.cxonechat.ui.model.prechat.PreChatResponse
+import com.nice.cxonechat.ui.domain.model.ChatThreadCopy.Companion.copy
+import com.nice.cxonechat.ui.domain.model.CreateThreadResult.Failure
+import com.nice.cxonechat.ui.domain.model.Thread
+import com.nice.cxonechat.ui.domain.model.prechat.PreChatResponse
+import com.nice.cxonechat.ui.screen.PreChatSurveyScreen
 import com.nice.cxonechat.ui.util.Ignored
+import com.nice.cxonechat.ui.util.toShortTimeString
+import com.nice.cxonechat.ui.viewmodel.ChatThreadsViewModel.State
+import com.nice.cxonechat.ui.viewmodel.ChatThreadsViewModel.State.Initial
+import com.nice.cxonechat.ui.viewmodel.ChatThreadsViewModel.State.ThreadPreChatSurveyRequired
+import com.nice.cxonechat.ui.viewmodel.ChatThreadsViewModel.State.ThreadSelected
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -102,21 +121,31 @@ internal fun MultiThreadContent(
     resetState: () -> Unit,
     respondToSurvey: (Sequence<PreChatResponse>) -> Unit,
     resetCreateThreadState: () -> Unit,
+    editThreadName: (Thread) -> Unit,
 ) {
-    Column {
+    Column(modifier = Modifier.testTag("multi_thread_content")) {
         var showArchivedThreads by rememberSaveable { mutableStateOf(false) }
 
-        ActiveThreadToggle(showArchivedThreads) {
+        ActiveThreadToggle(showArchivedThreads = showArchivedThreads) {
             showArchivedThreads = !showArchivedThreads
         }
-
-        ChatThreadListView(
-            threads = threads.filter {
-                it.chatThread.canAddMoreMessages != showArchivedThreads
-            },
-            onThreadSelected = onThreadSelected,
-            onArchiveThread = onArchiveThread
-        )
+        AnimatedContent(showArchivedThreads) { showArchived ->
+            if (showArchived) {
+                val archivedThreads = remember(threads) { threads.filter { !it.chatThread.canAddMoreMessages } }
+                ArchivedThreadListView(
+                    threads = archivedThreads,
+                    onThreadSelected = onThreadSelected
+                )
+            } else {
+                val activeThreads = remember(threads) { threads.filter { it.chatThread.canAddMoreMessages } }
+                ChatThreadListView(
+                    threads = activeThreads,
+                    onThreadSelected = onThreadSelected,
+                    onArchiveThread = onArchiveThread,
+                    editThreadName = editThreadName,
+                )
+            }
+        }
     }
 
     ChatThreadsStateAlert(
@@ -129,24 +158,29 @@ internal fun MultiThreadContent(
 }
 
 @Composable
+@Preview
 private fun ActiveThreadToggle(
-    showArchivedThreads: Boolean,
     modifier: Modifier = Modifier,
-    onValueChanged: (Boolean) -> Unit,
+    showArchivedThreads: Boolean = false,
+    onValueChanged: (Boolean) -> Unit = {},
 ) {
     val context = LocalContext.current
     val states = remember { context.resources.getStringArray(array.thread_state_names).toList() }
 
     Row(
-        modifier = modifier
+        modifier = Modifier
+            .testTag("active_thread_toggle_view")
+            .then(modifier)
             .fillMaxWidth()
             .padding(space.defaultPadding),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = CenterVertically,
     ) {
-        ChatTheme.MultiToggleButton(
+        ChatTheme.SingleChoiceSegmentedButton(
             currentSelection = states[if (showArchivedThreads) 1 else 0],
             toggleStates = states,
+            modifier = Modifier
+                .testTag("active_thread_toggle_button_row"),
         ) {
             onValueChanged(it != states[0])
         }
@@ -159,23 +193,69 @@ private fun ChatThreadListView(
     modifier: Modifier = Modifier,
     onThreadSelected: (Thread) -> Unit,
     onArchiveThread: (Thread) -> Unit,
+    editThreadName: (Thread) -> Unit,
+) {
+    AnimatedContent(targetState = threads.isEmpty(), modifier = Modifier.testTag("chat_thread_list")) { noThreads ->
+        if (noThreads) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .testTag("no_threads_view")
+            ) {
+                Text(
+                    stringResource(string.label_no_threads),
+                    modifier = Modifier
+                        .align(Center)
+                        .alpha(0.5f),
+                    style = chatTypography.noThreads
+                )
+            }
+        } else {
+            val lazyListState = rememberLazyListState()
+
+            LazyColumn(
+                state = lazyListState,
+                modifier = modifier,
+            ) {
+                items(
+                    threads,
+                    key = { item: Thread -> item.id }
+                ) { thread ->
+                    Column(Modifier.animateItem()) {
+                        ChatThreadWrapper(
+                            thread = thread,
+                            onArchiveThread = onArchiveThread,
+                            editThreadName = editThreadName,
+                        ) {
+                            ChatThreadView(thread = thread, onThreadSelected = onThreadSelected)
+                        }
+                        HorizontalDivider()
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ArchivedThreadListView(
+    threads: List<Thread>,
+    modifier: Modifier = Modifier,
+    onThreadSelected: (Thread) -> Unit,
 ) {
     val lazyListState = rememberLazyListState()
 
     LazyColumn(
         state = lazyListState,
-        modifier = modifier,
+        modifier = Modifier
+            .testTag("archived_thread_list")
+            .then(modifier),
     ) {
         items(
             threads,
             key = { item: Thread -> item.id }
         ) { thread ->
-            ChatThreadWrapper(
-                thread = thread,
-                onArchiveThread = onArchiveThread,
-            ) {
-                ChatThreadView(thread = thread, onThreadSelected = onThreadSelected)
-            }
+            ChatThreadView(thread = thread, onThreadSelected = onThreadSelected)
             HorizontalDivider()
         }
     }
@@ -205,17 +285,16 @@ private fun ChatThreadsStateAlert(
             )
 
             threadFailure?.let { failure ->
-                val context = LocalContext.current
-
                 ChatTheme.Alert(
-                    context.describe(failure),
+                    message = describe(failure),
                     onDismiss = {
                         coroutineScope.launch {
                             resetCreateThreadState()
                             sheetState.show()
                         }
                     },
-                    dismissLabel = context.getString(string.cancel),
+                    dismissLabel = stringResource(string.cancel),
+                    modifier = Modifier.testTag("thread_creation_failed_dialog"),
                 )
             }
         }
@@ -229,67 +308,103 @@ private fun ChatThreadsStateAlert(
 private fun ChatThreadWrapper(
     thread: Thread,
     onArchiveThread: (Thread) -> Unit,
+    editThreadName: (Thread) -> Unit,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    if (thread.chatThread.canAddMoreMessages) {
-        val currentThread by rememberUpdatedState(newValue = thread)
-        val dismissState = rememberSwipeToDismissBoxState(
-            confirmValueChange = { value ->
+    val currentThread by rememberUpdatedState(newValue = thread)
+
+    val dismissBoxState = rememberSwipeToDismissBoxState()
+    var visible by remember { mutableStateOf(true) }
+    AnimatedVisibility(visible) {
+        ChatTheme.SwipeToDismiss(
+            dismissState = dismissBoxState,
+            directions = mapOf(
+                EndToStart to SwipeBackground(
+                    color = colorScheme.secondary,
+                    icon = Icons.Default.Archive,
+                    iconTint = colorScheme.onSecondary,
+                    contentDescription = stringResource(string.archive_thread_content_description)
+                ),
+                StartToEnd to SwipeBackground(
+                    color = colorScheme.primary,
+                    icon = Icons.Default.Settings,
+                    iconTint = colorScheme.onPrimary,
+                    contentDescription = stringResource(string.change_thread_name)
+                )
+            ),
+            modifier = Modifier.fillMaxWidth(),
+            onDismiss = { value ->
                 if (value == EndToStart) {
                     onArchiveThread(currentThread)
+                    visible = false // Hide the thread after archiving
                 }
-                /* always return false to reset state even though thread moves to a different list */
-                false
+                if (value == StartToEnd) {
+                    editThreadName(currentThread)
+                    dismissBoxState.reset() // Reset the box state after editing
+                }
             },
-        )
-
-        ChatTheme.SwipeToDismiss(
-            dismissState = dismissState,
-            icon = Icons.Default.Delete,
-            contentDescription = stringResource(string.archive_thread_content_description),
-            modifier = Modifier.fillMaxWidth(),
             content = content
         )
-    } else {
-        Column(modifier = Modifier.fillMaxWidth(), content = content)
     }
 }
 
 @Composable
 private fun ChatThreadView(thread: Thread, onThreadSelected: (Thread) -> Unit) {
-    Row(
+    ListItem(
+        colors = ListItemDefaults.colors(containerColor = colorScheme.background),
         modifier = Modifier
-            .padding(space.defaultPadding)
-            .clickable {
-                onThreadSelected(thread)
-            },
-        verticalAlignment = CenterVertically,
-    ) {
-        AgentAvatar(url = thread.agent?.imageUrl)
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(start = space.medium)
-        ) {
-            Text(thread.name, style = chatTypography.threadListName)
+            .clickable { onThreadSelected(thread) }
+            .testTag("chat_thread_view_${thread.id}"),
+        leadingContent = { AgentAvatar(url = thread.agent?.imageUrl) },
+        headlineContent = {
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(thread.name.orDefaultThreadName(), style = chatTypography.threadListName)
+                val context = LocalContext.current
+                val lastMessageTime = remember(thread, context) {
+                    thread.lastMessageTime?.let { context.toShortTimeString(it) }.orEmpty()
+                }
+                Text(
+                    text = lastMessageTime,
+                    style = chatTypography.threadListLastMessageTime,
+                    color = colorScheme.onBackground.copy(alpha = 0.5f)
+                )
+            }
+        },
+        supportingContent = {
             Text(
                 thread.lastMessage,
                 style = chatTypography.threadListLastMessage,
                 maxLines = 2,
-                overflow = Ellipsis
+                overflow = Ellipsis,
+                color = colorScheme.onBackground.copy(alpha = 0.5f),
             )
-        }
-        DetailsChevron()
+        },
+        trailingContent = {
+            DetailsChevron()
+        },
+    )
+}
+
+@Composable
+@Preview
+private fun ChatThreadViewPreview() {
+    ChatTheme {
+        ChatThreadView(PreviewThread.nextThread()) { }
     }
 }
 
 @Composable
+@Preview
+@NonRestartableComposable
 private fun DetailsChevron(modifier: Modifier = Modifier) {
     Image(
         painter = rememberVectorPainter(image = Icons.Default.ChevronRight),
         contentDescription = null,
-        modifier = modifier,
-        colorFilter = ColorFilter.tint(colorScheme.onBackground)
+        modifier = modifier.padding(bottom = Icons.Default.ChevronRight.defaultHeight + 2.dp),
+        colorFilter = ColorFilter.tint(colorScheme.primary)
     )
 }
 
@@ -297,8 +412,6 @@ private fun DetailsChevron(modifier: Modifier = Modifier) {
 @Immutable
 internal data class PreviewAgent(
     override val id: Int,
-    override val inContactId: UUID? = null,
-    override val emailAddress: String?,
     override val firstName: String,
     override val lastName: String,
     override val nickname: String? = null,
@@ -318,7 +431,6 @@ internal data class PreviewAgent(
 
             return PreviewAgent(
                 id = agentId,
-                emailAddress = "$firstName.$lastName@nowhere.com",
                 firstName = firstName,
                 lastName = lastName,
                 imageUrl = "https://brand-embassy-avatars-qa.s3.eu-west-1.amazonaws.com/324bcba7-f317-4a99-b833-06a1952c41c6.jpg"
@@ -331,7 +443,7 @@ internal data class PreviewAgent(
 private data class PreviewThread(
     override val id: UUID = UUID.randomUUID(),
     override val threadName: String,
-    override val messages: List<Message> = listOf(),
+    override val messages: List<Message> = PreviewMessageProvider().messages.toList(),
     override val threadAgent: Agent? = PreviewAgent.nextAgent(),
     override val canAddMoreMessages: Boolean = true,
     override val scrollToken: String = "",
@@ -354,6 +466,7 @@ private data class PreviewThread(
     }
 }
 
+@Suppress("UNUSED_PARAMETER")
 private class PreviewModel(
     private val threadsFlow: MutableStateFlow<List<Thread>>,
     private val stateFlow: MutableStateFlow<State>,
@@ -413,6 +526,10 @@ private class PreviewModel(
         resetCreateThreadState()
     }
 
+    fun editThreadName(ignored: Thread) {
+        // No-op
+    }
+
     companion object {
         fun nextModel(
             threadCount: Int,
@@ -426,25 +543,29 @@ private class PreviewModel(
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun PreviewThreadList(
     @PreviewParameter(PreviewModelProvider::class) viewModel: PreviewModel = PreviewModelProvider().values.first(),
 ) {
     ChatTheme {
-        MultiThreadContent(
-            state = viewModel.state.collectAsState().value,
-            threads = viewModel.threads.collectAsState().value,
-            threadFailure = viewModel.createThreadFailure.collectAsState().value,
-            onThreadSelected = viewModel::onThreadSelected,
-            onArchiveThread = viewModel::onArchiveThread,
-            resetState = viewModel::resetState,
-            respondToSurvey = viewModel::respondToSurvey,
-            resetCreateThreadState = viewModel::resetCreateThreadState
-        )
+        Surface {
+            MultiThreadContent(
+                state = viewModel.state.collectAsState().value,
+                threads = viewModel.threads.collectAsState().value,
+                threadFailure = viewModel.createThreadFailure.collectAsState().value,
+                onThreadSelected = viewModel::onThreadSelected,
+                onArchiveThread = viewModel::onArchiveThread,
+                resetState = viewModel::resetState,
+                respondToSurvey = viewModel::respondToSurvey,
+                resetCreateThreadState = viewModel::resetCreateThreadState,
+                editThreadName = viewModel::editThreadName
+            )
+        }
     }
 }
 
+@Suppress("unused")
 private class PreviewModelProvider : PreviewParameterProvider<PreviewModel> {
     private object Survey : PreChatSurvey {
         override val name = "PreChat Survey"

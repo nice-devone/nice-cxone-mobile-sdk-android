@@ -28,7 +28,11 @@ class TemporaryFileProvider : FileProvider(R.xml.tmp_file_path) {
 
     internal companion object {
         private const val AUTHORITY = "com.nice.cxonechat.fileprovider"
+
         fun getUriForFile(file: File, filename: String, context: Context): Uri =
             getUriForFile(context, AUTHORITY, file, filename)
+
+        fun getUriForFile(file: File, context: Context): Uri =
+            getUriForFile(context, AUTHORITY, file, file.name)
     }
 }

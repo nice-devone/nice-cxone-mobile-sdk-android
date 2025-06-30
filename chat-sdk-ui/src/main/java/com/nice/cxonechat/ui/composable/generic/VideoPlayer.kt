@@ -23,14 +23,18 @@ import androidx.annotation.OptIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.Icons.Outlined
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.outlined.VideoFile
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.R.string
 import androidx.compose.ui.graphics.ColorFilter
@@ -39,14 +43,19 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.net.toUri
 import androidx.media3.common.C
 import androidx.media3.common.C.VideoScalingMode
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
-import androidx.media3.ui.PlayerView.FullscreenButtonClickListener
+import com.nice.cxonechat.ui.composable.conversation.PreviewAttachments
+import com.nice.cxonechat.ui.composable.generic.VideoPlayerState.Error
+import com.nice.cxonechat.ui.composable.generic.VideoPlayerState.Loading
+import com.nice.cxonechat.ui.composable.generic.VideoPlayerState.Ready
+import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.LocalSpace
 
 /**
@@ -56,7 +65,6 @@ import com.nice.cxonechat.ui.composable.theme.LocalSpace
  * @param modifier A [Modifier] which should be used by the player view.
  * @param videoScalingMode A [VideoScalingMode] to be used by the player,
  * the default is [C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING].
- * @param onFullScreenClickListener An optional listener which will
  */
 @Composable
 @OptIn(UnstableApi::class)
@@ -64,59 +72,93 @@ internal fun VideoPlayer(
     uri: Uri?,
     modifier: Modifier = Modifier,
     @VideoScalingMode videoScalingMode: Int = C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING,
-    onFullScreenClickListener: FullscreenButtonClickListener? = null,
 ) {
+    val iconModifier = Modifier
+        .padding(space.large)
+        .size(space.playStatusIconSize)
     if (uri == null) {
-        Icon(
-            imageVector = Icons.Default.ErrorOutline,
-            contentDescription = stringResource(id = string.default_error_message)
-        )
-    } else if (LocalInspectionMode.current) {
-        // ExoPlayer is not working in Preview mode
-        LocalInspectionPlaceholder()
+        ErrorIcon(iconModifier)
     } else {
         val context = LocalContext.current
-
-        val exoPlayer = remember {
-            buildProgressivePlayerForUri(context, uri)
+        val playerResult by produceState<VideoPlayerState>(
+            initialValue = Loading,
+            key1 = context,
+            key2 = uri
+        ) {
+            val result = runCatching {
+                buildProgressivePlayerForUri(context, uri)
+            }.map { player ->
+                player.playWhenReady = true
+                player.videoScalingMode = videoScalingMode
+                player.repeatMode = Player.REPEAT_MODE_OFF
+                Ready(player)
+            }.onFailure {
+                Error(it)
+            }
+            value = result.getOrThrow()
         }
 
-        exoPlayer.playWhenReady = true
-        exoPlayer.videoScalingMode = videoScalingMode
-        exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
-
-        AndroidView(
-            factory = { viewContext -> playerFactory(viewContext, exoPlayer, onFullScreenClickListener) },
-            modifier = modifier,
-            onRelease = { playerView -> playerView.player?.release() },
-            update = { playerView -> playerView.updatePlayer(exoPlayer) },
-        )
+        when (val result = playerResult) {
+            is Loading -> CircularProgressIndicator(modifier = iconModifier)
+            is Error -> ErrorIcon(iconModifier)
+            is Ready -> if (LocalInspectionMode.current) {
+                // ExoPlayer is not working in Preview mode
+                LocalInspectionPlaceholder()
+            } else {
+                val exoPlayer = result.player
+                AndroidView(
+                    factory = { viewContext -> playerFactory(viewContext, exoPlayer) },
+                    modifier = modifier,
+                    onRelease = { playerView -> playerView.player?.release() },
+                    update = { playerView -> playerView.updatePlayer(exoPlayer) },
+                )
+            }
+        }
     }
 }
 
-private fun PlayerView.updatePlayer(exoPlayer: ExoPlayer) {
+@Composable
+private fun ErrorIcon(modifier: Modifier = Modifier) {
+    Icon(
+        imageVector = Icons.Default.ErrorOutline,
+        contentDescription = stringResource(id = string.default_error_message),
+        modifier = modifier
+    )
+}
+
+/** Internal state used to track preparation of a Video player. */
+private sealed interface VideoPlayerState {
+    object Loading : VideoPlayerState
+    data class Ready(val player: Player) : VideoPlayerState
+    data class Error(val throwable: Throwable) : VideoPlayerState
+}
+
+private fun PlayerView.updatePlayer(playerInstance: Player) {
     val currentPlayer = player
-    if (currentPlayer != exoPlayer) {
+    if (currentPlayer != playerInstance) {
         currentPlayer?.release()
-        player = exoPlayer
+        player = playerInstance
     }
 }
 
 @OptIn(UnstableApi::class)
 private fun playerFactory(
     viewContext: Context,
-    exoPlayer: ExoPlayer,
-    onFullScreenClickListener: FullscreenButtonClickListener?,
+    playerInstance: Player,
 ) =
     PlayerView(viewContext).apply {
+        setShowNextButton(false)
+        setShowPreviousButton(false)
+        setShowShuffleButton(false)
+        setShowRewindButton(false)
+        setShowFastForwardButton(false)
         controllerAutoShow = true
         resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
-        player = exoPlayer
+        player = playerInstance
         layoutParams = FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
-        setFullscreenButtonClickListener(onFullScreenClickListener)
+        setEnableComposeSurfaceSyncWorkaround(true)
     }
 
-@Preview
 @Composable
 private fun LocalInspectionPlaceholder() {
     Image(
@@ -127,4 +169,15 @@ private fun LocalInspectionPlaceholder() {
             .defaultMinSize(LocalSpace.current.clickableSize, LocalSpace.current.clickableSize), // Presume that video is large
         colorFilter = ColorFilter.tint(LocalContentColor.current)
     )
+}
+
+@Preview
+@Composable
+private fun VideoPlayerPreview() {
+    ChatTheme {
+        VideoPlayer(
+            uri = PreviewAttachments.movie.url.toUri(),
+            modifier = Modifier.fillMaxSize()
+        )
+    }
 }

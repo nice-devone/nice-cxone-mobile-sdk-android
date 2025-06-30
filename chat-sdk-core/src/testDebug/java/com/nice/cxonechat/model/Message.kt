@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.nice.cxonechat.model
 
 import com.nice.cxonechat.internal.model.MessageModel
 import com.nice.cxonechat.internal.model.MessageText
+import com.nice.cxonechat.internal.model.network.CustomerStatistics
 import com.nice.cxonechat.internal.model.network.MessagePolyContent
 import com.nice.cxonechat.internal.model.network.UserStatistics
 import com.nice.cxonechat.tool.nextString
@@ -40,4 +41,10 @@ internal fun makeUserStatistics(
 ) = UserStatistics(
     seenAt = seenAt,
     readAt = readAt
+)
+
+internal fun makeCustomerStatistics(
+    seenAt: Date? = null,
+) = CustomerStatistics(
+    seenAt = seenAt,
 )

@@ -42,6 +42,7 @@ internal class MessageModelTest {
         createdAtWithSeconds = createdAt,
         attachments = listOf(),
         direction = direction,
+        customerStatistics = mockk(),
         userStatistics = mockk(),
         authorUser = AgentModel(
             id = 1,

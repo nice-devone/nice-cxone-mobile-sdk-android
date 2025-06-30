@@ -15,8 +15,6 @@
 
 package com.nice.cxonechat.event.thread
 
-import com.nice.cxonechat.Public
-import com.nice.cxonechat.event.thread.ArchiveThreadEvent.eventId
 import com.nice.cxonechat.internal.model.network.ActionArchiveThread
 import com.nice.cxonechat.internal.socket.EventCallback.EventWithId
 import com.nice.cxonechat.state.Connection
@@ -31,22 +29,8 @@ import java.util.UUID
  *
  * @property eventId Unique identifier for event.
  */
-@Public
-@Deprecated("Use ChatThreadHandler.archive() instead")
-object ArchiveThreadEvent : ArchiveThreadEventImpl() {
-    override val eventId: UUID
-        get() = UUIDProvider.next()
-}
-
-/**
- * Event that archives the thread it was invoked upon.
- *
- * Successful thread archivation will trigger thread list refresh.
- *
- * @property eventId Unique identifier for event.
- */
-open class ArchiveThreadEventImpl(
-    override val eventId: UUID = UUIDProvider.next()
+internal class ArchiveThreadEvent(
+    override val eventId: UUID = UUIDProvider.next(),
 ) : ChatThreadEvent(), EventWithId {
     override fun getModel(
         thread: ChatThread,

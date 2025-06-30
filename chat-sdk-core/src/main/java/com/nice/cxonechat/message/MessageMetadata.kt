@@ -36,6 +36,12 @@ interface MessageMetadata {
      * */
     val readAt: Date?
 
+    /**
+     * The date at which the message was seen by the customer (client).
+     * Defaults to null if the message was not yet seen by the customer.
+     */
+    val seenByCustomerAt: Date?
+
     /** Inferred status of message. */
     val status: MessageStatus
 }

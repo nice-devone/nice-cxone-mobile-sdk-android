@@ -16,4 +16,5 @@
 
 <paths>
     <cache-path name="tmp" path="tmp/" />
+    <cache-path name="capture" path="capture/" />
 </paths>

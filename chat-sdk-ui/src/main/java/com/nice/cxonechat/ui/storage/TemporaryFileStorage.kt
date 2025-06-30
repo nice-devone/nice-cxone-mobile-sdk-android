@@ -22,26 +22,46 @@ import java.util.UUID
 
 /**
  * This class manages storage of files which should be accessible via [TemporaryFileProvider].
+ * Main usage is for sharing of attachments with other applications on the device.
  */
 @Single
 internal class TemporaryFileStorage(
     context: Context,
-    private val baseDirectory: String? = null,
 ) {
-    private val cacheDir: File by lazy { baseDirectory?.let(::File) ?: context.cacheDir }
-    private val cacheFolder: File by lazy {
-        val directory = File(cacheDir, "/tmp/")
+    private val cacheDir: File by lazy { context.cacheDir }
+
+    // These folders have to match what is defined in [com.nice.cxonechat.ui.storage.TemporaryFileProvider] resources.
+    private val cacheFolder: File by lazy { getOrCreateFolder("/tmp/") }
+    private val captureFolder: File by lazy { getOrCreateFolder("/capture/") }
+
+    private fun getOrCreateFolder(child: String): File {
+        val directory = File(cacheDir, child)
         if (!directory.exists()) {
             directory.mkdirs()
         }
-        directory
+        return directory
     }
 
     /**
      * Creates a new temporary file with a randomly generated name.  A [File] reference will be returned.
+     *
+     * @param suffix An optional suffix for the file name.
      */
-    fun createFile(): File? {
-        val file = File(cacheFolder, UUID.randomUUID().toString())
+    fun createFile(suffix: String? = null): File? {
+        val file = File(cacheFolder, UUID.randomUUID().toString() + suffix.orEmpty())
+        val fileCreated = runCatching { file.createNewFile() }
+        return if (fileCreated.isSuccess) file else null
+    }
+
+    /**
+     * Creates a new capture file in the capture folder with the given prefix and suffix.
+     *
+     * @param prefix Prefix for the file name.
+     * @param suffix Suffix for the file name (including dot, e.g. ".jpeg").
+     */
+    fun createCaptureFile(prefix: String, suffix: String): File? {
+        val fileName = prefix + UUID.randomUUID().toString() + suffix
+        val file = File(captureFolder, fileName)
         val fileCreated = runCatching { file.createNewFile() }
         return if (fileCreated.isSuccess) file else null
     }
@@ -49,5 +69,7 @@ internal class TemporaryFileStorage(
     fun clear() {
         cacheFolder.deleteRecursively()
         cacheFolder.mkdirs()
+        captureFolder.deleteRecursively()
+        captureFolder.mkdirs()
     }
 }

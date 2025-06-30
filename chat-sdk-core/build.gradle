@@ -66,7 +66,11 @@ android {
 
 kotlin {
     compilerOptions {
-        freeCompilerArgs = ['-Xjvm-default=all']
+        freeCompilerArgs = [
+                "-Xjvm-default=all",
+                "-Xjspecify-annotations=strict",
+                "-Xtype-enhancement-improvements-strict-mode",
+        ]
     }
 }
 
@@ -96,4 +100,10 @@ dependencies {
 afterEvaluate {
     tasks.findByName("sourceDebugJar").dependsOn(generateDebugNonAndroidBuildConfig)
     tasks.findByName("sourceReleaseJar").dependsOn(generateReleaseNonAndroidBuildConfig)
+
+    // Workaround for https://github.com/tylerbwong/metalava-gradle/issues/127
+    tasks.findByName("metalavaCheckCompatibilityRelease").dependsOn(generateDebugNonAndroidBuildConfig)
+    tasks.findByName("metalavaCheckCompatibilityDebug").configure {
+        enabled = false
+    }
 }

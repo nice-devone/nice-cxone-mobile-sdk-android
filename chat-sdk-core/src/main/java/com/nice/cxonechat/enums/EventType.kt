@@ -79,6 +79,13 @@ internal enum class EventType(val value: String) {
     @SerialName("MessageSeenByUser")
     MessageSeenByAgent("MessageSeenByUser"),
 
+    /**
+     * An event received when a message has been seen status has changed
+     * (e.g. user has seen the message on different device).
+     */
+    @SerialName("MessageSeenChanged")
+    MessageSeenChanged("MessageSeenChanged"),
+
     /** An event received when a read status of a message has been changed. */
     @SerialName("MessageReadChanged")
     MessageReadChanged("MessageReadChanged"),

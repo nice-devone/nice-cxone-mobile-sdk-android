@@ -21,12 +21,15 @@ import com.nice.cxonechat.message.Message.QuickReplies
 import com.nice.cxonechat.message.MessageDirection
 import com.nice.cxonechat.message.MessageStatus
 import com.nice.cxonechat.message.OutboundMessage
-import com.nice.cxonechat.ui.model.Person
-import com.nice.cxonechat.ui.model.asPerson
+import com.nice.cxonechat.ui.domain.model.Person
+import com.nice.cxonechat.ui.domain.model.asPerson
+import com.nice.cxonechat.ui.util.preview.message.SdkAttachment
+import com.nice.cxonechat.ui.util.preview.message.SdkListPicker
+import com.nice.cxonechat.ui.util.preview.message.SdkMessage
+import com.nice.cxonechat.ui.util.preview.message.SdkRichLink
+import com.nice.cxonechat.ui.util.preview.message.SdkText
 import com.nice.cxonechat.ui.util.toShortDateString
 import java.util.Date
-import com.nice.cxonechat.message.Attachment as SdkAttachment
-import com.nice.cxonechat.message.Message as SdkMessage
 
 /**
  * UI representation of [SdkMessage].
@@ -34,7 +37,7 @@ import com.nice.cxonechat.message.Message as SdkMessage
  * @param original Source [SdkMessage].
  */
 internal sealed class Message(original: SdkMessage) {
-    /** See [SdkMessage.id]. */
+    /** See [com.nice.cxonechat.message.Message.id]. */
     val id = original.id
 
     /** Details of the sender. */
@@ -43,16 +46,16 @@ internal sealed class Message(original: SdkMessage) {
     /** See [com.nice.cxonechat.message.MessageAuthor.imageUrl]. */
     private val imageUrl: String? = original.author?.imageUrl
 
-    /** See [SdkMessage.createdAt]. */
+    /** See [com.nice.cxonechat.message.Message.createdAt]. */
     val createdAt: Date = original.createdAt
 
     /** The status of message. */
     val status: MessageStatus = original.metadata.status
 
-    /** See [SdkMessage.direction]. */
+    /** See [com.nice.cxonechat.message.Message.direction]. */
     val direction: MessageDirection = original.direction
 
-    /** See [SdkMessage.fallbackText]. */
+    /** See [com.nice.cxonechat.message.Message.fallbackText]. */
     val fallbackText: String? = original.fallbackText
 
     /**
@@ -62,28 +65,41 @@ internal sealed class Message(original: SdkMessage) {
      */
     fun createdAtDate(context: Context): String = context.toShortDateString(createdAt)
 
-    /**
-     * UI version of a [SdkMessage.Text] with one or more [SdkAttachment].
-     */
-    data class WithAttachments(
-        private val message: SdkMessage.Text,
-    ) : Message(message) {
-        /** See [SdkMessage.Text.text]. */
-        val text: String = message.text
-
-        /** Attachments to be presented to the user. */
+    internal interface AttachmentsMessage {
         val attachments: Iterable<SdkAttachment>
-            get() = message.attachments
     }
 
     /**
-     * UI version of simple [SdkMessage.Text].
+     * UI version of a [SdkText] with one or more [SdkAttachment].
+     */
+    data class WithAttachments(
+        private val message: SdkText,
+        override val attachments: Iterable<SdkAttachment>,
+    ) : Message(message), AttachmentsMessage
+
+    data class AudioAttachment(
+        private val message: SdkText,
+        val attachment: SdkAttachment,
+    ) : Message(message), AttachmentsMessage {
+        override val attachments: Iterable<SdkAttachment> = listOf(attachment)
+    }
+
+    /**
+     * UI version of simple [SdkText].
      */
     @Suppress(
         "MemberNameEqualsClassName" // domain naming
     )
-    data class Text(private val message: SdkMessage.Text) : Message(message) {
-        /**  See [SdkMessage.Text.text]. */
+    data class Text(private val message: SdkText) : Message(message) {
+        /**  See [com.nice.cxonechat.message.Message.Text.text]. */
+        val text: String = message.text
+    }
+
+    /**
+     * Special version [Text] message which only contains up to 3 emoji UTF-8 characters.
+     */
+    data class EmojiText(private val message: SdkText) : Message(message) {
+        /**  See [com.nice.cxonechat.message.Message.Text.text]. */
         val text: String = message.text
     }
 
@@ -95,7 +111,7 @@ internal sealed class Message(original: SdkMessage) {
      * Each interaction should send a reply (on behalf of the user) together with the postback value.
      */
     data class ListPicker(
-        private val message: SdkMessage.ListPicker,
+        private val message: SdkListPicker,
         private val sendMessage: (OutboundMessage) -> Unit,
     ) : Message(message) {
         /** Title of the List Picker in the conversation. */
@@ -117,7 +133,7 @@ internal sealed class Message(original: SdkMessage) {
      * with an associated URL.  If the message is touched, then the URL should be
      * opened.
      */
-    data class RichLink(private val message: SdkMessage.RichLink) : Message(message) {
+    data class RichLink(private val message: SdkRichLink) : Message(message) {
         /** image media information to display in RichLink. */
         val media: Media = message.media
 
@@ -129,7 +145,7 @@ internal sealed class Message(original: SdkMessage) {
     }
 
     /**
-     * UI Version of [SdkMessage.QuickReplies].
+     * UI Version of [com.nice.cxonechat.ui.util.preview.message.SdkQuickReply].
      */
     data class QuickReply(
         private val message: QuickReplies,

@@ -17,11 +17,10 @@ package com.nice.cxonechat.sample
 
 import android.content.Context
 import android.net.Uri
-import android.os.Build.VERSION
-import android.os.Build.VERSION_CODES
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly
@@ -94,11 +93,8 @@ class StoreActivity : ComponentActivity(), UiStateContext {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (VERSION.SDK_INT >= VERSION_CODES.S) {
-            window.setHideOverlayWindows(true)
-        }
-
         setContent {
+            enableEdgeToEdge()
             AppTheme {
                 Screen()
             }

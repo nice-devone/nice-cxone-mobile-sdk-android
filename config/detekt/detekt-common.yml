@@ -607,6 +607,7 @@ style:
     ignoreAnnotated:
       - "com.google.gson.annotations.SerializedName"
       - "androidx.compose.ui.tooling.preview.Preview"
+      - "androidx.compose.ui.tooling.preview.PreviewLightDark"
   UnusedPrivateProperty:
     active: true
     ignoreAnnotated:

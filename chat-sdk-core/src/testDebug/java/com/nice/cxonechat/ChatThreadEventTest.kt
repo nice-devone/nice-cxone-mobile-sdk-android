@@ -17,7 +17,6 @@
 
 package com.nice.cxonechat
 
-import com.nice.cxonechat.ChatThreadEventHandlerActions.archiveThread
 import com.nice.cxonechat.ChatThreadEventHandlerActions.loadMetadata
 import com.nice.cxonechat.ChatThreadEventHandlerActions.markThreadRead
 import com.nice.cxonechat.ChatThreadEventHandlerActions.typingEnd
@@ -39,15 +38,6 @@ internal class ChatThreadEventTest : AbstractChatTest() {
     }
 
     // ---
-
-    @Test
-    fun trigger_ArchiveThreadEvent_sendsExpectedMessage() {
-        val id = thread.id
-        assertSendText(ServerRequest.ArchiveThread(connection, thread), id.toString()) {
-            @Suppress("DEPRECATION")
-            events.archiveThread()
-        }
-    }
 
     @Test
     fun trigger_MarkThreadReadEvent_sendsExpectedMessage() {

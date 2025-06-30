@@ -29,15 +29,17 @@ import kotlin.reflect.KClass
  * @param Type Type of asset to read.
  * @param fileName Name of file to read/write.
  * @param type Class of asset to read.
+ * @param scope CoroutineScope for async operations.
  */
 open class FileRepository<Type : Any>(
     private val fileName: String,
     type: KClass<Type>,
+    private val scope: CoroutineScope,
 ) : Repository<Type>(type) {
 
     @Throws(RepositoryError::class)
     override fun doStore(string: String, context: Context) {
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch(Dispatchers.IO) {
             try {
                 context.openFileOutput(fileName, 0)?.use {
                     doStore(string, it)
@@ -59,6 +61,8 @@ open class FileRepository<Type : Any>(
     }
 
     override fun doClear(context: Context) {
-        context.deleteFile(fileName)
+        scope.launch(Dispatchers.IO) {
+            context.deleteFile(fileName)
+        }
     }
 }

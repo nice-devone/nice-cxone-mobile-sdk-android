@@ -17,7 +17,6 @@ package com.nice.cxonechat.internal.model
 
 import com.nice.cxonechat.prechat.PreChatSurvey
 import com.nice.cxonechat.state.Configuration
-import com.nice.cxonechat.state.FieldDefinitionList
 import com.nice.cxonechat.state.FileRestrictions
 
 internal data class ConfigurationInternal(
@@ -25,10 +24,6 @@ internal data class ConfigurationInternal(
     override val isProactiveChatEnabled: Boolean,
     override val isAuthorizationEnabled: Boolean,
     internal val preContactSurvey: PreChatSurvey?,
-    @Deprecated("Client side validation of [FieldDefinition]s is no longer supported.")
-    override val contactCustomFields: FieldDefinitionList,
-    @Deprecated("Client side validation of [FieldDefinition]s is no longer supported.")
-    override val customerCustomFields: FieldDefinitionList,
     override val fileRestrictions: FileRestrictions,
     override val isLiveChat: Boolean,
     override val isOnline: Boolean,
@@ -39,8 +34,6 @@ internal data class ConfigurationInternal(
             "isProactiveChatEnabled=$isProactiveChatEnabled, " +
             "isAuthorizationEnabled=$isAuthorizationEnabled, " +
             "preContactSurvey=$preContactSurvey, " +
-            "contactCustomFields=${contactCustomFields.joinToString()}, " +
-            "customerCustomFields=${customerCustomFields.joinToString()}, " +
             "fileRestrictions=$fileRestrictions, " +
             "isLiveChat=$isLiveChat " +
             "isOnline=$isOnline" +

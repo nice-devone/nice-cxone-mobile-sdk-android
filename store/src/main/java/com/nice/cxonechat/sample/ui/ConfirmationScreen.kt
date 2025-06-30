@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavGraphBuilder
@@ -73,6 +74,7 @@ object ConfirmationScreen : Screen {
     internal fun Screen(onContinue: () -> Unit) {
         AppTheme.ScreenWithScaffold(
             title = stringResource(string.payment),
+            modifier = TestModifier.testTag("confirmation_screen"),
         ) {
             BackHandler(onBack = onContinue)
             Column(Modifier.fillMaxSize()) {

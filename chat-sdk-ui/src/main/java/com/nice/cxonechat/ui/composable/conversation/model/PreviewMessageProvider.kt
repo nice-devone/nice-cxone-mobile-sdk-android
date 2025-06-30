@@ -15,89 +15,65 @@
 
 package com.nice.cxonechat.ui.composable.conversation.model
 
-import androidx.compose.runtime.Stable
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
-import com.nice.cxonechat.message.Action
-import com.nice.cxonechat.message.Attachment
-import com.nice.cxonechat.message.MessageDirection
 import com.nice.cxonechat.message.MessageDirection.ToAgent
-import com.nice.cxonechat.message.MessageDirection.ToClient
 import com.nice.cxonechat.message.MessageStatus
-import com.nice.cxonechat.message.MessageStatus.Sent
-import com.nice.cxonechat.ui.composable.conversation.model.Message.ListPicker
-import com.nice.cxonechat.ui.composable.conversation.model.Message.QuickReply
-import com.nice.cxonechat.ui.composable.conversation.model.Message.RichLink
-import com.nice.cxonechat.ui.composable.conversation.model.Message.Text
-import com.nice.cxonechat.ui.composable.conversation.model.Message.Unsupported
-import com.nice.cxonechat.ui.model.Person
 import com.nice.cxonechat.ui.util.DateProvider
+import com.nice.cxonechat.ui.util.preview.message.SdkMessage
+import com.nice.cxonechat.ui.util.preview.message.UiSdkListPicker
+import com.nice.cxonechat.ui.util.preview.message.UiSdkMetadata
+import com.nice.cxonechat.ui.util.preview.message.UiSdkQuickReply
+import com.nice.cxonechat.ui.util.preview.message.UiSdkRichLink
+import com.nice.cxonechat.ui.util.preview.message.UiSdkText
+import com.nice.cxonechat.ui.util.preview.message.asMessage
 import java.util.Date
-import java.util.UUID
-import com.nice.cxonechat.message.Action.ReplyButton as SdkReplyButton
-import com.nice.cxonechat.message.Media as SdkMedia
-import com.nice.cxonechat.message.Message as SdkMessage
-import com.nice.cxonechat.message.Message.ListPicker as SdkListPicker
-import com.nice.cxonechat.message.Message.QuickReplies as SdkQuickReply
-import com.nice.cxonechat.message.Message.RichLink as SdkRichLink
-import com.nice.cxonechat.message.Message.Text as SdkText
-import com.nice.cxonechat.message.MessageAuthor as SdkAuthor
-import com.nice.cxonechat.message.MessageMetadata as SdkMetadata
+import java.util.concurrent.atomic.AtomicInteger
 
 @Suppress("LongParameterList")
-internal class PreviewMessageProvider: PreviewParameterProvider<Message> {
+internal class PreviewMessageProvider : PreviewParameterProvider<Message> {
+    val messageinvocation = AtomicInteger(0)
     val messages: Sequence<SdkMessage>
         get() = sequenceOf(
-            Text("Text 1"),
-            ListPicker(),
-            Text("Message to agent", direction = ToAgent),
-            QuickReply(),
-            RichLink(),
+            UiSdkText("Text 1", createdAt = DateProvider.now()),
+            UiSdkListPicker(createdAt = DateProvider.now()),
+            UiSdkText(
+                text = MESSAGE.format(messageinvocation.andIncrement),
+                direction = ToAgent,
+                metadata = UiSdkMetadata(status = MessageStatus.Delivered),
+                createdAt = DateProvider.now()
+            ),
+            UiSdkText(
+                text = MESSAGE.format(messageinvocation.andIncrement),
+                direction = ToAgent,
+                metadata = UiSdkMetadata(status = MessageStatus.Delivered),
+                createdAt = DateProvider.now()
+            ),
+            UiSdkText(
+                text = MESSAGE.format(messageinvocation.andIncrement),
+                direction = ToAgent,
+                metadata = UiSdkMetadata(status = MessageStatus.Delivered),
+                createdAt = DateProvider.now()
+            ),
+            UiSdkText(
+                text = MESSAGE.format(messageinvocation.andIncrement),
+                direction = ToAgent,
+                metadata = UiSdkMetadata(status = MessageStatus.Seen),
+                createdAt = DateProvider.now()
+            ),
+            UiSdkText(
+                text = MESSAGE.format(messageinvocation.andIncrement),
+                direction = ToAgent,
+                metadata = UiSdkMetadata(status = MessageStatus.FailedToDeliver),
+                createdAt = DateProvider.now()
+            ),
+            UiSdkQuickReply(createdAt = DateProvider.now()),
+            UiSdkRichLink(createdAt = DateProvider.now()),
         )
 
     override val values = messages.map { it.asMessage() }
 
-    private fun SdkMessage.asMessage() = when(this) {
-        is SdkText -> Text(this)
-        is SdkListPicker -> ListPicker(this) {}
-        is SdkQuickReply -> QuickReply(this) {}
-        is SdkRichLink -> RichLink(this)
-        else -> Unsupported(this)
-    }
-
-    internal data class Metadata(
-        override val readAt: Date? = null,
-        override val status: MessageStatus = Sent,
-        override val seenAt: Date? = null,
-    ) : SdkMetadata
-
-    internal data class Media(
-        override val fileName: String,
-        override val url: String,
-        override val mimeType: String,
-    ) : SdkMedia
-
-    internal data class ReplyButton(
-        override val text: String,
-        override val media: Media? = null,
-        override val postback: String? = null,
-        override val description: String? = null,
-    ) : SdkReplyButton {
-        constructor(
-            text: String,
-            mediaUrl: String,
-            mediaFileName: String = "filename",
-            mediaMimeType: String = "unknown/unknown",
-            postback: String? = null,
-            description: String? = null,
-        ) : this(
-            text = text,
-            media = Media(fileName = mediaFileName, url = mediaUrl, mimeType = mediaMimeType),
-            postback = postback,
-            description = description,
-        )
-    }
-
     companion object {
+        private const val MESSAGE = "Message %d"
         private var nextDate = Date().time
 
         init {
@@ -105,79 +81,5 @@ internal class PreviewMessageProvider: PreviewParameterProvider<Message> {
                 Date(nextDate.also { nextDate += 1 })
             }
         }
-
-        fun MessageDirection.toPerson(id: String = "", imageUrl: String? = null) = Person(
-            id = id,
-            firstName = if (this === ToClient) "Agent" else "Customer",
-            lastName = "Preview",
-            imageUrl = imageUrl
-        )
     }
-
-    @Stable
-    internal data class Text(
-        override val text: String = "Text Message",
-        override val attachments: Iterable<Attachment> = sequenceOf<Attachment>().asIterable(),
-        override val id: UUID = UUID.randomUUID(),
-        override val threadId: UUID = UUID.randomUUID(),
-        override val createdAt: Date = DateProvider.now(),
-        override val direction: MessageDirection = ToClient,
-        override val author: SdkAuthor? = direction.toPerson(),
-        override val metadata: SdkMetadata = Metadata(),
-        override val fallbackText: String? = null,
-    ) : SdkText()
-
-    @Stable
-    internal data class ListPicker(
-        override val title: String = "List Picker",
-        override val text: String = "List Picker Description",
-        override val actions: Iterable<Action> = listOf(
-            ReplyButton("Reply without media"),
-            ReplyButton("Reply with a cat image", mediaUrl = "https://http.cat/203", mediaMimeType = "image/jpeg")
-        ),
-        override val id: UUID = UUID.randomUUID(),
-        override val threadId: UUID = UUID.randomUUID(),
-        override val createdAt: Date = DateProvider.now(),
-        override val direction: MessageDirection = ToClient,
-        override val author: SdkAuthor? = ToClient.toPerson(),
-        override val metadata: SdkMetadata = Metadata(),
-        override val attachments: Iterable<Attachment> = listOf(),
-        override val fallbackText: String? = null,
-    ) : SdkListPicker()
-
-    @Stable
-    internal data class QuickReply(
-        override val title: String = "This is a quick reply card",
-        override val actions: Iterable<Action> = listOf(
-            ReplyButton("Some text"),
-            ReplyButton("Random cat", "https://http.cat/203")
-        ),
-        override val id: UUID = UUID.randomUUID(),
-        override val threadId: UUID = UUID.randomUUID(),
-        override val createdAt: Date = Date(),
-        override val direction: MessageDirection = ToClient,
-        override val metadata: SdkMetadata = Metadata(),
-        override val author: SdkAuthor? = ToClient.toPerson(),
-        override val attachments: Iterable<Attachment> = emptyList(),
-        override val fallbackText: String? = null,
-    ) : SdkQuickReply()
-
-    @Stable
-    internal data class RichLink(
-        override val title: String = "Rich Link",
-        override val url: String = "https://nice.com",
-        override val media: Media = Media(
-            url = "https://thecatapi.com/api/images/get?format=src&type=jpeg",
-            mimeType = "image/jpeg",
-            fileName = "Preview Image",
-        ),
-        override val id: UUID = UUID.randomUUID(),
-        override val threadId: UUID = UUID.randomUUID(),
-        override val createdAt: Date = Date(),
-        override val direction: MessageDirection = ToClient,
-        override val metadata: SdkMetadata = Metadata(),
-        override val author: SdkAuthor? = ToClient.toPerson(),
-        override val attachments: Iterable<Attachment> = emptyList(),
-        override val fallbackText: String? = null,
-    ) : SdkRichLink()
 }

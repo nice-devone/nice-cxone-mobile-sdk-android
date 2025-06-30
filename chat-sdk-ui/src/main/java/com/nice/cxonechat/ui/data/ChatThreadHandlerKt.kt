@@ -17,12 +17,17 @@ package com.nice.cxonechat.ui.data
 
 import com.nice.cxonechat.ChatThreadHandler
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.thread.ChatThreadState
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
 internal val ChatThreadHandler.flow: Flow<ChatThread>
     get() = callbackFlow {
+        // Produce initial update using snapshot for newly created thread
+        val snapshot = get()
+        if (snapshot.threadState === ChatThreadState.Pending) trySend(snapshot)
+        // Listen for updates
         val cancellable = get(::trySend)
         awaitClose(cancellable::cancel)
     }

@@ -31,7 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
-import com.nice.cxonechat.ui.tooling.preview.MultiLocalePreview
+import com.nice.cxonechat.ui.util.preview.MultiLocalePreview
 import com.nice.cxonechat.ui.util.toShortDateString
 import java.util.Calendar
 

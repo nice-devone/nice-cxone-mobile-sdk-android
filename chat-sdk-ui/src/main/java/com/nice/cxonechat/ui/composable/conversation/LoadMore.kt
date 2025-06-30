@@ -15,15 +15,15 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
-import android.content.res.Configuration
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,28 +31,33 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import java.util.concurrent.TimeUnit.SECONDS
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-internal fun LazyItemScope.LoadMore(loadMore: () -> Unit) {
-    Row(
-        Modifier
+internal fun LazyItemScope.LoadMore(modifier: Modifier = Modifier, loadMore: () -> Unit) {
+    Column(
+        modifier
             .fillMaxWidth()
-            .animateItem(),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+            .animateItem()
+            .padding(top = space.medium, bottom = space.xSmall),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        CircularProgressIndicator()
+        CircularProgressIndicator(
+            modifier = Modifier.size(20.dp),
+            color = LocalContentColor.current.copy(alpha = 0.5f)
+        )
         Text(
             text = stringResource(string.text_loading_more_messages),
             style = ChatTheme.chatTypography.chatLoadMoreCaption,
-            modifier = Modifier.padding(ChatTheme.space.medium)
+            color = LocalContentColor.current.copy(alpha = 0.5f),
         )
         LaunchedEffect(key1 = null) { // The whole LoadMore should be removed after recomposition
             while (this.isActive) { // Workaround for issue with scrollToken reset - otherwise loadMore() should suffice
@@ -63,9 +68,7 @@ internal fun LazyItemScope.LoadMore(loadMore: () -> Unit) {
     }
 }
 
-@Preview(
-    uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
-)
+@PreviewLightDark
 @Composable
 private fun PreviewLoadMore() {
     ChatTheme {

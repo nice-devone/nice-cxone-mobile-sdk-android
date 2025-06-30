@@ -16,77 +16,66 @@
 package com.nice.cxonechat.ui.composable.generic
 
 import android.widget.Toast
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
+import com.nice.cxonechat.ui.composable.theme.BackButton
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
+import com.nice.cxonechat.ui.composable.theme.ShareButton
 
 /**
- * A [CardDialog] which will display a [ZoomableImage] with option to switch to the [FullscreenView] via button.
- * The dialog is dismissed if the user click outside the view or taps the back button.
- * The fullscreen view is dismissed back to the dialog.
+ * A [CardDialog] which will display a [ZoomableImage] with option to share image via button.
+ * The dialog is dismissed if the user click outside the view or taps the back button or clicks the back button icon.
  *
  * @param image The model for [ZoomableImage].
  * @param title An optional title for the [CardDialog].
  * @param onDismiss An action triggered when the dialog is dismissed.
+ * @param onShare An action triggered when the share button is clicked.
  */
 @Composable
 internal fun ImageViewerDialogCard(
     image: Any?,
     title: String?,
     onDismiss: () -> Unit,
+    onShare: () -> Unit,
 ) {
-    var isFullScreen by rememberSaveable { mutableStateOf(false) }
-    val content: @Composable BoxScope.() -> Unit = {
-        ZoomableImage(
-            image = image,
-            modifier = Modifier
-                .align(Alignment.Center)
-                .fillMaxWidth()
-        )
-    }
-    AnimatedContent(
-        targetState = isFullScreen,
-        label = "fullScreen",
-    ) { fullScreen ->
-        if (fullScreen) {
-            FullscreenView(
-                title = title,
-                onExitFullScreen = { isFullScreen = false }
+    FullscreenView(
+        title = title,
+        onExitFullScreen = onDismiss,
+        modifier = Modifier.testTag("image_view")
+    ) {
+        Column {
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = space.medium)
             ) {
-                FullscreenButtonWrapper(
-                    isFullScreen = true,
-                    onTriggerFullScreen = { isFullScreen = it },
-                    content = content
-                )
+                BackButton(onDismiss)
+                ShareButton(title, onShare)
             }
-        } else {
-            CardDialog(
-                title = title,
-                onDismiss = onDismiss
-            ) {
-                FullscreenButtonWrapper(
-                    isFullScreen = false,
-                    onTriggerFullScreen = { isFullScreen = it },
-                    content = content
-                )
-            }
+            ZoomableImage(
+                image = image,
+                contentDescription = title,
+                modifier = Modifier
+                    .testTag("zoomable_image")
+                    .fillMaxSize()
+            )
         }
     }
 }
 
 @Composable
-@Preview
+@Preview(showBackground = false, showSystemUi = true)
 private fun PreviewDialog() {
     @Suppress("MaxLineLength")
     val image = """https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/St_Michael%27s_Mount_II5302_x_2982.jpg/1024px-St_Michael%27s_Mount_II5302_x_2982.jpg"""
@@ -98,17 +87,10 @@ private fun PreviewDialog() {
             title = "St Michaels Mount, Marazion in Cornwall UK",
             onDismiss = {
                 Toast.makeText(context, "Dismissed", Toast.LENGTH_SHORT).show()
+            },
+            onShare = {
+                Toast.makeText(context, "Shared", Toast.LENGTH_SHORT).show()
             }
         )
-    }
-}
-
-@Composable
-@Preview
-private fun PreviewCardTitle() {
-    ChatTheme {
-        Surface {
-            CardTitle(title = "St Michaels Mount, Marazion in Cornwall UK")
-        }
     }
 }

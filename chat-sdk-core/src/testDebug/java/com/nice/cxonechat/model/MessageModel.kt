@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.nice.cxonechat.internal.model.CustomerIdentityModel
 import com.nice.cxonechat.internal.model.MessageDirectionModel
 import com.nice.cxonechat.internal.model.MessageDirectionModel.ToAgent
 import com.nice.cxonechat.internal.model.MessageModel
+import com.nice.cxonechat.internal.model.network.CustomerStatistics
 import com.nice.cxonechat.internal.model.network.MessagePolyContent
 import com.nice.cxonechat.internal.model.network.UserStatistics
 import java.util.Date
@@ -37,6 +38,7 @@ internal fun makeMessageModel(
     createdAt: Date = linearTime.next(),
     attachments: List<AttachmentModel> = emptyList(),
     direction: MessageDirectionModel = ToAgent,
+    customerStatistics: CustomerStatistics = makeCustomerStatistics(),
     userStatistics: UserStatistics = makeUserStatistics(),
     authorUser: AgentModel? = makeAgent(),
     authorEndUserIdentity: CustomerIdentityModel? = makeCustomerIdentity(),
@@ -47,6 +49,7 @@ internal fun makeMessageModel(
     createdAt = createdAt,
     attachments = attachments,
     direction = direction,
+    customerStatistics = customerStatistics,
     userStatistics = userStatistics,
     authorUser = authorUser,
     authorEndUserIdentity = authorEndUserIdentity

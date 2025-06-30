@@ -51,13 +51,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import coil.compose.SubcomposeAsyncImage
+import coil3.compose.SubcomposeAsyncImage
 import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.conversation.model.Action
 import com.nice.cxonechat.ui.composable.conversation.model.Action.ReplyButton
 import com.nice.cxonechat.ui.composable.conversation.model.Message.ListPicker
-import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider
 import com.nice.cxonechat.ui.composable.generic.forwardingPainter
 import com.nice.cxonechat.ui.composable.theme.ChatColors.ColorPair
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
@@ -66,7 +65,9 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.typography
 import com.nice.cxonechat.ui.composable.theme.Dialog
-import com.nice.cxonechat.message.Action as SdkAction
+import com.nice.cxonechat.ui.util.preview.message.SdkAction
+import com.nice.cxonechat.ui.util.preview.message.UiSdkListPicker
+import com.nice.cxonechat.ui.util.preview.message.UiSdkReplyButton
 
 @Composable
 internal fun ListPickerMessage(
@@ -196,7 +197,7 @@ private fun ActionListItem(
             if (isSelected) {
                 Icon(
                     imageVector = Icons.Default.Check,
-                    contentDescription = stringResource(string.selected),
+                    contentDescription = stringResource(string.action_was_selected),
                     tint = colorScheme.primary
                 )
             }
@@ -209,7 +210,7 @@ private fun ActionListItem(
 @Composable
 private fun ListPickerMessagePreview() {
     PreviewMessageItemBase(
-        message = ListPicker(PreviewMessageProvider.ListPicker()) {},
+        message = ListPicker(UiSdkListPicker()) {},
     )
 }
 
@@ -217,11 +218,11 @@ private fun ListPickerMessagePreview() {
 @Composable
 private fun ListPickerDialogPreview() {
     val listPicker = ListPicker(
-        PreviewMessageProvider.ListPicker(
+        UiSdkListPicker(
             actions = buildList {
                 repeat(7) {
                     add(
-                        PreviewMessageProvider.ReplyButton(
+                        UiSdkReplyButton(
                             text = "Action $it",
                             mediaUrl = "https://http.cat/" + (400 + it)
                         ) as SdkAction
@@ -243,7 +244,7 @@ private fun ListPickerDialogPreview() {
 @PreviewLightDark
 @Composable
 private fun ActionListItemPreview() {
-    val listPicker = ListPicker(PreviewMessageProvider.ListPicker()) {}
+    val listPicker = ListPicker(UiSdkListPicker()) {}
     var selectedAction: Action? by remember { mutableStateOf(listPicker.actions.first()) }
     ChatTheme {
         Surface {

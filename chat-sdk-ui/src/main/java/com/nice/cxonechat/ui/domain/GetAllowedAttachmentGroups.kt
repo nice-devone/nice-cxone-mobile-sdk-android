@@ -15,39 +15,109 @@
 
 package com.nice.cxonechat.ui.domain
 
-import com.nice.cxonechat.ui.data.AllowedFileType
+import com.nice.cxonechat.ui.AttachmentType
+import com.nice.cxonechat.ui.data.source.AllowedFileType
+import java.util.EnumMap
 
 internal object GetAllowedAttachmentGroups {
+    private const val ANY_IMAGE = "image/*"
+    private const val CAMERA_IMAGE = "image/jpeg"
+    private const val ANY_VIDEO = "video/*"
+    private const val CAMERA_VIDEO = "video/mp4"
 
     private val FULL_MIMETYPE_REGEX = Regex(".+/.+")
 
-    /**
-     * Associates [AllowedFileType]s with supported mime type groups (and their labels).
-     *
-     * @param labels Labels for the [supportedMimeTypeGroups].
-     * @param supportedMimeTypeGroups String templates for [Regex] defining a supported MimeType group.
-     * @param allowedFileTypes [AllowedFileType]s by the Chat SDK configuration.
-     */
+    private val IMAGE = "image(/.+)?".toRegex()
+    private val VIDEO = "video(/.+)?".toRegex()
+
     fun allowedAttachmentGroups(
-        labels: Iterable<String>,
-        supportedMimeTypeGroups: Iterable<String>,
+        attachmentOptions: AttachmentOptions,
         allowedFileTypes: List<AllowedFileType>,
-    ): Iterable<MimeTypeGroup> {
-        val regexOpts = supportedMimeTypeGroups.map(::Regex).zip(labels)
-        val allowedMimeTypes = allowedFileTypes.map(AllowedFileType::mimeType).toMutableList()
-        return regexOpts.map { (regex, label) ->
-            val matching = allowedMimeTypes.filter { type ->
-                regex.matchEntire(type) != null
+    ): List<MimeTypeGroup> {
+        val mimeTypes = allowedFileTypes.map { it.mimeType.addSubtypeIfMissing() }.toSet()
+
+        val canCaptureImage = mimeTypes.any { it == ANY_IMAGE || it == CAMERA_IMAGE }
+        val canCaptureVideo = mimeTypes.any { it == ANY_VIDEO || it == CAMERA_VIDEO }
+
+        val hasImageWildcard = mimeTypes.contains(ANY_IMAGE)
+        val hasVideoWildcard = mimeTypes.contains(ANY_VIDEO)
+        val hasMultiMedia = hasImageWildcard && hasVideoWildcard
+
+        val imageTypes = if (hasMultiMedia) emptyList() else mimeTypes.filter { IMAGE.matches(it) && it != ANY_IMAGE }
+        val videoTypes = if (hasMultiMedia) emptyList() else mimeTypes.filter { VIDEO.matches(it) && it != ANY_VIDEO }
+        val preciseMediaTypes = imageTypes + videoTypes
+
+        val result = mutableListOf<MimeTypeGroup>()
+
+        attachmentOptions.forEach { (option, label) ->
+            when (option) {
+                AttachmentOption.CameraPhoto -> result.addCameraPhotoOption(label, canCaptureImage)
+                AttachmentOption.CameraVideo -> result.addCameraVideoOption(label, canCaptureVideo)
+                AttachmentOption.ImageAndVideo -> result.addImageAndVideoOption(
+                    label = label,
+                    hasMultiMedia = hasMultiMedia,
+                    preciseMediaTypes = preciseMediaTypes,
+                    hasImageWildcard = hasImageWildcard,
+                    hasVideoWildcard = hasVideoWildcard,
+                )
+
+                AttachmentOption.File -> result.addFileOption(label, mimeTypes)
             }
-            allowedMimeTypes.removeAll(matching)
-            val verifiedMatching = matching.map { it.addSubtypeIfMissing() }.toSet()
-            MimeTypeGroup(label, verifiedMatching)
-        }.filterNot {
-            it.options.isEmpty()
+        }
+        return result
+    }
+
+    private fun MutableList<MimeTypeGroup>.addCameraPhotoOption(
+        label: String,
+        canCaptureImage: Boolean,
+    ) {
+        if (canCaptureImage) {
+            add(MimeTypeGroup(label, AttachmentType.CameraPhoto))
         }
     }
 
-    private fun String.addSubtypeIfMissing() = if (FULL_MIMETYPE_REGEX.matchEntire(this) != null) this else "$this/*"
+    private fun MutableList<MimeTypeGroup>.addCameraVideoOption(
+        label: String,
+        canCaptureVideo: Boolean,
+    ) {
+        if (canCaptureVideo) {
+            add(MimeTypeGroup(label, AttachmentType.CameraVideo))
+        }
+    }
+
+    private fun MutableList<MimeTypeGroup>.addImageAndVideoOption(
+        label: String,
+        hasMultiMedia: Boolean,
+        preciseMediaTypes: List<String>,
+        hasImageWildcard: Boolean,
+        hasVideoWildcard: Boolean,
+    ) {
+        when {
+            hasMultiMedia -> add(MimeTypeGroup(label, AttachmentType.ImageAndVideo))
+            preciseMediaTypes.isNotEmpty() -> {
+                val mediaTypes = when {
+                    hasImageWildcard -> preciseMediaTypes + ANY_IMAGE
+                    hasVideoWildcard -> preciseMediaTypes + ANY_VIDEO
+                    else -> preciseMediaTypes
+                }.toTypedArray()
+                add(MimeTypeGroup(label, AttachmentType.File(mediaTypes)))
+            }
+
+            hasImageWildcard -> add(MimeTypeGroup(label, AttachmentType.Image))
+            hasVideoWildcard -> add(MimeTypeGroup(label, AttachmentType.Video))
+        }
+    }
+
+    private fun MutableList<MimeTypeGroup>.addFileOption(
+        label: String,
+        mimeTypes: Set<String>,
+    ) {
+        if (mimeTypes.isNotEmpty()) {
+            add(MimeTypeGroup(label, AttachmentType.File(mimeTypes.toTypedArray())))
+        }
+    }
+
+    private fun String.addSubtypeIfMissing() = if (FULL_MIMETYPE_REGEX.matches(this)) this else "$this/*"
 }
 
 /**
@@ -55,5 +125,27 @@ internal object GetAllowedAttachmentGroups {
  */
 internal data class MimeTypeGroup(
     val label: String,
-    val options: Collection<String>,
+    val options: AttachmentType,
 )
+
+/**
+ * EnumMap alias for mapping attachment options to their string labels.
+ */
+typealias AttachmentOptions = EnumMap<AttachmentOption, String>
+
+/**
+ * Enum representing the available attachment options.
+ */
+enum class AttachmentOption {
+    /** Capture a photo using the camera. */
+    CameraPhoto,
+
+    /** Capture a video using the camera. */
+    CameraVideo,
+
+    /** Select images and videos using the media picker. */
+    ImageAndVideo,
+
+    /** Select a file with specific MIME types. */
+    File,
+}

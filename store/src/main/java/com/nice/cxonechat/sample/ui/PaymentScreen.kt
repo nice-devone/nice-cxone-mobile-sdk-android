@@ -28,6 +28,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -78,7 +79,10 @@ object PaymentScreen : Screen {
 
     @Composable
     internal fun Screen(onContinue: () -> Unit) {
-        AppTheme.ScreenWithScaffold(title = stringResource(string.payment)) {
+        AppTheme.ScreenWithScaffold(
+            title = stringResource(string.payment),
+            modifier = TestModifier.testTag("payment_screen"),
+        ) {
             Form(onContinue)
         }
     }
@@ -89,12 +93,18 @@ object PaymentScreen : Screen {
         var cardNumber by remember { mutableStateOf("") }
 
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Field(name = stringResource(string.name), value = name, onValueChange = { name = it })
+            Field(
+                name = stringResource(string.name),
+                value = name,
+                onValueChange = { name = it },
+                modifier = Modifier.testTag("form_field_name"),
+            )
             Field(
                 name = stringResource(string.card_number),
                 value = cardNumber,
                 onValueChange = { cardNumber = it },
-                placeholder = stringResource(string.card_number_placeholder)
+                placeholder = stringResource(string.card_number_placeholder),
+                modifier = Modifier.testTag("form_field_card_number"),
             )
             Spacer(modifier = Modifier.weight(1f))
             AppTheme.ContinueButton(onClick = onContinue)
@@ -102,11 +112,17 @@ object PaymentScreen : Screen {
     }
 
     @Composable
-    private fun Field(name: String, value: String, onValueChange: (String) -> Unit, placeholder: String? = null) {
+    private fun Field(
+        name: String,
+        value: String,
+        onValueChange: (String) -> Unit,
+        modifier: Modifier = Modifier,
+        placeholder: String? = null,
+    ) {
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = modifier.fillMaxWidth(),
             label = { Text(name) },
             placeholder = { placeholder?.let { Text(it) } }
         )

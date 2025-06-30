@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
+  ~
+  ~ Licensed under the NICE License;
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
+  ~
+  ~ TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
+  ~ AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
+  ~ OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
+  ~ FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+  -->
+
+<resources>
+    <!-- This value is used to allow correct routing of local notifications to the chat activity. -->
+    <string name="local_notification_data_scheme">com.nice.cxonechat.ui</string>
+    <!-- This value is used to add delay to show close button while loading. -->
+    <integer name="loading_close_button_delay_ms">20000</integer>
+    <!-- This value is used to define id of a notification channel used by the Chat UI for both local and push notifications. -->
+    <string name="default_notification_channel_id">com.nice.cxonechat.ui.notifications</string>
+</resources>

@@ -15,7 +15,6 @@
 
 package com.nice.cxonechat.ui.composable.theme
 
-import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement.spacedBy
@@ -24,13 +23,18 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 
 /** A set of colors to be applied in either dark or light mode. */
@@ -49,6 +53,12 @@ interface ThemeColors {
 
     /** Major color used when drawing on [background]. */
     val onBackground: Color
+
+    /** Surface color. */
+    val surface: Color
+
+    /** Color for icons and text displayed on [surface]. */
+    val onSurface: Color
 
     /** Major color variant used when drawing on surface. */
     val surfaceVariant: Color
@@ -98,6 +108,30 @@ interface ThemeColors {
     /** Background color for agent avatar monogram displayed next to the message. */
     val agentAvatarBackground: Color
 
+    /**
+     *  Subtle background color used for extra action elements, typically a background for extra action icon next to a message,
+     *  without a distinction between message author.
+     **/
+    val subtle: Color
+
+    /** Color used to highlight an edge of a subtle element. */
+    val muted: Color
+
+    /** Error color. */
+    val error: Color
+
+    /** Brush used for headers emulating accent colors. */
+    val accentHeader: Brush
+
+    /** Color for icons and text displayed on [accentHeader]. */
+    val onAccentHeader: Color
+
+    /** Background color for text field label. */
+    val textFieldLabelBackground: Color
+
+    /** Text color for text field label. */
+    val textFieldLabelText: Color
+
     @Suppress(
         "UndocumentedPublicClass", // Companion objects don't require documentation.
     )
@@ -110,8 +144,11 @@ interface ThemeColors {
          * @param onPrimary Color for icons and text displayed on [primary].
          * @param background Android background color.
          * @param onBackground Major color used when drawing on [background].
+         * @param surface Material surface color.
+         * @param onSurface Color for icons and text displayed on [surface].
          * @param surfaceVariant Major color variant used when drawing on surface (background).
          * @param surfaceContainer Major used for container on surface (background).
+         * @param surfaceContainerHigh Major color used when drawing on surfaceContainer with high tonal elevation.
          * @param onSurfaceHigh Major color used when drawing on surface with high tonal elevation.
          * @param onSurfaceHighest Major color used when drawing on surface with highest tonal elevation.
          * @param accent Android accent color.
@@ -122,10 +159,17 @@ interface ThemeColors {
          * @param customerText Color for customer text.
          * @param agentAvatarForeground Color for agent avatar monogram displayed next to the message.
          * @param agentAvatarBackground Background color for agent avatar monogram displayed next to the message.
+         * @param subtle Subtle background color used for extra action elements.
+         * @param muted Color used to highlight an edge of a subtle element.
          * @param positionInQueueBackground color for position in queue panel.
          * @param positionInQueueForeground color for position in queue panel.
          * @param messageSent color for message sent icon.
          * @param messageSending color for message sending icon.
+         * @param error Color for error content.
+         * @param accentHeader Brush used for headers emulating accent colors.
+         * @param onAccentHeader Color for icons and text displayed on [accentHeader].
+         * @param textFieldLabelBackground Background color for text field label.
+         * @param textFieldLabelText Text color for text field label.
          */
         @JvmStatic
         @JvmName("create")
@@ -135,8 +179,11 @@ interface ThemeColors {
             onPrimary: Color,
             background: Color,
             onBackground: Color,
+            surface: Color,
+            onSurface: Color,
             surfaceVariant: Color,
             surfaceContainer: Color,
+            surfaceContainerHigh: Color,
             onSurfaceHigh: Color,
             onSurfaceHighest: Color,
             accent: Color,
@@ -147,18 +194,27 @@ interface ThemeColors {
             customerText: Color,
             agentAvatarForeground: Color,
             agentAvatarBackground: Color,
+            subtle: Color,
+            muted: Color,
             positionInQueueBackground: Color? = null,
             positionInQueueForeground: Color? = null,
             messageSent: Color = Color(0xff7f7f7f),
             messageSending: Color = Color(0xff7f7f7f),
+            error: Color,
+            accentHeader: Brush,
+            onAccentHeader: Color,
+            textFieldLabelBackground: Color,
+            textFieldLabelText: Color,
         ): ThemeColors = ThemeColorsImpl(
             primary = primary,
             onPrimary = onPrimary,
             background = background,
             onBackground = onBackground,
+            surface = surface,
+            onSurface = onSurface,
             surfaceVariant = surfaceVariant,
             surfaceContainer = surfaceContainer,
-            surfaceContainerHigh = onSurfaceHigh,
+            surfaceContainerHigh = surfaceContainerHigh,
             surfaceContainerHighest = onSurfaceHighest,
             accent = accent,
             onAccent = onAccent,
@@ -172,6 +228,13 @@ interface ThemeColors {
             positionInQueueForeground = positionInQueueForeground ?: background.copy(alpha = 0.80f),
             messageSent = messageSent,
             messageSending = messageSending,
+            subtle = subtle,
+            muted = muted,
+            error = error,
+            accentHeader = accentHeader,
+            onAccentHeader = onAccentHeader,
+            textFieldLabelBackground = textFieldLabelBackground,
+            textFieldLabelText = textFieldLabelText
         )
     }
 }
@@ -183,6 +246,8 @@ internal data class ThemeColorsImpl(
     override val onPrimary: Color,
     override val background: Color,
     override val onBackground: Color,
+    override val surface: Color,
+    override val onSurface: Color,
     override val surfaceVariant: Color,
     override val surfaceContainer: Color,
     override val surfaceContainerHigh: Color,
@@ -199,20 +264,24 @@ internal data class ThemeColorsImpl(
     override val messageSending: Color,
     override val agentAvatarForeground: Color,
     override val agentAvatarBackground: Color,
+    override val subtle: Color,
+    override val muted: Color,
+    override val error: Color,
+    override val accentHeader: Brush,
+    override val onAccentHeader: Color,
+    override val textFieldLabelBackground: Color,
+    override val textFieldLabelText: Color,
 ) : ThemeColors
 
 @Composable
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-private fun PreviewThemeColorsNight() {
-    ThemeColorsList()
-}
-
-@Composable
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+@PreviewLightDark
 private fun PreviewThemeColors() {
     ThemeColorsList()
 }
 
+@Suppress(
+    "LongMethod" // Preview method
+)
 @Composable
 private fun ThemeColorsList() {
     ChatTheme {
@@ -229,29 +298,67 @@ private fun ThemeColorsList() {
             "onSecondary" to ChatTheme.colorScheme.onSecondary,
             "agentBackground" to ChatTheme.chatColors.agent.background,
             "customerBackground" to ChatTheme.chatColors.customer.background,
+            "leadingMessageIconBorder" to ChatTheme.chatColors.leadingMessageIconBorder,
+            "leadingMessageIconContainer" to ChatTheme.chatColors.leadingMessageIconContainer,
+            "error" to ChatTheme.colorScheme.error,
+            "subtle" to ChatTheme.chatColors.subtle,
         )
+        val scrollState = rememberScrollState()
         Surface {
             Column(
                 verticalArrangement = spacedBy(8.dp),
-                modifier = Modifier.padding(8.dp)
+                modifier = Modifier
+                    .padding(8.dp)
+                    .verticalScroll(scrollState)
             ) {
+                val rowMod = Modifier.padding(4.dp)
+                val textMod = Modifier.padding(end = 8.dp)
+                val shape = RoundedCornerShape(4.dp)
+                val itemMod = Modifier
+                    .border(2.dp, Color.Gray, shape)
+                    .size(24.dp)
                 colors.forEach { (label, color) ->
-                    Row(
-                        modifier = Modifier.padding(4.dp)
-                    ) {
-                        Text(
-                            text = label,
-                            modifier = Modifier.padding(end = 8.dp),
-                        )
-                        Spacer(
-                            modifier = Modifier
-                                .border(2.dp, Color.Gray)
-                                .background(color = color)
-                                .size(24.dp)
-                        )
-                    }
+                    ColorPreviewItem(label, color, itemMod, rowMod, textMod, shape)
                 }
+                BrushPreviewItem(
+                    "popupHeader",
+                    ChatTheme.chatColors.accentHeader,
+                    itemMod,
+                    rowMod,
+                    textMod,
+                    shape
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun BrushPreviewItem(
+    label: String,
+    brush: Brush,
+    itemMod: Modifier,
+    rowMod: Modifier,
+    textMod: Modifier,
+    shape: Shape,
+) {
+    Row(modifier = rowMod) {
+        Text(text = label, modifier = textMod)
+        Spacer(modifier = itemMod.background(brush = brush, shape = shape))
+    }
+}
+
+@Composable
+private fun ColorPreviewItem(
+    label: String,
+    color: Color,
+    itemMod: Modifier,
+    rowMod: Modifier,
+    textMod: Modifier,
+    shape: Shape,
+) {
+    Row(modifier = rowMod) {
+        Text(text = label, modifier = textMod)
+        Spacer(modifier = itemMod.background(color = color, shape = shape))
     }
 }

@@ -32,7 +32,7 @@ import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.state.FieldDefinition
 import com.nice.cxonechat.state.HierarchyNode
 import com.nice.cxonechat.tool.SocketFactoryMock
-import com.nice.cxonechat.tool.awaitResult
+import com.nice.cxonechat.tool.awaitWrappedResult
 import com.nice.cxonechat.tool.nextString
 import org.junit.Test
 import java.util.UUID
@@ -52,16 +52,11 @@ internal class ChatThreadsHandlerPreChatSurveyTest : AbstractChatTest() {
     private var preChatSurveys = listOf(
         PreContactCustomFieldDefinitionModel(
             isRequired = true,
-            definition = CustomFieldPolyType.Text(
+            definition = Text(
                 fieldId = textQuestionId,
                 label = "Text test",
             )
         )
-    )
-
-    private var fields = listOf<CustomFieldPolyType>(
-        Text(textQuestionId, "text"),
-        Hierarchy(hierarchyQuestionId, "hier", listOf())
     )
 
     override val config: ChannelConfiguration
@@ -73,7 +68,6 @@ internal class ChatThreadsHandlerPreChatSurveyTest : AbstractChatTest() {
                     channels = channels,
                     customFields = preChatSurveys
                 ),
-                contactCustomFields = fields
             )
         }
 
@@ -265,15 +259,14 @@ internal class ChatThreadsHandlerPreChatSurveyTest : AbstractChatTest() {
         return connection to ChatBuilder(entrails, factory)
     }
 
-    @Suppress("DEPRECATED", "DEPRECATION")
     private fun build(
         builder: ChatBuilder = prepareBuilder().second,
         body: ChatBuilder.() -> ChatBuilder = { this },
-    ): Chat = awaitResult {
+    ): Chat = awaitWrappedResult { callback: (Result<Chat>) -> Unit ->
         builder
             .setDevelopmentMode(true)
             .body()
-            .build(it)
+            .build(callback)
     }
 
     private tailrec fun findLeaf(node: HierarchyNode<String>): HierarchyNode<String> =

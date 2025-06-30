@@ -22,7 +22,7 @@ import com.nice.cxonechat.Public
  * internal errors.
  */
 @Public
-sealed class CXOneException : Exception {
+sealed class CXoneException : Exception {
     constructor(message: String?) : super(message)
 
     constructor(message: String?, cause: Throwable?) : super(message, cause)
@@ -41,32 +41,32 @@ sealed class CXOneException : Exception {
 }
 
 /**
- * An action was attempted when a [ChatInstanceProvider] was in an invalid state.
+ * An action was attempted when a [com.nice.cxonechat.ChatInstanceProvider] was in an invalid state.
  *
  * Some examples of invalid states might be:
- * * calling [ChatInstanceProvider.connect] on an unprepared provider;
- * * calling [ChatInstanceProvider.prepare] on a prepared or connected provider;
- * * calling [ChatThreadHandler.endContact] on a channel that is not set to Live Chat.
+ * * calling [com.nice.cxonechat.ChatInstanceProvider.connect] on an unprepared provider;
+ * * calling [com.nice.cxonechat.ChatInstanceProvider.prepare] on a prepared or connected provider;
+ * * calling [com.nice.cxonechat.ChatThreadHandler.endContact] on a channel that is not set to Live Chat.
  *
  * Further details are available in the exception description.
  */
 @Public
-class InvalidStateException internal constructor(message: String) : CXOneException(message)
+class InvalidStateException internal constructor(message: String) : CXoneException(message)
 
 /**
  * An action was attempted with an invalid parameter.
  *
  * Some examples of invalid parameters are:
- * * calling [ChatThreadMessageHandler.send] with a message with no message, attachment, or postback text.
+ * * calling [com.nice.cxonechat.ChatThreadHandler.messages] with a message with no message, attachment, or postback text.
  */
 @Public
-class InvalidParameterException internal constructor(message: String) : CXOneException(message)
+class InvalidParameterException internal constructor(message: String) : CXoneException(message)
 
 /**
  * The method being called is not supported with the current channel configuration.
  */
 @Public
-class UnsupportedChannelConfigException internal constructor() : CXOneException(
+class UnsupportedChannelConfigException internal constructor() : CXoneException(
     "The method you are trying to call is not supported with your current channel configuration." +
             " For example, archiving a thread is only supported on a channel configured for multiple threads."
 )
@@ -76,7 +76,7 @@ class UnsupportedChannelConfigException internal constructor() : CXOneException(
  * a single-thread configuration.
  */
 @Public
-class MissingThreadListFetchException internal constructor() : CXOneException(
+class MissingThreadListFetchException internal constructor() : CXoneException(
     "Your current channel configuration requires that, you need to call threads {} method first to fetch list of threads."
 )
 
@@ -89,7 +89,7 @@ class MissingThreadListFetchException internal constructor() : CXOneException(
 @Public
 class MissingPreChatCustomFieldsException internal constructor(
     val missing: Iterable<String>,
-) : CXOneException(
+) : CXoneException(
     "The method you are trying to call requires that you supply all mandatory custom fields from pre-chat survey." +
             " Missing custom fields:\n ${missing.joinToString()}"
 )
@@ -101,33 +101,19 @@ class MissingPreChatCustomFieldsException internal constructor(
 @Public
 class InvalidCustomFieldValue internal constructor(
     label: String,
-    error: String
-) : CXOneException(
+    error: String,
+) : CXoneException(
     "An invalid value was specified for a custom field '$label': $error"
-)
-
-/**
- * A custom value passed to
- * [com.nice.cxonechat.ChatThreadsHandler.create] for an invalid (ie., missing) pre-chat survey field.
- */
-@Public
-@Deprecated(
-    "This exception is no longer used, as the SDK doesn't restrict custom fields passed to the server."
-)
-class UndefinedCustomField internal constructor(
-    fieldId: String
-) : CXOneException(
-    "A custom value was passed for an undefined custom field: '$fieldId'"
 )
 
 /**
  * Backend has returned invalid `customerId` value causing invalid internal SDK state.
  *
  * Troubleshooting: (Assuming development mode)
- * Gather application logs with tag `CXOneChat` and contact CXone support representative.
+ * Gather application logs with tag `CXoneChat` and contact CXone support representative.
  */
 @Public
-class MissingCustomerId internal constructor() : CXOneException(
+class MissingCustomerId internal constructor() : CXoneException(
     "The customer was successfully authorized, but an invalid customerId was returned."
 )
 
@@ -137,19 +123,19 @@ class MissingCustomerId internal constructor() : CXOneException(
  * Troubleshooting: Report to CXone support.
  */
 @Public
-class InternalError internal constructor(message: String, cause: Throwable? = null) : CXOneException(message, cause)
+class InternalError internal constructor(message: String, cause: Throwable? = null) : CXoneException(message, cause)
 
 /**
  * The SDK was unable to dispatch analytics event to server, due to some kind of connectivity issue.
  */
 @Public
-class AnalyticsEventDispatchException(message: String, throwable: Throwable?) : CXOneException(message, throwable)
+class AnalyticsEventDispatchException(message: String, throwable: Throwable?) : CXoneException(message, throwable)
 
 /**
  *
  */
 @Public
-sealed class RuntimeChatException(message: String, cause: Throwable? = null) : CXOneException(message, cause) {
+sealed class RuntimeChatException(message: String, cause: Throwable? = null) : CXoneException(message, cause) {
 
     /**
      * Exception reported when the SDK was unable to upload supplied attachment.

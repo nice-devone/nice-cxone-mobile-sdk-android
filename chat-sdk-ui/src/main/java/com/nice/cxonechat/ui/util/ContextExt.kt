@@ -19,18 +19,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
-import android.net.Uri
-import android.util.TypedValue
-
-/**
- * Convert DP to Pixels in the receiving context.
- *
- * @receiver Context for display metrics
- * @param dp DP to convert to pixels
- * @return converted pixels
- */
-internal fun Context.dpToPixels(dp: Float) =
-    TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, resources.displayMetrics)
+import androidx.core.net.toUri
 
 /**
  * Ask android to open a URL if possible.
@@ -41,7 +30,7 @@ internal fun Context.dpToPixels(dp: Float) =
  */
 internal fun Context.openWithAndroid(url: String, mimeType: String?): Boolean {
     val intent = Intent(Intent.ACTION_VIEW).apply {
-        setDataAndType(Uri.parse(url), mimeType)
+        setDataAndType(url.toUri(), mimeType)
     }
 
     return if (intent.resolveActivity(packageManager) == null) {

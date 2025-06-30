@@ -23,6 +23,15 @@ android {
     }
 }
 
+kotlin {
+    compilerOptions {
+        freeCompilerArgs = [
+                "-Xjspecify-annotations=strict",
+                "-Xtype-enhancement-improvements-strict-mode"
+        ]
+    }
+}
+
 dependencies {
     implementation libs.androidx.appcompat
     implementation libs.androidx.ktx

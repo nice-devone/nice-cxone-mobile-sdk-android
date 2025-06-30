@@ -15,6 +15,7 @@
 
 plugins {
     id "org.jetbrains.kotlin.plugin.compose"
+    id("android-kotlin-conventions")
 }
 
 android {
@@ -23,7 +24,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.14"
+        kotlinCompilerExtensionVersion = "1.5.15"
     }
 }
 

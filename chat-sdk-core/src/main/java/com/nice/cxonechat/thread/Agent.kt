@@ -16,7 +16,6 @@
 package com.nice.cxonechat.thread
 
 import com.nice.cxonechat.Public
-import java.util.UUID
 
 /**
  * Represents all info about an agent.
@@ -25,18 +24,6 @@ import java.util.UUID
 abstract class Agent {
     /** The id of the agent. */
     abstract val id: Int
-
-    /** The id of the agent in the inContact (CXone) system. */
-    @Deprecated(
-        message = "inContactId is internal field and should not be used. It is now always null.",
-    )
-    abstract val inContactId: UUID?
-
-    /** The email address of the agent. */
-    @Deprecated(
-        message = "emailAddress is internal field and should not be used. It is now always null.",
-    )
-    abstract val emailAddress: String?
 
     /** The first name of the agent. */
     abstract val firstName: String

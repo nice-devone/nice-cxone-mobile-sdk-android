@@ -20,7 +20,6 @@ import com.nice.cxonechat.Authorization
 import com.nice.cxonechat.Cancellable
 import com.nice.cxonechat.Chat
 import com.nice.cxonechat.ChatBuilder
-import com.nice.cxonechat.ChatBuilder.OnChatBuiltCallback
 import com.nice.cxonechat.ChatBuilder.OnChatBuiltResultCallback
 import com.nice.cxonechat.ChatStateListener
 import java.util.concurrent.CountDownLatch
@@ -56,16 +55,6 @@ internal class ChatBuilderThreading(
     override fun setCustomerId(customerId: String): ChatBuilder = apply {
         origin.setCustomerId(customerId)
     }
-
-    @Deprecated(
-        "Please migrate to build method with OnChatBuildResultCallback",
-        replaceWith = ReplaceWith(
-            "build(resultCallback = OnChatBuiltResultCallback { callback.onChatBuilt(it.getOrThrow()) })",
-            "com.nice.cxonechat.ChatBuilder.OnChatBuiltResultCallback"
-        )
-    )
-    override fun build(callback: OnChatBuiltCallback): Cancellable =
-        build(resultCallback = { chatResult -> callback.onChatBuilt(chatResult.getOrThrow()) })
 
     override fun build(
         resultCallback: OnChatBuiltResultCallback,

@@ -18,8 +18,10 @@ package com.nice.cxonechat.ui.composable.theme
 import androidx.compose.foundation.layout.Arrangement.spacedBy
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -59,6 +61,10 @@ internal data class ChatShapes(
     val bubbleSoloShape: Shape = DefaultChatShapes.bubbleSoloShape,
     val chip: Shape = DefaultChatShapes.chip,
     val selectionFrame: Shape = DefaultChatShapes.selectionFrame,
+    val smallSelectionFrame: Shape = DefaultChatShapes.smallSelectionFrame,
+    val actionButtonShape: Shape = DefaultChatShapes.actionButton,
+    val popupShape: Shape = DefaultChatShapes.popupShape,
+    val popupButtonShape: Shape = DefaultChatShapes.largeButtonShape,
 )
 
 @Immutable
@@ -75,7 +81,14 @@ internal object DefaultChatShapes {
 
     val chip = RoundedCornerShape(8.dp)
 
-    val selectionFrame = RoundedCornerShape(8.dp)
+    val selectionFrame = RoundedCornerShape(10.dp)
+
+    val smallSelectionFrame = RoundedCornerShape(16.dp)
+
+    val actionButton = RoundedCornerShape(12.dp)
+
+    val popupShape = RoundedCornerShape(32.dp)
+    val largeButtonShape = RoundedCornerShape(9.dp)
 }
 
 internal val LocalChatShapes = staticCompositionLocalOf {
@@ -95,12 +108,19 @@ private fun PreviewShapes() {
         "bubbleSoloShape" to ChatTheme.chatShapes.bubbleSoloShape,
         "chip" to ChatTheme.chatShapes.chip,
         "selectionFrame" to ChatTheme.chatShapes.selectionFrame,
+        "smallSelectionFrame" to ChatTheme.chatShapes.smallSelectionFrame,
+        "actionButtonShape" to ChatTheme.chatShapes.actionButtonShape,
+        "popupShape" to ChatTheme.chatShapes.popupShape,
+        "popupButtonShape" to ChatTheme.chatShapes.popupButtonShape,
     )
+    val scrollState = rememberScrollState()
     ChatTheme {
         Surface {
             Column(
-                verticalArrangement = spacedBy(8.dp),
-                modifier = Modifier.padding(8.dp)
+                verticalArrangement = spacedBy(4.dp),
+                modifier = Modifier
+                    .padding(4.dp)
+                    .verticalScroll(scrollState)
             ) {
                 shapes.forEach { (label, shape) ->
                     Surface(
@@ -108,7 +128,7 @@ private fun PreviewShapes() {
                         contentColor = ChatTheme.colorScheme.onPrimary,
                         shape = shape,
                     ) {
-                        Text(text = label, modifier = Modifier.padding(24.dp))
+                        Text(text = label, modifier = Modifier.padding(12.dp))
                     }
                 }
             }

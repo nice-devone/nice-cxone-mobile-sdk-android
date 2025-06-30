@@ -15,7 +15,6 @@
 
 package com.nice.cxonechat.ui.composable.generic
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -30,7 +29,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 
 /**
@@ -43,7 +42,6 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme
  * disable auto scrolling.
  * @param placeholder placeholder used while images are loaded.
  */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ImageCarousel(
     images: List<Pair<String, String?>>,
@@ -74,7 +72,6 @@ fun ImageCarousel(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 @Preview
 private fun PreviewImageCarousel() {

@@ -16,38 +16,60 @@
 package com.nice.cxonechat.sample
 
 import android.app.Application
+import android.content.Context
 import android.os.Build
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
 import android.os.StrictMode.VmPolicy
 import androidx.emoji2.bundled.BundledEmojiCompatConfig
 import androidx.emoji2.text.EmojiCompat
-import coil.ImageLoader
-import coil.ImageLoaderFactory
+import coil3.ImageLoader
+import coil3.SingletonImageLoader
+import coil3.disk.DiskCache
+import coil3.disk.directory
+import coil3.memory.MemoryCache
+import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import com.google.firebase.FirebaseApp
 import com.nice.cxonechat.log.LoggerAndroid
 import com.nice.cxonechat.log.ProxyLogger
 import com.nice.cxonechat.sample.modules.StoreModule
 import com.nice.cxonechat.sample.utilities.logging.FirebaseLogger
 import com.nice.cxonechat.ui.UiModule.Companion.chatUiModule
+import com.nice.cxonechat.ui.api.CustomFieldProviderType
+import com.nice.cxonechat.ui.api.UiCustomFieldsProvider
 import com.nice.cxonechat.utilities.TaggingSocketFactory
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asExecutor
+import kotlinx.coroutines.cancel
+import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.logging.HttpLoggingInterceptor.Level.BASIC
+import org.koin.android.ext.android.get
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
+import org.koin.core.qualifier.named
+import org.koin.dsl.includes
+import org.koin.dsl.module
 import org.koin.ksp.generated.module
+import java.io.File
 
 /**
  * Host application, initializes customized Emoji and Firebase.
  */
-class StoreApplication : Application(), ImageLoaderFactory {
+class StoreApplication : Application(), SingletonImageLoader.Factory {
     private val okHttpClient by lazy {
         OkHttpClient
             .Builder()
             .socketFactory(TaggingSocketFactory)
+            .cache(
+                Cache(
+                    directory = File(cacheDir, "http_cache"),
+                    maxSize = 250L * 1024L * 1024L // 250 MiB
+                )
+            )
             .addInterceptor(
                 HttpLoggingInterceptor().apply {
                     level = BASIC
@@ -56,20 +78,41 @@ class StoreApplication : Application(), ImageLoaderFactory {
             .build()
     }
 
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+
     override fun onCreate() {
         super.onCreate()
 
+        startDi()
+        improveEmulatorSupport()
+        /* set up Firebase */
+        FirebaseApp.initializeApp(applicationContext)
+        enableStrictMode()
+    }
+
+    private fun startDi() {
         startKoin {
             androidContext(applicationContext)
-            chatUiModule(
-                ProxyLogger(
-                    FirebaseLogger(),
-                    LoggerAndroid("CXoneChatUi")
+            modules(
+                StoreModule().module,
+                module {
+                    single { applicationScope }
+                }
+            )
+            includes(
+                chatUiModule(
+                    logger = ProxyLogger(
+                        FirebaseLogger(),
+                        LoggerAndroid("CXoneChatUi")
+                    ),
+                    customerFieldsProvider = get<UiCustomFieldsProvider>(named(CustomFieldProviderType.Customer)),
+                    contactFieldsProvider = get<UiCustomFieldsProvider>(named(CustomFieldProviderType.Contact)),
                 )
             )
-            modules(StoreModule().module)
         }
+    }
 
+    private fun improveEmulatorSupport() {
         /*
          SampleApp is using a bundled version of an emoji support library,
          for better support of the latest emojis on clean emulator instances.
@@ -81,10 +124,9 @@ class StoreApplication : Application(), ImageLoaderFactory {
          update the bundled artifact.
          */
         EmojiCompat.init(BundledEmojiCompatConfig(this, Dispatchers.IO.asExecutor()))
+    }
 
-        /* set up Firebase */
-        FirebaseApp.initializeApp(applicationContext)
-
+    private fun enableStrictMode() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             StrictModePolicy.apply()
         } else {
@@ -104,9 +146,31 @@ class StoreApplication : Application(), ImageLoaderFactory {
         }
     }
 
-    override fun newImageLoader(): ImageLoader {
-        return ImageLoader.Builder(this)
-            .okHttpClient(okHttpClient)
+    override fun newImageLoader(context: Context): ImageLoader {
+        return ImageLoader.Builder(context)
+            .components {
+                add(
+                    OkHttpNetworkFetcherFactory(
+                        callFactory = { okHttpClient }
+                    )
+                )
+            }
+            .memoryCache {
+                MemoryCache.Builder()
+                    .maxSizePercent(context, 0.25)
+                    .build()
+            }
+            .diskCache {
+                DiskCache.Builder()
+                    .directory(context.cacheDir.resolve("image_cache"))
+                    .maxSizePercent(0.02)
+                    .build()
+            }
             .build()
+    }
+
+    override fun onTerminate() {
+        applicationScope.cancel("Application terminated")
+        super.onTerminate()
     }
 }

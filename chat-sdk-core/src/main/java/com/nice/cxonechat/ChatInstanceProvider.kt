@@ -33,6 +33,9 @@ import com.nice.cxonechat.log.debug
 import com.nice.cxonechat.log.scope
 import com.nice.cxonechat.log.warning
 import java.lang.ref.WeakReference
+import java.util.concurrent.locks.ReadWriteLock
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.withLock
 
 /**
  * ChatRepository owns and maintains the chat object and its state.
@@ -182,9 +185,14 @@ class ChatInstanceProvider private constructor(
 
     private var state = ChatStateInternal(Initial)
 
+    // Lock to prevent concurrent write to the state.
+    private val stateSyncLock: ReadWriteLock = ReentrantReadWriteLock()
+
     /** Current chat state. */
     val chatState: ChatState
-        get() = state.state
+        get() = stateSyncLock.readLock().withLock {
+            state.state
+        }
 
     /**
      * Add a listener to receive notifications of chat and state changes.
@@ -213,9 +221,6 @@ class ChatInstanceProvider private constructor(
         }
     }
 
-    private fun assertState(state: ChatState, generator: () -> String) =
-        assertState({ it === state }, generator)
-
     /**
      * Reestablish a chat connection if one does not currently exist.
      * @param context Application context for resource access.
@@ -228,12 +233,12 @@ class ChatInstanceProvider private constructor(
     @Throws(InvalidStateException::class)
     @JvmOverloads
     fun prepare(context: Context, newConfig: SocketFactoryConfiguration? = null) = scope("prepare") {
-        if (state.state == Prepared) {
+        if (chatState === Prepared) {
             warning("Ignoring prepare in PREPARED state")
             return@scope
         }
 
-        assertState(Initial) {
+        assertState({ it === Initial }) {
             "ChatInstanceProvider.prepare called in an incorrect state ($chatState). " +
                     "It is only valid from the INITIAL state."
         }
@@ -292,7 +297,7 @@ class ChatInstanceProvider private constructor(
      */
     @Throws(InvalidStateException::class)
     fun connect() = scope("connect") {
-        if (state.state == Connected) {
+        if (chatState === Connected) {
             warning("Ignoring connect in CONNECTED state")
             return@scope
         }
@@ -317,32 +322,16 @@ class ChatInstanceProvider private constructor(
 
     private fun doConnect() {
         chat?.run {
-            val cancellable = connect()
+            // If the chat is offline, the connect can immediately try to update the state to offline, before the connecting state is set.
+            stateSyncLock.writeLock().withLock {
+                val cancellable = connect()
 
-            if (cancellable != Cancellable.noop) {
-                // if connect is synchronous skip CONNECTING state
-                advanceState(Connecting, cancellable = cancellable, cancel = false)
+                if (cancellable != Cancellable.noop) {
+                    // if connect is synchronous skip CONNECTING state
+                    advanceState(Connecting, cancellable = cancellable, cancel = false)
+                }
             }
         }
-    }
-
-    /**
-     * Reconnect a broken connection.
-     * @throws InvalidStateException if the connection was not previously reported as lost
-     * or [connect] has already been called since it was reported lost.
-     */
-    @Throws(InvalidStateException::class)
-    @Deprecated(
-        "ChatInstanceProvider.reconnect() has been deprecated.  Replace with ChatInstanceProvider.connect()",
-        replaceWith = ReplaceWith("connect()")
-    )
-    fun reconnect() {
-        assertState(ConnectionLost) {
-            "ChatInstanceProvider.reconnect called in invalid state ($chatState). " +
-                    "It is only allowed after when the connection has been closed by the server. "
-        }
-
-        doConnect()
     }
 
     /**
@@ -471,25 +460,25 @@ class ChatInstanceProvider private constructor(
 
     @JvmSynthetic
     internal fun advanceState(next: ChatState, cancellable: Cancellable? = null, cancel: Boolean = true) {
-        debug("advanceState: $chatState -> $next")
-        if (chatState != next) {
-            if (cancel) {
-                state.cancellable?.cancel()
-            }
-
-            if (next in setOf(Preparing, Connecting)) {
-                assert(cancellable != null) {
-                    "Internal error: advanceState($next) requires a cancellable."
+        stateSyncLock.writeLock().withLock {
+            debug("advanceState: $chatState -> $next")
+            if (chatState != next) {
+                if (cancel) {
+                    state.cancellable?.cancel()
                 }
-            } else {
-                assert(cancellable == null) {
-                    "Internal error: advanceState($next) prohibits a cancellable."
+
+                if (next in setOf(Preparing, Connecting)) {
+                    assert(cancellable != null) {
+                        "Internal error: advanceState($next) requires a cancellable."
+                    }
+                } else {
+                    assert(cancellable == null) {
+                        "Internal error: advanceState($next) prohibits a cancellable."
+                    }
                 }
+                state = ChatStateInternal(next, cancellable)
+                eachListener(next, Listener::onChatStateChanged)
             }
-
-            state = ChatStateInternal(next, cancellable)
-
-            eachListener(next, Listener::onChatStateChanged)
         }
     }
 
@@ -551,14 +540,28 @@ class ChatInstanceProvider private constructor(
     companion object {
         private const val TAG = "ChatInstanceProvider"
 
-        @Suppress("LateinitUsage")
-        private lateinit var instance: ChatInstanceProvider
+        private val readWriteLock: ReadWriteLock = ReentrantReadWriteLock()
 
-        /** Fetch the previously create ChatInstanceProvider singleton. */
-        fun get() = instance
+        private var instance: ChatInstanceProvider? = null
+
+        /**
+         *  Fetch the previously created ChatInstanceProvider singleton.
+         *
+         *  @throws IllegalStateException if the ChatInstanceProvider has not been created yet.
+         */
+        fun get(): ChatInstanceProvider = readWriteLock.readLock().withLock {
+            checkNotNull(instance) {
+                "ChatInstanceProvider has not been created yet.  Call ChatInstanceProvider.create() first."
+            }
+        }
 
         /**
          * Create the ChatInstanceProvider singleton.
+         * If the ChatInstanceProvider has already been created,
+         * this will replace current singleton instance with a new one.
+         *
+         * Old instance is considered invalid and should not be used anymore, [Chat] instance won't be affected,
+         * but should be closed before calling this method to avoid unexpected behavior.
          *
          * @param configuration Initial Sdk Configuration to use.
          * @param authorization Initial authorization to use.
@@ -626,7 +629,7 @@ class ChatInstanceProvider private constructor(
             customerId,
             chatBuilderProvider,
         ).also {
-            instance = it
+            readWriteLock.writeLock().withLock { instance = it }
         }
     }
 }

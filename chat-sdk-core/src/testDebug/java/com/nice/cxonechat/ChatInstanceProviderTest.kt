@@ -28,13 +28,11 @@ import com.nice.cxonechat.ChatState.Offline
 import com.nice.cxonechat.ChatState.Prepared
 import com.nice.cxonechat.ChatState.Preparing
 import com.nice.cxonechat.ChatState.Ready
-import com.nice.cxonechat.exceptions.InvalidCustomFieldValue
 import com.nice.cxonechat.exceptions.InvalidStateException
 import com.nice.cxonechat.exceptions.RuntimeChatException
 import com.nice.cxonechat.log.Level
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.state.Environment
-import com.nice.cxonechat.state.FieldDefinition
 import io.mockk.Ordering.ORDERED
 import io.mockk.Runs
 import io.mockk.every
@@ -63,12 +61,10 @@ internal class ChatInstanceProviderTest {
             override val environment = socketEnvironment
             override val brandId = BRAND_ID
             override val channelId = CHANNEL_ID
-
-            @Deprecated("This field is deprecated for public usage and will be removed from public API.")
-            override val version = VERSION
         }
     }
 
+    @Suppress("LABEL_NAME_CLASH")
     private fun provider(
         socketFactoryConfiguration: SocketFactoryConfiguration? = this.socketFactoryConfiguration,
         onBuilt: (Chat, OnChatBuiltResultCallback?) -> Cancellable = { chat, callback ->
@@ -592,99 +588,6 @@ internal class ChatInstanceProviderTest {
         assertEquals(Prepared, provider.chatState)
     }
 
-    @Test(expected = InvalidStateException::class)
-    fun reconnectThrowsInInitial() {
-        val (provider) = provider(null)
-
-        assertEquals(Initial, provider.chatState)
-
-        @Suppress("DEPRECATION")
-        provider.reconnect()
-    }
-
-    @Test(expected = InvalidStateException::class)
-    fun reconnectThrowsInPreparing() {
-        val (provider) = provider(
-            socketFactoryConfiguration,
-            onBuilt = { _, _ -> Cancellable { } }
-        )
-
-        provider.prepare(applicationContext)
-
-        assertEquals(Preparing, provider.chatState)
-
-        @Suppress("DEPRECATION")
-        provider.reconnect()
-    }
-
-    @Test(expected = InvalidStateException::class)
-    fun reconnectThrowsInPrepared() {
-        val (provider) = provider(
-            socketFactoryConfiguration,
-        )
-
-        provider.prepare(applicationContext)
-
-        assertEquals(Prepared, provider.chatState)
-
-        @Suppress("DEPRECATION")
-        provider.reconnect()
-    }
-
-    @Test(expected = InvalidStateException::class)
-    fun reconnectThrowsInConnecting() {
-        val (provider) = provider(
-            socketFactoryConfiguration,
-            onConnected = { _ -> Cancellable { } }
-        )
-
-        provider.prepare(applicationContext)
-        provider.connect()
-
-        assertEquals(Connecting, provider.chatState)
-
-        @Suppress("DEPRECATION")
-        provider.reconnect()
-    }
-
-    @Test(expected = InvalidStateException::class)
-    fun reconnectThrowsInConnected() {
-        val (provider) = provider(
-            socketFactoryConfiguration,
-        )
-
-        provider.prepare(applicationContext)
-        provider.connect()
-        provider.onConnected()
-
-        assertEquals(Connected, provider.chatState)
-        @Suppress("DEPRECATION")
-        provider.reconnect()
-    }
-
-    @Test
-    fun reconnectConnects() {
-        val (provider) = provider(
-            socketFactoryConfiguration,
-            onConnected = { _ -> Cancellable { } }
-        )
-
-        provider.prepare(applicationContext)
-        provider.connect()
-        provider.onConnected()
-        provider.onUnexpectedDisconnect()
-
-        assertEquals(ConnectionLost, provider.chatState)
-        @Suppress("DEPRECATION")
-        provider.reconnect()
-
-        assertEquals(Connecting, provider.chatState)
-
-        provider.onConnected()
-
-        assertEquals(Connected, provider.chatState)
-    }
-
     @Test
     fun setCustomerValuesSurvivesNoChat() {
         val (provider) = provider(socketFactoryConfiguration)
@@ -721,7 +624,7 @@ internal class ChatInstanceProviderTest {
             @Suppress("SwallowedException")
             try {
                 provider.advanceState(state)
-            } catch (exc: AssertionError) {
+            } catch (_: AssertionError) {
                 thrown = true
             }
 
@@ -746,7 +649,7 @@ internal class ChatInstanceProviderTest {
             @Suppress("SwallowedException")
             try {
                 provider.advanceState(state, mockk())
-            } catch (exc: AssertionError) {
+            } catch (_: AssertionError) {
                 thrown = true
             }
 
@@ -761,7 +664,7 @@ internal class ChatInstanceProviderTest {
     @Test
     fun advanceState_notifiesListeners() {
         val provider = ChatInstanceProvider.create(null)
-        val listener = mockk<ChatInstanceProvider.Listener> {
+        val listener = mockk<Listener> {
             every { onChatStateChanged(any()) } just Runs
         }.also(provider::addListener)
 
@@ -792,6 +695,5 @@ internal class ChatInstanceProviderTest {
     companion object {
         private const val BRAND_ID = 1000L
         private val CHANNEL_ID = UUID.randomUUID().toString()
-        private const val VERSION = "1.0"
     }
 }

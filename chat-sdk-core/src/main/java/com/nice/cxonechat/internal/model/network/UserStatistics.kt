@@ -15,8 +15,6 @@
 
 package com.nice.cxonechat.internal.model.network
 
-import com.nice.cxonechat.internal.model.MessageMetadataInternal
-import com.nice.cxonechat.message.MessageMetadata
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -31,10 +29,4 @@ internal data class UserStatistics(
     @SerialName("readAt")
     @Contextual
     val readAt: Date?,
-) {
-
-    fun toMessageMetadata(): MessageMetadata = MessageMetadataInternal(
-        seenAt = seenAt,
-        readAt = readAt
-    )
-}
+)

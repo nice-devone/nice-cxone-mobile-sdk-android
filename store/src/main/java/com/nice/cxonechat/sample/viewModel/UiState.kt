@@ -26,13 +26,14 @@ import com.nice.cxonechat.sample.ui.LoginDialog
 import com.nice.cxonechat.sample.ui.SdkConfigurationDialog
 import com.nice.cxonechat.sample.ui.uisettings.UISettingsDialog
 import com.nice.cxonechat.ui.composable.theme.BusySpinner
+import org.koin.androidx.compose.koinViewModel
 
 /**
  * Current state of the UI.
  *
  * @property isInDialog true iff this state results in displaying a dialog.
  */
-sealed class UiState private constructor(val isInDialog: Boolean) {
+sealed class UiState(val isInDialog: Boolean) {
     /**
      * Execution context provided by the host activity.
      */
@@ -62,26 +63,28 @@ sealed class UiState private constructor(val isInDialog: Boolean) {
     }
 
     /** Requesting Configuration details from the user. */
-    data class Configuration(private val viewModel: StoreViewModel) : UiState(isInDialog = true) {
+    data object Configuration : UiState(isInDialog = true) {
         @Composable
         override fun Content(context: UiStateContext) {
+            val viewModel: StoreViewModel = koinViewModel<StoreViewModel>()
             val settings = viewModel.chatSettingsRepository.settings.collectAsState()
             val configuration = remember { derivedStateOf { settings.value?.sdkConfiguration } }
             val configurations = viewModel.sdkConfigurationListRepository.configurationList.collectAsState()
 
             SdkConfigurationDialog(
-                configuration.value,
-                configurations.value,
-                { viewModel.setUiState(Prepared) },
-                viewModel.chatSettingsHandler::setConfiguration
+                configuration = configuration.value,
+                configurationDefinitions = configurations.value,
+                onDismiss = { viewModel.setUiState(Prepared) },
+                onConfigurationSelected = viewModel.chatSettingsHandler::setConfiguration
             )
         }
     }
 
     /** Preparing the chat object. */
-    data class Preparing(private val viewModel: StoreViewModel) : UiState(isInDialog = true) {
+    data object Preparing : UiState(isInDialog = true) {
         @Composable
         override fun Content(context: UiStateContext) {
+            val viewModel: StoreViewModel = koinViewModel<StoreViewModel>()
             BusySpinner(
                 message = stringResource(string.connecting),
                 onCancel = viewModel.chatProvider::cancel
@@ -98,13 +101,12 @@ sealed class UiState private constructor(val isInDialog: Boolean) {
     }
 
     /** Performing simple authentication with the user. */
-    data class Login(
-        private val viewModel: StoreViewModel,
-    ) : UiState(isInDialog = true) {
+    data object Login : UiState(isInDialog = true) {
         @Composable
         override fun Content(
             context: UiStateContext,
         ) {
+            val viewModel: StoreViewModel = koinViewModel<StoreViewModel>()
             val settings = viewModel.chatSettingsRepository.settings.collectAsState()
             val userName = remember { derivedStateOf { settings.value?.userName } }
             val customerId = remember { derivedStateOf { settings.value?.customerId } }
@@ -120,9 +122,10 @@ sealed class UiState private constructor(val isInDialog: Boolean) {
     }
 
     /** Displaying the UI Settings dialog. */
-    data class UiSettings(private val viewModel: StoreViewModel) : UiState(isInDialog = true) {
+    data object UiSettings : UiState(isInDialog = true) {
         @Composable
         override fun Content(context: UiStateContext) {
+            val viewModel: StoreViewModel = koinViewModel<StoreViewModel>()
             UISettingsDialog(
                 value = UISettings.collectAsState().value,
                 onDismiss = { viewModel.setUiState(Prepared) },

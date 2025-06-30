@@ -135,21 +135,6 @@ interface Chat : AutoCloseable {
     override fun close()
 
     /**
-     * Attempts to restart the chat session using existing configuration, the attempt will be made on background thread.
-     * Successful connection will be announced to the [ChatStateListener.onConnected] which was
-     * supplied in [ChatBuilder].
-     * If there is an issue during/after reconnection the [ChatStateListener.onUnexpectedDisconnect] will be called,
-     * it is responsibility of application to perform a repeated reconnection attempt, if it is desirable.
-     * Reconnect attempts should be performed only if the device is connected to the internet.
-     * If the repeated reconnection attempts are made, they should be called with exponential backoff,
-     * in order to prevent backend overload.
-     *
-     * @return An instance of [Cancellable] which can be used to interrupt background operation.
-     */
-    @Deprecated("Deprecated, use connect() instead.", replaceWith = ReplaceWith("connect()"))
-    fun reconnect(): Cancellable
-
-    /**
      * Attempts to connect the chat session using existing configuration, the attempt will be made on background thread.
      * Successful connection will be announced to the [ChatStateListener.onConnected] which was
      * supplied in [ChatBuilder].

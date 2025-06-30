@@ -39,14 +39,17 @@ internal fun ChatTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Com
             onPrimary = theme.onPrimary,
             background = theme.background,
             onBackground = theme.onBackground,
-            surface = theme.background,
-            onSurface = theme.onBackground,
+            surface = theme.surface,
+            onSurface = theme.onSurface,
             surfaceVariant = theme.surfaceVariant,
             surfaceContainer = theme.surfaceContainer,
             surfaceContainerHigh = theme.surfaceContainerHigh,
             surfaceContainerHighest = theme.surfaceContainerHighest,
             secondary = theme.accent,
             onSecondary = theme.onAccent,
+            secondaryContainer = theme.primary,
+            onSecondaryContainer = theme.onPrimary,
+            error = theme.error,
         )
     } else {
         lightColorScheme(
@@ -54,24 +57,25 @@ internal fun ChatTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Com
             onPrimary = theme.onPrimary,
             background = theme.background,
             onBackground = theme.onBackground,
-            surface = theme.background,
-            onSurface = theme.onBackground,
+            surface = theme.surface,
+            onSurface = theme.onSurface,
             surfaceVariant = theme.surfaceVariant,
             surfaceContainer = theme.surfaceContainer,
             surfaceContainerHigh = theme.surfaceContainerHigh,
             surfaceContainerHighest = theme.surfaceContainerHighest,
             secondary = theme.accent,
             onSecondary = theme.onAccent,
+            secondaryContainer = theme.primary,
+            onSecondaryContainer = theme.onPrimary,
+            error = theme.error,
         )
     }
     val chatColors = ChatColors(theme)
-    val images = ChatThemeDetails.images
 
     CompositionLocalProvider(
         LocalChatColors provides chatColors,
         LocalChatShapes provides ChatShapes(),
         LocalSpace provides Space(),
-        LocalImages provides images,
     ) {
         MaterialTheme(
             colorScheme = colors,
@@ -138,12 +142,4 @@ internal object ChatTheme {
         @Composable
         @ReadOnlyComposable
         get() = LocalChatShapes.current
-
-    /**
-     * Retrieves the [Images] at the call site's position in the hierarchy.
-     */
-    val images: Images
-        @Composable
-        @ReadOnlyComposable
-        get() = LocalImages.current
 }

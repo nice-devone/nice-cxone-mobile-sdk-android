@@ -27,27 +27,29 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.message.MessageDirection
 import com.nice.cxonechat.message.MessageDirection.ToAgent
+import com.nice.cxonechat.message.MessageStatus
 import com.nice.cxonechat.ui.composable.conversation.ContentType.DateHeader
 import com.nice.cxonechat.ui.composable.conversation.ContentType.Loading
 import com.nice.cxonechat.ui.composable.conversation.ContentType.Typing
-import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.FIRST
 import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.LAST
-import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.MIDDLE
 import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.SOLO
 import com.nice.cxonechat.ui.composable.conversation.model.Message
 import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider
-import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider.Companion.toPerson
 import com.nice.cxonechat.ui.composable.conversation.model.Section
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
-import com.nice.cxonechat.ui.model.Person
+import com.nice.cxonechat.ui.domain.model.Person
+import com.nice.cxonechat.ui.util.preview.message.toPerson
 
 @Suppress("LongMethod")
 @Composable
@@ -58,8 +60,9 @@ internal fun ColumnScope.Messages(
     canLoadMore: Boolean,
     agentIsTyping: Boolean,
     agentDetails: Person?,
+    modifier: Modifier = Modifier,
     onAttachmentClicked: (Attachment) -> Unit,
-    onMoreClicked: (List<Attachment>, String) -> Unit,
+    onMoreClicked: (List<Attachment>) -> Unit,
     onShare: (Collection<Attachment>) -> Unit,
 ) {
     LaunchedEffect(agentIsTyping) {
@@ -67,12 +70,14 @@ internal fun ColumnScope.Messages(
             scrollState.scrollToItem(0)
         }
     }
-
+    val lastDisplayedStatuses: MutableMap<MessageStatus, Position> = remember { mutableMapOf() }
     LazyColumn(
         reverseLayout = true,
         state = scrollState,
         verticalArrangement = Arrangement.Top,
         modifier = Modifier
+            .testTag("messages")
+            .then(modifier)
             .weight(1f)
             .padding(horizontal = space.medium)
             .fillMaxSize(),
@@ -87,15 +92,29 @@ internal fun ColumnScope.Messages(
             }
         }
 
-        groupedMessages.forEach { section ->
+        groupedMessages.forEachIndexed { sectionIndex, section ->
             itemsIndexed(
                 items = section.messages,
-                key = { _, message -> message.id },
+                key = { i, message -> "${message.id}_$i" }, // ID may not be unique because of message splitting based on content
                 contentType = { _, message -> message.contentType }
             ) { i, message ->
                 val isLast = i == section.messages.lastIndex
-                val groupState = getGroupState(section, i, message, isLast)
-                val showStatus = message.direction == ToAgent && groupState in setOf(LAST, SOLO)
+                val sender = message.sender
+                val groupState = remember(section, i, sender, isLast) { getGroupState(section, i) }
+                val position = remember(sectionIndex, i) { Position(sectionIndex, i) }
+                val isLastMessage = remember(position, message.status) {
+                    message.direction === ToAgent &&
+                            lastDisplayedStatuses.filterKeys {
+                                it !== MessageStatus.FailedToDeliver && // Failed message status is always shown
+                                        it >= message.status // Show last Higher status if current lower
+                            }.none { position > it.value }
+                }
+                val showStatus: Boolean = remember(message.status, groupState, isLastMessage, position) {
+                    message.showStatus(groupState, isLastMessage)
+                }
+                if (showStatus) {
+                    lastDisplayedStatuses[message.status] = position
+                }
 
                 MessageItem(
                     message = message,
@@ -104,6 +123,10 @@ internal fun ColumnScope.Messages(
                     onAttachmentClicked = onAttachmentClicked,
                     onMoreClicked = onMoreClicked,
                     onShare = onShare,
+                    modifier = Modifier
+                        .testTag("message_item_$position")
+                        .fillParentMaxWidth()
+                        .animateItem(),
                 )
             }
 
@@ -116,29 +139,30 @@ internal fun ColumnScope.Messages(
 
         if (canLoadMore) {
             item(contentType = Loading) {
-                LoadMore(loadMore)
+                LoadMore(loadMore = loadMore)
             }
         }
     }
 }
 
-private fun getGroupState(
-    section: Section,
-    i: Int,
-    message: Message,
-    isLast: Boolean,
-) = when {
-    section.messages.size == 1 -> SOLO
-    i == 0 || message.sender != section.messages[i - 1].sender -> when {
-        isLast || section.messages[i + 1].sender != message.sender -> SOLO
-        else -> LAST
-    }
-
-    isLast || section.messages[i - 1].sender == message.sender &&
-            section.messages[i + 1].sender != message.sender -> FIRST
-
-    else -> MIDDLE
+@Immutable
+private data class Position(
+    val sectionIndex: Int,
+    val messageIndex: Int,
+) : Comparable<Position> {
+    override fun compareTo(other: Position): Int =
+        when (val sectionCompare = sectionIndex.compareTo(other.sectionIndex)) {
+            0 -> messageIndex.compareTo(other.messageIndex)
+            else -> sectionCompare
+        }
 }
+
+private fun Message.showStatus(
+    groupState: MessageItemGroupState,
+    isLastMessage: Boolean,
+): Boolean = direction === ToAgent && (
+        status === MessageStatus.FailedToDeliver || isLastMessage && groupState in setOf(LAST, SOLO)
+        )
 
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO or Configuration.UI_MODE_TYPE_NORMAL)
 @Composable
@@ -161,7 +185,7 @@ private fun MessagesPreview() {
                 agentIsTyping = true,
                 agentDetails = MessageDirection.ToClient.toPerson(),
                 onAttachmentClicked = {},
-                onMoreClicked = { _, _ -> },
+                onMoreClicked = { _ -> },
                 onShare = {},
             )
         }

@@ -18,7 +18,6 @@ package com.nice.cxonechat.internal
 import com.nice.cxonechat.Authorization
 import com.nice.cxonechat.Cancellable
 import com.nice.cxonechat.ChatBuilder
-import com.nice.cxonechat.ChatBuilder.OnChatBuiltCallback
 import com.nice.cxonechat.ChatBuilder.OnChatBuiltResultCallback
 import com.nice.cxonechat.ChatMode.LiveChat
 import com.nice.cxonechat.ChatMode.MultiThread
@@ -70,16 +69,6 @@ internal class ChatBuilderDefault(
     override fun setCustomerId(customerId: String): ChatBuilder = apply {
         this.customerId = customerId
     }
-
-    @Deprecated(
-        message = "Please migrate to build method with OnChatBuildResultCallback",
-        replaceWith = ReplaceWith(
-            expression = "build(resultCallback = OnChatBuiltResultCallback { callback.onChatBuilt(it.getOrThrow()) })",
-            imports = ["com.nice.cxonechat.ChatBuilder.OnChatBuiltResultCallback"]
-        )
-    )
-    override fun build(callback: OnChatBuiltCallback): Cancellable =
-        build(resultCallback = { chatResult -> callback.onChatBuilt(chatResult.getOrThrow()) })
 
     override fun build(resultCallback: OnChatBuiltResultCallback): Cancellable {
         resultCallback.onChatBuiltResult(

@@ -16,21 +16,21 @@
 package com.nice.cxonechat.ui.composable.generic
 
 import android.content.Context
-import android.widget.Toast
 import android.widget.Toast.LENGTH_LONG
 import com.nice.cxonechat.ui.R.string
+import com.nice.cxonechat.ui.util.showToast
 
 /**
  * Show toast informing user that audio record attempt has failed.
  * @param isRecording Flag for proper choice of information text. The flag indicates the state of the UI when
  * the audio record attempt was made.
- * If `true` the recording was succesfully started, but it failed to stop the recording properly;
+ * If `true` the recording was successfully started, but it failed to stop the recording properly;
  * otherwise the attempt has failed when the UI has attempted to start the recoding.
  */
 internal fun Context.toastAudioRecordToggleFailure(isRecording: Boolean) {
     if (isRecording) {
-        Toast.makeText(this, string.recording_audio_failed, LENGTH_LONG).show()
+        showToast(string.recording_audio_failed, LENGTH_LONG)
     } else {
-        Toast.makeText(this, string.recording_audio_failed_to_start, LENGTH_LONG).show()
+        showToast(string.recording_audio_failed_to_start, LENGTH_LONG)
     }
 }

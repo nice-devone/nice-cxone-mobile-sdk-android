@@ -18,8 +18,8 @@ package com.nice.cxonechat.ui.composable.conversation.model
 import com.nice.cxonechat.message.Media
 import com.nice.cxonechat.message.OutboundMessage
 import com.nice.cxonechat.ui.composable.conversation.model.Action.ReplyButton
-import com.nice.cxonechat.message.Action as SdkAction
-import com.nice.cxonechat.message.Action.ReplyButton as SdkReplyButton
+import com.nice.cxonechat.ui.util.preview.message.SdkAction
+import com.nice.cxonechat.ui.util.preview.message.SdkReplyButton
 
 internal sealed class Action {
 

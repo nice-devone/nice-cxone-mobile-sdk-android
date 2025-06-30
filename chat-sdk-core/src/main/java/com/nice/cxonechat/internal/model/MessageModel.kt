@@ -17,6 +17,7 @@ package com.nice.cxonechat.internal.model
 
 import com.nice.cxonechat.internal.model.MessageDirectionModel.ToAgent
 import com.nice.cxonechat.internal.model.MessageDirectionModel.ToClient
+import com.nice.cxonechat.internal.model.network.CustomerStatistics
 import com.nice.cxonechat.internal.model.network.MessagePolyContent
 import com.nice.cxonechat.internal.model.network.MessagePolyContent.ListPicker
 import com.nice.cxonechat.internal.model.network.MessagePolyContent.Noop
@@ -25,6 +26,7 @@ import com.nice.cxonechat.internal.model.network.MessagePolyContent.RichLink
 import com.nice.cxonechat.internal.model.network.MessagePolyContent.Text
 import com.nice.cxonechat.internal.model.network.UserStatistics
 import com.nice.cxonechat.message.MessageAuthor
+import com.nice.cxonechat.message.MessageMetadata
 import com.nice.cxonechat.util.IsoDate
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
@@ -58,6 +60,9 @@ internal data class MessageModel(
     @SerialName("direction")
     val direction: MessageDirectionModel,
 
+    @SerialName("customerStatistics")
+    val customerStatistics: CustomerStatistics,
+
     @SerialName("userStatistics")
     val userStatistics: UserStatistics,
 
@@ -75,6 +80,13 @@ internal data class MessageModel(
             ToClient -> authorUser?.toMessageAuthor()
         }
 
+    val metadata: MessageMetadata
+        get() = MessageMetadataInternal(
+            seenAt = userStatistics.seenAt,
+            readAt = userStatistics.readAt,
+            seenByCustomerAt = customerStatistics.seenAt,
+        )
+
     internal constructor(
         idOnExternalPlatform: UUID,
         threadIdOnExternalPlatform: UUID,
@@ -82,20 +94,22 @@ internal data class MessageModel(
         createdAt: Date,
         attachments: List<AttachmentModel>,
         direction: MessageDirectionModel,
+        customerStatistics: CustomerStatistics,
         userStatistics: UserStatistics,
         authorUser: AgentModel? = null,
         authorEndUserIdentity: CustomerIdentityModel? = null,
     ) : this(
-        idOnExternalPlatform,
-        threadIdOnExternalPlatform,
-        messageContent,
-        IsoDate(createdAt),
-        createdAt,
-        attachments,
-        direction,
-        userStatistics,
-        authorUser,
-        authorEndUserIdentity
+        idOnExternalPlatform = idOnExternalPlatform,
+        threadIdOnExternalPlatform = threadIdOnExternalPlatform,
+        messageContent = messageContent,
+        createdAtWithMilliseconds = IsoDate(createdAt),
+        createdAtWithSeconds = createdAt,
+        attachments = attachments,
+        direction = direction,
+        customerStatistics = customerStatistics,
+        userStatistics = userStatistics,
+        authorUser = authorUser,
+        authorEndUserIdentity = authorEndUserIdentity
     )
 
     fun toMessage() = when (messageContent) {

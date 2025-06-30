@@ -19,7 +19,7 @@ import com.nice.cxonechat.ChatThreadEventHandler
 import com.nice.cxonechat.ChatThreadEventHandler.OnEventErrorListener
 import com.nice.cxonechat.ChatThreadEventHandler.OnEventSentListener
 import com.nice.cxonechat.event.thread.ChatThreadEvent
-import com.nice.cxonechat.exceptions.CXOneException
+import com.nice.cxonechat.exceptions.CXoneException
 import com.nice.cxonechat.internal.socket.send
 import com.nice.cxonechat.thread.ChatThread
 
@@ -37,7 +37,7 @@ internal class ChatThreadEventHandlerImpl(
                 null -> socket.send(model)
                 else -> socket.send(model, listener::onSent)
             }
-        } catch(exc: CXOneException) {
+        } catch (exc: CXoneException) {
             errorListener?.onError(exc)
         }
     }

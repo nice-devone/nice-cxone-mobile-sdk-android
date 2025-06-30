@@ -39,7 +39,7 @@ plugins {
 }
 
 group = GROUP
-version = "2.3.0" // Fallback version
+version = "3.0.0-RC2" // Fallback version
 
 allprojects {
     group = rootProject.group

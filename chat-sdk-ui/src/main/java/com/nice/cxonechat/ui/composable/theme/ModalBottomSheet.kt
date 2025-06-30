@@ -15,9 +15,7 @@
 
 package com.nice.cxonechat.ui.composable.theme
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Arrangement.SpaceBetween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -127,7 +126,7 @@ internal fun ChatTheme.ModalBottomSheet(
             val bottomRowBackground = colorScheme.onBackground.copy(alpha = 0.05f)
             NavigationBarOverlay(bottomRowBackground)
             Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = SpaceBetween,
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(bottomRowBackground)
@@ -135,7 +134,10 @@ internal fun ChatTheme.ModalBottomSheet(
                         footerHeight = layoutCoordinates.size.height
                     }
             ) {
-                TextButton(onClick = { hideSheet(onDismiss) }) {
+                TextButton(
+                    modifier = Modifier.testTag("cancel_button"),
+                    onClick = { hideSheet(onDismiss) }
+                ) {
                     Text(stringResource(string.cancel))
                 }
                 TextButton(onClick = { hideSheet(onSubmit) }, enabled = canSubmit) {
@@ -163,7 +165,7 @@ private fun ChatTheme.NavigationBarOverlay(bottomRowBackground: Color) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 private fun ModalBottomSheetPreview() {
@@ -176,6 +178,29 @@ private fun ModalBottomSheetPreview() {
         )
     }
     var canSubmit by remember { mutableStateOf(false) }
+    val previewContent: @Composable () -> Unit = {
+        LazyColumn(
+            contentPadding = PaddingValues(vertical = space.medium),
+        ) {
+            stickyHeader {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = SpaceBetween
+                ) {
+                    Text("Enable submit button")
+                    Switch(canSubmit, onCheckedChange = { canSubmit = it })
+                }
+            }
+            items(25) {
+                ChatTheme.TextField(
+                    label = "Label $it",
+                    value = rememberTextFieldState("$it"),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
     ChatTheme {
         val scope = rememberCoroutineScope()
         Column {
@@ -193,29 +218,7 @@ private fun ModalBottomSheetPreview() {
                     onSubmit = {},
                     title = "Title",
                     sheetState = previewSheetState,
-                    content = {
-                        LazyColumn(
-                            contentPadding = PaddingValues(vertical = space.medium),
-                        ) {
-                            stickyHeader {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = SpaceBetween
-                                ) {
-                                    Text("Enable submit button")
-                                    Switch(canSubmit, onCheckedChange = { canSubmit = it })
-                                }
-                            }
-                            items(25) {
-                                ChatTheme.TextField(
-                                    label = "Label $it",
-                                    value = rememberTextFieldState("$it"),
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            }
-                        }
-                    },
+                    content = previewContent,
                     canSubmit = canSubmit
                 )
             }

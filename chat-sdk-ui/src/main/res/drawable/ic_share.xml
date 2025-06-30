@@ -1,0 +1,30 @@
+<!--
+  ~ Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
+  ~
+  ~ Licensed under the NICE License;
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
+  ~
+  ~ TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
+  ~ AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
+  ~ OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
+  ~ FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+  -->
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="9.9dp"
+    android:height="12.040541dp"
+    android:viewportWidth="11.1"
+    android:viewportHeight="13.5">
+
+    <path
+        android:fillColor="#00000000"
+        android:pathData="m0.75,6.75v3.75c0,1.243 1.007,2.25 2.25,2.25h5.1c1.243,0 2.25,-1.007 2.25,-2.25V6.75m-2.4,-3.6 l-2.4,-2.4m0,0 l-2.4,2.4m2.4,-2.4v7.8"
+        android:strokeWidth="1.5"
+        android:strokeColor="#016ccf"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+</vector>

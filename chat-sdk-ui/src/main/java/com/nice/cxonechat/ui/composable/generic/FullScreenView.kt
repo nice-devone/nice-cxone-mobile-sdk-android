@@ -16,38 +16,11 @@
 package com.nice.cxonechat.ui.composable.generic
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Fullscreen
-import androidx.compose.material.icons.filled.FullscreenExit
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.VectorPainter
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat.Type
-import com.nice.cxonechat.ui.composable.theme.ChatTheme
-import com.nice.cxonechat.ui.util.findActivity
+import androidx.compose.ui.platform.testTag
 
 /**
  * View which will fill out all available space and it will activity title to [title] if it is supplied, until
@@ -55,124 +28,21 @@ import com.nice.cxonechat.ui.util.findActivity
  */
 @Composable
 internal fun FullscreenView(
-    title: String?,
+    title: String? = null,
     onExitFullScreen: () -> Unit,
+    modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
     Surface(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .testTag("fullscreen_view")
+            .then(modifier)
+            .fillMaxSize()
     ) {
         BackHandler(onBack = onExitFullScreen)
-        HideSystemUi()
         if (title != null) {
             TemporaryActivityTitle(title)
         }
         content()
-    }
-}
-
-/**
- * Wraps [content] in a [Box] with [FullscreenButton] displayed over [content] with [Alignment.BottomEnd].
- */
-@Composable
-internal fun FullscreenButtonWrapper(
-    isFullScreen: Boolean,
-    onTriggerFullScreen: (Boolean) -> Unit,
-    content: @Composable BoxScope.() -> Unit,
-) {
-    Box {
-        content()
-        Box(modifier = Modifier.align(Alignment.BottomEnd)) {
-            AnimatedContent(
-                targetState = isFullScreen,
-                label = "button_is_fullscreen"
-            ) { targetState ->
-                if (targetState) {
-                    FullscreenExitButton(onTriggerFullScreen)
-                } else {
-                    FullscreenButton(onTriggerFullScreen)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun FullscreenButton(onClick: (Boolean) -> Unit) = FullscreenButton(
-    icon = rememberVectorPainter(image = Icons.Default.FullscreenExit),
-    iconOnPressed = rememberVectorPainter(image = Icons.Default.Fullscreen),
-    isFullScreenDefault = false,
-    onClick = onClick,
-)
-
-@Composable
-private fun FullscreenExitButton(onClick: (Boolean) -> Unit) = FullscreenButton(
-    icon = rememberVectorPainter(image = Icons.Default.Fullscreen),
-    iconOnPressed = rememberVectorPainter(image = Icons.Default.FullscreenExit),
-    isFullScreenDefault = true,
-    onClick = onClick
-)
-
-/**
- * Turn-on immersive mode until the composable is disposed.
- */
-@Composable
-private fun HideSystemUi() {
-    val context = LocalContext.current
-    val view = LocalView.current
-    DisposableEffect(context, view) {
-        val activity = context.findActivity() ?: return@DisposableEffect onDispose { }
-        val windowInsetsController =
-            WindowCompat.getInsetsController(activity.window, view)
-        val types = Type.systemBars()
-        windowInsetsController.hide(types)
-        onDispose {
-            windowInsetsController.show(types)
-        }
-    }
-}
-
-@Composable
-private fun FullscreenButton(
-    icon: VectorPainter,
-    iconOnPressed: VectorPainter,
-    modifier: Modifier = Modifier,
-    isFullScreenDefault: Boolean,
-    onClick: (Boolean) -> Unit,
-) {
-    val interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
-    IconButton(
-        modifier = modifier
-            .background(
-                shape = CircleShape,
-                color = ChatTheme.colorScheme.surface.copy(alpha = 0.6f)
-            ),
-        onClick = { onClick(!isFullScreenDefault) },
-        interactionSource = interactionSource,
-    ) {
-        val isPressed by interactionSource.collectIsPressedAsState()
-        AnimatedContent(targetState = isPressed, label = "isPressed") { pressed ->
-            if (pressed) {
-                Icon(painter = iconOnPressed, contentDescription = null)
-            } else {
-                Icon(painter = icon, contentDescription = null)
-            }
-        }
-    }
-}
-
-@Composable
-@Preview
-private fun PreviewButton() {
-    ChatTheme {
-        Surface {
-            var isFullscreen by remember { mutableStateOf(false) }
-            FullscreenButtonWrapper(
-                isFullscreen,
-                onTriggerFullScreen = { isFullscreen = it }
-            ) {
-                Text("FullScreen: $isFullscreen")
-            }
-        }
     }
 }

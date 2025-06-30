@@ -39,14 +39,14 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.nice.cxonechat.ui.composable.conversation.model.Action.ReplyButton
-import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider
 import com.nice.cxonechat.ui.composable.generic.forwardingPainter
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatShapes
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
+import com.nice.cxonechat.ui.util.preview.message.UiSdkReplyButton
 
 @Composable
 internal fun Chip(
@@ -72,13 +72,12 @@ internal fun Chip(
             .semantics {
                 description?.let { contentDescription = it }
             }
+            .defaultMinSize(space.chipMinSize, space.chipMinSize)
     ) {
         Row(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(space.chipPadding)
-                .defaultMinSize(space.chipMinSize, space.chipMinSize)
+            modifier = Modifier.padding(space.chipPadding)
         ) {
             if (image != null) {
                 AsyncImage(
@@ -95,6 +94,7 @@ internal fun Chip(
             }
             Text(
                 text = text,
+                style = ChatTheme.chatTypography.chipText,
             )
         }
     }
@@ -153,7 +153,7 @@ private fun ChipPreview() {
             ) {
                 Chip(
                     action = ReplyButton(
-                        action = PreviewMessageProvider.ReplyButton("Yes"),
+                        action = UiSdkReplyButton("Yes"),
                         sendMessage = {}
                     ),
                     onSelected = {},
@@ -161,7 +161,7 @@ private fun ChipPreview() {
                 )
                 Chip(
                     action = ReplyButton(
-                        action = PreviewMessageProvider.ReplyButton("Random cat", "https://http.cat/203"),
+                        action = UiSdkReplyButton("Random cat", "https://http.cat/203"),
                         sendMessage = {}
                     ),
                     onSelected = {},
@@ -169,7 +169,7 @@ private fun ChipPreview() {
                 )
                 Chip(
                     action = ReplyButton(
-                        action = PreviewMessageProvider.ReplyButton(
+                        action = UiSdkReplyButton(
                             "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. " +
                                     "Morbi commodo, ipsum sed pharetra gravida," +
                                     " orci magna rhoncus neque.",

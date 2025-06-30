@@ -19,7 +19,7 @@ import com.nice.cxonechat.ChatEventHandler
 import com.nice.cxonechat.ChatEventHandler.OnEventErrorListener
 import com.nice.cxonechat.ChatEventHandler.OnEventSentListener
 import com.nice.cxonechat.event.ChatEvent
-import com.nice.cxonechat.exceptions.CXOneException
+import com.nice.cxonechat.exceptions.CXoneException
 
 internal class ChatEventHandlerThreading(
     private val origin: ChatEventHandler,
@@ -29,7 +29,7 @@ internal class ChatEventHandlerThreading(
         chat.entrails.threading.background {
             try {
                 origin.trigger(event, listener, errorListener)
-            } catch (exception: CXOneException) {
+            } catch (exception: CXoneException) {
                 errorListener?.onError(exception)
             }
         }

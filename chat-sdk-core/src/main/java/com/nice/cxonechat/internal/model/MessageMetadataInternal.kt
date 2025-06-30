@@ -25,6 +25,7 @@ import java.util.Date
 internal data class MessageMetadataInternal(
     override val seenAt: Date?,
     override val readAt: Date?,
+    override val seenByCustomerAt: Date?,
 ) : MessageMetadata {
 
     @Transient
@@ -37,6 +38,7 @@ internal data class MessageMetadataInternal(
     override fun toString(): String = "MessageMetadata(" +
             "seenAt=$seenAt, " +
             "readAt=$readAt, " +
-            "status=$status" +
+            "status=$status, " +
+            "seenByCustomerAt=$seenByCustomerAt" +
             ")"
 }

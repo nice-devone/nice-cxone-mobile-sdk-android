@@ -25,6 +25,7 @@ plugins {
     alias (libs.plugins.firebase.appdistribution)
     alias (libs.plugins.firebase.crashlytics)
     id "org.jetbrains.kotlin.plugin.serialization"
+    id "com.github.gmazzo.buildconfig"
 }
 
 def storeVersion = branchVersion(version, project)
@@ -63,6 +64,14 @@ android {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
+        }
+    }
+    applicationVariants.configureEach { variant ->
+        buildConfig.sourceSets.named(variant.name) {
+            className.set("BuildConfig")
+            packageName("com.nice.cxonechat.sample")
+            buildConfigField(String, "VERSION_NAME", storeVersion)
+            buildConfigField(Boolean, "DEBUG", variant.buildType.isDebuggable())
         }
     }
 
@@ -116,9 +125,10 @@ dependencies {
 
     // AsyncImage
     implementation libs.coil.compose
+    implementation libs.coil.network
     implementation libs.okhttp.logging
 
-    // CXOne Chat SDK
+    // CXone Chat SDK
     implementation project(":chat-sdk-core")
     implementation project(":chat-sdk-ui")
     implementation project(':utilities')

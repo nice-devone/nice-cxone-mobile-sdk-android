@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.nice.cxonechat
 import com.nice.cxonechat.internal.model.AvailabilityStatus.Offline
 import com.nice.cxonechat.internal.model.AvailabilityStatus.Online
 import com.nice.cxonechat.internal.model.ChannelConfiguration
+import com.nice.cxonechat.internal.model.ChannelIdentifier
 import com.nice.cxonechat.state.Configuration.Feature.LiveChatLogoHidden
 import com.nice.cxonechat.state.Configuration.Feature.ProactiveChatEnabled
 import com.nice.cxonechat.state.Configuration.Feature.RecoverLiveChatDoesNotFail
@@ -41,10 +42,16 @@ internal class ChannelsConfigurationTests {
     private fun configuration(
         isLiveChat: Boolean = false,
         isOnline: Boolean = true,
+        channelId: String? = null,
     ) = json.decodeFromString<ChannelConfiguration>(channelConfigurationData).let {
-         it.copy(
+        it.copy(
             isLiveChat = isLiveChat,
-            availability = it.availability.copy(status = if (isOnline) Online else Offline)
+            availability = it.availability.copy(status = if (isOnline) Online else Offline),
+            preContactForm = it.preContactForm?.let { preContactFormModel ->
+                if (channelId != null) {
+                    preContactFormModel.copy(channels = preContactFormModel.channels + listOf(ChannelIdentifier(channelId)))
+                } else preContactFormModel
+            }
         )
     }
 
@@ -67,8 +74,6 @@ internal class ChannelsConfigurationTests {
     fun testParsing() {
         val configuration = configuration()
 
-        assertEquals(5, configuration.contactCustomFields?.size)
-        assertEquals(4, configuration.customerCustomFields?.size)
         with(configuration.settings.fileRestrictions) {
             assertEquals(40, allowedFileSize)
             assertEquals(11, allowedFileTypes.size)
@@ -86,8 +91,6 @@ internal class ChannelsConfigurationTests {
     fun testPublication() {
         val published = configuration().toConfiguration(channelId)
 
-        assertEquals(5, published.contactCustomFields.count())
-        assertEquals(4, published.customerCustomFields.count())
         with(published.fileRestrictions) {
             assertEquals(40, allowedFileSize)
             assertEquals(10, allowedFileTypes.size)
@@ -115,8 +118,9 @@ internal class ChannelsConfigurationTests {
     @Suppress("NestedBlockDepth") // verifying hierarchic data just looks better with nested when
     @Test
     fun testHierarchicPublication() {
-        val published = configuration().toConfiguration(channelId)
-        val hier = published.contactCustomFields.firstOrNull { it.fieldId == "hie2" } as Hierarchy
+        val published = configuration(channelId = channelId).toConfiguration(channelId)
+        val preContactSurvey = requireNotNull(published.preContactSurvey)
+        val hier = preContactSurvey.fields.firstOrNull { it.fieldId == "hie2" } as Hierarchy
 
         with(hier.values.toList()) {
             assertEquals(2, size)

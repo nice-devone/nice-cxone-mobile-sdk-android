@@ -22,7 +22,7 @@ import com.nice.cxonechat.event.AnalyticsEvent
 import com.nice.cxonechat.event.ChatEvent
 import com.nice.cxonechat.event.LocalEvent
 import com.nice.cxonechat.exceptions.AnalyticsEventDispatchException
-import com.nice.cxonechat.exceptions.CXOneException
+import com.nice.cxonechat.exceptions.CXoneException
 import com.nice.cxonechat.exceptions.InternalError
 import com.nice.cxonechat.internal.socket.send
 import kotlinx.serialization.SerializationException
@@ -43,7 +43,7 @@ internal class ChatEventHandlerImpl(
             event.getModel(chat.connection, chat.storage)
         }.onFailure { throwable ->
             when (throwable) {
-                is CXOneException -> errorListener?.onError(throwable)
+                is CXoneException -> errorListener?.onError(throwable)
                 is ParseException, is SerializationException -> errorListener?.onError(InternalError("Serialization error", throwable))
             }
         }.getOrNull() ?: return

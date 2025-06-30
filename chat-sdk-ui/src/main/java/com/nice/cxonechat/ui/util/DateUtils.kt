@@ -30,3 +30,13 @@ internal fun Context.toShortDateString(date: Date): String {
     )
     return formatter.format(date).capitalizeFirstChar(locale)
 }
+
+@Stable
+internal fun Context.toShortTimeString(date: Date): String {
+    val locale = resources.configuration.locales[0]
+    val formatter = DateFormat.getTimeInstance(
+        DateFormat.RELATIVE_SHORT,
+        locale
+    )
+    return formatter.format(date).capitalizeFirstChar(locale)
+}

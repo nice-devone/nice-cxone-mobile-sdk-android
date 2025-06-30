@@ -25,7 +25,7 @@ import com.nice.cxonechat.state.Environment
  * @property value [Environment] instance preset to corresponding location.
  */
 @Public
-enum class CXOneEnvironment(val value: Environment) {
+enum class CXoneEnvironment(val value: Environment) {
     /**
      * Location North America - USA.
      */
