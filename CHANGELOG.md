@@ -1,8 +1,8 @@
 <a name="unreleased"></a>
 ## [Unreleased]
 
-<a name="3.0.0-RC2"></a>
-## [3.0.0-RC2] - 2025-06-30
+<a name="3.0.0"></a>
+## [3.0.0] - 2025-07-28
 
 ### Bug Fixes
 
@@ -354,8 +354,8 @@
     - failure
   - typing start/end
 
-[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.0.0-RC2...HEAD
-[3.0.0-RC2]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.3.0...3.0.0-RC2
+[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.0.0...HEAD
+[3.0.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.3.0...3.0.0
 [2.3.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.2.2...2.3.0
 [2.2.2]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.2.2...2.2.1
 [2.2.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.2.1...2.2.0
