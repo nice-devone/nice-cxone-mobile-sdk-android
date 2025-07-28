@@ -1,0 +1,1 @@
+sourceset_dependencies = '{":chat-sdk-core/main":[],":chat-sdk-core/release":[],":logger/main":[],":chat-sdk-ui/main":[],":chat-sdk-ui/release":[],":logger-android/main":[],":logger-android/release":[],":utilities/main":[],":utilities/release":[]}'
