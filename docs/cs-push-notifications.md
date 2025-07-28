@@ -9,15 +9,16 @@ to the user's device.
 If the application wishes to receive these push notifications, it has to complete the "Enable Push Notifications" part of
 CXone Chat SDK [Set Up]
 
-> ⚠️ Important note: The Amazon guide is partially out of date. It fails to mention that the "Server key"
-> mentioned in the guide is in subsection of "Cloud Messaging API (Legacy)" and this API has to be
-> manually enabled for new Firebase projects.
-
 ## Implementation
 As outlined in the "Enable Push Notifications" subchapter, the CXone Chat SDK needs a Firebase token
 for push notification functionality.
 It can be passed to the SDK continuously, whenever it is updated (preferred variant), or if necessary,
 only when chat functionality is activated.
+
+> [!IMPORTANT]
+> Usage of this case study is intended for scenarios where you are not using provided UI module artifact.
+> If you are using the UI module, then this use-case is already covered by the UI module and the case study
+> is only provided for educational purposes, assuming that your Firebase setup doesn't require more advanced approach.
 
 ### `PushListenerService`
 As outlined in [Firebase guide - Set up the SDK] application needs a service that will extend `FirebaseMessagingService`.

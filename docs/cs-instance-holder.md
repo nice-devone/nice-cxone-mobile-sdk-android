@@ -34,9 +34,9 @@ using the `androidx.startup` library.
 class ChatInitializer : Initializer<ChatInstanceProvider> {
     override fun create(context: Context) = ChatInstanceProvider.create(
         context,
-        BuildConfig.CXOneRegion.let(CXOneEnvironment::valueOf).value,
-        BuildConfig.CXOneBrandId,
-        BuildConfig.CXOneChannelId
+        BuildConfig.CXoneRegion.let(CXoneEnvironment::valueOf).value,
+        BuildConfig.CXoneBrandId,
+        BuildConfig.CXoneChannelId
     )
 
     override fun dependencies() = emptyList()
@@ -112,19 +112,22 @@ We can now expand our previous implementation of `ChatActivity` to include the `
 
 ```kotlin
 class ChatActivity : AppCompatActivity(R.layout.activity_chat), ChatInstanceProvider.Listener {
- 
+
     private var chatInstanceProvider: ChatInstanceProvider? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         chatInstanceProvider = ChatInstanceProvider.get()
     }
- 
+
     override fun onResume() {
         super.onResume()
 
         chatInstanceProvider.addListener(this)
-        chatInstanceProvider.connect()
+        val chatState = chatInstanceProvider.chatState
+        if (chatState === Prepared || chatState === ConnectionLost) {
+            chatInstanceProvider.connect()
+        }
     }
 
     override fun onPause() {
@@ -136,38 +139,51 @@ class ChatActivity : AppCompatActivity(R.layout.activity_chat), ChatInstanceProv
 
     override fun onChatStateChanged(chatState: ChatState) {
         when (state) {
-            CONNECTED -> chatStateSnackbar = Snackbar.make(
+            Initial -> {
+                // ChatInstanceProvider wasn't initialized yet
+                chatInstanceProvider.prepare(this@ChatActivity)
+            }
+            Preparing -> {
+                // ChatInstanceProvider is being configured
+                // Show loading spinner or similar UI
+            }
+            Prepared -> {
+                chatInstanceProvider.connect()
+            }
+            Connecting -> {
+                // ChatInstanceProvider is connecting
+                // Show loading spinner or similar UI
+            }
+            Connected -> chatStateSnackbar = Snackbar.make(
                 Window.DecorView.RootView,
                 "Chat SDK connected",
                 Snackbar.LENGTH_SHORT
             ).apply(Snackbar::show)
-            READY -> chatStateSnackbar = Snackbar.make(
+            Ready -> chatStateSnackbar = Snackbar.make(
                 Window.DecorView.RootView,
                 "Chat SDK is ready",
                 Snackbar.LENGTH_SHORT
             ).apply(Snackbar::show)
-            OFFLINE -> { // This state can happen only for the LiveChat mode of the channel.
+            Offline -> { // This state can happen only for the LiveChat mode of the channel.
                 // Show UI informing user that the Chat is not available, because the service is offline
             }
-            CONNECTION_LOST -> chatStateSnackbar = Snackbar.make(
+            ConnectionLost -> chatStateSnackbar = Snackbar.make(
                 Window.DecorView.RootView,
                 "Chat SDK connection lost",
                 Snackbar.LENGTH_INDEFINITE
             ).setAction("Reconnect") {
-                reconnectJob?.cancel()
-                reconnectJob = chatInstanceProvider.chat.reconnect()
+                chatInstanceProvider.connect()
             }.apply(Snackbar::show)
-            else -> Log.v(TAG, "ChatState: $state")
         }
     }
-    
+
     companion object {
         private const val TAG = "ChatActivity"
     }
 }
 ```
 
-> ℹ️
+> [!NOTE]
 > Note that interactions with chat instance (e.g. sending of a message)
 > while it is not connected can be lost if the connection is not reestablished.
 

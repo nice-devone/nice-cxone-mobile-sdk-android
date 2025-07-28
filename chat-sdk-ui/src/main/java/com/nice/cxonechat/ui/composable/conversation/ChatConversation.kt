@@ -186,7 +186,7 @@ internal fun MessageListView(
             modifier = Modifier.testTag("message_list_column")
         ) {
             val positionInQueue by conversation.positionInQueue.collectAsState(initial = null)
-            AnimatedVisibility(positionInQueue != null, Modifier.align(CenterHorizontally)) {
+            AnimatedVisibility(positionInQueue != null && agentDetails == null, Modifier.align(CenterHorizontally)) {
                 positionInQueue?.let { position ->
                     PositionInQueue(position = position)
                 }

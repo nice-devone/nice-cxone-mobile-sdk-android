@@ -21,4 +21,9 @@ dokka {
     dokkaSourceSets.main {
         noAndroidSdkLink.set(false)
     }
+    dokkaSourceSets.configureEach { sourceSet ->
+        if (name.contains("debug")) {
+            suppress.set(true) // Suppress debug sources in documentation, because of poor dokka support for buildTypes
+        }
+    }
 }

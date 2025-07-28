@@ -15,6 +15,7 @@
 
 package com.nice.cxonechat.sample
 
+import android.annotation.SuppressLint
 import android.os.Build
 import android.os.PatternMatcher
 import android.os.StrictMode
@@ -22,6 +23,7 @@ import android.os.StrictMode.ThreadPolicy
 import android.os.StrictMode.VmPolicy
 import android.os.strictmode.DiskReadViolation
 import android.os.strictmode.ExplicitGcViolation
+import android.os.strictmode.InstanceCountViolation
 import android.os.strictmode.LeakedClosableViolation
 import android.os.strictmode.ServiceConnectionLeakedViolation
 import android.os.strictmode.UntaggedSocketViolation
@@ -202,6 +204,20 @@ internal object StrictModePolicy {
                 classNamed("android.app.ActivityThread\$AndroidOs", "stat")
             )
         ),
+        // Samsung Galaxy Note 8 - Android 8.0 - Instance is retained when using System component to select an attachment
+        @SuppressLint("ObsoleteSdkInt") // Runtime check for Android 8.0
+        if (Build.MANUFACTURER.equals("Samsung", ignoreCase = true) &&
+            Build.MODEL.equals("SM-N950", ignoreCase = true) &&
+            Build.VERSION.SDK_INT == Build.VERSION_CODES.O
+        ) {
+            allow(
+                allOf(
+                    violation(InstanceCountViolation::class),
+                )
+            )
+        } else {
+            null
+        },
         // There seems to be an issue on Android 14 and 15 that results in releasing an Activity
         // throwing an ExplicitGcViolation.  There may be something we're doing to trigger
         // it, but I don't find any more information about it.

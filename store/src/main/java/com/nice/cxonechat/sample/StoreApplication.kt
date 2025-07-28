@@ -25,9 +25,6 @@ import androidx.emoji2.bundled.BundledEmojiCompatConfig
 import androidx.emoji2.text.EmojiCompat
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
-import coil3.disk.DiskCache
-import coil3.disk.directory
-import coil3.memory.MemoryCache
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import com.google.firebase.FirebaseApp
 import com.nice.cxonechat.log.LoggerAndroid
@@ -43,7 +40,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.cancel
-import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.logging.HttpLoggingInterceptor.Level.BASIC
@@ -54,7 +50,6 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.includes
 import org.koin.dsl.module
 import org.koin.ksp.generated.module
-import java.io.File
 
 /**
  * Host application, initializes customized Emoji and Firebase.
@@ -64,12 +59,6 @@ class StoreApplication : Application(), SingletonImageLoader.Factory {
         OkHttpClient
             .Builder()
             .socketFactory(TaggingSocketFactory)
-            .cache(
-                Cache(
-                    directory = File(cacheDir, "http_cache"),
-                    maxSize = 250L * 1024L * 1024L // 250 MiB
-                )
-            )
             .addInterceptor(
                 HttpLoggingInterceptor().apply {
                     level = BASIC
@@ -154,17 +143,6 @@ class StoreApplication : Application(), SingletonImageLoader.Factory {
                         callFactory = { okHttpClient }
                     )
                 )
-            }
-            .memoryCache {
-                MemoryCache.Builder()
-                    .maxSizePercent(context, 0.25)
-                    .build()
-            }
-            .diskCache {
-                DiskCache.Builder()
-                    .directory(context.cacheDir.resolve("image_cache"))
-                    .maxSizePercent(0.02)
-                    .build()
             }
             .build()
     }

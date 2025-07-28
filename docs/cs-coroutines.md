@@ -1,9 +1,15 @@
 # Case Study: Coroutines
 
+> [!IMPORTANT]
+> Usage of this case study is intended for scenarios where you are not using provided UI module artifact.
+> If you are using the UI module, then this use-case is already covered by the UI module and the case study
+> is only provided for educational purposes.
+
 Coroutines are widely accepted framework in the Android space, therefore we would like to show you
 how to implement some extensions atop of CXone Chat SDK.
 
-The following examples are based on source code in the Chat SDK UI module, which can be found [here](../chat-sdk-ui/src/main/java/com/nice/cxonechat/ui/main).
+The following examples are based on source code in the Chat SDK UI module, which can be
+found [here](../chat-sdk-ui/src/main/java/com/nice/cxonechat/ui/viewmodel).
 
 ## Libraries
 

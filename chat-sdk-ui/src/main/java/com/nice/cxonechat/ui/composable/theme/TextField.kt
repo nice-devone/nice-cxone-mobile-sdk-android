@@ -29,6 +29,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldLabelPosition
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,6 +62,11 @@ internal fun ChatTheme.TextField(
     var error by remember { mutableStateOf(null as String?) }
     var focused by remember { mutableStateOf(false) }
     val context = LocalContext.current
+
+    LaunchedEffect(value.text) {
+        onValueChange(value.text.toString())
+    }
+
     OutlinedTextField(
         state = value,
         modifier = modifier
