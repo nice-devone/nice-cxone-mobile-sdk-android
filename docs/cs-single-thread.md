@@ -3,10 +3,16 @@
 > If you haven't read it yet, this CS takes classes defined
 > in [CS: Instance Holder][cs-instance-holder].
 
+> [!IMPORTANT]
+> Usage of this case study is intended for scenarios where you are not using provided UI module artifact.
+> If you are using the UI module, then this use-case is already covered by the UI module and the case study
+> is only provided for educational purposes.
+
 Whenever you'd like to use only a single thread, regardless of server-side settings, you can take
 several shortcuts. Most notably, you can bypass the listing of the threads list and automatically
 pick the first conversation or create a new one.
 
+> [!NOTE]
 > Note that this example doesn't use any additional libraries for performing asynchronous workflows.
 > If you prefer exploring how parts of this app would look with coroutines, you can visit the
 > corresponding [Case Study][cs-coroutines]
@@ -17,7 +23,7 @@ This example uses AndroidX ViewModel libraries to demonstrate the projected usag
 
 ```groovy
 dependencies {
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.6"
 }
 ```
 
@@ -71,7 +77,9 @@ class ChatConversationViewModel : ViewModel() {
   - We need to dispose of the Threads listener to prevent further calls
   - In this case all we care about is the first list
 - (3) Create or select a Thread
-  - When Thread exists, then pick a thread otherwise create a new one
+  - When Thread exists, then pick a thread otherwise create a new one.
+  - Since the Chat automatically creates thread if there is no pre-chat survey,
+    we can assume that survey is required if thread is not present.
 
 [cs-instance-holder]: cs-instance-holder.md
 

@@ -17,6 +17,9 @@ package com.nice.cxonechat.ui.composable.conversation
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -53,6 +56,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
@@ -131,12 +137,14 @@ private fun UserInput(
 ) {
     var currentInputSelector by rememberSaveable { mutableStateOf(initialInputSelector) }
 
+    val interactionSource = remember { MutableInteractionSource() }
     // Used to decide if the keyboard should be shown
-    var textFieldFocusState by remember { mutableStateOf(false) }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+    val focusRequester = remember { FocusRequester() }
 
-    val dismissKeyboard = {
+    val dismissKeyboard: () -> Unit = {
         currentInputSelector = None
-        textFieldFocusState = false
+        focusRequester.freeFocus()
     }
 
     // Intercept back navigation if there's an InputSelector visible
@@ -218,12 +226,13 @@ private fun UserInput(
                     showSendButton = showSendButton,
                     onMessageSent = sendMessage,
                     audioRecordingUiState = audioRecordingUiState,
-                    currentInputSelector = currentInputSelector
+                    currentInputSelector = currentInputSelector,
+                    focusRequester = focusRequester,
                 ) {
                     UserInputText(
                         textFieldValue = textState,
-                        // Only show the keyboard if there's no input selector and text field has focus
-                        keyboardShown = currentInputSelector == None && textFieldFocusState,
+                        // Only show the keyboard if there's no input selector
+                        keyboardShown = currentInputSelector == None,
                         // Close extended selector if text field receives focus
                         onTextFieldFocused = { focused ->
                             if (focused) {
@@ -232,10 +241,10 @@ private fun UserInput(
                             } else {
                                 signalStoppedTyping()
                             }
-                            textFieldFocusState = focused
                         },
                         onSend = sendMessage,
-                        focusState = textFieldFocusState,
+                        focusRequester = focusRequester,
+                        interactionSource = interactionSource,
                     )
                 }
                 SelectorExpanded(
@@ -247,7 +256,7 @@ private fun UserInput(
         }
     }
 
-    LaunchedEffect(key1 = textState, key2 = textFieldFocusState, key3 = isTypingState) {
+    LaunchedEffect(key1 = textState, key2 = isFocused, key3 = isTypingState) {
         delay(1500L) // Delay to prevent excessive signaling
         signalStoppedTyping()
     }
@@ -266,10 +275,13 @@ private fun RowScope.UserInputText(
     keyboardType: KeyboardType = KeyboardType.Text,
     textFieldValue: TextFieldState,
     keyboardShown: Boolean,
+    focusRequester: FocusRequester? = null,
+    interactionSource: MutableInteractionSource? = null,
     onTextFieldFocused: (Boolean) -> Unit,
     onSend: () -> Unit,
-    focusState: Boolean,
 ) {
+    val focusRequester = focusRequester ?: remember { FocusRequester() }
+    val interactionSource: MutableInteractionSource = interactionSource ?: remember { MutableInteractionSource() }
     val a11yLabel = stringResource(string.content_description_text_input)
     Box(
         modifier = Modifier
@@ -282,12 +294,19 @@ private fun RowScope.UserInputText(
             },
     ) {
         var lastFocusState by remember { mutableStateOf(false) }
+        val isFocused by interactionSource.collectIsFocusedAsState()
         BasicTextField(
             state = textFieldValue,
+            interactionSource = interactionSource,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 32.dp)
                 .align(Alignment.CenterStart)
+                .focusRequester(focusRequester)
+                .focusProperties {
+                    // On Android 8 the keyboard was reporting as focused even when it was not shown.
+                    canFocus = keyboardShown
+                }
                 .onFocusChanged { state ->
                     if (lastFocusState != state.isFocused) {
                         onTextFieldFocused(state.isFocused)
@@ -310,7 +329,7 @@ private fun RowScope.UserInputText(
         )
 
         val disableContentColor = colorScheme.onSurface.copy(alpha = 0.38f)
-        if (textFieldValue.text.isEmpty() && !focusState) {
+        if (textFieldValue.text.isEmpty() && !isFocused) {
             Text(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
@@ -330,12 +349,14 @@ private fun UserInputSelector(
     onMessageSent: () -> Unit,
     audioRecordingUiState: AudioRecordingUiState,
     currentInputSelector: InputState,
+    focusRequester: FocusRequester,
     modifier: Modifier = Modifier,
     content: @Composable RowScope.() -> Unit,
 ) {
     val rowMod = modifier
         .height(72.dp)
         .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+        .focusGroup()
     val onAudioRecordToggle = audioRecordingUiState.onAudioRecordToggle
     val coroutineScope = rememberCoroutineScope()
     AnimatedContent(currentInputSelector) { state ->
@@ -347,7 +368,10 @@ private fun UserInputSelector(
                 ChatIconButton(
                     icon = Outlined.Add,
                     description = stringResource(string.title_attachment_picker)
-                ) { onSelectorChange(Attachment) }
+                ) {
+                    focusRequester.freeFocus()
+                    onSelectorChange(Attachment)
+                }
                 content()
                 AnimatedContent(showSendButton.value) { sendMessage ->
                     when (sendMessage) {

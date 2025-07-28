@@ -1,5 +1,10 @@
 # Case Study: Live Chat
 
+> [!IMPORTANT]
+> Usage of this case study is intended for scenarios where you are not using provided UI module artifact.
+> If you are using the UI module, then this use-case is already covered by the UI module and the case study
+> is only provided for educational purposes.
+
 The CXone Chat provides two main modes in which it functions, Messaging (Single & Multi-Threaded)
 and Live Chat.
 Live Chat offers same basic chat functionality as asynchronous Messaging,
@@ -12,6 +17,7 @@ or close the chat entirely.
 Once the conversation Case is closed and cleared, either through manual restart of the conversation
 or Chat SDK reinitialization the transcript history is cleared for the client.
 
+> [!NOTE]
 > The Live Chat shares many limitations of the Single Threaded Messaging.
 > For example it is not possible to set the thread name or to archive the thread.
 
@@ -60,11 +66,12 @@ With brand & channel which are set as live chat, perform following steps:
 
 #### `ChatConversationViewModel`
 
+> [!IMPORTANT]
 > As this ViewModel uses a requirement for chat to exist, visit the screen only when you're certain
 > that the ChatInstanceProvider::chat is not null, otherwise the app will crash.
 
 > Example below can be simplified with frameworks, visit [CS: Coroutines][cs-coroutines] for more
-info.
+> info.
 
 Example below is simplified as it doesn't handle callbacks back to the ui for edge-cases.
 

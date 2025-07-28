@@ -15,13 +15,12 @@
 
 package com.nice.cxonechat.ui.services
 
+import android.app.ActivityManager
 import android.app.PendingIntent
 import android.content.Context
 import android.net.Uri
 import androidx.annotation.Keep
 import androidx.core.net.toUri
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.ProcessLifecycleOwner
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.nice.cxonechat.ChatInstanceProvider
@@ -77,7 +76,7 @@ internal class PushListenerService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage): Unit = logger.scope("onMessageReceived") {
         super.onMessageReceived(remoteMessage)
         debug("Received push message: " + remoteMessage.data)
-        if (isAppInForeground()) {
+        if (isChatActivityInForeground(applicationContext)) {
             debug("Application is in foreground, discarding push message")
         } else {
             val pushMessage = parser.parse(remoteMessage.data)
@@ -105,6 +104,12 @@ internal class PushListenerService : FirebaseMessagingService() {
         }
     }
 
+    private fun isChatActivityInForeground(context: Context): Boolean {
+        val activityManager = context.getSystemService(ActivityManager::class.java)
+        val appTasks = activityManager.appTasks
+        return appTasks.firstOrNull()?.taskInfo?.topActivity?.className == ChatActivity::class.java.name
+    }
+
     private companion object {
         const val TAG: String = "PushListenerService"
         const val DEFAULT_ID = "pushMessage"
@@ -121,8 +126,5 @@ internal class PushListenerService : FirebaseMessagingService() {
                 PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
             )
         }
-
-        private fun isAppInForeground() =
-            ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
     }
 }

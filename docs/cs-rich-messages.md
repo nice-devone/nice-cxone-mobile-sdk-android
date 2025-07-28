@@ -1,5 +1,10 @@
 # Rich messages
 
+> [!IMPORTANT]
+> Usage of this case study is intended for scenarios where you are not using provided UI module artifact.
+> If you are using the UI module, then this use-case is already covered by the UI module and the case study
+> is only provided for educational purposes.
+
 ## About
 Rich messaging is an optional part of Chat SDK. They are used to deliver rich message content to the user,
 beyond the capabilities of a simple message or message with an attachment.

@@ -48,6 +48,7 @@ import com.nice.cxonechat.ui.data.repository.SelectedThreadRepository
 import com.nice.cxonechat.ui.data.source.ContentDataSourceList
 import com.nice.cxonechat.ui.data.source.ContentDataSourceList.ContentRequestResult
 import com.nice.cxonechat.ui.data.source.ContentDataSourceList.ContentRequestResult.Error
+import com.nice.cxonechat.ui.domain.model.ChatThreadCopy.Companion.copy
 import com.nice.cxonechat.ui.domain.model.CustomValueItemList
 import com.nice.cxonechat.ui.domain.model.NoThread
 import com.nice.cxonechat.ui.domain.model.Person
@@ -120,8 +121,8 @@ internal class ChatThreadViewModel(
                 // Reset the cached flow if the thread ID has changed and reset pending attachments when the thread changes.
                 chatThreadCachedFlow.value = NoThread
                 mutablePendingAttachments.value = emptyList()
-                threadNameOverride.value = null
             }
+            threadNameOverride.value = null
         }
         .flatMapLatest { it.flow }
         .onEach { newThread ->
@@ -134,8 +135,13 @@ internal class ChatThreadViewModel(
                 // Update the thread ID (can happen when a pending thread id was re-assigned by backend).
                 threadId = newThread.id
             }
-            // Emit the new thread to the cached flow.
-            chatThreadCachedFlow.value = newThread
+            // Update the cached flow with the new thread.
+            // If the messages are the same, we can avoid copying the list to save memory.
+            if (chatThreadCachedFlow.value.messages !== newThread.messages) {
+                chatThreadCachedFlow.value = newThread.copy(messages = newThread.messages.toList())
+            } else {
+                chatThreadCachedFlow.value = newThread
+            }
         }
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Lazily, NoThread)

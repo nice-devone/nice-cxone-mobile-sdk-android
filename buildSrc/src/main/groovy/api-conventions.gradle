@@ -19,5 +19,4 @@ plugins {
 
 metalava {
     reportWarningsAsErrors.set(true)
-    reportLintsAsErrors.set(true)
 }

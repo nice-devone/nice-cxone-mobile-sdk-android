@@ -100,6 +100,7 @@ dependencies {
 afterEvaluate {
     tasks.findByName("sourceDebugJar").dependsOn(generateDebugNonAndroidBuildConfig)
     tasks.findByName("sourceReleaseJar").dependsOn(generateReleaseNonAndroidBuildConfig)
+    tasks.findByName("dokkaGenerateModuleHtml").mustRunAfter(generateReleaseNonAndroidBuildConfig)
 
     // Workaround for https://github.com/tylerbwong/metalava-gradle/issues/127
     tasks.findByName("metalavaCheckCompatibilityRelease").dependsOn(generateDebugNonAndroidBuildConfig)

@@ -19,6 +19,7 @@ plugins {
     id "android-library-conventions"
     id "android-ui-conventions"
     id "android-kotlin-conventions"
+    id "android-docs-conventions"
     id "ksp-conventions"
     id "koin-conventions"
     id "android-test-conventions"

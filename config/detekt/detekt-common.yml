@@ -608,6 +608,8 @@ style:
       - "com.google.gson.annotations.SerializedName"
       - "androidx.compose.ui.tooling.preview.Preview"
       - "androidx.compose.ui.tooling.preview.PreviewLightDark"
+      - "androidx.compose.ui.tooling.preview.PreviewScreenSizes"
+      - "androidx.compose.ui.tooling.preview.PreviewFontScale"
   UnusedPrivateProperty:
     active: true
     ignoreAnnotated:

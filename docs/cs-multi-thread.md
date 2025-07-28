@@ -1,5 +1,10 @@
 # Case Study: Multi Thread
 
+> [!IMPORTANT]
+> Usage of this case study is intended for scenarios where you are not using provided UI module artifact.
+> If you are using the UI module, then this use-case is already covered by the UI module and the case study
+> is only provided for educational purposes.
+
 This example is the virtually most complete CS, it shows - simplified, of course - usage of this
 library in a real-world use-case.
 

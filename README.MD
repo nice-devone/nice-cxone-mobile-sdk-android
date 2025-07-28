@@ -3,18 +3,15 @@
 This repository consists out of three main modules and three tooling modules,
 which are described in chapters below.
 
-## CXOne Chat SDK
+## CXone Chat SDK
 
-This is the only published module, it is released as android multi-flavor library with maven artifact coordinates
-`com.nice.cxone:chat-core`.
+This is the only published module. It is released as an Android multi-flavor library with Maven artifact coordinates `com.nice.cxone:chat-core`.
 
-### Adding the dependency
+### Adding the Dependency
 
-If you want to use published artifact you will have to include our public maven/gradle github repository into your project.
-For details
-see [Github documentation on using published packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-gradle-registry#using-a-published-package).
+To use the published artifact, include our public Maven/Gradle GitHub repository in your project. For details, see [GitHub documentation on using published packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-gradle-registry#using-a-published-package).
 
-In section where you define repositories used in your project (in our case it is settings.gradle) add this part:
+In the section where you define repositories used in your project (in our case, it is `settings.gradle`), add this part:
 
 ```groovy
     def localProperties = new Properties()
@@ -47,7 +44,7 @@ github.key=github_my_token
 or set system variables `GPR_USERNAME` and `GPR_TOKEN`.
 You can use any uprivilidged valid token, since the package are public.
 
-Then you can the dependency simply by adding:
+Then you can use the dependency simply by adding:
 
 ```groovy
     implementation "com.nice.cxone:chat-sdk-core:$currentVersion"
@@ -71,15 +68,15 @@ We offer a brief how-to guide for integration [here][implementation].
 
 ## CXone Chat UI
 
-This is a sample implementation of the UI for CXOne Chat SDK, which allows easier integration of SDK into
-the intended target application.
+This is the default implementation of the UI for CXone Chat SDK, which allows easier integration of the SDK into the intended target
+application.
 
 ### Chat UI provides these features:
 
 * Display the thread list (for multi-thread SDK configuration)
-  * Archive thread
+  * Archive an existing thread
   * Start a new thread
-* Display the thread conversation (including implementation for all currently supported message formats)
+* Display and service the thread conversation (including implementation for all currently supported message formats)
   * Send message
   * Upload attachment
   * Record & play voice messages
@@ -87,14 +84,30 @@ the intended target application.
   * Message pagination support
   * Typing indication & reporting
 * Filling out of pre-contact form
-* Display notification about the new message when application is in the background
+* Display notification about the new message when application is in the background (requires Firebase Cloud Messaging)
 * Sharing of message attachments
 * Fullscreen previews of images & videos
 
 ## Store application
 
 This is a mock application that tries to imitate e-store with its purchase flow, so we can
-also demonstrate an integration of the SDK analytics events like pageView or conversion.
+also demonstrate an integration of the SDK analytics events like `pageView` or `conversion`.
+
+## Integration
+
+When integrating the CXone Chat SDK into your application, please note the following:
+
+If your application defines its own `fullBackupContent` rules, you must explicitly exclude the CXone SDK's shared preferences
+file to avoid backing up sensitive data, which are not transferable.
+Add the following exclusion to your backup rules:
+
+```xml
+
+<exclude domain="sharedpref" path="com.nice.cxonechat.secure.xml" />
+```
+
+This ensures that the SDK's secure preferences are not included in the application's backup and won't cause an issue if
+the application is restored on a different device.
 
 ## Tooling modules:
 

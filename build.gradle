@@ -39,7 +39,7 @@ plugins {
 }
 
 group = GROUP
-version = "3.0.0-RC2" // Fallback version
+version = "3.0.0" // Fallback version
 
 allprojects {
     group = rootProject.group
@@ -57,12 +57,13 @@ dependencies {
     dokka(project(":logger"))
     dokka(project(":logger-android"))
     dokka(project(":chat-sdk-core"))
+    dokka(project(":chat-sdk-ui"))
 }
 
 dokka {
     moduleName.set("CXone Mobile SDK")
     dokkaPublications.html {
-        includes.from("readme.md")
+        includes.from("README.MD")
         outputDirectory.set(project.file("dist"))
     }
 }
