@@ -15,7 +15,6 @@
 
 package com.nice.cxonechat.sample.data.repository
 
-import android.content.Context
 import androidx.compose.runtime.Stable
 import com.nice.cxonechat.sample.data.models.Cart
 import com.nice.cxonechat.sample.data.models.Cart.Item
@@ -23,19 +22,22 @@ import com.nice.cxonechat.sample.data.models.Product
 import com.nice.cxonechat.sample.data.operations.add
 import com.nice.cxonechat.sample.data.operations.update
 import com.nice.cxonechat.sample.network.DummyJsonService.Companion.dummyJsonService
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import org.koin.core.annotation.Single
 
 /**
  * Repository for the Store.  Maintains the list of products, the shoppers cart, and user name information.
  *
- * @param context Application Context for preferences access.
+ * @param dispatcher Coroutine dispatcher to use for data operations, defaults to [Dispatchers.IO].
  */
 @Single
 class StoreRepository(
-    val context: Context
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
     private val productsCache = MutableStateFlow<Pair<String, List<Product>>?>(null)
     private val cartStore = MutableStateFlow(Cart(listOf()))
@@ -57,10 +59,10 @@ class StoreRepository(
      */
     suspend fun getProducts(
         category: String,
-    ): Result<List<Product>> {
+    ): Result<List<Product>> = withContext(dispatcher) {
         val cached = productsCache.value
 
-        return if (cached?.first == category) {
+        return@withContext if (cached?.first == category) {
             Result.success(cached.second)
         } else {
             runCatching {
@@ -82,12 +84,14 @@ class StoreRepository(
      */
     suspend fun getProduct(
         productId: String,
-    ): Result<Product> = productsCache.value?.second
-        ?.firstOrNull { it.id == productId }
-        ?.let(Result.Companion::success)
-        ?: runCatching {
-            dummyJsonService.product(productId)
-        }
+    ): Result<Product> = withContext(dispatcher) {
+        productsCache.value?.second
+            ?.firstOrNull { it.id == productId }
+            ?.let(Result.Companion::success)
+            ?: runCatching {
+                dummyJsonService.product(productId)
+            }
+    }
 
     /**
      * Add a product to the current cart.

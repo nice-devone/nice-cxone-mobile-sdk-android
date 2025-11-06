@@ -31,6 +31,9 @@ import com.nice.cxonechat.thread.ChatThreadState
  * It has no side effects attached to it.
  */
 @Public
+@Suppress(
+    "ComplexInterface"
+)
 interface ChatThreadHandler {
 
     /**
@@ -91,6 +94,12 @@ interface ChatThreadHandler {
      * @see ChatThreadEventHandler
      */
     fun events(): ChatThreadEventHandler
+
+    /**
+     * Return new instance of thread action handler for this [ChatThread].
+     * @see ChatThreadActionHandler
+     */
+    fun actions(): ChatThreadActionHandler
 
     /**
      * Returns new instance of field handler for this [ChatThread].

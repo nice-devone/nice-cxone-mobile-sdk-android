@@ -15,6 +15,7 @@
 
 package com.nice.cxonechat.internal
 
+import com.nice.cxonechat.ChatThreadActionHandler
 import com.nice.cxonechat.ChatThreadHandler
 import com.nice.cxonechat.ChatThreadHandler.OnThreadUpdatedListener
 import com.nice.cxonechat.log.Logger
@@ -73,6 +74,14 @@ internal class ChatThreadHandlerLogging(
         duration {
             var handler = origin.events()
             handler = ChatThreadEventHandlerLogging(handler, identity)
+            handler
+        }
+    }
+
+    override fun actions(): ChatThreadActionHandler = scope("actions") {
+        duration {
+            var handler = origin.actions()
+            handler = ChatThreadActionHandlerLogging(handler, identity)
             handler
         }
     }

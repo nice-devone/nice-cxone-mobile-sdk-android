@@ -15,14 +15,13 @@
 
 package com.nice.cxonechat.sample.ui.uisettings
 
-import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize.Min
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -31,9 +30,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -47,7 +50,9 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import coil3.ImageLoader
 import coil3.compose.AsyncImage
@@ -57,11 +62,11 @@ import com.nice.cxonechat.sample.data.repository.UISettings
 import com.nice.cxonechat.sample.data.repository.UISettingsState
 import com.nice.cxonechat.sample.ui.TestModifier
 import com.nice.cxonechat.sample.ui.theme.AppTheme
+import com.nice.cxonechat.sample.ui.theme.AppTheme.colorScheme
 import com.nice.cxonechat.sample.ui.theme.AppTheme.space
-import com.nice.cxonechat.sample.ui.theme.Dialog
 import com.nice.cxonechat.sample.ui.theme.LocalSpace
 import com.nice.cxonechat.sample.ui.theme.MultiToggleButton
-import com.nice.cxonechat.sample.ui.theme.OutlinedButton
+import com.nice.cxonechat.sample.ui.theme.Shapes
 import kotlinx.coroutines.Dispatchers
 
 /**
@@ -73,6 +78,7 @@ import kotlinx.coroutines.Dispatchers
  * @param onReset ui settings should be reset to a default state.
  * @param onConfirm new settings have been accepted, change them as necessary.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UISettingsDialog(
     value: UISettingsModel,
@@ -81,52 +87,65 @@ fun UISettingsDialog(
     onReset: () -> Unit,
     onConfirm: (UISettingsModel) -> Unit,
 ) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        modifier = TestModifier.fillMaxHeight(1f)
+    ) {
+        UiSettingsContent(value, pickImage, onDismiss, onReset, onConfirm)
+    }
+}
+
+@Composable
+private fun ColumnScope.UiSettingsContent(
+    value: UISettingsModel,
+    pickImage: ((String?) -> Unit) -> Unit,
+    onDismiss: () -> Unit,
+    onReset: () -> Unit,
+    onConfirm: (UISettingsModel) -> Unit,
+) {
     var current by remember { mutableStateOf(value) }
     var error by remember { mutableStateOf<Exception?>(null) }
-
-    AppTheme.Dialog(
-        title = stringResource(id = string.ui_settings),
-        onDismiss = onDismiss,
-        dismissButton = {
-            AppTheme.OutlinedButton(
-                text = stringResource(string.cancel),
-                modifier = Modifier.testTag("ui_setting_cancel_button"),
-                onClick = onDismiss
-            )
-        },
-        confirmButton = {
-            AppTheme.OutlinedButton(
-                text = stringResource(string.ok),
-                modifier = Modifier.testTag("ui_setting_ok_button")
-            ) {
-                UISettingsState.value = current
-                try {
-                    onConfirm(current)
-                } catch (exc: java.lang.Exception) {
-                    error = exc
-                }
-                onDismiss()
-            }
-        },
-        modifier = TestModifier
+    Column(
+        modifier = Modifier
+            .padding(horizontal = space.medium)
+            .verticalScroll(rememberScrollState())
+            .weight(1f, fill = true) // Modal bottom sheet will try to use minimal size, we need to force the fill
     ) {
-        SettingsView(settings = current, pickImage, onChanged = { current = it }, onReset = onReset)
-
+        Text(
+            text = stringResource(id = string.ui_settings),
+            style = AppTheme.typography.headlineSmall,
+            modifier = Modifier.semantics { heading() }
+        )
+        SettingsView(settings = current, pickImage) { current = it }
         if (error != null) {
             AlertDialog(
                 onDismissRequest = { error = null },
                 confirmButton = {
-                    AppTheme.OutlinedButton(
-                        text = stringResource(string.ok),
+                    TextButton(
                         modifier = Modifier.testTag("ui_setting_error_ok_button"),
+                        onClick = {
+                            error = null
+                        },
                     ) {
-                        error = null
+                        Text(text = stringResource(string.ok))
                     }
                 },
                 title = { Text(stringResource(string.error_saving_settings)) },
                 text = { Text(error?.localizedMessage ?: stringResource(string.unknown_error)) },
                 modifier = TestModifier,
             )
+        }
+        Spacer(modifier = Modifier.weight(1f))
+        HorizontalDivider()
+        SettingsBottomRow(onDismiss, onReset) {
+            UISettingsState.value = current
+            try {
+                onConfirm(current)
+            } catch (exc: java.lang.Exception) {
+                error = exc
+            }
+            onDismiss()
         }
     }
 }
@@ -136,28 +155,42 @@ private fun SettingsView(
     settings: UISettingsModel,
     pickImage: ((String?) -> Unit) -> Unit,
     onChanged: (UISettingsModel) -> Unit,
-    onReset: () -> Unit,
 ) {
-    Column(
-        modifier = TestModifier
-            .verticalScroll(rememberScrollState())
-            .height(Min)
+    ImagePicker(settings, pickImage, onChanged)
+    HorizontalDivider()
+    ColorsSection(settings, onChanged)
+}
+
+@Composable
+private fun SettingsBottomRow(
+    onDismiss: () -> Unit,
+    onReset: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = space.large, bottom = space.small)
     ) {
-        ImagePicker(settings, pickImage, onChanged)
-        HorizontalDivider()
-        ColorsSection(settings, onChanged)
-        HorizontalDivider()
-        Row(
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = space.large),
+        TextButton(
+            modifier = Modifier.testTag("ui_setting_cancel_button"),
+            onClick = onDismiss
         ) {
-            AppTheme.OutlinedButton(
-                text = stringResource(string.set_defaults),
-                modifier = Modifier.testTag("ui_setting_set_default_button"),
-                onClick = onReset
-            )
+            Text(text = stringResource(string.cancel))
+        }
+        TextButton(
+            modifier = Modifier.testTag("ui_setting_set_default_button"),
+            onClick = onReset
+        ) {
+            Text(text = stringResource(string.set_defaults))
+        }
+        TextButton(
+            modifier = Modifier.testTag("ui_setting_ok_button"),
+            onClick = onConfirm
+        ) {
+            Text(text = stringResource(string.ok))
         }
     }
 }
@@ -175,6 +208,7 @@ private fun ColorsSection(
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(bottom = space.small)
         ) {
             AppTheme.MultiToggleButton(currentSelection = modes[mode], toggleStates = modes) { next ->
                 mode = modes.indexOf(next)
@@ -218,81 +252,25 @@ private fun ImagePicker(
             modifier = Modifier
                 .testTag("pick_logo_button")
                 .padding(horizontal = space.medium)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            shape = Shapes.medium
         ) {
             Text(stringResource(string.pick_a_logo_image))
         }
     }
 }
 
-@Composable
-private fun ColorsView(colors: UISettingsModel.Colors, onColorsChanged: (UISettingsModel.Colors) -> Unit) {
-    Column {
-        ColorField(colors.primary, label = stringResource(string.primary)) {
-            onColorsChanged(
-                colors.copy(primary = it)
-            )
-        }
-        ColorField(colors.onPrimary, label = stringResource(string.onPrimary)) {
-            onColorsChanged(
-                colors.copy(onPrimary = it)
-            )
-        }
-        ColorField(colors.accent, label = stringResource(string.accent)) {
-            onColorsChanged(
-                colors.copy(accent = it)
-            )
-        }
-        ColorField(colors.onAccent, label = stringResource(string.onAccent)) {
-            onColorsChanged(
-                colors.copy(onAccent = it)
-            )
-        }
-        ColorField(colors.background, label = stringResource(string.background)) {
-            onColorsChanged(
-                colors.copy(background = it)
-            )
-        }
-        ColorField(colors.onBackground, label = stringResource(string.on_background)) {
-            onColorsChanged(
-                colors.copy(onBackground = it)
-            )
-        }
-        ColorField(colors.agentBackground, label = stringResource(string.agent_background)) {
-            onColorsChanged(
-                colors.copy(agentBackground = it)
-            )
-        }
-        ColorField(colors.agentText, label = stringResource(string.agent_text)) {
-            onColorsChanged(
-                colors.copy(agentText = it)
-            )
-        }
-        ColorField(colors.customerBackground, label = stringResource(string.customer_background)) {
-            onColorsChanged(
-                colors.copy(customerBackground = it)
-            )
-        }
-        ColorField(colors.customerText, label = stringResource(string.customer_text)) {
-            onColorsChanged(
-                colors.copy(customerText = it)
-            )
-        }
-    }
-}
-
-@Preview(apiLevel = 35, showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+@PreviewLightDark
 @Composable
 private fun UISettingsDialogPreview() {
     val current = UISettings.collectAsState().value
-
     AppTheme {
-        Card(
-            Modifier
-                .fillMaxWidth(1f)
-                .fillMaxHeight(1f)
+        Surface(
+            color = colorScheme.background,
         ) {
-            UISettingsDialog(current, {}, {}, {}, {})
+            Column {
+                UiSettingsContent(current, {}, {}, {}, {})
+            }
         }
     }
 }

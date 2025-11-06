@@ -47,12 +47,15 @@ internal fun ChatTheme.SingleChoiceSegmentedButton(
                 onClick = { onToggleChange(label) },
                 selected = isSelected,
                 colors = SegmentedButtonDefaults.colors(
-                    activeBorderColor = colorScheme.onBackground,
-                    inactiveBorderColor = colorScheme.onBackground,
+                    activeContainerColor = colorScheme.primary,
+                    activeContentColor = colorScheme.onPrimary,
+                    activeBorderColor = colorScheme.primary,
+                    inactiveContentColor = chatColors.token.content.secondary,
+                    inactiveBorderColor = chatColors.token.border.default,
                 ),
                 modifier = Modifier.testTag("active_thread_toggle_button_$index"),
             ) {
-                Text(label)
+                Text(text = label, style = chatTypography.segmentedButtonText)
             }
         }
     }
@@ -63,7 +66,7 @@ internal fun ChatTheme.SingleChoiceSegmentedButton(
 private fun MultiToggleButtonPreview() {
     val options = listOf("First", "Second", "Third")
     ChatTheme {
-        Surface {
+        Surface(color = ChatTheme.chatColors.token.background.default) {
             Column {
                 var selection by remember { mutableStateOf(options.first()) }
 

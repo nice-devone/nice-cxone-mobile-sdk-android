@@ -38,6 +38,19 @@ internal fun SdkMessage.asMessage() = when (this) {
 }
 
 internal typealias SdkMessage = com.nice.cxonechat.message.Message
+internal typealias SdkMessageUnsupported = com.nice.cxonechat.message.Message.Unsupported
+
+internal data class UiSdkUnsupportedMessage(
+    override val id: UUID = UUID.randomUUID(),
+    override val threadId: UUID = UUID.randomUUID(),
+    override val createdAt: Date = DateProvider.now(),
+    override val direction: MessageDirection = ToClient,
+    override val author: MessageAuthor? = ToClient.toPerson(),
+    override val metadata: MessageMetadata = Metadata(),
+    override val attachments: Iterable<Attachment> = emptyList(),
+    override val fallbackText: String = "Unsupported message content",
+    override val text: String = "$fallbackText:\nPLUGIN — SATISFACTION_SURVEY",
+) : SdkMessageUnsupported()
 
 @Stable
 internal data class Text(

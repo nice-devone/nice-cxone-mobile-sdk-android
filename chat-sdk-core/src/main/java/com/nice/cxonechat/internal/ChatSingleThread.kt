@@ -16,9 +16,12 @@
 package com.nice.cxonechat.internal
 
 import com.nice.cxonechat.Cancellable
+import com.nice.cxonechat.ChatStateListener
 import com.nice.cxonechat.enums.ErrorType.RecoveringThreadFailed
 import com.nice.cxonechat.enums.EventType.ThreadRecovered
 import com.nice.cxonechat.event.RecoverThreadEvent
+import com.nice.cxonechat.exceptions.RuntimeChatException
+import com.nice.cxonechat.exceptions.RuntimeChatException.ServerCommunicationError
 import com.nice.cxonechat.internal.model.network.EventThreadRecovered
 import com.nice.cxonechat.internal.socket.ErrorCallback.Companion.addErrorCallback
 import com.nice.cxonechat.internal.socket.EventCallback.Companion.addCallback
@@ -43,8 +46,9 @@ internal class ChatSingleThread(
     WebSocketListener() {
     private var thread: ChatThread? = null
 
+    override val chatStateListener: ChatStateListener? = origin.chatStateListener?.let { ChatStateListenerFiltered(it) }
     init {
-        origin.socketListener.addListener(SocketConnectionListener(listener = origin.chatStateListener, onConnected = ::recoverThread))
+        origin.socketListener.addListener(SocketConnectionListener(onConnected = ::recoverThread))
     }
 
     override fun connect(): Cancellable {
@@ -64,5 +68,21 @@ internal class ChatSingleThread(
     private fun recoverThread() {
         origin.chatStateListener?.onConnected()
         origin.events().trigger(RecoverThreadEvent(null))
+    }
+
+    /**
+     * This class wraps an existing [ChatStateListener] and filters out the RecoveringThreadFailed reported as
+     * ServerCommunicationError.
+     * In SingleThread mode, this error is expected and handled internally, so there is no need to report it to the user.
+     */
+    private class ChatStateListenerFiltered(private val origin: ChatStateListener) : ChatStateListener by origin {
+
+        override fun onChatRuntimeException(exception: RuntimeChatException) {
+            if (exception is ServerCommunicationError && exception.message == RecoveringThreadFailed.value) {
+                // swallow the exception as it's handled internally
+                return
+            }
+            origin.onChatRuntimeException(exception)
+        }
     }
 }

@@ -113,7 +113,7 @@ private var _expired: ImageVector? = null
 
 @Preview
 @Composable
-private fun Preview() {
+private fun PreviewExpired() {
     Box(modifier = Modifier.padding(12.dp)) {
         Image(imageVector = ChatIcons.Expired, contentDescription = "")
     }

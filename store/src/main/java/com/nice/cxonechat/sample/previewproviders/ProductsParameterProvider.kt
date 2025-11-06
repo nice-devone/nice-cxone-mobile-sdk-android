@@ -29,7 +29,7 @@ class ProductsParameterProvider: PreviewParameterProvider<List<Product>> {
 
     private companion object {
         val items by lazy {
-            Json.Default.decodeFromString<ProductList>(JSON).items
+            Json.decodeFromString<ProductList>(JSON).items
         }
 
         private const val JSON = """

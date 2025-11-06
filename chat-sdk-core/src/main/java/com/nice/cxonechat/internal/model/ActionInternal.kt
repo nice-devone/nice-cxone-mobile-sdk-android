@@ -15,16 +15,21 @@
 
 package com.nice.cxonechat.internal.model
 
+import com.nice.cxonechat.internal.model.network.MessagePolyContent.Plugin.PluginElement.SimpleElement.ButtonElement
 import com.nice.cxonechat.internal.model.network.PolyAction
 import com.nice.cxonechat.message.Action
 import com.nice.cxonechat.message.Media
 
 internal sealed class ActionInternal : Action {
+
+    /**
+     * Action which should be sent as a message with a text content type.
+     */
     internal data class ReplyButton(
         override val text: String,
         override val postback: String?,
         override val media: Media?,
-        override val description: String?
+        override val description: String?,
     ) : ActionInternal(), Action.ReplyButton {
         constructor(model: PolyAction.ReplyButton) : this(
             text = model.text,
@@ -34,9 +39,27 @@ internal sealed class ActionInternal : Action {
         )
     }
 
+    /**
+     * Action which should be sent as a message with postback content type.
+     */
+    internal data class PostbackReplyButton(
+        override val text: String,
+        override val postback: String?,
+    ) : ActionInternal(), Action.ReplyButton {
+        override val media: Media? = null
+        override val description: String? = null
+
+        constructor(model: ButtonElement) : this(
+            text = model.text,
+            postback = model.postback
+        )
+    }
+
     companion object {
-        fun create(model: PolyAction): ActionInternal = when(model) {
+        fun create(model: PolyAction): ActionInternal = when (model) {
             is PolyAction.ReplyButton -> ReplyButton(model)
         }
+
+        fun create(element: ButtonElement): Action.ReplyButton = PostbackReplyButton(element)
     }
 }

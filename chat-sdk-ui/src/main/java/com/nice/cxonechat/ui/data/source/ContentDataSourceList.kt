@@ -82,11 +82,13 @@ internal class ContentDataSourceList(
     )
     suspend fun descriptorForUri(uri: Uri): ContentRequestResult {
         if (!checkFileSize(uri)) {
+            val maxSizeBytes = maxSize().getOrElse { 1 * 1024L * 1024L }
+            val maxSizeMb = maxSizeBytes / (1024 * 1024)
             return ContentRequestResult.Error(
                 uri = uri,
                 cause = context.getString(
                     string.attachment_too_large,
-                    maxSize().getOrElse { 1 }
+                    maxSizeMb
                 )
             )
         }

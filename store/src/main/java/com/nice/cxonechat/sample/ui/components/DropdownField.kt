@@ -212,7 +212,7 @@ private fun ErrorLabel(
         color = if (isError) {
             MaterialTheme.colorScheme.error
         } else {
-            LocalContentColor.current.copy(alpha = 0.38f)
+            LocalContentColor.current.copy(alpha = 0.5f)
         }
     )
 }

@@ -88,11 +88,13 @@ private suspend fun mediaSourceFactory(context: Context): MediaSource.Factory =
 
 @OptIn(UnstableApi::class)
 private suspend fun getCacheDataSourceFactory(context: Context): DataSource.Factory {
-    val httpDataSource = OkHttpDataSource.Factory(
-        OkHttpClient.Builder()
-            .socketFactory(TaggingSocketFactory)
-            .build()
-    )
+    val httpDataSource = withContext(Dispatchers.IO) {
+        OkHttpDataSource.Factory(
+            OkHttpClient.Builder()
+                .socketFactory(TaggingSocketFactory)
+                .build()
+        )
+    }
     // Configure the DataSource.Factory with the cache and factory for the desired HTTP stack.
     val cache = ExoPlayerCacheHolder.getCache(context.applicationContext)
     val cacheDataSourceFactory =

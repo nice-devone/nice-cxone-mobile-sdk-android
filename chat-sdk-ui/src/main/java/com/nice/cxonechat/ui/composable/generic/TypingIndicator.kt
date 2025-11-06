@@ -30,25 +30,26 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import kotlin.math.roundToInt
 
 /**
  * An animated "typing indicator".
  *
- * @param color color of dots
  * @param modifier modifiers to use and pass
+ * @param color color of dots
  * @param dotSize diameter of each dot
  * @param dotSpace space between dots
  * @param waveHeight height of dot wave
@@ -58,14 +59,14 @@ import kotlin.math.roundToInt
  */
 @Composable
 internal fun TypingIndicator(
-    color: Color = ChatTheme.colorScheme.primary,
     modifier: Modifier = Modifier,
+    color: Color = chatColors.token.background.inverse,
     dotSize: Dp = 8.dp,
     dotSpace: Dp = 4.dp,
     waveHeight: Dp = 4.dp,
     dotCount: Int = 3,
     animationDuration: Int = 250,
-    loopDelay: Int = 500,
+    loopDelay: Int = animationDuration,
 ) {
     val transition = rememberInfiniteTransition("typingIndicator")
     val totalDuration = (dotCount + 1) * animationDuration + loopDelay
@@ -75,7 +76,10 @@ internal fun TypingIndicator(
 
     Row(
         horizontalArrangement = Arrangement.spacedBy(dotSpace),
-        modifier = modifier.height(dotSize + waveHeight)
+        modifier = Modifier
+            .testTag("TypingIndicator")
+            .then(modifier)
+            .height(dotSize + waveHeight)
     ) {
         phases.forEach {
             TypingIndicatorDot(it.value, color, waveHeight, dotSize)
@@ -115,7 +119,7 @@ private fun TypingIndicatorDot(
     size: Dp
 ) {
     val offset = ((1.0 - phase) * waveHeight.value * 2).roundToInt()
-    val alpha0 = 0.48f
+    val alpha0 = 0.40f
     val alpha1 = 0.20f
     val muted = color.copy(alpha = alpha0 + (1 - phase) * (alpha0 - alpha1))
 
@@ -130,17 +134,16 @@ private fun TypingIndicatorDot(
     )
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun PreviewTypingIndicator() {
-    MaterialTheme {
+    ChatTheme {
         Surface(
             shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.background
+            color = ChatTheme.colorScheme.surface
         ) {
             TypingIndicator(
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(8.dp)
+                modifier = Modifier.padding(8.dp),
             )
         }
     }

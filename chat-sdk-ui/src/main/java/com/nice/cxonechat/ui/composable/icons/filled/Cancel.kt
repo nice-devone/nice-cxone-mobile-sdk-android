@@ -16,87 +16,85 @@
 package com.nice.cxonechat.ui.composable.icons.filled
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathFillType
+import androidx.compose.ui.graphics.PathFillType.Companion.NonZero
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.StrokeCap.Companion.Butt
+import androidx.compose.ui.graphics.StrokeCap.Companion.Round
+import androidx.compose.ui.graphics.StrokeJoin.Companion.Miter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.ImageVector.Builder
 import androidx.compose.ui.graphics.vector.path
-import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.ui.composable.icons.ChatIcons
-import com.nice.cxonechat.ui.composable.theme.ChatTheme
-import com.nice.cxonechat.ui.composable.theme.DefaultColors
 
 internal val ChatIcons.Cancel: ImageVector
     get() {
-        if (_Cancel != null) return _Cancel!!
-        _Cancel = ImageVector.Builder(
-            name = "Cancel",
-            defaultWidth = 24.0.dp,
-            defaultHeight = 24.0.dp,
-            viewportWidth = 24.0f,
-            viewportHeight = 24.0f
+        if (_Cancel != null) {
+            return _Cancel!!
+        }
+        _Cancel = Builder(
+            name = "Delete button",
+            defaultWidth = 32.0.dp,
+            defaultHeight = 32.0.dp,
+            viewportWidth = 32.0f,
+            viewportHeight = 32.0f
         ).apply {
             path(
-                fill = SolidColor(DefaultColors.danger),
+                fill = SolidColor(Color(0xFFE6174E)),
                 stroke = null,
                 strokeLineWidth = 0.0f,
-                strokeLineCap = StrokeCap.Butt,
-                strokeLineJoin = StrokeJoin.Companion.Miter,
+                strokeLineCap = Butt,
+                strokeLineJoin = Miter,
                 strokeLineMiter = 4.0f,
-                pathFillType = PathFillType.Companion.NonZero
+                pathFillType = NonZero
             ) {
-                moveTo(22.667f, 12.0f)
-                curveTo(22.667f, 17.891f, 17.891f, 22.667f, 12.0f, 22.667f)
-                curveTo(6.109f, 22.667f, 1.333f, 17.891f, 1.333f, 12.0f)
-                curveTo(1.333f, 6.109f, 6.109f, 1.333f, 12.0f, 1.333f)
-                curveTo(17.891f, 1.333f, 22.667f, 6.109f, 22.667f, 12.0f)
+                moveTo(26.667f, 16.0f)
+                curveTo(26.667f, 21.891f, 21.891f, 26.667f, 16.0f, 26.667f)
+                curveTo(10.109f, 26.667f, 5.333f, 21.891f, 5.333f, 16.0f)
+                curveTo(5.333f, 10.109f, 10.109f, 5.333f, 16.0f, 5.333f)
+                curveTo(21.891f, 5.333f, 26.667f, 10.109f, 26.667f, 16.0f)
                 close()
             }
             path(
-                fill = SolidColor(Color.Transparent),
-                stroke = SolidColor(Color.White),
+                fill = SolidColor(Color(0x00000000)),
+                stroke = SolidColor(Color(0xFFffffff)),
                 strokeLineWidth = 1.5f,
-                strokeLineCap = StrokeCap.Companion.Round,
-                strokeLineJoin = StrokeJoin.Companion.Miter,
+                strokeLineCap = Round,
+                strokeLineJoin = Miter,
                 strokeLineMiter = 4.0f,
-                pathFillType = PathFillType.Companion.NonZero
+                pathFillType = NonZero
             ) {
-                moveTo(15.017f, 8.983f)
-                lineTo(12.0f, 12.0f)
-                moveTo(12.0f, 12.0f)
-                lineTo(8.983f, 15.017f)
-                moveTo(12.0f, 12.0f)
-                lineTo(15.017f, 15.017f)
-                moveTo(12.0f, 12.0f)
-                lineTo(8.983f, 8.983f)
-                moveTo(22.667f, 12.0f)
-                curveTo(22.667f, 17.891f, 17.891f, 22.667f, 12.0f, 22.667f)
-                curveTo(6.109f, 22.667f, 1.333f, 17.891f, 1.333f, 12.0f)
-                curveTo(1.333f, 6.109f, 6.109f, 1.333f, 12.0f, 1.333f)
-                curveTo(17.891f, 1.333f, 22.667f, 6.109f, 22.667f, 12.0f)
+                moveTo(19.017f, 12.983f)
+                lineTo(16.0f, 16.0f)
+                moveTo(16.0f, 16.0f)
+                lineTo(12.983f, 19.017f)
+                moveTo(16.0f, 16.0f)
+                lineTo(19.017f, 19.017f)
+                moveTo(16.0f, 16.0f)
+                lineTo(12.983f, 12.983f)
+                moveTo(26.667f, 16.0f)
+                curveTo(26.667f, 21.891f, 21.891f, 26.667f, 16.0f, 26.667f)
+                curveTo(10.109f, 26.667f, 5.333f, 21.891f, 5.333f, 16.0f)
+                curveTo(5.333f, 10.109f, 10.109f, 5.333f, 16.0f, 5.333f)
+                curveTo(21.891f, 5.333f, 26.667f, 10.109f, 26.667f, 16.0f)
                 close()
             }
-        }
-            .build()
+        }.build()
         return _Cancel!!
     }
 
 private var _Cancel: ImageVector? = null
 
-@PreviewLightDark
+@Preview
 @Composable
-private fun Preview() {
-    ChatTheme {
-        Surface(modifier = Modifier.padding(12.dp)) {
-            Image(imageVector = ChatIcons.Cancel, contentDescription = "", modifier = Modifier.size(32.dp))
-        }
+private fun PreviewCancel() {
+    Box(modifier = Modifier.padding(12.dp)) {
+        Image(imageVector = ChatIcons.Cancel, contentDescription = "")
     }
 }

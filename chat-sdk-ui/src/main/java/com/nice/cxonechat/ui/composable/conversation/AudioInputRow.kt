@@ -15,20 +15,27 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize.Min
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Surface
@@ -42,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.TextOverflow
@@ -53,18 +61,23 @@ import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.composable.generic.AudioPlayerButton
 import com.nice.cxonechat.ui.composable.generic.AudioPlayerState.Loading
 import com.nice.cxonechat.ui.composable.generic.AudioPlayerState.Ready
-import com.nice.cxonechat.ui.composable.generic.toastAudioRecordToggleFailure
 import com.nice.cxonechat.ui.composable.player.PlaceholderState
 import com.nice.cxonechat.ui.composable.player.PlayerState
 import com.nice.cxonechat.ui.composable.player.produceAudioPlayerState
 import com.nice.cxonechat.ui.composable.player.rememberPlayerState
 import com.nice.cxonechat.ui.composable.theme.ChatIconButton
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.SendButton
 import com.nice.cxonechat.ui.composable.theme.SmallSpacer
-import com.nice.cxonechat.ui.composable.theme.TinySpacer
+import com.nice.cxonechat.ui.screen.ChatActivity
+import com.nice.cxonechat.ui.util.ErrorGroup.LOW
+import com.nice.cxonechat.ui.util.koinActivityViewModel
 import com.nice.cxonechat.ui.util.toTimeStamp
+import com.nice.cxonechat.ui.viewmodel.ChatStateViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -100,7 +113,7 @@ internal fun AudioInputRow(
             audioRecordingUiState.onDismiss
             onSelectorChange()
         }
-        TinySpacer()
+        SmallSpacer()
         val recordingUri by audioUri.collectAsState()
         val context = LocalContext.current
         val playerResult by produceAudioPlayerState(context, recordingUri)
@@ -114,9 +127,7 @@ internal fun AudioInputRow(
                 false -> AudioPlayerButton(playerResult)
             }
         }
-        SmallSpacer()
         RecordTextInfo(isAudioRecording, audioPlayerState, audioRecordingUiState.durationFlow)
-        SmallSpacer()
         SendButton(
             enabled = !isAudioRecording && playerResult is Ready, // The player will be ready only for valid URIs
             onMessageSent = {
@@ -145,40 +156,48 @@ private fun RowScope.RecordTextInfo(
     } else {
         audioPlayerState.duration
     }
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
+    Column(
         modifier = Modifier
+            .padding(horizontal = space.medium)
             .widthIn(min = 224.dp)
             .weight(1f)
-            .padding(horizontal = 8.dp, vertical = 10.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.weight(1f)
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.padding(space.audioRecordingTextPadding)
         ) {
-            Icon(
-                imageVector = Icons.Default.GraphicEq,
-                contentDescription = null,
-                tint = colorScheme.primary
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(space.clickableSize - 1.dp) // -1dp to compensate divider height
+            ) {
+                Icon(
+                    imageVector = Icons.Default.GraphicEq,
+                    contentDescription = null,
+                    tint = colorScheme.primary,
+                )
+                Spacer(modifier = Modifier.size(space.medium))
+                Text(
+                    text = audioText,
+                    softWrap = false,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = chatTypography.audioRecordingLabel,
+                )
+            }
             Text(
-                text = audioText,
+                text = audioTime.toTimeStamp(Locale.current),
+                modifier = Modifier.alpha(0.5f),
                 softWrap = false,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = ChatTheme.chatTypography.audioRecordingLabel,
+                overflow = TextOverflow.Visible,
+                style = chatTypography.audioRecordingTime,
+                color = chatColors.token.content.tertiary
             )
         }
-        Text(
-            text = audioTime.toTimeStamp(Locale.current),
-            modifier = Modifier.alpha(0.5f),
-            softWrap = false,
-            maxLines = 1,
-            overflow = TextOverflow.Visible,
-            style = ChatTheme.chatTypography.audioRecordingTime,
-        )
+        HorizontalDivider(color = chatColors.token.border.default)
     }
 }
 
@@ -202,12 +221,18 @@ private fun StopRecordingButton(
     onSelectorChange: () -> Unit,
 ) {
     val context = LocalContext.current
+    val chatStateViewModel =
+        if (!LocalInspectionMode.current && LocalActivity.current is ChatActivity) {
+            koinActivityViewModel<ChatStateViewModel>()
+        } else {
+            null
+        }
     val stopRecording: () -> Unit = remember(scope, context) {
         {
             scope.launch {
                 val toggleChangeResult = onAudioRecordToggle()
                 if (!toggleChangeResult) {
-                    context.toastAudioRecordToggleFailure(true)
+                    chatStateViewModel?.showError(LOW, context.getString(R.string.recording_audio_failed))
                     onSelectorChange()
                 }
             }
@@ -255,7 +280,10 @@ private fun PreviewButtons() {
 @Composable
 private fun PreviewAudioText() {
     ChatTheme {
-        Surface {
+        Surface(
+            modifier = Modifier.systemBarsPadding(),
+            color = colorScheme.background
+        ) {
             Column(Modifier.width(Min)) {
                 val duration = remember { MutableStateFlow(Duration.ZERO) }
                 Row {
@@ -273,10 +301,14 @@ private fun PreviewAudioText() {
 @Composable
 private fun PreviewRow() {
     ChatTheme {
-        Surface {
+        Surface(
+            modifier = Modifier.systemBarsPadding(),
+            color = colorScheme.background
+        ) {
             Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Bottom
             ) {
                 AudioInputRow(previewAudioState(), rememberCoroutineScope()) { }
             }

@@ -21,6 +21,9 @@ import com.nice.cxonechat.event.thread.LoadThreadMetadataEvent
 import com.nice.cxonechat.event.thread.MarkThreadReadEvent
 import com.nice.cxonechat.event.thread.TypingEndEvent
 import com.nice.cxonechat.event.thread.TypingStartEvent
+import com.nice.cxonechat.exceptions.InvalidParameterException
+import com.nice.cxonechat.internal.model.ActionKtx.toEvent
+import com.nice.cxonechat.message.Action
 
 /**
  * Provides in-one-place interactions to trigger all available events.
@@ -60,7 +63,7 @@ object ChatThreadEventHandlerActions {
     ) = trigger(TypingStartEvent(), listener, errorListener)
 
     /**
-     * Request additonal thread metadata.
+     * Request additional thread metadata.
      */
     @JvmOverloads
     @JvmStatic
@@ -68,4 +71,31 @@ object ChatThreadEventHandlerActions {
         listener: OnEventSentListener? = null,
         errorListener: OnEventErrorListener? = null,
     ) = trigger(LoadThreadMetadataEvent(), listener, errorListener)
+
+    /**
+     * Triggers an action event based on the provided [Action].
+     *
+     * @param action An instance of [Action] that defines the event to be triggered.
+     *  Only supported actions will be processed, others will result in an error.
+     *  Supported actions include:
+     *  * [Action.ReplyButton]
+     *  @param listener An optional listener to be notified when the event is sent.
+     *  @param errorListener An optional listener to be notified if an error occurs while sending
+     */
+    @JvmOverloads
+    @JvmStatic
+    fun ChatThreadEventHandler.triggerAction(
+        action: Action,
+        listener: OnEventSentListener? = null,
+        errorListener: OnEventErrorListener? = null,
+    ) {
+        val event = action.toEvent()
+        if (event == null) {
+            errorListener?.onError(
+                InvalidParameterException("Action ${action::class.simpleName} is not supported.")
+            )
+            return
+        }
+        trigger(event, listener, errorListener)
+    }
 }

@@ -33,11 +33,11 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.ShareButton
 
 /**
- * A [CardDialog] which will display a [ZoomableImage] with option to share image via button.
+ * A FullscreenView which will display a [ZoomableImage] with option to share image via button.
  * The dialog is dismissed if the user click outside the view or taps the back button or clicks the back button icon.
  *
  * @param image The model for [ZoomableImage].
- * @param title An optional title for the [CardDialog].
+ * @param title An optional title for the Activity while the composable is displayed.
  * @param onDismiss An action triggered when the dialog is dismissed.
  * @param onShare An action triggered when the share button is clicked.
  */

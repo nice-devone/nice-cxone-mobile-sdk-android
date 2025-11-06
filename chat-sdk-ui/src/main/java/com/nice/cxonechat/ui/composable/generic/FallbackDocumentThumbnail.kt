@@ -16,29 +16,33 @@
 package com.nice.cxonechat.ui.composable.generic
 
 import android.webkit.MimeTypeMap
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -47,16 +51,19 @@ import com.nice.cxonechat.ui.composable.icons.ChatIcons
 import com.nice.cxonechat.ui.composable.icons.notint.Document
 import com.nice.cxonechat.ui.composable.icons.notint.DocumentLarge
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatShapes
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runInterruptible
 
 @Composable
 internal fun FallbackThumbnail(
     uri: String,
-    mimeType: String? = null,
     modifier: Modifier = Modifier,
+    mimeType: String? = null,
     thumbnailSize: ThumbnailSize = ThumbnailSize.LARGE,
 ) {
     val extension by getFileExtension(mimeType, uri)
@@ -94,32 +101,28 @@ internal enum class ThumbnailSize {
     SMALL,
 }
 
-private val ExtensionBackgroundColor = Color(0xFF007AFF)
-
 @Composable
 private fun FallbackThumbnailLargeContent(
     extension: String,
     modifier: Modifier = Modifier,
 ) {
     Box(
-        modifier = modifier,
+        modifier = modifier.size(space.attachmentPreviewFallbackLargeSize),
         contentAlignment = Alignment.Center,
     ) {
-        Image(
-            contentScale = ContentScale.FillBounds,
+        Icon(
             imageVector = ChatIcons.DocumentLarge,
             contentDescription = stringResource(string.content_description_document_preview, extension),
+            tint = colorScheme.contentColorFor(colorScheme.primary),
             modifier = Modifier
-                .padding(1.dp)
-                .sizeIn(170.dp, 217.dp)
         )
         Text(
             text = extension,
-            color = Color.White,
+            color = colorScheme.contentColorFor(colorScheme.primary),
             modifier = Modifier
                 .align(Alignment.Center)
-                .background(color = ExtensionBackgroundColor, shape = chatShapes.chip)
-                .padding(horizontal = 10.dp, vertical = 9.dp),
+                .background(color = colorScheme.primary, shape = chatShapes.documentTypeLabelShape)
+                .padding(horizontal = 8.dp, vertical = 2.dp),
             style = chatTypography.documentFallackText,
         )
     }
@@ -131,21 +134,25 @@ private fun FallbackThumbnailContent(
     modifier: Modifier = Modifier,
 ) {
     Box(
-        modifier = modifier.padding(horizontal = 22.dp, vertical = 12.dp),
+        modifier = modifier,
         contentAlignment = Alignment.Center,
     ) {
-        Image(
+        Icon(
             imageVector = ChatIcons.Document,
             contentDescription = stringResource(string.content_description_document_preview, extension),
-            contentScale = ContentScale.FillBounds,
+            tint = colorScheme.contentColorFor(colorScheme.primary),
+            modifier = Modifier.padding(horizontal = 22.dp, vertical = 12.dp)
         )
         if (extension.isNotEmpty()) {
             Text(
                 text = extension,
-                color = Color.White,
+                color = colorScheme.contentColorFor(colorScheme.primary),
                 modifier = Modifier
-                    .background(color = ExtensionBackgroundColor, shape = chatShapes.chip)
-                    .padding(horizontal = 7.dp, vertical = 6.dp),
+                    .align(Alignment.Center)
+                    .background(color = colorScheme.primary, shape = chatShapes.documentTypeLabelShape)
+                    .padding(horizontal = 8.dp, vertical = 2.dp),
+                softWrap = false,
+                maxLines = 1,
                 style = chatTypography.documentFallackTextSmall,
             )
         }
@@ -157,25 +164,41 @@ private fun FallbackThumbnailSmallContent(
     extension: String,
     modifier: Modifier = Modifier,
 ) {
+    val iconMod = Modifier.size(space.attachmentPreviewFallbackSmallSize)
     if (extension.isEmpty()) {
-        Image(
+        Icon(
             imageVector = ChatIcons.Document,
             contentDescription = "Preview thumbnail for a file",
-            contentScale = ContentScale.Fit,
+            modifier = iconMod
         )
     } else {
         Box(
-            modifier = modifier
+            contentAlignment = Alignment.Center,
+            modifier = modifier.padding(space.attachmentPreviewPaddingValues)
         ) {
-            Text(
-                text = extension,
-                color = Color.White,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .background(color = ExtensionBackgroundColor, shape = chatShapes.chip)
-                    .padding(horizontal = 7.dp, vertical = 6.dp),
-                style = chatTypography.documentFallackTextTiny,
+            Icon(
+                imageVector = ChatIcons.Document,
+                contentDescription = stringResource(string.content_description_document_preview, extension),
+                tint = chatColors.token.background.surface.variant,
+                modifier = iconMod
             )
+            Row(
+                modifier = Modifier
+                    .height(space.attachmentPreviewFallbackSmallSizeLabelHeight)
+                    .background(color = colorScheme.primary, shape = chatShapes.documentTypeLabelShape)
+                    .padding(horizontal = space.small),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = extension,
+                    color = colorScheme.contentColorFor(colorScheme.primary),
+                    softWrap = false,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = chatTypography.documentFallackTextTiny,
+                )
+            }
         }
     }
 }
@@ -190,11 +213,19 @@ private fun FallbackContentPreview() {
                     .wrapContentWidth()
                     .width(IntrinsicSize.Min)
             ) {
-                FallbackThumbnailContent("PDF")
+                FallbackThumbnailContent("TORRRRRRENT")
                 HorizontalDivider()
-                FallbackThumbnailSmallContent("DOCX")
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .border(width = 1.dp, color = chatColors.token.border.default, shape = chatShapes.smallSelectionFrame)
+                        .size(space.attachmentUploadPreviewSize)
+                        .background(color = chatColors.token.background.default, shape = chatShapes.smallSelectionFrame)
+                ) {
+                    FallbackThumbnailSmallContent("TORRENT")
+                }
                 HorizontalDivider()
-                FallbackThumbnailLargeContent("PDF")
+                FallbackThumbnailLargeContent("TXT")
             }
         }
     }

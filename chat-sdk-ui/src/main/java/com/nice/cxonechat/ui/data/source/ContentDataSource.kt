@@ -23,7 +23,7 @@ import com.nice.cxonechat.message.ContentDescriptor
  * provide an attachment as a [ContentDescriptor] to the SDK for uploading
  * to the chat thread.
  */
-interface ContentDataSource {
+internal interface ContentDataSource {
     /**
      * Regex describing content types this data source can handle.
      */

@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -39,6 +40,7 @@ import com.nice.cxonechat.ui.composable.conversation.AttachmentProvider
 import com.nice.cxonechat.ui.composable.conversation.ShareIcon
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
 
 @Composable
 internal fun SelectAttachmentsBottomBar(
@@ -72,7 +74,11 @@ internal fun SelectAttachmentsBottomBar(
                                 style = chatTypography.selectAttachmentBottomBarText
                             )
                         }
-                        TextButton(onClick = onSelectNone, enabled = selectionNotEmpty) {
+                        TextButton(
+                            onClick = onSelectNone,
+                            enabled = selectionNotEmpty,
+                            modifier = Modifier.testTag("select_none_button")
+                        ) {
                             Text(
                                 text = stringResource(id = R.string.select_none),
                                 style = chatTypography.selectAttachmentBottomBarText
@@ -124,7 +130,12 @@ private fun ShareButton(
     contentDescription: String? = null,
     onClick: () -> Unit,
 ) {
-    IconButton(onClick = onClick, enabled = enabled, modifier = modifier) {
+    IconButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier,
+        colors = IconButtonDefaults.iconButtonColors(contentColor = colorScheme.primary),
+    ) {
         ShareIcon(contentDescription)
     }
 }

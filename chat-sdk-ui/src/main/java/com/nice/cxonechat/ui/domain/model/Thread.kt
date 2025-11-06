@@ -20,6 +20,7 @@ import com.nice.cxonechat.message.Message.ListPicker
 import com.nice.cxonechat.message.Message.QuickReplies
 import com.nice.cxonechat.message.Message.RichLink
 import com.nice.cxonechat.message.Message.Text
+import com.nice.cxonechat.message.Message.Unsupported
 import com.nice.cxonechat.thread.ChatThread
 import java.util.Date
 import java.util.UUID
@@ -62,6 +63,7 @@ internal data class Thread(
                     is RichLink -> fallbackText
                     is QuickReplies -> fallbackText
                     is ListPicker -> fallbackText
+                    is Unsupported -> text
                 }
             }
             .orEmpty()

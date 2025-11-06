@@ -23,13 +23,11 @@ import androidx.compose.foundation.layout.IntrinsicSize.Min
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -37,45 +35,19 @@ import com.nice.cxonechat.ui.composable.theme.ChatColors.ColorPair
 
 @Immutable
 internal data class ChatColors(
-    val agent: ColorPair,
-    val customer: ColorPair,
-    val chatInfoLabel: ColorPair,
-    val messageSent: Color,
-    val messageSending: Color,
-    val agentAvatar: ColorPair,
-    val leadingMessageIconBorder: Color,
-    val leadingMessageIconContainer: Color,
-    val subtle: Color,
-    val accentHeader: Brush,
-    val onAccentHeader: Color,
-    val textFieldLabelBackground: Color,
-    val textFieldLabelText: Color,
+    val token: ThemeColorTokens,
 ) {
-
     data class ColorPair(
         val background: Color,
         val foreground: Color,
     )
 
-    constructor(colors: ThemeColors) : this(
-        agent = ColorPair(colors.agentBackground, colors.agentText),
-        customer = ColorPair(colors.customerBackground, colors.customerText),
-        chatInfoLabel = ColorPair(colors.background, colors.onBackground),
-        messageSent = colors.messageSent,
-        messageSending = colors.messageSending,
-        agentAvatar = ColorPair(colors.agentAvatarBackground, colors.agentAvatarForeground),
-        leadingMessageIconBorder = colors.muted,
-        leadingMessageIconContainer = colors.subtle,
-        subtle = colors.subtle,
-        accentHeader = colors.accentHeader,
-        onAccentHeader = colors.onAccentHeader,
-        textFieldLabelBackground = colors.textFieldLabelBackground,
-        textFieldLabelText = colors.textFieldLabelText
-    )
+    val agent: ColorPair = ColorPair(token.background.surface.default, token.content.primary)
+    val customer: ColorPair = ColorPair(token.brand.primary, token.brand.onPrimary)
 }
 
 internal val LocalChatColors = staticCompositionLocalOf {
-    ChatColors(DefaultColors.light)
+    ChatColors(DefaultColors.lightTokens)
 }
 
 @Composable
@@ -93,42 +65,46 @@ private fun PreviewChatColors() {
 @Composable
 private fun ThemeColorsList() {
     val colors = listOf(
-        "agent" to ChatTheme.chatColors.agent,
-        "customer" to ChatTheme.chatColors.customer,
-        "chatInfoLabel" to ChatTheme.chatColors.chatInfoLabel,
-        "agentAvatar" to ChatTheme.chatColors.agentAvatar,
+        "agentBubble" to ChatTheme.chatColors.agent,
+        "customerBubble" to ChatTheme.chatColors.customer,
+        "chatInfoLabel" to ColorPair(
+            ChatTheme.chatColors.token.background.surface.default,
+            ChatTheme.chatColors.token.content.primary
+        ),
+        "agentAvatar" to ColorPair(
+            ChatTheme.chatColors.token.brand.primaryContainer,
+            ChatTheme.chatColors.token.brand.onPrimaryContainer
+        ),
         "leadingMessageIcon" to ColorPair(
-            ChatTheme.chatColors.leadingMessageIconBorder,
-            ChatTheme.chatColors.leadingMessageIconContainer
+            ChatTheme.chatColors.token.border.default,
+            ChatTheme.chatColors.token.background.surface.subtle
         ),
     )
     ChatTheme {
-        Surface {
-            Column(
-                verticalArrangement = spacedBy(8.dp),
-                modifier = Modifier
-                    .padding(8.dp)
-                    .width(Min)
-            ) {
-                colors.forEach { (label, colorPair) ->
-                    Text(
-                        text = label,
-                        color = colorPair.foreground,
-                        modifier = Modifier
-                            .background(color = colorPair.background)
-                            .padding(8.dp)
-                            .fillMaxWidth(),
-                    )
-                }
+        Column(
+            verticalArrangement = spacedBy(8.dp),
+            modifier = Modifier
+                .padding(8.dp)
+                .width(Min)
+        ) {
+            colors.forEach { (label, colorPair) ->
                 Text(
-                    text = "accentHeader",
-                    color = ChatTheme.chatColors.onAccentHeader,
+                    text = label,
+                    color = colorPair.foreground,
                     modifier = Modifier
-                        .background(brush = ChatTheme.chatColors.accentHeader)
+                        .background(color = colorPair.background)
                         .padding(8.dp)
                         .fillMaxWidth(),
                 )
             }
+            Text(
+                text = "accentHeader",
+                color = ChatTheme.chatColors.token.brand.onPrimary,
+                modifier = Modifier
+                    .background(ChatTheme.chatColors.token.brand.primary)
+                    .padding(8.dp)
+                    .fillMaxWidth(),
+            )
         }
     }
 }

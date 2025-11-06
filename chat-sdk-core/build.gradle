@@ -22,13 +22,10 @@ plugins {
     id "android-test-conventions"
     id "android-library-style-conventions"
     id "publish-conventions"
-    id "api-conventions"
     id "org.jetbrains.kotlin.plugin.serialization"
     id "com.github.gmazzo.buildconfig"
 }
-metalava {
-    hiddenPackages = ["com.nice.cxonechat.internal"]
-}
+
 android {
     namespace 'com.nice.cxonechat.core'
 
@@ -61,7 +58,6 @@ android {
             }
         }
     }
-
 }
 
 kotlin {
@@ -91,9 +87,11 @@ dependencies {
     implementation project(':utilities')
     api project(':logger')
     implementation project(':logger-android')
+    implementation project(':logger-client')
     testImplementation libs.kotest.assertions.core
     testImplementation libs.kotlin.reflect
     testImplementation libs.gson
+    testImplementation libs.kotlinx.coroutines.test
 }
 
 // Required for documentation generation
@@ -102,10 +100,4 @@ afterEvaluate {
     tasks.findByName("sourceReleaseJar").dependsOn(generateReleaseNonAndroidBuildConfig)
     tasks.findByName("dokkaGenerateModuleHtml").dependsOn(generateReleaseNonAndroidBuildConfig)
     tasks.findByName("dokkaGeneratePublicationHtml").dependsOn(generateReleaseNonAndroidBuildConfig)
-
-    // Workaround for https://github.com/tylerbwong/metalava-gradle/issues/127
-    tasks.findByName("metalavaCheckCompatibilityRelease").dependsOn(generateDebugNonAndroidBuildConfig)
-    tasks.findByName("metalavaCheckCompatibilityDebug").configure {
-        enabled = false
-    }
 }

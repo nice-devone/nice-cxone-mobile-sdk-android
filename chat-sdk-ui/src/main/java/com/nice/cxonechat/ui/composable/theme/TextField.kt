@@ -92,7 +92,7 @@ internal fun ChatTheme.TextField(
                             .padding(horizontal = space.small)
                     } ?: Modifier,
                     color = if (error == null) {
-                        chatColors.textFieldLabelText
+                        Color.Unspecified
                     } else {
                         colorScheme.error
                     }
@@ -137,7 +137,7 @@ private fun ValidatedTextFieldPreview() {
                 )
                 ChatTheme.TextField(
                     label = "E-Mail",
-                    minimizedLabelBackground = ChatTheme.colorScheme.surfaceContainerHigh,
+                    minimizedLabelBackground = Color.Unspecified,
                     value = mail,
                     modifier = Modifier.fillMaxWidth(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),

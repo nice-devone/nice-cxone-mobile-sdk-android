@@ -30,7 +30,7 @@ internal fun EndContactDialog(
     chatModel: ChatViewModel,
 ) {
     val agent = chatViewModel.assignedAgentFlow.collectAsState(initial = null)
-    EndConversation(
+    EndConversationBottomSheet(
         assignedAgent = agent,
         onDismiss = chatViewModel::dismissDialog,
         onUserSelection = {

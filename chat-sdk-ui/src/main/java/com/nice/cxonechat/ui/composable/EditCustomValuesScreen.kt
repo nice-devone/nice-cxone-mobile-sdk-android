@@ -15,9 +15,13 @@
 
 package com.nice.cxonechat.ui.composable
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
@@ -36,16 +40,31 @@ internal fun EditCustomValuesScreen(
     onCancel: () -> Unit,
     onConfirm: (CustomValueItemList) -> Unit,
 ) {
+    val listState = remember(fields) { mutableStateOf(fields) }
+    val validatedSubmit = remember(listState.value, canSubmit) {
+        derivedStateOf {
+            canSubmit && listState.value.none { item ->
+                runCatching {
+                    item.stringValue()?.let { item.definition.validate(it) }
+                }.isFailure
+            }
+        }
+    }.value
     ChatTheme.ModalBottomSheet(
         title = title,
         onDismiss = onCancel,
-        modifier = Modifier
-            .testTag("edit_custom_values_screen")
-            .then(modifier),
-        onSubmit = { onConfirm(fields) },
+        modifier = modifier.testTag("edit_custom_values_screen"),
+        onSubmit = { onConfirm(listState.value) },
         sheetState = sheetState,
-        canSubmit = canSubmit,
+        canSubmit = validatedSubmit,
     ) {
-        CVFieldList(fields, onUpdated)
+        CVFieldList(
+            fields = listState.value,
+            modifier = Modifier.fillMaxSize(),
+            onUpdated = { newList: CustomValueItemList ->
+                listState.value = newList
+                onUpdated(newList)
+            }
+        )
     }
 }

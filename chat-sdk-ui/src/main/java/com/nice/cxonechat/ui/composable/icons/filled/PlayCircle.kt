@@ -89,7 +89,7 @@ private var _PlayCircle: ImageVector? = null
 
 @Preview
 @Composable
-private fun Preview() {
+private fun PreviewPlayCircle() {
     Box(modifier = Modifier.padding(12.dp)) {
         Image(imageVector = ChatIcons.PlayCircle, contentDescription = "")
     }

@@ -30,5 +30,6 @@ val CXoneEnvironment.asSdkEnvironment: SdkEnvironment
         value.baseUrl,
         value.socketUrl,
         value.originHeader,
-        value.chatUrl
+        value.chatUrl,
+        value.loggerUrl
     )

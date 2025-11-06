@@ -20,68 +20,55 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
-import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.R.string
+import com.nice.cxonechat.ui.composable.conversation.MessageStatusState.SELECTABLE
+import com.nice.cxonechat.ui.composable.conversation.MessageStatusState.SELECTED
 import com.nice.cxonechat.ui.composable.conversation.model.Action
 import com.nice.cxonechat.ui.composable.conversation.model.Action.ReplyButton
 import com.nice.cxonechat.ui.composable.conversation.model.Message.ListPicker
 import com.nice.cxonechat.ui.composable.generic.forwardingPainter
-import com.nice.cxonechat.ui.composable.theme.ChatColors.ColorPair
-import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.composable.icons.ChatIcons
+import com.nice.cxonechat.ui.composable.icons.outlined.PressFinger
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
-import com.nice.cxonechat.ui.composable.theme.ChatTheme.typography
-import com.nice.cxonechat.ui.composable.theme.Dialog
-import com.nice.cxonechat.ui.util.preview.message.SdkAction
 import com.nice.cxonechat.ui.util.preview.message.UiSdkListPicker
-import com.nice.cxonechat.ui.util.preview.message.UiSdkReplyButton
 
 @Composable
 internal fun ListPickerMessage(
     message: ListPicker,
-    textColor: ColorPair,
     modifier: Modifier = Modifier,
+    onMessageClick: () -> Unit,
 ) {
-    var showDialog by rememberSaveable { mutableStateOf(false) }
-    val dismissDialog = { showDialog = false }
-    val clickModifier = Modifier.clickable { showDialog = true }
+    val clickModifier = Modifier.clickable { onMessageClick() }
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column(
             modifier = clickModifier
@@ -90,91 +77,36 @@ internal fun ListPickerMessage(
         ) {
             Text(
                 text = message.title,
-                color = textColor.foreground,
+                color = chatColors.token.content.primary,
                 style = chatTypography.listPickerTitle,
                 modifier = Modifier.padding(top = 1.dp)
             )
             Text(
                 text = message.text,
-                color = textColor.foreground,
-                modifier = Modifier.alpha(0.5f),
+                color = chatColors.token.content.secondary,
+                modifier = Modifier,
                 style = chatTypography.listPickerText
             )
-            if (showDialog) {
-                ListPickerDialog(message, dismissDialog)
-            }
-        }
-        Spacer(modifier = Modifier.size(space.semiLarge))
-        Image(
-            painter = painterResource(R.drawable.ic_list_picker),
-            contentDescription = null,
-            modifier = clickModifier
-                .size(space.listPickerIconSize)
-                .padding(space.medium)
-        )
-    }
-}
-
-@Composable
-private fun ListPickerDialog(message: ListPicker, dismissDialog: () -> Unit) {
-    var selectedAction: Action? by remember { mutableStateOf(null) }
-    ChatTheme.Dialog(
-        title = message.title,
-        titlePadding = 1.dp,
-        onDismiss = dismissDialog,
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    when (val action = selectedAction) {
-                        is ReplyButton -> action.onClick()
-                        else -> {}
-                    }
-                    dismissDialog()
-                },
-                enabled = selectedAction != null,
-            ) {
-                Text(stringResource(string.ok))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = dismissDialog) {
-                Text(stringResource(string.dismiss))
-            }
-        },
-    ) {
-        Text(
-            text = message.text,
-            style = typography.labelLarge,
-            modifier = Modifier.padding(bottom = 10.dp)
-        )
-        LazyColumn {
-            items(message.actions.size) { index ->
-                val actionItem = message.actions[index]
-                if (actionItem is ReplyButton) {
-                    ActionListItem(
-                        action = actionItem,
-                        isSelected = selectedAction == actionItem,
-                        onSelect = { action: Action ->
-                            selectedAction = if (selectedAction == action) null else action
-                        }
-                    )
-                }
-            }
         }
     }
 }
 
 @Composable
-private fun ActionListItem(
+internal fun ActionListItem(
     action: ReplyButton,
     isSelected: Boolean,
     onSelect: (Action) -> Unit,
 ) {
     ListItem(
         colors = ListItemDefaults.colors(
-            containerColor = if (isSelected) colorScheme.surfaceContainerHighest else colorScheme.surfaceContainer,
+            containerColor = if (isSelected) chatColors.token.background.surface.emphasis else chatColors.token.background.surface.subtle,
         ),
-        headlineContent = { Text(action.text) },
+        headlineContent = {
+            Text(
+                action.text,
+                modifier = if (action.media != null) Modifier.padding(start = 0.dp) else Modifier
+            )
+        },
         leadingContent = {
             if (action.media != null) {
                 val placeholder = forwardingPainter(
@@ -198,7 +130,7 @@ private fun ActionListItem(
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = stringResource(string.action_was_selected),
-                    tint = colorScheme.primary
+                    tint = chatColors.token.brand.primary
                 )
             }
         },
@@ -206,57 +138,57 @@ private fun ActionListItem(
     )
 }
 
+@Composable
+internal fun ListPickerMessageStatus(messageStatusState: MessageStatusState, onClick: () -> Unit) {
+    val (icon, messageText, textColor) = if (messageStatusState == SELECTED) {
+        Triple(
+            Icons.Default.CheckCircleOutline,
+            stringResource(string.option_selected),
+            chatColors.token.brand.primary
+        )
+    } else {
+        Triple(
+            ChatIcons.PressFinger,
+            stringResource(string.list_picker_open_message),
+            chatColors.token.brand.primary
+        )
+    }
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = space.xl, bottom = space.semiLarge, end = space.xl)
+            .testTag("list_picker_message_status")
+            .clickable {
+                if (messageStatusState == SELECTABLE) {
+                    onClick()
+                }
+            },
+    ) {
+        Icon(
+            imageVector = icon,
+            modifier = Modifier.size(space.tooltipIconSize),
+            contentDescription = messageText,
+            tint = textColor
+        )
+        Text(
+            text = messageText,
+            style = chatTypography.messageStatusText,
+            color = textColor
+        )
+    }
+}
+
+/**
+ * Determine the current state of the quick reply options.
+ */
+internal fun getListPickerState(isNotAnswered: Boolean): MessageStatusState =
+    if (isNotAnswered) SELECTABLE else SELECTED
+
 @PreviewLightDark
 @Composable
 private fun ListPickerMessagePreview() {
     PreviewMessageItemBase(
         message = ListPicker(UiSdkListPicker()) {},
     )
-}
-
-@PreviewLightDark
-@Composable
-private fun ListPickerDialogPreview() {
-    val listPicker = ListPicker(
-        UiSdkListPicker(
-            actions = buildList {
-                repeat(7) {
-                    add(
-                        UiSdkReplyButton(
-                            text = "Action $it",
-                            mediaUrl = "https://http.cat/" + (400 + it)
-                        ) as SdkAction
-                    )
-                }
-            }
-        )
-    ) {}
-    ChatTheme {
-        Surface {
-            ListPickerDialog(
-                message = listPicker,
-                dismissDialog = {}
-            )
-        }
-    }
-}
-
-@PreviewLightDark
-@Composable
-private fun ActionListItemPreview() {
-    val listPicker = ListPicker(UiSdkListPicker()) {}
-    var selectedAction: Action? by remember { mutableStateOf(listPicker.actions.first()) }
-    ChatTheme {
-        Surface {
-            Column {
-                for (action: Action in listPicker.actions) {
-                    ActionListItem(
-                        action = action as ReplyButton,
-                        isSelected = selectedAction == action,
-                        onSelect = { selectedAction = if (selectedAction == action) null else action }
-                    )
-                }
-            }
-        }
-    }
 }

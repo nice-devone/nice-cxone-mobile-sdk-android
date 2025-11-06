@@ -15,7 +15,7 @@
 
 package com.nice.cxonechat.ui.storage
 
-import android.content.Context
+import android.app.Application
 import org.koin.core.annotation.Single
 import java.io.File
 import java.util.UUID
@@ -26,7 +26,7 @@ import java.util.UUID
  */
 @Single
 internal class TemporaryFileStorage(
-    context: Context,
+    context: Application, // Using Application context to avoid leaks.
 ) {
     private val cacheDir: File by lazy { context.cacheDir }
 

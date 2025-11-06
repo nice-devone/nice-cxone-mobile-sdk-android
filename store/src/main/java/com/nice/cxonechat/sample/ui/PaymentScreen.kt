@@ -63,7 +63,8 @@ object PaymentScreen : Screen {
                     viewModel.analyticsHandler.sendConversion("sale", cart.total)
                     viewModel.storeRepository.resetCart()
                     ConfirmationScreen.navigateTo(navHostController)
-                }
+                },
+                onBackClick = { navHostController.navigateUp() }
             )
         }
     }
@@ -78,10 +79,14 @@ object PaymentScreen : Screen {
     }
 
     @Composable
-    internal fun Screen(onContinue: () -> Unit) {
+    internal fun Screen(
+        onContinue: () -> Unit,
+        onBackClick: () -> Unit,
+    ) {
         AppTheme.ScreenWithScaffold(
             title = stringResource(string.payment),
             modifier = TestModifier.testTag("payment_screen"),
+            onBackClick = onBackClick
         ) {
             Form(onContinue)
         }
@@ -133,6 +138,6 @@ object PaymentScreen : Screen {
 @Composable
 private fun PaymentScreenPreview() {
     AppTheme {
-        PaymentScreen.Screen(onContinue = {})
+        PaymentScreen.Screen(onContinue = {}, onBackClick = {})
     }
 }

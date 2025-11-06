@@ -21,6 +21,7 @@ import com.nice.cxonechat.Chat
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerScope
 import com.nice.cxonechat.log.timedScope
+import com.nice.cxonechat.log.warning
 import com.nice.cxonechat.prechat.PreChatSurvey
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState
@@ -91,6 +92,9 @@ internal class ChatThreadsViewModel(
 
     private val _refreshThreadName: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val refreshThreadName: StateFlow<Boolean> = _refreshThreadName.asStateFlow()
+
+    private val _threadNotFound: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val threadNotFound: StateFlow<Boolean> = _threadNotFound.asStateFlow()
 
     private val threadFlow = threadsHandler.flow.shareIn(viewModelScope, SharingStarted.Lazily, 1)
 
@@ -241,11 +245,19 @@ internal class ChatThreadsViewModel(
                 val flow = threadFlow
                 refreshThreads()
                 val threadList = flow.first()
-                require(threadList.isNotEmpty())
-                selectedThreadRepository.chatThreadHandler = threadsHandler.thread(threadList.first { it.id == threadId })
-                internalState.value = ThreadSelected
+                threadList.firstOrNull { it.id == threadId }?.let { thread ->
+                    selectedThreadRepository.chatThreadHandler = threadsHandler.thread(thread)
+                    internalState.value = ThreadSelected
+                } ?: run {
+                    _threadNotFound.update { true }
+                    logger.warning("Thread with id $threadId not found in thread list")
+                }
             }
         }
+    }
+
+    internal fun resetThreadNotFound() {
+        _threadNotFound.update { false }
     }
 
     private suspend fun createThreadWorker(response: Sequence<PreChatResponse>) =

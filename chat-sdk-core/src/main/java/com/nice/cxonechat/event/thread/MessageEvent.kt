@@ -18,6 +18,7 @@ package com.nice.cxonechat.event.thread
 import com.nice.cxonechat.internal.model.AttachmentModel
 import com.nice.cxonechat.internal.model.CustomFieldModel
 import com.nice.cxonechat.internal.model.network.ActionMessage
+import com.nice.cxonechat.internal.model.network.Parameters
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.thread.ChatThread
 import java.util.UUID
@@ -28,6 +29,7 @@ internal class MessageEvent(
     private val fields: List<CustomFieldModel>,
     private val authToken: String?,
     private val postback: String?,
+    private val parameters: Parameters? = null,
 ) : ChatThreadEvent() {
 
     val messageId: UUID = UUID.randomUUID()
@@ -43,6 +45,7 @@ internal class MessageEvent(
         attachments = attachments,
         fields = fields,
         token = authToken,
-        postback = postback
+        postback = postback,
+        parameters = parameters,
     )
 }

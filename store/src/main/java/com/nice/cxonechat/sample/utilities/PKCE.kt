@@ -16,9 +16,11 @@
 package com.nice.cxonechat.sample.utilities
 
 import android.os.Build
+import com.nice.cxonechat.sample.utilities.PKCE.MAX_CODE_VERIFIER_LENGTH
+import com.nice.cxonechat.sample.utilities.PKCE.MIN_CODE_VERIFIER_LENGTH
 import java.security.MessageDigest
 import java.security.SecureRandom
-import java.util.*
+import java.util.Base64
 import android.util.Base64 as AndroidUtilBase64
 
 /** PKCE authentication details. */

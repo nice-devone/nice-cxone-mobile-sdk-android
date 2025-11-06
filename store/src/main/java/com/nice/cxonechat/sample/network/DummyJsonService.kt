@@ -15,6 +15,7 @@
 
 package com.nice.cxonechat.sample.network
 
+import androidx.annotation.WorkerThread
 import com.nice.cxonechat.sample.data.models.Product
 import com.nice.cxonechat.sample.data.models.ProductList
 import com.nice.cxonechat.utilities.TaggingSocketFactory
@@ -70,7 +71,12 @@ interface DummyJsonService {
             isLenient = true
         }
 
-        /** singleton instance of DummyJsonService provided by retrofit. */
+        /**
+         * singleton instance of DummyJsonService provided by retrofit.
+         * Since this method can potentially create an instance of the service,
+         * it has to called from a background thread.
+         */
+        @get:WorkerThread
         val dummyJsonService: DummyJsonService by lazy {
             Retrofit.Builder()
                 .baseUrl("https://dummyjson.com")

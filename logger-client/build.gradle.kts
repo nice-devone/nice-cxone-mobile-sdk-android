@@ -1,0 +1,45 @@
+/*
+ * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
+ *
+ * Licensed under the NICE License;
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
+ *
+ * TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
+ * AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
+ * OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+ */
+
+import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
+
+plugins {
+    id("android-library-conventions")
+    id("android-kotlin-conventions")
+    id("android-docs-conventions")
+    id("android-test-conventions")
+    id("android-library-style-conventions")
+    id("publish-conventions")
+    alias(libs.plugins.kotlin.serialization) apply true
+}
+
+android {
+    namespace = "com.nice.cxonechat.log.client"
+    defaultConfig {
+        consumerProguardFiles("consumer-rules.pro")
+    }
+}
+
+mavenPublishing {
+    configure(AndroidSingleVariantLibrary("release", true, true))
+}
+
+dependencies {
+    api(project(":logger"))
+    implementation(libs.okhttp)
+    implementation(libs.retrofit.kotlinx.serialization)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.coroutines.core)
+}

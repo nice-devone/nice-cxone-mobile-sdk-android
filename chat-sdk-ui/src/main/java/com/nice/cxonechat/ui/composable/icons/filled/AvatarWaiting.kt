@@ -148,8 +148,8 @@ private var _avatarWaiting: ImageVector? = null
 
 @Preview
 @Composable
-private fun Preview() {
+private fun PreviewAvatarWaiting() {
     Box(modifier = Modifier.padding(12.dp)) {
-        Icon(imageVector = ChatIcons.AvatarWaiting, contentDescription = "AvatarWaiting", tint = ChatTheme.chatColors.onAccentHeader)
+        Icon(imageVector = ChatIcons.AvatarWaiting, contentDescription = "AvatarWaiting", tint = ChatTheme.chatColors.token.brand.primary)
     }
 }

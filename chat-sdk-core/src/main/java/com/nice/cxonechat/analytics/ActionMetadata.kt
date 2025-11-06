@@ -15,17 +15,16 @@
 
 package com.nice.cxonechat.analytics
 
-import com.nice.cxonechat.ChatEventHandlerActions
 import com.nice.cxonechat.Public
 
 /**
  * Transparent metadata received from proactive actions. You should use
  * these when notifying server about your events.
  *
- * @see ChatEventHandlerActions.proactiveActionClick
- * @see ChatEventHandlerActions.proactiveActionDisplay
- * @see ChatEventHandlerActions.proactiveActionFailure
- * @see ChatEventHandlerActions.proactiveActionSuccess
+ * @see com.nice.cxonechat.ChatEventHandlerActions.proactiveActionClick
+ * @see com.nice.cxonechat.ChatEventHandlerActions.proactiveActionDisplay
+ * @see com.nice.cxonechat.ChatEventHandlerActions.proactiveActionFailure
+ * @see com.nice.cxonechat.ChatEventHandlerActions.proactiveActionSuccess
  */
 @Public
 sealed interface ActionMetadata

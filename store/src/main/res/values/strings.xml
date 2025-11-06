@@ -14,8 +14,8 @@
   -->
 
 <resources>
-    <string name="app_name">NICE Store</string>
-    <string name="title_activity_store_front">StoreFrontActivity</string>
+    <string name="app_name" translatable="false">NiCE Store</string>
+    <string name="title_activity_store_front">NiCE Sample App</string>
     <string name="add_to_cart">Add to Cart</string>
     <string name="shopping_cart">Shopping Cart</string>
     <string name="continue_button">Continue</string>
@@ -24,11 +24,12 @@
     <string name="price_label">Price</string>
     <string name="total_label">Total</string>
     <string name="payment">Payment</string>
-    <string name="confirmation">
+    <string name="confirmation" translatable="false">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque luctus, mauris nec ultricies facilisis, magna nunc cursus dolor, ac lobortis orci lacus et lacus. Sed laoreet id nibh convallis varius. Vestibulum egestas consequat egestas. Proin et venenatis dolor. Curabitur in dolor nunc. Nam in orci tempor, dapibus nibh eget, egestas mi. Fusce et convallis dolor. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Duis tempor odio quis erat pretium cursus. Sed euismod turpis eu ipsum fringilla tincidunt. Sed dignissim, sem id vestibulum hendrerit, mauris ipsum aliquet velit, ac feugiat lectus ligula sed augue. Mauris et cursus erat, et gravida urna. Vestibulum ornare sagittis nisl, id auctor ex euismod id. Integer quis libero suscipit, iaculis enim a, iaculis dolor. Mauris ornare congue interdum.
     </string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
+    <string name="back">Back</string>
 
     <string name="content_description_dropdown_field_icon_is_selected">Item Selected</string>
     <string name="content_description_dropdown_field_icon_expandable">Open Options</string>
@@ -47,18 +48,55 @@
     <string name="unknown_error">Unknown Error</string>
     <string name="day">Day</string>
     <string name="night">Night</string>
+
+    <!-- UISettings ColorsView Strings -->
+    <!-- Brand Colors -->
     <string name="primary">Primary</string>
-    <string name="onPrimary">On Primary</string>
-    <string name="accent">Accent</string>
-    <string name="onAccent">On Accent</string>
+    <string name="on_primary">On Primary</string>
+    <string name="primary_container">Primary Container</string>
+    <string name="on_primary_container">On Primary Container</string>
+    <string name="secondary">Secondary</string>
+    <string name="on_secondary">On Secondary</string>
+    <string name="secondary_container">Secondary Container</string>
+    <string name="on_secondary_container">On Secondary Container</string>
+    <string name="brand">Brand</string>
+
+    <!-- Content Colors -->
+    <string name="content_primary">Content Primary</string>
+    <string name="tertiary">Tertiary</string>
+    <string name="inverse">Inverse</string>
+
+    <!-- Border Colors -->
+    <string name="border">Border</string>
+    <string name="subtle">Subtle</string>
+
+    <!-- Status Colors -->
+    <string name="status">Status</string>
+    <string name="status_success">Success</string>
+    <string name="status_on_success">On Success</string>
+    <string name="status_success_container">Success Container</string>
+    <string name="status_on_success_container">On Success Container</string>
+    <string name="status_warning">Warning</string>
+    <string name="status_on_warning">On Warning</string>
+    <string name="status_warning_container">Warning Container</string>
+    <string name="status_on_warning_container">On Warning Container</string>
+    <string name="status_error">Error</string>
+    <string name="status_on_error">On Error</string>
+    <string name="status_error_container">Error Container</string>
+    <string name="status_on_error_container">On Error Container</string>
+
+    <!-- Background Colors -->
     <string name="background">Background</string>
-    <string name="on_background">On Background</string>
+    <string name="surface">Surface</string>
+    <string name="variant">Variant</string>
+    <string name="emphasis">Emphasis</string>
+
     <string name="agent_background">Agent Background</string>
     <string name="agent_text">Agent Text</string>
     <string name="customer_background">Customer Background</string>
     <string name="customer_text">Customer Text</string>
-    <string name="channel_id">Channel Id</string>
-    <string name="brand_id">Brand Id</string>
+    <string name="channel_id" translatable="false">Channel Id</string>
+    <string name="brand_id" translatable="false">Brand Id</string>
     <string name="custom">Custom</string>
     <string name="open_chat">Open Chat</string>
     <string name="first_name">First Name</string>
@@ -81,12 +119,15 @@
     <string name="default_version_name">Preview</string>
     <string name="pick_a_logo_image">Pick a logo image</string>
 
-    <!-- UI Overrides -->
-    <string name="thread_list_title">Conversations</string>
+    <!-- Extra Custom Fields Strings -->
     <string name="remove_custom_field">Remove custom field %1$s</string>
     <string name="add_custom_field">Add custom field</string>
     <string name="new_custom_key">Key</string>
     <string name="new_custom_value">Value</string>
     <string name="extra_customer_fields">Additional customer fields</string>
     <string name="extra_contact_fields">Additional contact fields</string>
+
+    <!-- SDK not supported Dialog string -->
+    <string name="sdk_not_supported_title">SDK not supported</string>
+    <string name="sdk_not_supported_message">Your version of SDK is not supported anymore, please do upgrade.</string>
 </resources>

@@ -20,6 +20,7 @@ import com.nice.cxonechat.FakeChatStateListener.ChatStateConnection.Ready
 import com.nice.cxonechat.enums.CXoneEnvironment
 import com.nice.cxonechat.enums.ErrorType.RecoveringLivechatFailed
 import com.nice.cxonechat.internal.ChatThreadHandlerLiveChat.Companion.BEGIN_CONVERSATION_MESSAGE
+import com.nice.cxonechat.internal.model.network.Parameters
 import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.server.ServerRequest
 import com.nice.cxonechat.server.ServerResponse
@@ -52,7 +53,8 @@ internal class ChatLiveLegacyTest : AbstractChatTest() {
                 connection,
                 makeChatThread(TestUUIDValue, ""),
                 storage = storage,
-                message = BEGIN_CONVERSATION_MESSAGE
+                message = BEGIN_CONVERSATION_MESSAGE,
+                parameters = Parameters.Object(isInitialMessage = true)
             )
         ) {
             connect()

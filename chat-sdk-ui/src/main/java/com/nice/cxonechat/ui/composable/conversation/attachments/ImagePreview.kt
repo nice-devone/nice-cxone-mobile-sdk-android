@@ -16,16 +16,26 @@
 package com.nice.cxonechat.ui.composable.conversation.attachments
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.ui.composable.generic.PresetAsyncImage
 import com.nice.cxonechat.ui.util.contentDescription
+import java.util.UUID
 
 @Composable
-internal fun ImagePreview(attachment: Attachment, modifier: Modifier = Modifier) {
+internal fun ImagePreview(
+    attachment: Attachment,
+    modifier: Modifier = Modifier,
+    messageId: UUID? = null,
+) {
+    val cacheKey = rememberSaveable(messageId, attachment.friendlyName) {
+        "${messageId?.let { "${it}_" }}${attachment.friendlyName}"
+    }
     PresetAsyncImage(
         model = attachment.url,
+        cacheKey = cacheKey,
         contentDescription = attachment.contentDescription,
         contentScale = ContentScale.Crop,
         modifier = modifier,

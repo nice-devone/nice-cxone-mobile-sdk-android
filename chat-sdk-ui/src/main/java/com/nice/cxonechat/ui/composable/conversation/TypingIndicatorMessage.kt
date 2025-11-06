@@ -15,17 +15,19 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
-import android.content.res.Configuration
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.ui.R
+import com.nice.cxonechat.ui.composable.conversation.ContentType.Typing
 import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.SOLO
 import com.nice.cxonechat.ui.composable.generic.TypingIndicator
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
@@ -34,17 +36,18 @@ import com.nice.cxonechat.ui.domain.model.Person
 @Composable
 internal fun TypingIndicatorMessage(
     agent: Person,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val typing = stringResource(R.string.text_agent_typing)
 
     MessageFrame(
         position = SOLO,
+        messageContentType = Typing,
         isAgent = true,
         modifier = modifier,
         avatar = agent,
         colors = ChatTheme.chatColors.agent,
-        showFrame = true
+        showFrame = true,
     ) {
         TypingIndicator(
             modifier = Modifier
@@ -56,11 +59,16 @@ internal fun TypingIndicatorMessage(
     }
 }
 
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO or Configuration.UI_MODE_TYPE_NORMAL)
+@PreviewLightDark
 @Composable
 internal fun PreviewTypingIndicator() {
     ChatTheme {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier = Modifier
+                .systemBarsPadding()
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
             TypingIndicatorMessage(
                 Person(firstName = "Some", lastName = "User"),
             )

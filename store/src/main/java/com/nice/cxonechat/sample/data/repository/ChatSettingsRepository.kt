@@ -16,7 +16,6 @@
 package com.nice.cxonechat.sample.data.repository
 
 import android.content.Context
-import androidx.annotation.Keep
 import com.nice.cxonechat.sample.data.models.ChatSettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,8 +47,7 @@ class ChatSettingsRepository(
      *
      * @return newly loaded settings.
      */
-    @Keep // Remove once the  DE-117407 is resolved
-    fun load() = super.load(context).also {
+    suspend fun load() = super.load(context).also {
         mutableSettings.value = it
     }
 

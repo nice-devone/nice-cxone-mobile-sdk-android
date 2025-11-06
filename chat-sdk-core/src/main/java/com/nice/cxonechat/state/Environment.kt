@@ -54,4 +54,10 @@ interface Environment {
      * Chat sub-url. Usually defined as `/chat` suffix to [baseUrl]
      */
     val chatUrl: String
+
+    /**
+     * Url used for fetching logger configuration.
+     */
+    val loggerUrl: String
+       get () = ""
 }

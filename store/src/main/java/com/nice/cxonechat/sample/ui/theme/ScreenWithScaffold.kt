@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.Icons.AutoMirrored.Filled
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
@@ -33,7 +35,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.nice.cxonechat.sample.R.string
 import com.nice.cxonechat.sample.ui.theme.Strings.content
 import com.nice.cxonechat.sample.ui.theme.Strings.title
 import com.nice.cxonechat.ui.screen.ChatActivity
@@ -48,6 +52,7 @@ import kotlinx.coroutines.launch
  * @param title Title to be displayed in TopAppBar
  * @param modifier The Composable Modifier applied to the root view.
  * @param actions Actions to be displayed in TopAppBar
+ * @param onBackClick Onclick callback to perform action on back icon click
  * @param drawerContent Composable to be displayed in the slide out drawer.
  * @param content Content to be displayed in the body of the scaffold.
  */
@@ -56,6 +61,7 @@ fun AppTheme.ScreenWithScaffold(
     title: String,
     modifier: Modifier = Modifier,
     actions: @Composable RowScope.() -> Unit = {},
+    onBackClick: () -> Unit = {},
     drawerContent: @Composable ((() -> Unit) -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
@@ -83,7 +89,14 @@ fun AppTheme.ScreenWithScaffold(
                 }
             }
         }
-        else -> { {} }
+
+        else -> {
+            {
+                IconButton(onClick = onBackClick) {
+                    Icon(Filled.ArrowBack, stringResource(string.back))
+                }
+            }
+        }
     }
 
     val onOpenChat: (() -> Unit) = {

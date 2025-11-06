@@ -52,14 +52,23 @@ internal data class MessageContent(
      */
     @SerialName("postback")
     val postback: String? = null,
+
+    /**
+     * Parameters are the extra values to be passed along with a message.
+     * They will be received in response to handle conditions or perform specific actions.
+     */
+    @SerialName("parameters")
+    val parameters: Parameters? = null
 ) {
 
     constructor(
         message: String,
         postback: String? = null,
+        parameters: Parameters? = null
     ) : this(
         type = Text,
         payload = MessagePayload(text = message),
-        postback = postback
+        postback = postback,
+        parameters = parameters
     )
 }

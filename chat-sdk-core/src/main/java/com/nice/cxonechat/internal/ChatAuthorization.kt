@@ -28,23 +28,25 @@ import com.nice.cxonechat.internal.model.network.EventCustomerAuthorized
 import com.nice.cxonechat.internal.model.network.EventTokenRefreshed
 import com.nice.cxonechat.internal.socket.ErrorCallback.Companion.addErrorCallback
 import com.nice.cxonechat.internal.socket.EventCallback.Companion.addCallback
+import com.nice.cxonechat.log.LoggerScope
+import com.nice.cxonechat.log.debug
+import com.nice.cxonechat.log.scope
 import com.nice.cxonechat.util.UUIDProvider
 
 internal class ChatAuthorization(
     private val origin: ChatWithParameters,
     private val authorization: Authorization,
-) : ChatWithParameters by origin {
+) : ChatWithParameters by origin, LoggerScope by LoggerScope("ChatAuthorization", origin.entrails.logger) {
 
     private val delayedEventHandler: DelayUnauthorizedEventHandler =
         DelayUnauthorizedEventHandler(ChatEventHandlerImpl(this), this)
 
-    private var cancellables = registerCallbacks()
+    private var cancellables = Cancellable.noop
 
     init {
         if (storage.customerId == null) {
             connection = connection.asCopyable().copy(customerId = UUIDProvider.next().toString())
         }
-        authorizeCustomer()
         origin.eventHandlerProvider = ChatEventHandlerProvider { chat ->
             var handler: ChatEventHandler = delayedEventHandler
             handler = ChatEventHandlerTokenGuard(handler, chat)
@@ -62,31 +64,37 @@ internal class ChatAuthorization(
         getTokenRefreshFailed()
     )
 
-    private fun getCustomerAuthorized() = origin.socketListener.addCallback(EventCustomerAuthorized) { model ->
-        val authorizationEnabled = origin.configuration.isAuthorizationEnabled
-        connection = connection.asCopyable().copy(
-            firstName = if (authorizationEnabled) {
-                model.firstName ?: connection.firstName
-            } else {
-                connection.firstName
-            },
-            lastName = if (authorizationEnabled) {
-                model.lastName ?: connection.lastName
-            } else {
-                connection.lastName
-            },
-            customerId = model.id
-        )
-        storage.authToken = model.token
-        storage.authTokenExpDate = model.tokenExpiresAt
-        storage.customerId = connection.customerId
-        delayedEventHandler.triggerDelayedEvents()
+    private fun getCustomerAuthorized(): Cancellable = scope("EventCustomerAuthorized") {
+        origin.socketListener.addCallback(EventCustomerAuthorized) { model ->
+            debug("Customer authorized")
+            val authorizationEnabled = origin.configuration.isAuthorizationEnabled
+            connection = connection.asCopyable().copy(
+                firstName = if (authorizationEnabled) {
+                    model.firstName ?: connection.firstName
+                } else {
+                    connection.firstName
+                },
+                lastName = if (authorizationEnabled) {
+                    model.lastName ?: connection.lastName
+                } else {
+                    connection.lastName
+                },
+                customerId = model.id
+            )
+            storage.authToken = model.token
+            storage.authTokenExpDate = model.tokenExpiresAt
+            storage.customerId = connection.customerId
+            delayedEventHandler.triggerDelayedEvents()
+        }
     }
 
-    private fun getTokenRefresh() = socketListener.addCallback(EventTokenRefreshed) { model ->
-        storage.authToken = model.token
-        storage.authTokenExpDate = model.expiresAt
-        delayedEventHandler.triggerDelayedEvents()
+    private fun getTokenRefresh(): Cancellable = scope("EventTokenRefreshed") {
+        socketListener.addCallback(EventTokenRefreshed) { model ->
+            debug("Token refreshed")
+            storage.authToken = model.token
+            storage.authTokenExpDate = model.expiresAt
+            delayedEventHandler.triggerDelayedEvents()
+        }
     }
 
     private fun getCustomerReconnectFailed() = socketListener.addErrorCallback(ConsumerReconnectionFailed) {
@@ -97,12 +105,14 @@ internal class ChatAuthorization(
         chatStateListener?.onChatRuntimeException(AuthorizationError("Failed to refresh authorization token."))
     }
 
-    private fun authorizeCustomer() {
+    private fun authorizeCustomer() = scope("authorizeCustomer") {
+        debug("Authorizing customer...")
         delayedEventHandler.delayEvents()
         val event = when (storage.authToken == null) {
             true -> AuthorizeCustomerEvent(authorization.code, authorization.verifier)
             else -> ReconnectCustomerEvent
         }
+        debug("Triggering authorization event")
         events().trigger(event)
     }
 
@@ -112,9 +122,13 @@ internal class ChatAuthorization(
         origin.close()
     }
 
-    override fun connect(): Cancellable = origin.connect().also {
+    override fun connect(): Cancellable = scope("connect") {
+        debug("Connecting with authorization")
         cancellables.cancel()
         cancellables = registerCallbacks()
-        authorizeCustomer()
+        origin.connect().let {
+            authorizeCustomer()
+            Cancellable(it, cancellables)
+        }
     }
 }

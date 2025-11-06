@@ -41,7 +41,7 @@ open class PreferencesRepository<Type: Any>(
         }
     }
 
-    override fun doLoad(context: Context) = context.preferences.getString(key, null)
+    override suspend fun doLoad(context: Context) = context.preferences.getString(key, null)
 
     override fun doClear(context: Context) = context.preferences.edit {
         remove(key)

@@ -31,6 +31,8 @@ import com.nice.cxonechat.internal.model.ChatThreadMutable
 import com.nice.cxonechat.internal.model.ChatThreadMutable.Companion.asMutable
 import com.nice.cxonechat.internal.model.CustomFieldInternal
 import com.nice.cxonechat.internal.model.MessageModel
+import com.nice.cxonechat.internal.model.network.Parameters
+import com.nice.cxonechat.internal.serializer.Default
 import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.model.makeAgent
 import com.nice.cxonechat.model.makeChatThread
@@ -46,6 +48,7 @@ import com.nice.cxonechat.thread.ChatThreadState.Pending
 import com.nice.cxonechat.thread.ChatThreadState.Received
 import com.nice.cxonechat.thread.CustomField
 import com.nice.cxonechat.tool.nextString
+import com.nice.cxonechat.tool.serialize
 import com.nice.cxonechat.util.UUIDProvider
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -493,6 +496,35 @@ internal class ChatThreadHandlerTest : AbstractChatTest() {
 
         result shouldBe false
         chatThread.canAddMoreMessages shouldBe true
+    }
+
+    @Test
+    fun unsupported_message_created_triggers_answer() {
+        val id = chatThread.id
+        val messageObject = ServerResponse.Message.PluginMenu(id)
+        val messageModel = Default.serializer.decodeFromString<MessageModel>(messageObject.serialize())
+        val message = messageModel.toMessage() as Message.Unsupported
+        val expected = chatThread.asCopyable().copy(
+            contactId = TestContactId,
+            messages = listOfNotNull(message)
+        )
+        val actual = testCallback(::get) {
+            assertSendTexts(
+                ServerRequest.SendMessage(
+                    connection = connection,
+                    thread = chatThread,
+                    storage = storage,
+                    message = "Last agent's message is not supported in the mobile SDK.\nFallback text is:${message.text}",
+                    parameters = Parameters.Object(
+                        isUnsupportedMessageTypeAnswer = true
+                    )
+                ),
+                replaceDate = true
+            ) {
+                sendServerMessage(ServerResponse.MessageCreated(chatThread, messageObject))
+            }
+        }
+        assertEquals(expected, actual)
     }
 
     // ---

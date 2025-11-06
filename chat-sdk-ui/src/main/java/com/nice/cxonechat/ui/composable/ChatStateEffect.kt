@@ -45,6 +45,7 @@ import com.nice.cxonechat.ChatState.Offline
 import com.nice.cxonechat.ChatState.Prepared
 import com.nice.cxonechat.ChatState.Preparing
 import com.nice.cxonechat.ChatState.Ready
+import com.nice.cxonechat.ChatState.SdkNotSupported
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.Scaffold
 import com.nice.cxonechat.ui.util.Ignored
@@ -72,7 +73,7 @@ internal fun ChatStateEffect(
     LaunchedEffect(state, lifecycleState) {
         when (state) {
             // These states not require any action, so we ignore them
-            null, Initial, Preparing, Connecting, Connected -> Ignored
+            null, Initial, Preparing, Connecting, Connected, SdkNotSupported -> Ignored
 
             /*
              * If the chat is (or becomes) prepared/disconnected, then start a connect attempt,

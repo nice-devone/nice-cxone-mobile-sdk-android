@@ -18,81 +18,78 @@ package com.nice.cxonechat.ui.screen
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.SnackbarDuration.Short
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.window.DialogProperties
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nice.cxonechat.exceptions.RuntimeChatException
 import com.nice.cxonechat.exceptions.RuntimeChatException.AuthorizationError
 import com.nice.cxonechat.exceptions.RuntimeChatException.ServerCommunicationError
 import com.nice.cxonechat.ui.R
+import com.nice.cxonechat.ui.composable.ErrorAlertDialog
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.Scaffold
+import com.nice.cxonechat.ui.util.ErrorGroup
+import com.nice.cxonechat.ui.util.ErrorGroup.DO_NOTHING
 import com.nice.cxonechat.ui.util.Ignored
-import kotlinx.coroutines.flow.Flow
+import com.nice.cxonechat.ui.util.koinActivityViewModel
+import com.nice.cxonechat.ui.viewmodel.ChatStateViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.filterNotNull
 
 /**
  * Display chat errors to the user.
  * If the error [AuthorizationError] user will be notified that the chat will be terminated and the [onTerminalError] will be called.
  *
- * @param snackbarHostState [SnackbarHostState] to show the error message.
- * @param chatErrorStateFlow [Flow] of [RuntimeChatException] that will be observed for errors.
  * @param modifier [Modifier] to be applied to the dialog.
  * @param onTerminalError Callback to be invoked when the error is terminal, e.g. when the user acknowledges the error.
  */
 @Composable
 internal fun ChatErrorScreen(
-    snackbarHostState: SnackbarHostState,
-    chatErrorStateFlow: Flow<RuntimeChatException>,
     modifier: Modifier = Modifier,
     onTerminalError: () -> Unit,
 ) {
-    val context = LocalContext.current
-    when (val error = chatErrorStateFlow.collectAsStateWithLifecycle(null).value) {
-        null -> Ignored
+    val chatStateViewModel = koinActivityViewModel<ChatStateViewModel>()
+    val chatErrorState by chatStateViewModel.chatErrorState.collectAsState()
 
-        is AuthorizationError -> AlertDialog(
-            modifier = Modifier
-                .testTag("chat_error_dialog")
-                .then(modifier),
-            onDismissRequest = {
-                onTerminalError()
-            },
-            text = { Text(stringResource(R.string.chat_state_error_default_message)) },
-            confirmButton = {
-                TextButton(
-                    onClick = onTerminalError,
-                    modifier = Modifier.testTag("chat_error_close_button"),
-                ) {
-                    Text(stringResource(R.string.chat_state_error_action_close))
-                }
-            },
-            properties = DialogProperties(
-                dismissOnBackPress = false,
-                dismissOnClickOutside = false,
-            )
-        )
+    when (chatErrorState.errorGroup) {
+        DO_NOTHING -> Ignored
 
-        else -> LaunchedEffect(error) {
-            snackbarHostState.showSnackbar(
-                message = context.getString(R.string.chat_state_error_default_message),
-                actionLabel = context.getString(R.string.dismiss),
-                duration = Short,
+        ErrorGroup.HIGH ->
+            ChatTheme.ErrorAlertDialog(
+                title = stringResource(R.string.error_dialog_title),
+                body = stringResource(R.string.error_dialog_body),
+                buttonText = stringResource(R.string.error_dialog_close_button_text),
+                onConfirmClick = onTerminalError,
+                modifier = modifier
             )
-        }
+
+        ErrorGroup.LOW ->
+            ChatTheme.ErrorAlertDialog(
+                title = stringResource(R.string.error_dialog_title),
+                body = stringResource(R.string.error_dialog_body),
+                buttonText = stringResource(R.string.error_dialog_continue_button),
+                onConfirmClick = {
+                    chatStateViewModel.resetError()
+                },
+                modifier = modifier
+            )
+
+        ErrorGroup.LOW_SPECIFIC ->
+            ChatTheme.ErrorAlertDialog(
+                title = chatErrorState.title ?: stringResource(R.string.error_dialog_title),
+                body = chatErrorState.message ?: stringResource(R.string.error_dialog_body),
+                buttonText = stringResource(R.string.error_dialog_continue_button),
+                onConfirmClick = {
+                    chatStateViewModel.resetError()
+                },
+                modifier = modifier
+            )
     }
 }
 
@@ -102,7 +99,6 @@ private fun HandleChatErrorPreview() {
     ChatTheme {
         val snackbarHostState = remember { SnackbarHostState() }
         val chatErrorStateFlow: MutableStateFlow<RuntimeChatException?> = remember { MutableStateFlow(getServerErr()) }
-        val filteredFlow = remember { chatErrorStateFlow.filterNotNull() }
         ChatTheme.Scaffold(
             modifier = Modifier.systemBarsPadding(),
             snackbarHostState = snackbarHostState,
@@ -117,8 +113,6 @@ private fun HandleChatErrorPreview() {
                     }
                 }
                 ChatErrorScreen(
-                    snackbarHostState = snackbarHostState,
-                    chatErrorStateFlow = filteredFlow,
                     onTerminalError = {
                         chatErrorStateFlow.value = null
                     }

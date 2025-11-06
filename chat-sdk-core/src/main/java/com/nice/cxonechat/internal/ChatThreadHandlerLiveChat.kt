@@ -29,10 +29,12 @@ import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.updateWith
 import com.nice.cxonechat.internal.model.ChatThreadMutable
 import com.nice.cxonechat.internal.model.CustomFieldInternal.Companion.updateWith
+import com.nice.cxonechat.internal.model.MessageText
 import com.nice.cxonechat.internal.model.network.EventCaseStatusChanged
 import com.nice.cxonechat.internal.model.network.EventContactInboxAssigneeChanged
 import com.nice.cxonechat.internal.model.network.EventLiveChatThreadRecovered
 import com.nice.cxonechat.internal.model.network.EventSetPositionInQueue
+import com.nice.cxonechat.internal.model.network.Parameters.Object
 import com.nice.cxonechat.internal.socket.EventCallback.Companion.addCallback
 import com.nice.cxonechat.log.LoggerScope
 import com.nice.cxonechat.log.scope
@@ -40,6 +42,7 @@ import com.nice.cxonechat.log.warning
 import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.message.Message.Text
 import com.nice.cxonechat.message.MessageDirection
+import com.nice.cxonechat.message.OutboundMessage.Companion.LiveChatBeginOutboundMessage
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState.Closed
 import com.nice.cxonechat.thread.ChatThreadState.Pending
@@ -63,7 +66,7 @@ internal class ChatThreadHandlerLiveChat(
             if (isThreadCreated) {
                 chat.entrails.threading.background {
                     if (thread.messages.none { it.direction === MessageDirection.ToAgent } && thread.threadState === Pending) {
-                        origin.messages().send(BEGIN_CONVERSATION_MESSAGE)
+                        origin.messages().send(LiveChatBeginOutboundMessage(BEGIN_CONVERSATION_MESSAGE))
                     }
                 }
             }
@@ -150,9 +153,20 @@ internal class ChatThreadHandlerLiveChat(
     }
 
     internal companion object {
-        internal const val BEGIN_CONVERSATION_MESSAGE = "__Begin Livechat Conversation__"
+        internal const val BEGIN_CONVERSATION_MESSAGE = "Begin Conversation"
 
-        internal fun Iterable<Message>.removeConversationStarter() = filterNot(::isMessageConversationStart)
+        internal fun List<Message>.removeConversationStarter(): List<Message> {
+            return this.filterNot { message ->
+                (message as? MessageText)?.let {
+                    val isBeginLiveChat = when (val parameters = message.parameters) {
+                        is Object -> parameters.isInitialMessage == true
+                        else -> false
+                    }
+
+                    it.text == BEGIN_CONVERSATION_MESSAGE && isBeginLiveChat
+                } == true
+            }
+        }
 
         private fun isMessageConversationStart(it: Message) = (it as? Text)?.text == BEGIN_CONVERSATION_MESSAGE
 

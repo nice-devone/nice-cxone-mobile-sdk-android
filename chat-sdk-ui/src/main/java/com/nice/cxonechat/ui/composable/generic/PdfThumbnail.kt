@@ -16,6 +16,7 @@
 package com.nice.cxonechat.ui.composable.generic
 
 import android.annotation.SuppressLint
+import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -35,11 +36,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.data.source.AttachmentDataSource
+import com.nice.cxonechat.ui.screen.ChatActivity
 import com.nice.cxonechat.ui.util.PdfRender
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -53,12 +56,17 @@ internal fun PdfThumbnail(
     fallbackSize: ThumbnailSize = ThumbnailSize.LARGE,
     showFrame: (Boolean) -> Unit,
 ) {
-    val attachmentDataSource = koinInject<AttachmentDataSource>()
+    val attachmentDataSource: AttachmentDataSource? =
+        if (!LocalInspectionMode.current && LocalActivity.current is ChatActivity) {
+            koinInject<AttachmentDataSource>()
+        } else {
+            null
+        }
     var pdfRender by remember { mutableStateOf<PdfRender?>(null) }
     val uri = attachment.url
     LaunchedEffect(attachment) {
         withContext(Dispatchers.Unconfined) {
-            val fd = attachmentDataSource.getFileDescriptor(uri, attachment.friendlyName).getOrNull()
+            val fd = attachmentDataSource?.getFileDescriptor(uri, attachment.friendlyName)?.getOrNull()
             if (fd != null) {
                 pdfRender = PdfRender.create(fd, 1).getOrNull()
             }
@@ -70,8 +78,8 @@ internal fun PdfThumbnail(
                 showFrame(false)
                 FallbackThumbnail(
                     uri = uri,
-                    mimeType = attachment.mimeType,
                     modifier = fallbackModifier,
+                    mimeType = attachment.mimeType,
                     thumbnailSize = fallbackSize
                 )
             }
@@ -128,13 +136,13 @@ private fun PdfThumbnailContent(
                     )
                 } ?: FallbackThumbnail(
                     uri = uri,
-                    mimeType = mimeType,
                     modifier = fallbackModifier
                         .height(
                             with(LocalDensity.current.density) {
                                 page.heightByWidth(constraints.maxWidth).dp
                             }
                         ),
+                    mimeType = mimeType,
                 )
             }
         }

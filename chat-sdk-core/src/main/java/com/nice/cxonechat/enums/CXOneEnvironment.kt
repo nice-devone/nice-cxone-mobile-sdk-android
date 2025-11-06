@@ -36,7 +36,8 @@ enum class CXoneEnvironment(val value: Environment) {
             baseUrl = "https://channels-de-na1.niceincontact.com/",
             socketUrl = "wss://chat-gateway-de-na1.niceincontact.com",
             originHeader = "https://livechat-de-na1.niceincontact.com",
-            chatUrl = "https://channels-de-na1.niceincontact.com/chat/"
+            chatUrl = "https://channels-de-na1.niceincontact.com/chat/",
+            loggerUrl = "https://app-de-na1.niceincontact.com/logger-public"
         )
     ),
 
@@ -50,7 +51,8 @@ enum class CXoneEnvironment(val value: Environment) {
             baseUrl = "https://channels-de-eu1.niceincontact.com/",
             socketUrl = "wss://chat-gateway-de-eu1.niceincontact.com",
             originHeader = "https://livechat-de-eu1.niceincontact.com",
-            chatUrl = "https://channels-de-eu1.niceincontact.com/chat/"
+            chatUrl = "https://channels-de-eu1.niceincontact.com/chat/",
+            loggerUrl = "https://app-de-eu1.niceincontact.com/logger-public"
         )
     ),
 
@@ -64,7 +66,8 @@ enum class CXoneEnvironment(val value: Environment) {
             baseUrl = "https://channels-de-au1.niceincontact.com/",
             socketUrl = "wss://chat-gateway-de-au1.niceincontact.com",
             originHeader = "https://livechat-de-au1.niceincontact.com",
-            chatUrl = "https://channels-de-au1.niceincontact.com/chat/"
+            chatUrl = "https://channels-de-au1.niceincontact.com/chat/",
+            loggerUrl = "https://app-de-au1.niceincontact.com/logger-public"
         )
     ),
 
@@ -78,7 +81,8 @@ enum class CXoneEnvironment(val value: Environment) {
             baseUrl = "https://channels-de-ca1.niceincontact.com/",
             socketUrl = "wss://chat-gateway-de-ca1.niceincontact.com",
             originHeader = "https://livechat-de-ca1.niceincontact.com",
-            chatUrl = "https://channels-de-ca1.niceincontact.com/chat/"
+            chatUrl = "https://channels-de-ca1.niceincontact.com/chat/",
+            loggerUrl = "https://app-de-ca1.niceincontact.com/logger-public"
         )
     ),
 
@@ -92,7 +96,8 @@ enum class CXoneEnvironment(val value: Environment) {
             baseUrl = "https://channels-de-uk1.niceincontact.com/",
             socketUrl = "wss://chat-gateway-de-uk1.niceincontact.com",
             originHeader = "https://livechat-de-uk1.niceincontact.com",
-            chatUrl = "https://channels-de-uk1.niceincontact.com/chat/"
+            chatUrl = "https://channels-de-uk1.niceincontact.com/chat/",
+            loggerUrl = "https://app-de-uk1.niceincontact.com/logger-public"
         )
     ),
 
@@ -106,7 +111,8 @@ enum class CXoneEnvironment(val value: Environment) {
             baseUrl = "https://channels-de-jp1.niceincontact.com/",
             socketUrl = "wss://chat-gateway-de-jp1.niceincontact.com",
             originHeader = "https://livechat-de-jp1.niceincontact.com",
-            chatUrl = "https://channels-de-jp1.niceincontact.com/chat/"
+            chatUrl = "https://channels-de-jp1.niceincontact.com/chat/",
+            loggerUrl = "https://app-de-jp1.niceincontact.com/logger-public"
         )
     ),
 }

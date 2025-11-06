@@ -15,5 +15,5 @@
   -->
 
 <resources>
-    <drawable name="ic_chat_push_service">@drawable/logo</drawable>
+    <drawable name="ic_chat_push_service">@drawable/ic_notification</drawable>
 </resources>

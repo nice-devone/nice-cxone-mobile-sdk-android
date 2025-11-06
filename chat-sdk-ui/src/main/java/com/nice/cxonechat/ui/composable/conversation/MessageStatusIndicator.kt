@@ -59,7 +59,7 @@ private fun SendingIcon(modifier: Modifier = Modifier) {
         painter = painterResource(R.drawable.ic_message_sent),
         contentDescription = stringResource(R.string.status_sending),
         modifier = modifier,
-        colorFilter = tint(ChatTheme.chatColors.messageSent),
+        colorFilter = tint(ChatTheme.chatColors.token.brand.primary),
     )
 }
 
@@ -69,7 +69,7 @@ private fun SentIcon(modifier: Modifier = Modifier) {
         painter = painterResource(R.drawable.ic_message_sent),
         contentDescription = stringResource(R.string.status_sent),
         modifier = modifier,
-        colorFilter = tint(ChatTheme.chatColors.messageSending),
+        colorFilter = tint(ChatTheme.chatColors.token.brand.primary),
     )
 }
 
@@ -79,7 +79,7 @@ private fun DeliveredIcon(modifier: Modifier = Modifier) {
         painter = painterResource(R.drawable.ic_message_delivered),
         contentDescription = stringResource(R.string.status_delivered),
         modifier = modifier,
-        colorFilter = tint(ChatTheme.colorScheme.secondary),
+        colorFilter = tint(ChatTheme.chatColors.token.brand.primary),
     )
 }
 
@@ -89,7 +89,7 @@ private fun FailedIcon(modifier: Modifier = Modifier) {
         painter = painterResource(R.drawable.ic_message_error),
         contentDescription = stringResource(R.string.status_failed),
         modifier = modifier,
-        colorFilter = tint(ChatTheme.colorScheme.error),
+        colorFilter = tint(ChatTheme.chatColors.token.status.error),
     )
 }
 
@@ -99,7 +99,7 @@ private fun ReadIcon(modifier: Modifier = Modifier) {
         painter = painterResource(R.drawable.ic_message_read),
         contentDescription = stringResource(R.string.status_read),
         modifier = modifier,
-        colorFilter = tint(ChatTheme.colorScheme.secondary),
+        colorFilter = tint(ChatTheme.chatColors.token.brand.primary),
     )
 }
 

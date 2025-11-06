@@ -40,6 +40,7 @@ internal data class EventMessageCreated(
     val threadName get() = data.thread.threadName
 
     val message get() = data.message.toMessage()
+    val popup get() = data.message.toPopup()
 
     val threadState
         get() = if (contactStatus === ContactStatus.Closed) {

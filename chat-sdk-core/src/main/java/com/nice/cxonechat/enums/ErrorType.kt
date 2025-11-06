@@ -59,4 +59,7 @@ internal enum class ErrorType(val value: String) {
 
     @SerialName("S3EventLoadFailed")
     S3EventLoadFailed("S3EventLoadFailed"),
+
+    @SerialName("CreateOrUpdateVisitorFailed")
+    CreateOrUpdateVisitorFailed("CreateOrUpdateVisitorFailed"),
 }

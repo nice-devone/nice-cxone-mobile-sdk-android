@@ -22,7 +22,7 @@ import com.nice.cxonechat.ui.domain.model.prechat.PreChatResponse
 /**
  * Check if all required survey items have an appropriate response.
  */
-fun isSurveyResponseValid(survey: PreChatSurvey, responses: Iterable<PreChatResponse>): Boolean {
+internal fun isSurveyResponseValid(survey: PreChatSurvey, responses: Iterable<PreChatResponse>): Boolean {
     val required = survey.fields
         .filter(FieldDefinition::isRequired)
         .toSet()

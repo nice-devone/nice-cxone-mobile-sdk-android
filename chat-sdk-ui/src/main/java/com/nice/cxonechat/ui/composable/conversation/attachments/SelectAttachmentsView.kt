@@ -44,8 +44,8 @@ import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.ui.composable.conversation.AttachmentProvider
 import com.nice.cxonechat.ui.composable.conversation.PreviewAttachments
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
-import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -74,46 +74,38 @@ fun SelectAttachmentsView(
     val viewModel = remember { SelectionViewModel(attachments, onAttachmentTapped, onShare) }
     ModalBottomSheet(
         onDismissRequest = onCancel,
-        sheetGesturesEnabled = true,
-        containerColor = colorScheme.background,
-        contentColor = colorScheme.onBackground,
-        dragHandle = { BottomSheetDefaults.DragHandle(color = colorScheme.surfaceDim) },
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        modifier = Modifier
+        dragHandle = { BottomSheetDefaults.DragHandle() },
+        containerColor = chatColors.token.background.surface.subtle,
+        contentColor = chatColors.token.content.primary,
+        modifier = modifier
             .testTag("select_attachments_view")
-            .systemBarsPadding()
-            .then(modifier),
+            .systemBarsPadding(),
     ) {
         AttachmentsView(viewModel)
     }
 }
 
 @Composable
-private fun AttachmentsView(viewModel: SelectionViewModel) {
+private fun ColumnScope.AttachmentsView(viewModel: SelectionViewModel) {
     val selection by viewModel.selection.collectAsState()
-    Surface(
-        modifier = Modifier.testTag("attachments_view"),
+    val selecting = viewModel.selecting.collectAsState().value
+    Column(
+        modifier = Modifier
+            .padding(horizontal = space.xl)
+            .weight(1f),
     ) {
-        Column {
-            val selecting = viewModel.selecting.collectAsState().value
-            Column(
-                modifier = Modifier
-                    .padding(horizontal = space.xl)
-                    .weight(1f),
-            ) {
-                SelectAttachmentsTopBar(selecting, viewModel::toggleSelecting)
-                GridView(viewModel)
-            }
-            SelectAttachmentsBottomBar(
-                selecting = selecting,
-                selection = selection,
-                onSelectAll = remember { viewModel::selectAll },
-                onSelectNone = remember { viewModel::selectNone },
-                onShare = remember { viewModel.onShare },
-                onShareAll = remember { { viewModel.onShare(viewModel.attachments) } },
-            )
-        }
+        SelectAttachmentsTopBar(selecting, viewModel::toggleSelecting)
+        GridView(viewModel)
     }
+    SelectAttachmentsBottomBar(
+        selecting = selecting,
+        selection = selection,
+        onSelectAll = remember { viewModel::selectAll },
+        onSelectNone = remember { viewModel::selectNone },
+        onShare = remember { viewModel.onShare },
+        onShareAll = remember { { viewModel.onShare(viewModel.attachments) } },
+    )
 }
 
 @Composable
@@ -142,10 +134,11 @@ private fun ColumnScope.GridView(
                 AttachmentFramedPreview(
                     attachment = attachment,
                     modifier = Modifier
-                        .height(224.dp)
+                        .height(220.dp)
                         .testTag("attachment_preview_$i"),
                     selected = isSelected,
                     selectionFrame = true,
+                    selectionFrameColor = chatColors.token.border.default,
                     selectionCircle = selecting,
                     onClick = remember { viewModel::onClick },
                     onLongClick = remember { viewModel::onLongClick },
@@ -245,6 +238,24 @@ private fun SelectAttachmentsPreview() {
     val onShare: (Collection<Attachment>) -> Unit = {}
     ChatTheme {
         val viewModel = remember { SelectionViewModel(attachments, onAttachmentTapped, onShare) }
-        AttachmentsView(viewModel)
+        Column {
+            AttachmentsView(viewModel)
+        }
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun SelectAttachmentsViewPreview() {
+    val attachments = remember { PreviewAttachments.with(6).toList() }
+    ChatTheme {
+        Surface(modifier = Modifier) {
+            SelectAttachmentsView(
+                attachments = attachments,
+                onAttachmentTapped = {},
+                onShare = {},
+                onCancel = {},
+            )
+        }
     }
 }

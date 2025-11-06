@@ -37,9 +37,14 @@ internal data class Space(
     val customerPadding: PaddingValues = PaddingValues(start = customer),
     val agentPadding: PaddingValues = PaddingValues(end = customer),
     val messagePadding: PaddingValues = PaddingValues(horizontal = xl, vertical = semiLarge),
-    val audioMessagePadding: PaddingValues = PaddingValues(start = xl, end = xl, top = semiLarge, bottom = 6.dp),
+    val emojiPadding: PaddingValues = PaddingValues(vertical = xSmall),
+    val unsupportedMessagePadding: PaddingValues = PaddingValues(start = xl, end = xl, top = semiLarge, bottom = medium),
+    val audioMessagePadding: PaddingValues = PaddingValues(start = xl, end = xl, top = semiLarge, bottom = 3.dp),
+    val audioRecordingTextPadding: PaddingValues = PaddingValues(start = 6.dp, end = medium),
+    val userInputUnderlinePadding: PaddingValues = PaddingValues(start = semiLarge, end = semiLarge, bottom = 6.dp),
+    val quickReplyMessagePadding: PaddingValues = PaddingValues(start = xl, end = xl, top = semiLarge, bottom = medium),
     val attachmentMessagePadding: PaddingValues = PaddingValues(horizontal = semiLarge, vertical = semiLarge),
-    val richListPickerTextPadding: PaddingValues = PaddingValues(horizontal = 10.dp, vertical = 17.dp),
+    val richListPickerTextPadding: PaddingValues = PaddingValues(start = xl, end = xl, top = semiLarge, bottom = medium),
 
     val clickableSize: Dp = 48.dp,
     val treeFieldIndent: Dp = large,
@@ -49,6 +54,9 @@ internal data class Space(
     val messageAvatarBottomPadding: Dp = 22.dp,
     val messageAvatarSize: Dp = 24.dp,
     val listPickerIconSize: Dp = 64.dp,
+    val bottomSheetTitleIconSize: Dp = 40.dp,
+    val bottomSheetActionItemSize: Dp = 32.dp,
+    val listPickerItemImageSize: Dp = 32.dp,
 
     val chipMinSize: Dp = xxl,
     val chipSpace: Dp = medium,
@@ -77,14 +85,10 @@ internal data class Space(
     val attachmentUploadPreviewSize: DpSize = DpSize(width = 72.dp, height = 64.dp),
     /** Clickable size of the icon for removing the attachment before upload. */
     val attachmentUploadRemoveClickableSize: Dp = 32.dp,
-    /** Size of the icon for removing the attachment before upload. */
-    val attachmentUploadRemoveIconSize: Dp = 21.dp,
     /** size of loading progress indicator. */
     val loadingIndicatorSize: Dp = 72.dp,
     /** Size of the icon which will trigger video playback. */
-    val playVideoIconSize: Dp = 27.78.dp,
-    /** Size of the icon which will trigger video playback, adjusted for placement in tight space. */
-    val playVideoIconSmallSize: DpSize = DpSize(17.86046.dp, 15.87597.dp),
+    val playVideoIconSize: Dp = 32.dp,
     /** Size of the icon used as a placeholder for the video when it's player is preparing or in case of an error. */
     val playStatusIconSize: Dp = 128.dp,
     /** Space between the audio player icons. */
@@ -92,7 +96,7 @@ internal data class Space(
     /** Size of the icon used to play/pause the audio. */
     val audioPlayerPlayIconSize: Dp = clickableSize,
     /** Size of the icons used to seek the audio track. */
-    val audioPlayerSecondaryIconSize: Dp = 34.dp,
+    val audioPlayerSecondaryIconSize: Dp = 35.dp,
 
     /** Minimal height of the popup button. */
     val popupButtonMinHeight: Dp = 49.5.dp,
@@ -108,6 +112,40 @@ internal data class Space(
     val popupHeaderPaddingValues: PaddingValues = PaddingValues(start = 8.dp, top = 8.dp, end = 8.dp, bottom = 22.dp),
     /** Padding around the popup body slot. */
     val popupContentPaddingValues: PaddingValues = PaddingValues(start = 24.dp, top = 28.dp, end = 24.dp, bottom = 24.dp),
+    /** Size of the icon used in the tooltip message subframe. */
+    val tooltipIconSize: Dp = 16.dp,
+    /** Minimal size of the attachment preview - large variant. */
+    val attachmentPreviewLargeSize: DpSize = DpSize(width = 170.dp, height = 217.dp),
+    /** Minimal size of the attachment preview - regular variant - as a width percentage fraction. */
+    val attachmentPreviewRegularWidthPercentage: Float = 0.2718f,
+    /** Minimal size of the attachment preview - small variant. */
+    val attachmentPreviewSmallSize: DpSize = DpSize(width = 72.dp, height = 64.dp),
+    /** Size of the icon used in the position in queue screen. */
+    val positionInQueueIconSize: Dp = 56.dp,
+    /** Extra padding for the leading icon vector in the header bar. */
+    val headerBarLeadingIconPadding: Dp = 11.2.dp,
+    /** Size of the fallback thumbnail in the attachment preview - large variant. */
+    val attachmentPreviewFallbackLargeSize: DpSize = DpSize(width = 126.dp, height = 164.dp),
+    /** Height of the label shown on top of the fallback thumbnail in the attachment preview - small variant. */
+    val attachmentPreviewFallbackSmallSizeLabelHeight: Dp = 14.dp,
+    /** Size of the fallback thumbnail in the attachment preview - small variant. */
+    val attachmentPreviewFallbackSmallSize: DpSize = DpSize(width = 40.dp, height = 52.dp),
+    /** Padding around the attachment preview content. */
+    val attachmentPreviewPaddingValues: PaddingValues = PaddingValues(horizontal = small, vertical = 6.dp),
+
+    val bottomSheetCardHeight: Dp = 72.dp,
+    val bottomSheetBorderWidth: Dp = 1.dp,
+    val bottomSheetActionRowHeight: Dp = 56.dp,
+    /** Horizontal padding for the image in the offline screen. */
+    val offlineImageHorizontalPadding: Dp = 55.dp,
+    /** Minimum screen height for showing the image in the offline screen. */
+    val offlineImageMinimumScreenHeight: Dp = 530.dp,
+    /** Size of the icon in the offline screen header bar. */
+    val offlineIconSize: Dp = 56.dp,
+    /** Size of the icon in the swipe to dismiss component. */
+    val swipeToDismissIconSize: Dp = 30.dp,
+    /** Extra padding for the leading icon vector in the header bar. */
+    val offlineLeadingIconPadding: Dp = 11.2.dp,
 )
 
 internal val LocalSpace = staticCompositionLocalOf {

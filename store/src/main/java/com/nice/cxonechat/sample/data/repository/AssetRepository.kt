@@ -36,7 +36,7 @@ open class AssetRepository<Type : Any>(
         throw RepositoryError("An attempt was made to write to asset: $name")
     }
 
-    override fun doLoad(context: Context): String? =
+    override suspend fun doLoad(context: Context): String? =
         try {
             context.assets.open(name).use {
                 doLoad(it)

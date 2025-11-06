@@ -52,6 +52,7 @@ import com.nice.cxonechat.ui.composable.icons.ChatIcons
 import com.nice.cxonechat.ui.composable.icons.filled.Cancel
 import com.nice.cxonechat.ui.composable.icons.filled.CancelDark
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.typography
 
@@ -67,8 +68,8 @@ internal fun AttachmentPreviewBar(
     ) {
         HorizontalDivider(modifier = Modifier.padding(horizontal = space.medium))
         LazyRow(
-            horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier
+                .fillMaxWidth()
                 .padding(horizontal = space.medium, vertical = 11.dp),
         ) {
             itemsIndexed(attachments, key = { i, item -> item.hashCode() }) { i, attachment ->
@@ -111,8 +112,8 @@ private fun Item(onAttachmentClick: (Attachment) -> Unit, attachment: Attachment
     ) {
         AttachmentFramedSmallPreview(
             modifier = Modifier
-                .size(space.attachmentUploadPreviewSize)
-                .padding(bottom = space.medium),
+                .padding(bottom = space.xSmall)
+                .size(space.attachmentUploadPreviewSize),
             attachment = attachment,
         )
         Text(
@@ -138,7 +139,6 @@ private fun CancelIcon(onAttachmentRemoved: (Attachment) -> Unit, attachment: At
         Image(
             imageVector = if (isSystemInDarkTheme()) ChatIcons.CancelDark else ChatIcons.Cancel,
             contentDescription = "Remove prepared attachment ${attachment.friendlyName}",
-            modifier = Modifier.size(space.attachmentUploadRemoveIconSize)
         )
     }
 }
@@ -149,7 +149,7 @@ private fun AttachmentPreviewBarPreview() {
     var showAttachment: Boolean by remember { mutableStateOf(true) }
     val attachments = remember { PreviewAttachments.choices.toMutableStateList() }
     ChatTheme {
-        Surface {
+        Surface(color = colorScheme.background) {
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {

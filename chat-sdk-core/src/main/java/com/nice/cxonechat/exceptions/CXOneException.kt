@@ -63,6 +63,14 @@ class InvalidStateException internal constructor(message: String) : CXoneExcepti
 class InvalidParameterException internal constructor(message: String) : CXoneException(message)
 
 /**
+ * The SDK version is not supported by the backend.
+ *
+ * Troubleshooting: Update the SDK to the latest version.
+ */
+@Public
+class SdkVersionNotSupported internal constructor(message: String) : CXoneException(message)
+
+/**
  * The method being called is not supported with the current channel configuration.
  */
 @Public
@@ -165,6 +173,7 @@ sealed class RuntimeChatException(message: String, cause: Throwable? = null) : C
      * - SendingTranscriptFailed
      * - SendingOfflineMessageFailed
      * - MetadataLoadFailed
+     * - SendingVisitorInfoFailed
      */
     @Public
     class ServerCommunicationError internal constructor(message: String) : RuntimeChatException(message)

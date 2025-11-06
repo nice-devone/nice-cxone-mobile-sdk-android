@@ -22,6 +22,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -43,14 +44,15 @@ internal fun EditThreadNameDialog(
     ) {
         ChatTheme.Dialog(
             title = stringResource(string.update_thread_name),
+            modifier = Modifier.testTag("edit_thread_name_dialog"),
             onDismiss = onCancel,
             confirmButton = {
                 TextButton(
                     onClick = { onAccept(name.text.toString()) },
-                    modifier = Modifier.testTag("ok_button"),
+                    modifier = Modifier.testTag("confirm_button"),
                     enabled = name.text != threadName,
                 ) {
-                    Text(text = stringResource(string.ok))
+                    Text(text = stringResource(string.confirm), style = ChatTheme.chatTypography.dialogButtonText)
                 }
             },
             dismissButton = {
@@ -58,15 +60,14 @@ internal fun EditThreadNameDialog(
                     onClick = onCancel,
                     modifier = Modifier.testTag("cancel_button"),
                 ) {
-                    Text(text = stringResource(string.cancel))
+                    Text(text = stringResource(string.cancel), style = ChatTheme.chatTypography.dialogButtonText)
                 }
-            },
-            modifier = Modifier.testTag("edit_thread_name_dialog")
+            }
         ) {
             ChatTheme.TextField(
                 label = stringResource(string.label_thread_name),
                 placeholder = stringResource(string.enter_thread_name),
-                minimizedLabelBackground = ChatTheme.colorScheme.surfaceContainerHigh,
+                minimizedLabelBackground = Color.Unspecified,
                 value = name,
                 modifier = Modifier.testTag("edit_thread_name_text_field"),
             )
@@ -78,7 +79,7 @@ internal fun EditThreadNameDialog(
 @Composable
 private fun PreviewEditThreadDialog() {
     ChatTheme {
-        var name = ""
+        var name = "Test"
 
         EditThreadNameDialog(
             threadName = name,

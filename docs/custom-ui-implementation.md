@@ -28,7 +28,7 @@ credentials file.
   chat.setDeviceToken(yourDeviceToken)
 ```
 
-[Case Study Push Notifications](cs-push-notifications.md) offers more detail about this topic.
+[Case Study Push Notifications](chat-sdk-core/cs-push-notifications.md) offers more detail about this topic.
 
 ## Conversations (formerly Threads)
 

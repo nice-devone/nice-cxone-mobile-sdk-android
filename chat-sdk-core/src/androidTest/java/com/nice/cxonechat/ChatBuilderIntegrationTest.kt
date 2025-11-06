@@ -18,7 +18,6 @@ package com.nice.cxonechat
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.filters.SmallTest
-import com.nice.cxonechat.ChatBuilder.OnChatBuiltResultCallback
 import com.nice.cxonechat.internal.model.EnvironmentInternal
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -37,7 +36,8 @@ internal class ChatBuilderIntegrationTest {
             baseUrl = "https://channels-eu1-qa.brandembassy.com/",
             socketUrl = "wss://chat-gateway-eu1-qa.brandembassy.com",
             originHeader = "https://livechat-eu1-qa.brandembassy.com",
-            chatUrl = "https://channels-eu1-qa.brandembassy.com/chat/"
+            chatUrl = "https://channels-eu1-qa.brandembassy.com/chat/",
+            loggerUrl = "https://app-eu1-qa.brandembassy.com/logger-public",
         )
         val config = SocketFactoryConfiguration(environment, 6450, "chat_f62c9eaf-f030-4d0d-aa87-6e8a5aed3c55")
         val latch = CountDownLatch(1)

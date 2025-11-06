@@ -15,6 +15,7 @@
 
 package com.nice.cxonechat.ui.composable
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -55,8 +56,10 @@ internal fun ThreadContentView(
     onTriggerRecording: suspend () -> Boolean,
     chatThreadViewModel: ChatThreadViewModel,
     chatViewModel: ChatViewModel,
+    onError: (String) -> Unit,
     audioViewModel: AudioRecordingViewModel,
     activityLauncher: SelectAttachmentActivityLauncher,
+    snackBarHostState: SnackbarHostState,
 ) {
     val owner = LocalLifecycleOwner.current
     LaunchedEffect(chatThreadViewModel, owner) {
@@ -65,6 +68,7 @@ internal fun ThreadContentView(
     val dialogState = chatViewModel.dialogShown.collectAsState()
     val threadState by chatThreadViewModel.threadStateFlow.collectAsState()
     val messages by chatThreadViewModel.messages.collectAsState(emptyList())
+    val showMessageProcessing by chatThreadViewModel.showMessageProcessing.collectAsState()
     LaunchedEffect(threadState, messages) {
         if (threadState.ordinal >= ChatThreadState.Loaded.ordinal) chatThreadViewModel.reportThreadRead()
     }
@@ -85,7 +89,10 @@ internal fun ThreadContentView(
             .blur(if (dialogState.value == Preparing) 4.dp else 0.dp)
             .semantics {
             testTagsAsResourceId = true // Enabled for UI test automation
-        }
+        },
+        showMessageProcessing = showMessageProcessing,
+        onError = onError,
+        snackBarHostState = snackBarHostState
     )
     ThreadDialogView(
         onAttachmentClicked = onAttachmentClicked,
@@ -131,6 +138,7 @@ private fun uiState(
     onMoreClicked = chatThreadViewModel::selectAttachments,
     onShare = onShare,
     isArchived = chatThreadViewModel.isArchived,
+    onReplyButtonClicked = chatThreadViewModel::reportReplyButtonClicked,
     isLiveChat = chatThreadViewModel.isLiveChat,
     pendingAttachments = chatThreadViewModel.pendingAttachments,
     onRemovePendingAttachment = chatThreadViewModel::removePendingAttachment,

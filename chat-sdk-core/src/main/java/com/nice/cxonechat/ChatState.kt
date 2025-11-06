@@ -64,4 +64,9 @@ enum class ChatState {
 
     /** the connection was involuntarily lost. */
     ConnectionLost,
+
+    /**
+     * The SDK version is not supported by the backend.
+     */
+    SdkNotSupported
 }

@@ -16,12 +16,12 @@
 package com.nice.cxonechat.ui.composable.generic
 
 import android.net.Uri
-import androidx.annotation.OptIn
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Surface
@@ -37,7 +37,6 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.media3.common.Player
-import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import com.nice.cxonechat.ui.composable.generic.AudioPlayerState.Loading
 import com.nice.cxonechat.ui.composable.generic.AudioPlayerState.Ready
@@ -64,7 +63,6 @@ import kotlin.time.Duration.Companion.seconds
  *
  * The [Player] instance is released when the composable is disposed.
  */
-@OptIn(UnstableApi::class)
 @Composable
 internal fun AudioPlayerBasicView(
     uri: Uri,
@@ -89,20 +87,18 @@ internal fun AudioPlayerBasicView(
     }
 }
 
-@OptIn(UnstableApi::class)
 @Composable
 private fun LoadingView(modifier: Modifier) {
     val placeholderTime = remember { Duration.INFINITE.toTimeStamp(Locale.current) }
     AudioPlayerContent(
-        playerState = PlaceholderState,
         currentTime = placeholderTime,
-        remainingTime = placeholderTime,
         animatedProgress = 0f,
-        modifier = modifier
+        remainingTime = placeholderTime,
+        playerState = PlaceholderState,
+        modifier = modifier,
     )
 }
 
-@OptIn(UnstableApi::class)
 @Composable
 private fun AudioPlayerView(
     player: Player,
@@ -125,11 +121,11 @@ private fun AudioPlayerView(
         animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec
     )
     AudioPlayerContent(
-        modifier = modifier,
         currentTime = currentTime,
         animatedProgress = animatedProgress,
         remainingTime = remainingTime,
         playerState = playerState,
+        modifier = modifier,
         onSeekBack = remember(player) { { player.seekBack() } },
         onSeekForward = remember(player) { { player.seekForward() } },
         onPlayPause = remember(player) { { Util.handlePlayPauseButtonAction(player) } },
@@ -145,11 +141,11 @@ internal sealed interface AudioPlayerState {
 @Composable
 private fun AudioPlayerPreview() {
     ChatTheme {
-        BoxWithConstraints {
+        BoxWithConstraints(Modifier.systemBarsPadding()) {
             val maxAttachmentWidth = this.maxWidth.times(0.8f)
             Surface(
-                color = chatColors.agent.background,
-                contentColor = chatColors.agent.foreground,
+                color = chatColors.token.brand.primary,
+                contentColor = chatColors.token.content.primary,
                 shape = chatShapes.bubbleSoloShape,
                 modifier = Modifier.widthIn(max = maxAttachmentWidth),
             ) {

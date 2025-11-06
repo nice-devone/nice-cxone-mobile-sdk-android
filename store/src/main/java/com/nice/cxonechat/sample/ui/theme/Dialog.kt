@@ -19,9 +19,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.nice.cxonechat.ui.R
 
 /**
  * App themed dialog box.
@@ -29,6 +33,7 @@ import androidx.compose.ui.tooling.preview.Preview
  * @param modifier Compose Modifier to apply.
  * @param title optional title to display
  * @param onDismiss dismiss action when clicking outside of dialog.
+ * @param containerColor option to set dialog background color.
  * @param confirmButton "confirm" button displayed in last position.
  * @param dismissButton "dismiss" button displayed in first position.
  * @param content Composable content of alert.
@@ -38,18 +43,20 @@ internal fun AppTheme.Dialog(
     modifier: Modifier = Modifier,
     title: String? = null,
     onDismiss: () -> Unit,
+    containerColor: Color = colorScheme.background,
     confirmButton: @Composable () -> Unit,
     dismissButton: (@Composable () -> Unit)? = null,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = confirmButton,
         modifier = modifier,
+        containerColor = containerColor,
         dismissButton = dismissButton,
         text = {
             Column {
-                title?.let { Text(title, modifier = Modifier.padding(bottom = space.medium), style = typography.titleLarge) }
+                title?.let { Text(title, modifier = Modifier.padding(bottom = space.medium), style = typography.headlineSmall) }
                 content()
             }
         }
@@ -94,8 +101,8 @@ private fun TextDialogPreview() {
             title = "Title",
             text = "Body",
             onDismiss = { },
-            dismissButton = { AppTheme.OutlinedButton(text = "Dismiss") {} },
-            confirmButton = { AppTheme.OutlinedButton(text = "Confirm") {} }
+            dismissButton = { TextButton(onClick = {}) { Text(text = stringResource(R.string.cancel)) } },
+            confirmButton = { TextButton(onClick = {}) { Text(text = stringResource(R.string.ok)) } }
         )
     }
 }
@@ -107,8 +114,8 @@ private fun DialogPreview() {
         AppTheme.Dialog(
             title = "Title",
             onDismiss = {},
-            dismissButton = { AppTheme.OutlinedButton(text = "Dismiss") {} },
-            confirmButton = { AppTheme.OutlinedButton(text = "Confirm") {} }
+            dismissButton = { TextButton(onClick = {}) { Text(text = stringResource(R.string.cancel)) } },
+            confirmButton = { TextButton(onClick = {}) { Text(text = stringResource(R.string.ok)) } }
         ) {
             Text("Body")
         }

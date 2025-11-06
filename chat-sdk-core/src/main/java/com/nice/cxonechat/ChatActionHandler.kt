@@ -18,7 +18,7 @@ package com.nice.cxonechat
 import com.nice.cxonechat.analytics.ActionMetadata
 
 /**
- * Handler allowing to listen to popups whenever they are available. You are
+ * Handler allowing to listen to global popups whenever they are available. You are
  * encouraged to create this instance as soon as possible. It immediately
  * after being created starts to listen to the popup events and keeps the latest
  * one until it's observed.

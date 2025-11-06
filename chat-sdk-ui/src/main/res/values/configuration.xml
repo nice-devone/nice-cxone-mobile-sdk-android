@@ -15,9 +15,9 @@
 
 <resources>
     <!-- This value is used to allow correct routing of local notifications to the chat activity. -->
-    <string name="local_notification_data_scheme">com.nice.cxonechat.ui</string>
+    <string name="local_notification_data_scheme" translatable="false">com.nice.cxonechat.ui</string>
     <!-- This value is used to add delay to show close button while loading. -->
     <integer name="loading_close_button_delay_ms">20000</integer>
     <!-- This value is used to define id of a notification channel used by the Chat UI for both local and push notifications. -->
-    <string name="default_notification_channel_id">com.nice.cxonechat.ui.notifications</string>
+    <string name="default_notification_channel_id" translatable="false">com.nice.cxonechat.ui.notifications</string>
 </resources>

@@ -42,6 +42,7 @@ import com.nice.cxonechat.sample.viewModel.UiState.Login
 import com.nice.cxonechat.sample.viewModel.UiState.OAuth
 import com.nice.cxonechat.sample.viewModel.UiState.Prepared
 import com.nice.cxonechat.sample.viewModel.UiState.Preparing
+import com.nice.cxonechat.sample.viewModel.UiState.SdkNotSupported
 import com.nice.cxonechat.sample.viewModel.UiState.UiSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,22 +58,30 @@ import org.koin.android.annotation.KoinViewModel
 @KoinViewModel
 class StoreViewModel(
     application: Application,
-    /** store repository containing cart and product information. */
-    val storeRepository: StoreRepository,
-    /** sdk configuration repository containing list of predefined SDK configurations. */
-    val sdkConfigurationListRepository: SdkConfigurationListRepository,
-    /** chat configuration and settings repository containing the current configuration. */
-    val chatSettingsRepository: ChatSettingsRepository,
-    /** UI settings repository saving and managing UI configuration. */
-    val uiSettingsRepository: UISettingsRepository,
+    lazyStoreRepository: Lazy<StoreRepository>,
+    lazySdkConfigurationListRepository: Lazy<SdkConfigurationListRepository>,
+    lazyChatSettingsRepository: Lazy<ChatSettingsRepository>,
+    lazyUiSettingsRepository: Lazy<UISettingsRepository>,
     /** Persistence for extra custom fields. */
-    val extraCustomFieldRepository: ExtraCustomFieldRepository,
+    private val extraCustomFieldRepository: ExtraCustomFieldRepository,
     /** chat repository containing current chat. */
     val chatProvider: ChatInstanceProvider,
     /** logger for store messages. */
     logger: Logger,
 ) : AndroidViewModel(application), LoggerScope by LoggerScope(TAG, logger) {
     private val uiStateStore = MutableStateFlow<UiState>(Initial)
+
+    /** chat configuration and settings repository containing the current configuration. */
+    val chatSettingsRepository: ChatSettingsRepository by lazyChatSettingsRepository
+
+    /** UI settings repository saving and managing UI configuration. */
+    val uiSettingsRepository: UISettingsRepository by lazyUiSettingsRepository
+
+    /** store repository containing cart and product information. */
+    val storeRepository: StoreRepository by lazyStoreRepository
+
+    /** sdk configuration repository containing list of predefined SDK configurations. */
+    val sdkConfigurationListRepository: SdkConfigurationListRepository by lazySdkConfigurationListRepository
 
     private val context
         get() = getApplication() as Context
@@ -92,7 +101,12 @@ class StoreViewModel(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            if (chatSettingsRepository.load() == null) setUiState(Configuration) else chatProvider.prepare(context)
+            val chatSettings = chatSettingsRepository.load()
+            if (chatSettings == null) {
+                setUiState(Configuration)
+            } else {
+                chatProvider.prepare(context, chatSettings.sdkConfiguration?.asSocketFactoryConfiguration)
+            }
             uiSettingsRepository.load()
             sdkConfigurationListRepository.load()
         }
@@ -219,6 +233,7 @@ class StoreViewModel(
                 ChatState.Initial -> setUiState(Configuration)
                 ChatState.Preparing -> setUiState(Preparing)
                 ChatState.Prepared -> onConnected()
+                ChatState.SdkNotSupported -> setUiState(SdkNotSupported)
                 else -> Ignored
             }
         }

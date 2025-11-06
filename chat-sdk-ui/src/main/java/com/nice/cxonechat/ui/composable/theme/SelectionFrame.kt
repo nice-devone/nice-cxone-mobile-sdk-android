@@ -25,6 +25,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,7 +36,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons.Outlined
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material3.Icon
@@ -51,14 +51,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.ui.R
+import com.nice.cxonechat.ui.composable.icons.ChatIcons
+import com.nice.cxonechat.ui.composable.icons.filled.SelectionFrameEmpty
+import com.nice.cxonechat.ui.composable.icons.notint.SelectionFrame
+import com.nice.cxonechat.ui.composable.icons.notint.SelectionFrameDark
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatShapes
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 
@@ -68,14 +71,16 @@ internal fun ChatTheme.SelectionFrame(
     framed: Boolean = false,
     selectionCircle: Boolean = framed,
     selected: Boolean = false,
+    color: Color = chatColors.token.border.default,
     content: @Composable () -> Unit,
 ) {
     ShapedFrame(
         modifier = modifier,
         framed = framed,
+        color = color,
         content = content,
     ) {
-        SelectionFrameOverlay(selectionCircle, selected)
+        SelectionFrameOverlay(selectionCircle, selected, color)
     }
 }
 
@@ -83,6 +88,7 @@ internal fun ChatTheme.SelectionFrame(
 internal fun ChatTheme.SelectionFrameOverlay(
     showSelectionOverlay: Boolean = false,
     selected: Boolean = false,
+    color: Color = chatColors.token.border.default,
 ) {
     AnimatedVisibility(
         visible = showSelectionOverlay,
@@ -91,20 +97,20 @@ internal fun ChatTheme.SelectionFrameOverlay(
     ) {
         val imageMod = Modifier
             .padding(10.dp)
-            .size(16.dp)
-            .shadow(1.dp, shape = CircleShape)
+            .size(24.dp)
         Crossfade(selected) { isSelected ->
             if (isSelected) {
                 Image(
-                    painter = painterResource(R.drawable.ic_selection_frame_selected),
+                    imageVector = if (isSystemInDarkTheme()) ChatIcons.SelectionFrameDark else ChatIcons.SelectionFrame,
                     contentDescription = stringResource(R.string.content_description_selection_frame_selected),
                     modifier = imageMod,
                 )
             } else {
-                Image(
-                    painter = painterResource(R.drawable.ic_selection_frame),
+                Icon(
+                    imageVector = ChatIcons.SelectionFrameEmpty,
                     contentDescription = stringResource(R.string.content_description_selection_frame),
                     modifier = imageMod,
+                    tint = color
                 )
             }
         }
@@ -116,6 +122,7 @@ internal fun ChatTheme.ShapedFrame(
     modifier: Modifier = Modifier,
     framed: Boolean = false,
     shape: Shape = chatShapes.selectionFrame,
+    color: Color = chatColors.token.border.default,
     content: @Composable () -> Unit,
     overlayContent: @Composable () -> Unit = {},
 ) {
@@ -130,7 +137,7 @@ internal fun ChatTheme.ShapedFrame(
                 .let {
                     if (framed) {
                         it.border(
-                            border = BorderStroke(space.framePreviewWidth, chatColors.leadingMessageIconBorder),
+                            border = BorderStroke(space.framePreviewWidth, color),
                             shape = shape
                         )
                     } else {
@@ -168,7 +175,11 @@ private fun PreviewSelectionFrame() {
                     selected = selected,
                     selectionCircle = selectionCircle,
                 ) {
-                    Icon(Outlined.Favorite, contentDescription = null, Modifier.background(Color.Green))
+                    Icon(
+                        Outlined.Favorite,
+                        contentDescription = null,
+                        Modifier.background(chatColors.token.brand.primaryContainer.copy(alpha = 0.5f))
+                    )
                 }
                 PreviewSwitchRow("Selected", selected, onCheckedChange = { selected = it })
                 PreviewSwitchRow("Framed", framed, onCheckedChange = { framed = it })

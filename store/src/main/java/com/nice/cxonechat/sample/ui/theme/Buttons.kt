@@ -15,6 +15,7 @@
 
 package com.nice.cxonechat.sample.ui.theme
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -31,6 +32,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.sample.R.drawable
 import com.nice.cxonechat.sample.R.string
 import androidx.compose.material3.FloatingActionButton as MaterialFab
@@ -55,7 +57,11 @@ fun AppTheme.OutlinedButton(
 ) {
     OutlinedButton(
         onClick = onClick,
-        modifier = modifier,
+        modifier = Modifier
+            .testTag("button_$text")
+            .then(modifier),
+        border = BorderStroke(width = 1.dp, color = colorScheme.primary),
+        shape = Shapes.medium,
         enabled = enabled,
         colors = buttonColors(isDefault),
     ) {

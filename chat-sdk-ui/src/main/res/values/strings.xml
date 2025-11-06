@@ -13,167 +13,368 @@
   ~ FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
   -->
 
-<resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!--
+      General UI actions and buttons
+      These are used for common dialog actions and confirmations throughout the chat UI.
+    -->
+    <!-- Button label for confirming an action in dialogs and popups -->
     <string name="ok">OK</string>
+    <!-- Button label for cancelling an action in dialogs and popups -->
     <string name="cancel">Cancel</string>
+    <!-- Button label for completing an action, e.g. form submission -->
     <string name="done">Done</string>
-    <string name="disconnect">Disconnect</string>
-    <string name="dismiss">Dismiss</string>
+    <!-- Button to open custom fields editor in pre-chat or thread details -->
     <string name="change_details_label">Change custom fields</string>
+    <!-- Action to set or edit the conversation/thread name -->
     <string name="change_thread_name">Set conversation name</string>
+    <!-- Button label for sending a chat message -->
     <string name="text_send">Send</string>
+    <!-- Label indicating an option was selected (e.g. quick reply, list picker) -->
     <string name="action_was_selected">Selected</string>
+    <!-- Button label for selecting an item from a list or picker -->
     <string name="select">Select</string>
+    <!-- Button label for confirming a selection or action -->
+    <string name="confirm">Confirm</string>
+    <!-- Button label for selecting all items in a list -->
+    <string name="select_all">All</string>
+    <!-- Button label for deselecting all items in a list -->
+    <string name="select_none">None</string>
+    <!-- Action to select items in a list -->
+    <string name="select_items">Select items</string>
 
+    <!--
+      Thread and conversation management
+    -->
+    <!-- Labels for thread/conversation state in the conversation list -->
     <string-array name="thread_state_names">
         <item>Current</item>
         <item>Archived</item>
     </string-array>
+    <!-- Title for the conversation/thread list screen -->
+    <string name="thread_list_title">Conversations</string>
+    <!-- Content description for archive conversation button -->
+    <string name="archive_thread_content_description">Archive conversation</string>
+    <!-- Label for thread/conversation name field -->
+    <string name="label_thread_name">Conversation name</string>
+    <!-- Banner or label for archived threads -->
+    <string name="label_thread_archived">This conversation was archived</string>
+    <!-- Label for closed live chat thread -->
+    <string name="label_livechat_thread_archived">This conversation was closed.</string>
+    <!-- Empty state label for thread list -->
+    <string name="label_no_threads">No conversations</string>
 
-    <string name="unsupported_type_title">Unsupported Document Type</string>
-    <string name="unsupported_type_message">You do not have a viewer for documents of type %1$s installed. Visit the google play store for options.</string>
-
-    <string name="title_attachment_picker">Select Attachment</string>
-
-    <string name="permission_requested">Permission Requested</string>
-    <string name="notifications_rationale">The application would like to send you notifications if your agent sends you messages when the application is suspended.</string>
-    <string name="no_notifications_title">Notifications Unavailable</string>
-    <string name="no_notifications_message">The application can not send you notifications if your agent sends you messages when the application is suspended.</string>
-    <string name="notification_channel_title">Chat notifications</string>
-
-    <string name="attachment_type_camera_image">Camera - Photo</string>
-    <string name="attachment_type_camera_video">Camera - Video</string>
-    <string name="attachment_type_media">Media Gallery</string>
-    <string name="attachment_type_file">File</string>
-
-    <string name="warning_thread_creation_forbidden">Chat configuration only allows usage of one conversation. Please use existing conversation to continue.</string>
-    <string name="warning_threads_refresh_required">Please refresh the conversation list before attempting to create a new conversation.</string>
-    <string name="warning_general_failure">Unable to finish action, due to the unhandled exception. Please check log for details and/or report the issue.</string>
-    <string name="warning_missing_prechat_survey_response">Response to the prechat survey is missing required fields.</string>
-    <string name="warning_missing_prechat_survey_response_failure">Unable to finish action. Response to the prechat survey is missing required fields.</string>
-    <string name="warning_invalid_fields">Some of the fields contain invalid values</string>
-
-    <string name="error_required_field">Required</string>
-    <string name="error_email_validation">Invalid E-mail Address</string>
-    <string name="error_value_validation">Invalid Value</string>
-    <string name="error_validation_label">%1$s - %2$s</string>
-    <string name="error_invalid_number">Invalid Number</string>
-    <string name="error_invalid_integer">Invalid Integer</string>
-    <string name="error_invalid_color">Not a valid color</string>
-    <string name="error_missing_attachments">Missing attachments in attachment message.</string>
-
-    <string name="recording_audio_hint">Recording…</string>
-    <string name="recording_audio_permission_rationale">Application requires write access to external storage and permission to record audio for this functionality</string>
-    <string name="recording_audio_permission_denied_title">Audio message recording unavailable</string>
-    <string name="recording_audio_permission_denied_body">Application is not able to record audio messages without permission to write access to external storage and permission to record audio</string>
-    <string name="recording_audio_preview_label">Audio message…</string>
-    <string name="recording_audio_preview_message">Please review the recorded audio message</string>
-    <string name="recording_audio_failed_to_start">Failed to start audio recording</string>
-    <string name="recording_audio_failed">Audio recording has failed</string>
-    <string name="record_audio_start_content_description">Record audio message</string>
-    <string name="record_audio_delete_content_description">Delete recorded audio message</string>
-    <string name="record_audio_stop_content_description">Stop audio recording</string>
-    <string name="record_audio_failed_cleanup">Unable to delete temporary audio recording</string>
-
-    <string name="chat_state_error_default_message">Chat has encountered error</string>
-    <string name="chat_state_error_action_close">Close Chat</string>
+    <!--
+      Chat state and error actions
+    -->
+    <!-- Button label for closing the chat -->
+    <string name="close_chat">Close chat</string>
+    <!-- Action label for closing chat in offline state (references close_chat) -->
+    <string name="chat_offline_action_close">@string/close_chat</string>
+    <!-- Button label for closing the chat during loading state -->
     <string name="loading_close_button_text">Close the Chat</string>
 
-    <string name="edit_custom_field_title">Edit pre-chat survey custom fields</string>
-
-    <string name="content_description_icon_is_selected">%1$s is selected</string>
-    <string name="content_description_tree_field_node_icon_expandable">Open Options</string>
-    <string name="content_description_dropdown_field_icon_is_selected">Item Selected</string>
-    <string name="content_description_dropdown_field_icon_expandable">Open Options</string>
-
-    <string name="archive_thread_content_description">Archive conversation</string>
-    <!-- Override this value for different thread list title -->
-    <string name="thread_list_title">Conversations</string>
-
+    <!--
+      Chat message input and status
+    -->
+    <!-- Hint in the message input field -->
     <string name="hint_enter_a_message">Type a message…</string>
+    <!-- Typing indicator for agent -->
     <string name="text_agent_typing">Agent is typing…</string>
+    <!-- Loading more messages indicator in chat -->
     <string name="text_loading_more_messages">Loading</string>
+    <!-- Message for unsupported message types in chat -->
     <string name="text_unsupported_message_type">Unsupported message type</string>
+    <!-- Content description for text input field (accessibility) -->
     <string name="content_description_text_input">Text input</string>
+    <!-- Title for image preview screen -->
     <string name="image_preview_title">Image preview</string>
-    <string name="update_thread_name">Update Conversation Name</string>
-    <string name="enter_thread_name">Enter Conversation Name</string>
+    <!-- Title for video preview screen -->
     <string name="video_preview_title">Video preview</string>
-    <string name="preparing_sdk">Preparing Chat</string>
+    <!-- Message shown while SDK is initializing -->
+    <string name="preparing_sdk">Preparing chat</string>
+    <!-- Message read status label -->
     <string name="status_read">Read</string>
-    <string name="share_attachment_others">Share attachment %1$s +%2$d others</string>
-    <string name="share_attachment">Share attachment %1$s</string>
-    <string name="share_attachment_selected">Share selected attachment</string>
-    <string name="select_all">All</string>
-    <string name="select_none">None</string>
-    <string name="content_description_share_all">Share all attachments</string>
-    <string name="content_description_back_button">Back</string>
-    <string name="attachments_title">Attachments</string>
-    <string name="extra_attachments_count">+%1$s</string>
+    <!-- Message sent status label -->
     <string name="status_sent">Sent</string>
+    <!-- Message delivered status label -->
     <string name="status_delivered">Delivered</string>
+    <!-- Message sending status label -->
     <string name="status_sending">Sending</string>
+    <!-- Message failed status label -->
     <string name="status_failed">Failed</string>
-    <string name="select_items">Select items</string>
+    <!-- General preparing indicator -->
     <string name="preparing">Preparing</string>
-    <string name="prepare_attachments_failure">Unable to prepare attachments for sharing, please try again later</string>
+    <!-- General loading indicator -->
     <string name="loading">Loading…</string>
+    <!-- Message for delayed operations -->
     <string name="loading_delay_message">The operation is taking longer than expected.</string>
+    <!-- Offline status label -->
     <string name="offline">Offline</string>
+    <!-- Banner for offline state -->
     <string name="offline_banner">We are currently offline.</string>
+    <!-- Message for offline state -->
     <string name="offline_message">Please check back soon.</string>
+    <!-- User is next in queue label -->
     <string name="position_in_queue_next">You are next in line.</string>
-    <string name="position_in_queue_cardinal">You are number %1$d in line.</string>
+    <!-- User's position in queue label -->
+    <string name="position_in_queue_cardinal">You are number <xliff:g example="5" id="counter">%1$d</xliff:g> in line.</string>
+    <!-- Supporting text for queue position card, one line shouldn't be wider than 30 characters. -->
     <string name="position_in_queue_supporting_text">Please hold, we\'ll be with you shortly.\nYour patience is appreciated!</string>
-    <string name="label_thread_archived">This conversation was archived</string>
-    <string name="content_description_url_link">URL Link</string>
-    <string name="option_selected">Option Selected</string>
 
-    <string name="attachment_upload_failure">Attachment upload failure</string>
-    <string name="attachment_not_supported">Selected attachment type is not supported for upload by this application.</string>
-    <string name="attachment_too_large">Selected attachment is too large. Current maximum size is %1$d MB.</string>
-    <string name="attachment_read_error">Unable to read selected attachment.</string>
-    <string name="invalid_attachments_message_template">Unable to upload following attachments: %1$s</string>
-    <string name="invalid_attachment_template">Uri: %1$s, Reason: %2$s</string>
-
+    <!--
+      Conversation end and livechat
+    -->
+    <!-- Button label for ending a conversation -->
     <string name="action_end_conversation">End conversation</string>
-
-    <string name="livechat_conversation_closed_message">You have chatted with:</string>
+    <!-- Message shown when conversation is closed with agent name -->
+    <string name="livechat_conversation_closed_message">You chatted with</string>
+    <!-- Message shown when conversation is closed without agent -->
     <string name="livechat_conversation_closed_message_no_agent">This conversation was closed.</string>
+    <!-- Button to start a new chat -->
     <string name="livechat_new_chat">Start a new chat</string>
+    <!-- Button to return to conversation transcript -->
     <string name="livechat_show_transcript">Back to conversation</string>
-    <string name="livechat_close_chat">Close the chat</string>
-    <string name="label_livechat_thread_archived">This conversation was closed.</string>
+    <!-- Button to close live chat -->
+    <string name="livechat_close_chat">Close chat</string>
+    <!-- Options menu for conversation -->
     <string name="livechat_conversation_options">Conversation options</string>
-    <string name="content_description_selection_frame">Selectable item</string>
-    <string name="content_description_selection_frame_selected">Item selected</string>
-    <string name="items_selected">%1$s item(s) selected</string>
-    <string name="content_description_play_video">Play video</string>
-    <string name="label_no_threads">No Conversations</string>
-    <string name="label_thread_name">Conversation Name</string>
-    <string name="content_description_play">Play</string>
-    <string name="content_description_pause">Pause</string>
-    <string name="content_description_document_preview">Preview thumbnail for %1$s file</string>
-    <string name="fallback_document_initial_extension">N/A</string>
 
+    <!--
+      Document and attachment support
+    -->
+    <!-- Dialog title for unsupported document type error -->
+    <string name="unsupported_type_title">Unsupported document type</string>
+    <!-- Error message when user tries to open unsupported document type -->
+    <string name="unsupported_type_message">You do not have a viewer for documents of type %1$s installed. Visit the google play store for options.</string>
+    <!-- Title for attachment picker dialog -->
+    <string name="title_attachment_picker">Select attachment</string>
+    <!-- Title for attachments screen or section -->
+    <string name="attachments_title">Attachments</string>
+    <!-- Label for extra attachments count (e.g. +3) -->
+    <string name="extra_attachments_count">+%1$s</string>
+    <!-- Share multiple attachments action label -->
+    <string name="share_attachment_others">Share attachment <xliff:g example="IMAG_0001.jpg" id="file_name">%1$s</xliff:g> + <xliff:g example="5" id="item_count">%2$d</xliff:g> others</string>
+    <!-- Share single attachment action label -->
+    <string name="share_attachment">Share attachment %1$s</string>
+    <!-- Share selected attachment action label -->
+    <string name="share_attachment_selected">Share selected attachment</string>
+    <!-- Content description for share all attachments button (accessibility) -->
+    <string name="content_description_share_all">Share all attachments</string>
+    <!-- Label for selected items count in multi-select lists -->
+    <string name="items_selected"><xliff:g example="5" id="item_count">%1$s</xliff:g> item(s) selected</string>
+    <!-- Error preparing attachments for sharing -->
+    <string name="prepare_attachments_failure">Unable to prepare attachments for sharing, please try again later</string>
+
+    <!--
+      Attachment picker options
+    -->
+    <!-- Option for taking a photo with camera -->
+    <string name="attachment_type_camera_image">Camera - photo</string>
+    <!-- Option for recording a video with camera -->
+    <string name="attachment_type_camera_video">Camera - video</string>
+    <!-- Option for picking an image or video from gallery -->
+    <string name="attachment_type_media">Media gallery</string>
+    <!-- Option for picking a file from device storage -->
+    <string name="attachment_type_file">File</string>
+
+    <!--
+      Attachment upload and error messages
+    -->
+    <!-- Error message for failed attachment upload -->
+    <string name="attachment_upload_failure">Attachment upload failure</string>
+    <!-- Error message for unsupported file type during attachment upload -->
+    <string name="attachment_not_supported">Unable to upload attachment(s) due to invalid file type</string>
+    <!-- Error message for oversized attachments -->
+    <string name="attachment_too_large">Attachment(s) size greater than <xliff:g example="40" id="file_size">%1$d</xliff:g> MB</string>
+    <!-- Error message for unreadable attachment -->
+    <string name="attachment_read_error">Unable to read selected attachment.</string>
+    <!-- Template for invalid attachments error message -->
+    <string name="invalid_attachments_message_template">Unable to upload attachment(s) <xliff:g example="IMAGE_0001.jpg" id="filename">%1$s</xliff:g></string>
+    <!-- Template for single invalid attachment upload error, message just states attachment name -->
+    <string name="invalid_attachment_template"><xliff:g example="IMAGE_0001.jpg" id="filename">%1$s</xliff:g></string>
+
+    <!--
+      Warnings and validation errors
+    -->
+    <!-- Warning when only one conversation is allowed -->
+    <string name="warning_thread_creation_forbidden">Chat configuration only allows usage of one conversation. Please use existing conversation to continue.</string>
+    <!-- Warning to refresh thread list before creating new conversation -->
+    <string name="warning_threads_refresh_required">Please refresh the conversation list before attempting to create a new conversation.</string>
+    <!-- General failure warning for unhandled exceptions -->
+    <string name="warning_general_failure">Unable to finish action, due to the unhandled exception. Please check log for details and/or report the issue.</string>
+    <!-- Warning for missing required fields in pre-chat survey -->
+    <string name="warning_missing_prechat_survey_response">Response to the pre-chat survey is missing required fields.</string>
+    <!-- Failure due to missing required fields in pre-chat survey -->
+    <string name="warning_missing_prechat_survey_response_failure">Unable to finish action. Response to the prechat survey is missing required fields.</string>
+    <!-- Warning for invalid field values in forms -->
+    <string name="warning_invalid_fields">Some of the fields contain invalid values</string>
+
+    <!--
+      Field validation errors
+    -->
+    <!-- Validation error for required field -->
+    <string name="error_required_field">Required</string>
+    <!-- Validation error for invalid email address -->
+    <string name="error_email_validation">Invalid e-mail address</string>
+    <!-- Validation error for invalid value -->
+    <string name="error_value_validation">Invalid value</string>
+    <!-- Validation error for invalid number -->
+    <string name="error_invalid_number">Invalid number</string>
+    <!-- Validation error for invalid integer -->
+    <string name="error_invalid_integer">Invalid integer</string>
+    <!-- Error for missing attachments in attachment message -->
+    <string name="error_missing_attachments">Missing attachments in attachment message.</string>
+
+    <!--
+      Audio recording and playback
+    -->
+    <!-- Audio recording indicator shown while recording a voice message -->
+    <string name="recording_audio_hint">Recording…</string>
+    <!-- Permission rationale dialog for audio recording feature -->
+    <string name="recording_audio_permission_rationale">Application requires write access to external storage and permission to record audio for this functionality</string>
+    <!-- Dialog title when audio recording is unavailable due to permissions -->
+    <string name="recording_audio_permission_denied_title">Audio message recording unavailable</string>
+    <!-- Dialog message when audio recording is unavailable due to permissions -->
+    <string name="recording_audio_permission_denied_body">Application is not able to record audio messages without permission to write access to external storage and permission to record audio</string>
+    <!-- Label for previewing a recorded audio message -->
+    <string name="recording_audio_preview_label">Audio message…</string>
+    <!-- Prompt to review the recorded audio message before sending -->
+    <string name="recording_audio_preview_message">Please review the recorded audio message</string>
+    <!-- Error message when audio recording fails to start -->
+    <string name="recording_audio_failed_to_start">Failed to start audio recording</string>
+    <!-- General error message for failed audio recording -->
+    <string name="recording_audio_failed">Audio recording has failed</string>
+    <!-- Content description for the button to start audio recording -->
+    <string name="record_audio_start_content_description">Record audio message</string>
+    <!-- Content description for the button to delete a recorded audio message -->
+    <string name="record_audio_delete_content_description">Delete recorded audio message</string>
+    <!-- Content description for the button to stop audio recording -->
+    <string name="record_audio_stop_content_description">Stop audio recording</string>
+    <!-- Error message when temporary audio file cannot be deleted -->
+    <string name="record_audio_failed_cleanup">Unable to delete temporary audio recording</string>
+
+    <!--
+      Pre-chat survey and custom fields
+    -->
+    <!-- Title for editing custom fields in pre-chat survey -->
+    <string name="edit_custom_field_title">Edit pre-chat survey custom fields</string>
+    <!-- Action to update the conversation/thread name -->
+    <string name="update_thread_name">Update conversation name</string>
+    <!-- Input hint for entering a conversation/thread name -->
+    <string name="enter_thread_name">Enter conversation name</string>
+
+    <!--
+      Accessibility and content descriptions
+    -->
+    <!-- Content description for selection icon (used for accessibility), it describes what item is selected -->
+    <string name="content_description_icon_is_selected"><xliff:g example="Android" id="icon_label">%1$s</xliff:g> is selected</string>
+    <!-- Content description for expandable tree node icon (used for accessibility) -->
+    <string name="content_description_tree_field_node_icon_expandable">Open options</string>
+    <!-- Content description for selected dropdown item icon (used for accessibility) -->
+    <string name="content_description_dropdown_field_icon_is_selected">Item selected</string>
+    <!-- Content description for expandable dropdown icon (used for accessibility) -->
+    <string name="content_description_dropdown_field_icon_expandable">Open options</string>
+    <!-- Content description for selectable item frame (accessibility) -->
+    <string name="content_description_selection_frame">Selectable item</string>
+    <!-- Content description for selected item frame (accessibility) -->
+    <string name="content_description_selection_frame_selected">Item selected</string>
+    <!-- Content description for play video button (accessibility) -->
+    <string name="content_description_play_video">Play video</string>
+    <!-- Content description for back button (accessibility) -->
+    <string name="content_description_back_button">Back</string>
+    <!-- Content description for play button (accessibility) -->
+    <string name="content_description_play">Play</string>
+    <!-- Content description for pause button (accessibility) -->
+    <string name="content_description_pause">Pause</string>
+    <!-- Content description for document preview thumbnail (accessibility), it describes file (by name) which is shown as a preview -->
+    <string name="content_description_document_preview">Preview thumbnail for <xliff:g example="IMG_0001.jpg" id="filename">%1$s</xliff:g> file</string>
+    <!-- Content description for URL link (accessibility) -->
+    <string name="content_description_url_link">URL link</string>
+
+    <!--
+      Plurals for media controls and notifications
+    -->
+    <!-- Plural for media control: seek back seconds -->
     <plurals name="seek_back">
         <item quantity="one">Seek back 1 second</item>
-        <item quantity="other">Seek back %1$d seconds</item>
+        <item quantity="other">Seek back <xliff:g example="5" id="seconds">%1$d</xliff:g> seconds</item>
     </plurals>
+    <!-- Plural for media control: seek forward seconds -->
     <plurals name="seek_forward">
         <item quantity="one">Seek forward 1 second</item>
-        <item quantity="other">Seek forward %1$d seconds</item>
+        <item quantity="other">Seek forward <xliff:g example="5" id="seconds">%1$d</xliff:g> seconds</item>
     </plurals>
 
+    <!--
+      Notification and permission dialogs
+    -->
+    <!-- Title for permission request dialog -->
+    <string name="permission_requested">Permission requested</string>
+    <!-- Rationale for notification permission request -->
+    <string name="notifications_rationale">The application would like to send you notifications if your agent sends you messages when the application is suspended.</string>
+    <!-- Title for unavailable notifications dialog -->
+    <string name="no_notifications_title">Notifications unavailable</string>
+    <!-- Message for unavailable notifications dialog -->
+    <string name="no_notifications_message">The application can not send you notifications if your agent sends you messages when the application is suspended.</string>
+    <!-- Notification channel name for chat notifications -->
+    <string name="notification_channel_title">Chat notifications</string>
+    <!-- Default notification sender name for chat notifications -->
     <string name="notification_person_name">Agent</string>
-
+    <!-- Plural for notification: attachment count -->
     <plurals name="notification_attachment">
-        <item quantity="one">%1$d attachment</item>
-        <item quantity="other">%1$d attachments</item>
+        <item quantity="one"><xliff:g example="1" id="attachments">%1$d</xliff:g> attachment</item>
+        <item quantity="other"><xliff:g example="5" id="attachments">%1$d</xliff:g> attachments</item>
     </plurals>
+    <!-- Fallback for unknown file extension in document preview -->
+    <string name="fallback_document_initial_extension">N/A</string>
 
+    <!--
+      Chat permissions for Android manifest
+    -->
+    <!-- Description for internal permission of the chat -->
     <string name="desc_chat_permission">Allows the application to open the chat view.</string>
+    <!-- Permission label for chat view in Android manifest -->
     <string name="label_chat_permission">Open chat view</string>
 
-    <string name="no_agent_assigned">No Agent</string>
+    <!--
+      Agent and unsupported message status
+    -->
+    <!-- Label for no agent assigned to conversation -->
+    <string name="no_agent_assigned">No agent</string>
+    <!-- Status for undeliverable/unsupported messages -->
+    <string name="unsupported_message_status">Message cannot be displayed</string>
+    <!-- Message for unsupported message content in chat -->
+    <string name="unsupported_message">This message could not be displayed in the chat as it uses a format that is currently unsupported.</string>
+
+    <!--
+      Inactivity timeout and error dialogs
+    -->
+    <!-- Title for dialog which is displayed to the user because of the prolonged inactivity -->
+    <string name="inactivity_time_up_title">Time is up!</string>
+    <!-- Subtitle for inactivity timeout dialog with detailed message which announces to the user that chat conversation was terminated -->
+    <string name="inactivity_time_up_subtitle">This conversation will now end due to inactivity</string>
+    <!-- Generic error dialog title -->
+    <string name="error_dialog_title">Oops</string>
+    <!-- Generic error dialog label for a button by which the user acknowledges that there was error preventing his action  -->
+    <string name="error_dialog_continue_button">Continue</string>
+    <!-- Generic error dialog label for a button which will close UI for the chat -->
+    <string name="error_dialog_close_button_text">Close the Chat</string>
+    <!-- Generic error dialog body message -->
+    <string name="error_dialog_body">Something went wrong, please try it later</string>
+
+    <!--
+      Rich content message strings
+    -->
+    <!-- Quick Reply - The explanation for a state where reply options are disabled -->
+    <string name="quick_reply_disable_message">These options are no longer visible because you\'ve already responded or the message is no longer the most recent.</string>
+    <!-- Quick Reply - The label for state when options from message are unavailable -->
+    <string name="quick_reply_options_unavailable">Options unavailable</string>
+    <!-- List picker open prompt -->
+    <string name="list_picker_open_message">Press to open</string>
+    <!-- Label indicating an option was selected (e.g. quick reply, list picker) -->
+    <string name="option_selected">Option selected</string>
+    <!-- Prompt for single-choice quick reply -->
+    <string name="select_option_below">Select one option below</string>
+
 </resources>

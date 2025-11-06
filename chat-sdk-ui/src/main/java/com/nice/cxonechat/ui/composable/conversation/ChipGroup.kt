@@ -17,7 +17,6 @@ package com.nice.cxonechat.ui.composable.conversation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.selection.selectableGroup
@@ -38,13 +37,11 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.LocalSpace
 import com.nice.cxonechat.ui.util.preview.message.UiSdkReplyButton
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun ChipGroup(
     actions: Iterable<Action>,
     modifier: Modifier = Modifier,
     selection: Action? = null,
-    colors: ChipColors = ChipDefaults.chipColors(),
     onSelect: (Action) -> Unit = {},
 ) {
     FlowRow(
@@ -61,7 +58,6 @@ internal fun ChipGroup(
                         it.onClick()
                     },
                     enabled = selection == null,
-                    colors = colors,
                 )
             }
         }
@@ -77,7 +73,7 @@ private fun actions(count: Int = 2): List<ReplyButton> = buildList(capacity = co
         add(
             ReplyButton(
                 action = UiSdkReplyButton("Chip $i"),
-                sendMessage = { }
+                onActionClicked = { }
             )
         )
     }
@@ -85,14 +81,14 @@ private fun actions(count: Int = 2): List<ReplyButton> = buildList(capacity = co
         add(
             ReplyButton(
                 action = UiSdkReplyButton("Some very very very loooooooong text, maybe too long for normal use, but you never know, right?"),
-                sendMessage = { }
+                onActionClicked = { }
             )
         )
     } else {
         add(
             ReplyButton(
                 action = UiSdkReplyButton("Random cat", "https://http.cat/203"),
-                sendMessage = { }
+                onActionClicked = { }
             )
         )
     }
@@ -117,7 +113,7 @@ private fun SelectableChipGroupPreview() {
                 Row {
                     Text(
                         text = "Last selected: ${(selected as? ReplyButton)?.text.orEmpty()}",
-                        color = chatColors.agent.foreground
+                        color = chatColors.token.brand.primary
                     )
                 }
             }
@@ -143,7 +139,7 @@ private fun ReusableChipGroupPreview() {
                 Row {
                     Text(
                         text = "Last selected: ${(selected as? ReplyButton)?.text.orEmpty()}",
-                        color = chatColors.agent.foreground
+                        color = chatColors.token.brand.primary
                     )
                 }
             }

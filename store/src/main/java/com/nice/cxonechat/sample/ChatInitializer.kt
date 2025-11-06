@@ -17,25 +17,30 @@ package com.nice.cxonechat.sample
 
 import android.content.Context
 import androidx.startup.Initializer
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.messaging.ktx.messaging
+import com.google.firebase.Firebase
+import com.google.firebase.messaging.messaging
 import com.nice.cxonechat.ChatInstanceProvider
 import com.nice.cxonechat.log.LoggerAndroid
 import com.nice.cxonechat.log.ProxyLogger
+import com.nice.cxonechat.sample.data.models.ChatSettings
 import com.nice.cxonechat.sample.data.repository.ChatSettingsRepository
 import com.nice.cxonechat.sample.data.repository.UISettingsRepository
 import com.nice.cxonechat.sample.utilities.logging.FirebaseLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 /** Automatic initialization of ChatInstanceProvider. */
 class ChatInitializer : Initializer<ChatInstanceProvider> {
     override fun create(context: Context): ChatInstanceProvider {
         /* set up the chat instance provider */
         val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-        val settings = ChatSettingsRepository(context, coroutineScope).load()
-        UISettingsRepository(context, coroutineScope).load()
+        coroutineScope.launch { UISettingsRepository(context, coroutineScope).load() }
+        val settings:ChatSettings? = runBlocking {
+            ChatSettingsRepository(context, coroutineScope).load()
+        }
         return ChatInstanceProvider.create(
             configuration = settings?.sdkConfiguration?.asSocketFactoryConfiguration,
             authorization = null,

@@ -28,11 +28,8 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.Stable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.semantics.Role
@@ -44,7 +41,6 @@ import com.nice.cxonechat.ui.composable.conversation.model.Action.ReplyButton
 import com.nice.cxonechat.ui.composable.generic.forwardingPainter
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatShapes
-import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.util.preview.message.UiSdkReplyButton
 
@@ -56,11 +52,10 @@ internal fun Chip(
     description: String? = null,
     enabled: Boolean = true,
     selected: Boolean = false,
-    colors: ChipColors = ChipDefaults.chipColors(),
     onSelected: () -> Unit,
 ) {
     Surface(
-        color = colors.containerColor(enabled || selected),
+        color = ChatTheme.chatColors.token.background.surface.emphasis,
         shape = chatShapes.chip,
         modifier = modifier
             .selectable(
@@ -94,6 +89,7 @@ internal fun Chip(
             }
             Text(
                 text = text,
+                color = ChatTheme.chatColors.token.brand.primary,
                 style = ChatTheme.chatTypography.chipText,
             )
         }
@@ -107,7 +103,6 @@ internal fun Chip(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     selected: Boolean = false,
-    colors: ChipColors = ChipDefaults.chipColors(),
 ) {
     Chip(
         text = action.text,
@@ -116,30 +111,9 @@ internal fun Chip(
         description = action.description,
         enabled = enabled,
         selected = selected,
-        colors = colors,
     ) {
         onSelected(action)
     }
-}
-
-internal object ChipDefaults {
-    @Composable
-    fun chipColors(
-        containerColor: Color = colorScheme.primary,
-        disabledContainerColor: Color = colorScheme.onSurface.copy(alpha = 0.38f),
-    ) = ChipColors(
-        containerColor = containerColor,
-        disabledContainerColor = disabledContainerColor,
-    )
-}
-
-@Immutable
-internal data class ChipColors(
-    private val containerColor: Color = Color.Unspecified,
-    private val disabledContainerColor: Color = Color.Unspecified,
-) {
-    @Stable
-    fun containerColor(enabled: Boolean): Color = if (enabled) containerColor else disabledContainerColor
 }
 
 @PreviewLightDark
@@ -154,7 +128,7 @@ private fun ChipPreview() {
                 Chip(
                     action = ReplyButton(
                         action = UiSdkReplyButton("Yes"),
-                        sendMessage = {}
+                        onActionClicked = {}
                     ),
                     onSelected = {},
                     selected = false,
@@ -162,7 +136,7 @@ private fun ChipPreview() {
                 Chip(
                     action = ReplyButton(
                         action = UiSdkReplyButton("Random cat", "https://http.cat/203"),
-                        sendMessage = {}
+                        onActionClicked = {}
                     ),
                     onSelected = {},
                     selected = false,
@@ -174,7 +148,7 @@ private fun ChipPreview() {
                                     "Morbi commodo, ipsum sed pharetra gravida," +
                                     " orci magna rhoncus neque.",
                         ),
-                        sendMessage = {}
+                        onActionClicked = {}
                     ),
                     onSelected = {},
                     selected = false,

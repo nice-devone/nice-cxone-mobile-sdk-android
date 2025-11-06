@@ -26,8 +26,10 @@ import com.nice.cxonechat.exceptions.RuntimeChatException.AttachmentUploadError
 import com.nice.cxonechat.internal.model.AttachmentModel
 import com.nice.cxonechat.internal.model.AttachmentUploadModel
 import com.nice.cxonechat.internal.model.CustomFieldModel
+import com.nice.cxonechat.internal.model.network.Parameters
 import com.nice.cxonechat.message.ContentDescriptor
 import com.nice.cxonechat.message.OutboundMessage
+import com.nice.cxonechat.message.OutboundMessage.Companion.LiveChatBeginOutboundMessage
 
 internal class ChatThreadMessageHandlerImpl(
     private val chat: ChatWithParameters,
@@ -39,6 +41,7 @@ internal class ChatThreadMessageHandlerImpl(
     }
 
     override fun send(message: OutboundMessage, listener: OnMessageTransferListener?) {
+        listener?.onProcessing(message)
         val uploads = message.attachments.mapNotNull(::uploadAttachment)
 
         // Ignore messages with no text, successful attachments, or postback.
@@ -47,7 +50,14 @@ internal class ChatThreadMessageHandlerImpl(
         }
 
         val fields = chat.fields.map(::CustomFieldModel)
-        val event = MessageEvent(message.message, uploads, fields, chat.storage.authToken, message.postback)
+        val event = MessageEvent(
+            message = message.message,
+            attachments = uploads,
+            fields = fields,
+            authToken = chat.storage.authToken,
+            postback = message.postback,
+            parameters = prepareParameters(message)
+        )
         listener?.onProcessed(event.messageId)
         thread.events().trigger(
             event = event,
@@ -56,6 +66,18 @@ internal class ChatThreadMessageHandlerImpl(
                 listener?.onSent(event.messageId)
             },
         )
+    }
+
+    private fun prepareParameters(message: OutboundMessage): Parameters? = when {
+        message is LiveChatBeginOutboundMessage -> Parameters.Object(
+            isInitialMessage = true
+        )
+
+        message as? OutboundMessage.Companion.UnsupportedMessageTypeAnswer != null -> Parameters.Object(
+            isUnsupportedMessageTypeAnswer = true
+        )
+
+        else -> null
     }
 
     private fun uploadAttachment(attachment: ContentDescriptor): AttachmentModel? {
@@ -87,6 +109,7 @@ internal class ChatThreadMessageHandlerImpl(
                 )
                 null
             }
+
             response.body()?.fileUrl == null -> {
                 chat.chatStateListener?.onChatRuntimeException(
                     AttachmentUploadError(
@@ -96,6 +119,7 @@ internal class ChatThreadMessageHandlerImpl(
                 )
                 null
             }
+
             else -> {
                 val url = response.body()?.fileUrl ?: return null
                 AttachmentModel(url, attachment.friendlyName ?: "document", attachment.mimeType)

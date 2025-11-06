@@ -18,9 +18,9 @@ package com.nice.cxonechat.sample.data.models
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import com.nice.cxonechat.sample.ui.theme.Colors.Dark
-import com.nice.cxonechat.sample.ui.theme.Colors.DefaultColors
 import com.nice.cxonechat.sample.ui.theme.Colors.Light
 import com.nice.cxonechat.sample.ui.theme.Images
+import com.nice.cxonechat.ui.composable.theme.ThemeColorTokens
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -53,148 +53,197 @@ data class UISettingsModel(
 
     /**
      * A set of custom colors to be applied during either day or night mode.
-     *
-     * @param primary Material primary color.
-     * @param onPrimary Material onPrimary color.
-     * @param accent Material secondary color.
-     * @param onAccent Material onSecondary color.
-     * @param background Material background and surface color.
-     * @param onBackground Material onBackground and onSurface color.
-     * @param surface Material surface color.
-     * @param onSurface Material on-surface color.
-     * @param surfaceVariant Material surface variant color.
-     * @param surfaceContainer Material onSurface color.
-     * @param surfaceContainerHigh Material onSurface color with high tonal elevation.
-     * @param surfaceContainerHighest Material onSurface color with highest tonal elevation.
-     * @param agentBackground Background color for agent cells in chat.
-     * @param agentText Text color for agent cells in chat.
-     * @param agentAvatarForeground Color for agent avatar outline in chat conversation.
-     * @param agentAvatarBackground Color for agent avatar background in chat conversation.
-     * @param customerBackground Background color for customer cells in chat.
-     * @param customerText Text color for customer cells in chat.
-     * @param subtle Subtle color for less prominent UI elements, e.g. action to download all attachments.
-     * @param muted Muted color for disabled or less important UI elements, e.g. a rim for subtle element.
-     * @param error Color for error content.
-     * @param accentHeaderStart Starting color for the gradient in the header.
-     * @param accentHeaderEnd Ending color for the gradient in the header.
-     * @param onAccentHeader Content color for the header gradient.
-     * @param textFieldLabelBackground Background color for text field label.
-     * @param textFieldLabelText Text color for text field label.
      */
     @Serializable
     data class Colors(
-        @SerialName("primary")
-        @Serializable(with = ColorSerializer::class)
-        val primary: Color,
-        @SerialName("onPrimary")
-        @Serializable(with = ColorSerializer::class)
-        val onPrimary: Color,
-        @SerialName("accent")
-        @Serializable(with = ColorSerializer::class)
-        val accent: Color,
-        @SerialName("onAccent")
-        @Serializable(with = ColorSerializer::class)
-        val onAccent: Color,
-        @SerialName("background")
-        @Serializable(with = ColorSerializer::class)
-        val background: Color,
-        @SerialName("onBackground")
-        @Serializable(with = ColorSerializer::class)
-        val onBackground: Color,
-        @SerialName("surface")
-        @Serializable(with = ColorSerializer::class)
-        val surface: Color,
-        @SerialName("onSurface")
-        @Serializable(with = ColorSerializer::class)
-        val onSurface: Color,
-        @SerialName("surfaceVariant")
-        @Serializable(with = ColorSerializer::class)
-        val surfaceVariant: Color,
-        @SerialName("surfaceContainer")
-        @Serializable(with = ColorSerializer::class)
-        val surfaceContainer: Color,
-        @SerialName("surfaceContainerHigh")
-        @Serializable(with = ColorSerializer::class)
-        val surfaceContainerHigh: Color,
-        @SerialName("surfaceContainerHighest")
-        @Serializable(with = ColorSerializer::class)
-        val surfaceContainerHighest: Color,
-        @SerialName("agentBubble")
-        @Serializable(with = ColorSerializer::class)
-        val agentBackground: Color,
-        @SerialName("agentText")
-        @Serializable(with = ColorSerializer::class)
-        val agentText: Color,
-        @SerialName("agentAvatarOutline")
-        @Serializable(with = ColorSerializer::class)
-        val agentAvatarForeground: Color,
-        @SerialName("agentAvatarBackground")
-        @Serializable(with = ColorSerializer::class)
-        val agentAvatarBackground: Color,
-        @SerialName("customerBubble")
-        @Serializable(with = ColorSerializer::class)
-        val customerBackground: Color,
-        @SerialName("customerText")
-        @Serializable(with = ColorSerializer::class)
-        val customerText: Color,
-        @SerialName("subtle")
-        @Serializable(with = ColorSerializer::class)
-        val subtle: Color,
-        @SerialName("muted")
-        @Serializable(with = ColorSerializer::class)
-        val muted: Color,
-        @SerialName("error")
-        @Serializable(with = ColorSerializer::class)
-        val error: Color,
-        @SerialName("accentHeaderStart")
-        @Serializable(with = ColorSerializer::class)
-        val accentHeaderStart: Color,
-        @SerialName("accentHeaderEnd")
-        @Serializable(with = ColorSerializer::class)
-        val accentHeaderEnd: Color,
-        @SerialName("onAccentHeader")
-        @Serializable(with = ColorSerializer::class)
-        val onAccentHeader: Color,
-        @SerialName("textFieldLabelBackground")
-        @Serializable(with = ColorSerializer::class)
-        val textFieldLabelBackground: Color,
-        @SerialName("textFieldLabelText")
-        @Serializable(with = ColorSerializer::class)
-        val textFieldLabelText: Color,
-    ) {
+        override val content: Content,
+        override val brand: Brand,
+        override val border: Border,
+        override val status: Status,
+        override val background: Background,
+    ) : ThemeColorTokens {
+        /** Represents content-related colors. */
+        @Serializable
+        data class Content(
+            @SerialName("primary")
+            @Serializable(with = ColorSerializer::class)
+            override val primary: Color,
+            @SerialName("secondary")
+            @Serializable(with = ColorSerializer::class)
+            override val secondary: Color,
+            @SerialName("tertiary")
+            @Serializable(with = ColorSerializer::class)
+            override val tertiary: Color,
+            @SerialName("inverse")
+            @Serializable(with = ColorSerializer::class)
+            override val inverse: Color,
+        ) : ThemeColorTokens.Content
+
+        /** Represents brand-related colors. */
+        @Serializable
+        data class Brand(
+            @SerialName("primary")
+            @Serializable(with = ColorSerializer::class)
+            override val primary: Color,
+            @SerialName("onPrimary")
+            @Serializable(with = ColorSerializer::class)
+            override val onPrimary: Color,
+            @SerialName("primaryContainer")
+            @Serializable(with = ColorSerializer::class)
+            override val primaryContainer: Color,
+            @SerialName("onPrimaryContainer")
+            @Serializable(with = ColorSerializer::class)
+            override val onPrimaryContainer: Color,
+            @SerialName("secondary")
+            @Serializable(with = ColorSerializer::class)
+            override val secondary: Color,
+            @SerialName("onSecondary")
+            @Serializable(with = ColorSerializer::class)
+            override val onSecondary: Color,
+            @SerialName("secondaryContainer")
+            @Serializable(with = ColorSerializer::class)
+            override val secondaryContainer: Color,
+            @SerialName("onSecondaryContainer")
+            @Serializable(with = ColorSerializer::class)
+            override val onSecondaryContainer: Color,
+        ) : ThemeColorTokens.Brand
+
+        /** Represents border-related colors. */
+        @Serializable
+        data class Border(
+            @SerialName("default")
+            @Serializable(with = ColorSerializer::class)
+            override val default: Color,
+            @SerialName("subtle")
+            @Serializable(with = ColorSerializer::class)
+            override val subtle: Color,
+        ) : ThemeColorTokens.Border
+
+        /** Represents status-related colors. */
+        @Serializable
+        data class Status(
+            @SerialName("success")
+            @Serializable(with = ColorSerializer::class)
+            override val success: Color,
+            @SerialName("onSuccess")
+            @Serializable(with = ColorSerializer::class)
+            override val onSuccess: Color,
+            @SerialName("successContainer")
+            @Serializable(with = ColorSerializer::class)
+            override val successContainer: Color,
+            @SerialName("onSuccessContainer")
+            @Serializable(with = ColorSerializer::class)
+            override val onSuccessContainer: Color,
+            @SerialName("warning")
+            @Serializable(with = ColorSerializer::class)
+            override val warning: Color,
+            @SerialName("onWarning")
+            @Serializable(with = ColorSerializer::class)
+            override val onWarning: Color,
+            @SerialName("warningContainer")
+            @Serializable(with = ColorSerializer::class)
+            override val warningContainer: Color,
+            @SerialName("onWarningContainer")
+            @Serializable(with = ColorSerializer::class)
+            override val onWarningContainer: Color,
+            @SerialName("error")
+            @Serializable(with = ColorSerializer::class)
+            override val error: Color,
+            @SerialName("onError")
+            @Serializable(with = ColorSerializer::class)
+            override val onError: Color,
+            @SerialName("errorContainer")
+            @Serializable(with = ColorSerializer::class)
+            override val errorContainer: Color,
+            @SerialName("onErrorContainer")
+            @Serializable(with = ColorSerializer::class)
+            override val onErrorContainer: Color,
+        ) : ThemeColorTokens.Status
+
+        /** Represents background-related colors. */
+        @Serializable
+        data class Background(
+            @SerialName("default")
+            @Serializable(with = ColorSerializer::class)
+            override val default: Color,
+            @SerialName("inverse")
+            @Serializable(with = ColorSerializer::class)
+            override val inverse: Color,
+            @SerialName("surface")
+            override val surface: Surface,
+        ) : ThemeColorTokens.Background {
+            /** Represents surface-related background colors. */
+            @Serializable
+            data class Surface(
+                @SerialName("default")
+                @Serializable(with = ColorSerializer::class)
+                override val default: Color,
+                @SerialName("subtle")
+                @Serializable(with = ColorSerializer::class)
+                override val subtle: Color,
+                @SerialName("variant")
+                @Serializable(with = ColorSerializer::class)
+                override val variant: Color,
+                @SerialName("container")
+                @Serializable(with = ColorSerializer::class)
+                override val container: Color,
+                @SerialName("emphasis")
+                @Serializable(with = ColorSerializer::class)
+                override val emphasis: Color,
+            ) : ThemeColorTokens.Background.Surface
+        }
 
         /**
          * A secondary constructor to initialize Colors with default values.
          *
          * @param defaults DefaultColors object containing default color values.
          */
-        constructor(defaults: DefaultColors) : this(
-            primary = defaults.primary,
-            onPrimary = defaults.onPrimary,
-            accent = defaults.accent,
-            onAccent = defaults.onAccent,
-            background = defaults.background,
-            onBackground = defaults.onBackground,
-            surface = defaults.surface,
-            onSurface = defaults.onSurface,
-            surfaceVariant = defaults.surfaceVariant,
-            surfaceContainer = defaults.surfaceContainer,
-            surfaceContainerHigh = defaults.surfaceContainerHigh,
-            surfaceContainerHighest = defaults.surfaceContainerHighest,
-            agentBackground = defaults.agentBackground,
-            agentText = defaults.agentText,
-            agentAvatarForeground = defaults.agentAvatarForeground,
-            agentAvatarBackground = defaults.agentAvatarBackground,
-            customerBackground = defaults.customerBackground,
-            customerText = defaults.customerText,
-            subtle = defaults.subtle,
-            muted = defaults.muted,
-            error = defaults.error,
-            accentHeaderStart = defaults.accentHeaderStart,
-            accentHeaderEnd = defaults.accentHeaderEnd,
-            onAccentHeader = defaults.onAccentHeader,
-            textFieldLabelBackground = defaults.textFieldLabelBackground,
-            textFieldLabelText = defaults.textFieldLabelText
+        constructor(defaults: ThemeColorTokens) : this(
+            content = Content(
+                primary = defaults.content.primary,
+                secondary = defaults.content.secondary,
+                tertiary = defaults.content.tertiary,
+                inverse = defaults.content.inverse,
+            ),
+            brand = Brand(
+                primary = defaults.brand.primary,
+                onPrimary = defaults.brand.onPrimary,
+                primaryContainer = defaults.brand.primaryContainer,
+                onPrimaryContainer = defaults.brand.onPrimaryContainer,
+                secondary = defaults.brand.secondary,
+                onSecondary = defaults.brand.onSecondary,
+                secondaryContainer = defaults.brand.secondaryContainer,
+                onSecondaryContainer = defaults.brand.onSecondaryContainer,
+            ),
+            border = Border(
+                default = defaults.border.default,
+                subtle = defaults.border.subtle,
+            ),
+            status = Status(
+                success = defaults.status.success,
+                onSuccess = defaults.status.onSuccess,
+                successContainer = defaults.status.successContainer,
+                onSuccessContainer = defaults.status.onSuccessContainer,
+                warning = defaults.status.warning,
+                onWarning = defaults.status.onWarning,
+                warningContainer = defaults.status.warningContainer,
+                onWarningContainer = defaults.status.onWarningContainer,
+                error = defaults.status.error,
+                onError = defaults.status.onError,
+                errorContainer = defaults.status.errorContainer,
+                onErrorContainer = defaults.status.onErrorContainer,
+            ),
+            background = Background(
+                default = defaults.background.default,
+                inverse = defaults.background.inverse,
+                surface = Background.Surface(
+                    default = defaults.background.surface.default,
+                    subtle = defaults.background.surface.subtle,
+                    variant = defaults.background.surface.variant,
+                    container = defaults.background.surface.container,
+                    emphasis = defaults.background.surface.emphasis,
+                ),
+            ),
         )
     }
 }

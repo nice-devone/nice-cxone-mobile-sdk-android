@@ -16,7 +16,6 @@
 package com.nice.cxonechat.ui.composable.conversation.model
 
 import com.nice.cxonechat.message.Media
-import com.nice.cxonechat.message.OutboundMessage
 import com.nice.cxonechat.ui.composable.conversation.model.Action.ReplyButton
 import com.nice.cxonechat.ui.util.preview.message.SdkAction
 import com.nice.cxonechat.ui.util.preview.message.SdkReplyButton
@@ -24,19 +23,15 @@ import com.nice.cxonechat.ui.util.preview.message.SdkReplyButton
 internal sealed class Action {
 
     /**
-     * Display a button which *may* have an associated icon.
-     * If the button is selected integrating application should send [OutboundMessage]
-     * with the supplied [text] and [postback].
+     * Parameter holder for a button which *may* have an associated icon.
+     * It also holds a callback to be invoked when the button is clicked.
      */
     data class ReplyButton(
         private val action: SdkReplyButton,
-        private val sendMessage: (OutboundMessage) -> Unit,
+        private val onActionClicked: (SdkReplyButton) -> Unit,
     ) : Action() {
         /** Text to display on a button.  */
         val text: String = action.text
-
-        /** Postback to be sent as part of the [OutboundMessage] if the button is selected. */
-        val postback: String? = action.postback
 
         /** optional media/image to display with the media. */
         val media: Media? = action.media
@@ -50,13 +45,13 @@ internal sealed class Action {
         val onClick: () -> Unit = {
             val postback = action.postback
             if (postback != null) {
-                sendMessage(OutboundMessage(action.text, action.postback))
+                onActionClicked(action)
             }
         }
     }
 }
 
-internal fun SdkAction.toUiAction(sendMessage: (OutboundMessage) -> Unit): Action? = when (this) {
+internal fun SdkAction.toUiAction(sendMessage: (SdkReplyButton) -> Unit): Action? = when (this) {
     is SdkReplyButton -> ReplyButton(this, sendMessage)
     else -> null
 }

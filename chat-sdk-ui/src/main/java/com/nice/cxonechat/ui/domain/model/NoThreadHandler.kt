@@ -17,6 +17,7 @@ package com.nice.cxonechat.ui.domain.model
 
 import com.nice.cxonechat.Cancellable
 import com.nice.cxonechat.ChatFieldHandler
+import com.nice.cxonechat.ChatThreadActionHandler
 import com.nice.cxonechat.ChatThreadEventHandler
 import com.nice.cxonechat.ChatThreadHandler
 import com.nice.cxonechat.ChatThreadMessageHandler
@@ -59,6 +60,16 @@ internal object NoThreadHandler : ChatThreadHandler {
             errorListener: ChatThreadEventHandler.OnEventErrorListener?,
         ) {
             // No operation, as there is no thread to trigger events for.
+        }
+    }
+
+    override fun actions(): ChatThreadActionHandler = object : ChatThreadActionHandler {
+        override fun onPopup(listener: ChatThreadActionHandler.OnPopup) {
+            // No operation, as there are no popups to show.
+        }
+
+        override fun close() {
+            // No operation, as there is no listener to remove.
         }
     }
 

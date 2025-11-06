@@ -24,14 +24,19 @@ import com.nice.cxonechat.ChatState.Offline
 import com.nice.cxonechat.ChatState.Prepared
 import com.nice.cxonechat.ChatState.Preparing
 import com.nice.cxonechat.ChatState.Ready
+import com.nice.cxonechat.ChatState.SdkNotSupported
 import com.nice.cxonechat.exceptions.InvalidStateException
 import com.nice.cxonechat.exceptions.RuntimeChatException
+import com.nice.cxonechat.exceptions.SdkVersionNotSupported
+import com.nice.cxonechat.internal.model.network.DeviceFingerprint
+import com.nice.cxonechat.internal.model.network.description
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerNoop
 import com.nice.cxonechat.log.LoggerScope
 import com.nice.cxonechat.log.debug
 import com.nice.cxonechat.log.scope
 import com.nice.cxonechat.log.warning
+import com.nice.cxonechat.logger.RemoteLogger
 import java.lang.ref.WeakReference
 import java.util.concurrent.locks.ReadWriteLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -265,8 +270,6 @@ class ChatInstanceProvider private constructor(
                     deviceToken = token
                     setDeviceToken(token)
                 }
-            }
-            .apply {
                 customerId?.let(::setCustomerId)
             }
             .build { result: Result<Chat> ->
@@ -274,15 +277,23 @@ class ChatInstanceProvider private constructor(
                     chat = newChat
                     advanceState(Prepared)
                     deviceToken?.let { chat?.setDeviceToken(it) }
-                }.onFailure {
-                    warning("Failed to prepare Chat", it)
+                    RemoteLogger.setData(
+                        brandId = configuration.brandId,
+                        loggerUrl = newChat.environment.loggerUrl,
+                        chatUrl = newChat.environment.chatUrl,
+                        deviceFingerprint = DeviceFingerprint(deviceToken = deviceToken).description()
+                    )
+                }.onFailure { throwable ->
+                    when (throwable) {
+                        is SdkVersionNotSupported -> advanceState(SdkNotSupported)
+                        else -> advanceState(Initial)
+                    }
+                    warning("Failed to prepare Chat", throwable)
                     chat = null
-                    advanceState(Initial)
                 }
             }
             .also {
-                // if build is synchronous, the chat will have already advanced
-                // to PREPARED, so just skip PREPARING.
+                // if build is synchronous, the chat will have already advanced to PREPARED, so just skip PREPARING.
                 if (it != Cancellable.noop) {
                     advanceState(Preparing, it)
                 }
@@ -361,6 +372,7 @@ class ChatInstanceProvider private constructor(
             ConnectionLost -> advanceState(Prepared)
             Offline -> advanceState(Prepared)
             Ready -> Unit
+            SdkNotSupported -> Unit
         }
     }
 
@@ -514,6 +526,10 @@ class ChatInstanceProvider private constructor(
 
     override fun onUnexpectedDisconnect() {
         advanceState(ConnectionLost)
+    }
+
+    override fun onConnecting() {
+        advanceState(Connecting, Cancellable.noop, false)
     }
 
     override fun onChatRuntimeException(exception: RuntimeChatException) {

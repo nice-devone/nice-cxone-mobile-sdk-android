@@ -17,8 +17,6 @@ package com.nice.cxonechat.ui.composable
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,12 +30,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Archive
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBoxValue.EndToStart
 import androidx.compose.material3.SwipeToDismissBoxValue.StartToEnd
@@ -46,7 +41,6 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.NonRestartableComposable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,17 +53,13 @@ import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow.Companion.Ellipsis
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
-import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.prechat.PreChatSurvey
 import com.nice.cxonechat.state.FieldDefinition
@@ -82,13 +72,11 @@ import com.nice.cxonechat.thread.CustomField
 import com.nice.cxonechat.ui.R.array
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider
-import com.nice.cxonechat.ui.composable.conversation.orDefaultThreadName
-import com.nice.cxonechat.ui.composable.generic.AgentAvatar
 import com.nice.cxonechat.ui.composable.generic.describe
 import com.nice.cxonechat.ui.composable.theme.Alert
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
-import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.SingleChoiceSegmentedButton
 import com.nice.cxonechat.ui.composable.theme.SwipeBackground
@@ -99,7 +87,6 @@ import com.nice.cxonechat.ui.domain.model.Thread
 import com.nice.cxonechat.ui.domain.model.prechat.PreChatResponse
 import com.nice.cxonechat.ui.screen.PreChatSurveyScreen
 import com.nice.cxonechat.ui.util.Ignored
-import com.nice.cxonechat.ui.util.toShortTimeString
 import com.nice.cxonechat.ui.viewmodel.ChatThreadsViewModel.State
 import com.nice.cxonechat.ui.viewmodel.ChatThreadsViewModel.State.Initial
 import com.nice.cxonechat.ui.viewmodel.ChatThreadsViewModel.State.ThreadPreChatSurveyRequired
@@ -229,7 +216,9 @@ private fun ChatThreadListView(
                         ) {
                             ChatThreadView(thread = thread, onThreadSelected = onThreadSelected)
                         }
-                        HorizontalDivider()
+                        HorizontalDivider(
+                            color = chatColors.token.border.default,
+                        )
                     }
                 }
             }
@@ -256,7 +245,9 @@ private fun ArchivedThreadListView(
             key = { item: Thread -> item.id }
         ) { thread ->
             ChatThreadView(thread = thread, onThreadSelected = onThreadSelected)
-            HorizontalDivider()
+            HorizontalDivider(
+                color = chatColors.token.border.default,
+            )
         }
     }
 }
@@ -315,20 +306,21 @@ private fun ChatThreadWrapper(
 
     val dismissBoxState = rememberSwipeToDismissBoxState()
     var visible by remember { mutableStateOf(true) }
+    val scope = rememberCoroutineScope()
     AnimatedVisibility(visible) {
         ChatTheme.SwipeToDismiss(
             dismissState = dismissBoxState,
             directions = mapOf(
                 EndToStart to SwipeBackground(
-                    color = colorScheme.secondary,
+                    color = chatColors.token.status.warning,
                     icon = Icons.Default.Archive,
-                    iconTint = colorScheme.onSecondary,
+                    iconTint = chatColors.token.status.onWarning,
                     contentDescription = stringResource(string.archive_thread_content_description)
                 ),
                 StartToEnd to SwipeBackground(
-                    color = colorScheme.primary,
+                    color = chatColors.token.status.success,
                     icon = Icons.Default.Settings,
-                    iconTint = colorScheme.onPrimary,
+                    iconTint = chatColors.token.status.onSuccess,
                     contentDescription = stringResource(string.change_thread_name)
                 )
             ),
@@ -339,73 +331,15 @@ private fun ChatThreadWrapper(
                     visible = false // Hide the thread after archiving
                 }
                 if (value == StartToEnd) {
-                    editThreadName(currentThread)
-                    dismissBoxState.reset() // Reset the box state after editing
+                    scope.launch {
+                        editThreadName(currentThread)
+                        dismissBoxState.reset() // Reset the box state after editing
+                    }
                 }
             },
             content = content
         )
     }
-}
-
-@Composable
-private fun ChatThreadView(thread: Thread, onThreadSelected: (Thread) -> Unit) {
-    ListItem(
-        colors = ListItemDefaults.colors(containerColor = colorScheme.background),
-        modifier = Modifier
-            .clickable { onThreadSelected(thread) }
-            .testTag("chat_thread_view_${thread.id}"),
-        leadingContent = { AgentAvatar(url = thread.agent?.imageUrl) },
-        headlineContent = {
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(thread.name.orDefaultThreadName(), style = chatTypography.threadListName)
-                val context = LocalContext.current
-                val lastMessageTime = remember(thread, context) {
-                    thread.lastMessageTime?.let { context.toShortTimeString(it) }.orEmpty()
-                }
-                Text(
-                    text = lastMessageTime,
-                    style = chatTypography.threadListLastMessageTime,
-                    color = colorScheme.onBackground.copy(alpha = 0.5f)
-                )
-            }
-        },
-        supportingContent = {
-            Text(
-                thread.lastMessage,
-                style = chatTypography.threadListLastMessage,
-                maxLines = 2,
-                overflow = Ellipsis,
-                color = colorScheme.onBackground.copy(alpha = 0.5f),
-            )
-        },
-        trailingContent = {
-            DetailsChevron()
-        },
-    )
-}
-
-@Composable
-@Preview
-private fun ChatThreadViewPreview() {
-    ChatTheme {
-        ChatThreadView(PreviewThread.nextThread()) { }
-    }
-}
-
-@Composable
-@Preview
-@NonRestartableComposable
-private fun DetailsChevron(modifier: Modifier = Modifier) {
-    Image(
-        painter = rememberVectorPainter(image = Icons.Default.ChevronRight),
-        contentDescription = null,
-        modifier = modifier.padding(bottom = Icons.Default.ChevronRight.defaultHeight + 2.dp),
-        colorFilter = ColorFilter.tint(colorScheme.primary)
-    )
 }
 
 // Preview
@@ -440,7 +374,7 @@ internal data class PreviewAgent(
 }
 
 @Immutable
-private data class PreviewThread(
+internal data class PreviewThread(
     override val id: UUID = UUID.randomUUID(),
     override val threadName: String,
     override val messages: List<Message> = PreviewMessageProvider().messages.toList(),

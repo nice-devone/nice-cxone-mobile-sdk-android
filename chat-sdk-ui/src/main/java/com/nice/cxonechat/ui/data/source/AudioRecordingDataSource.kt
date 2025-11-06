@@ -31,6 +31,10 @@ import com.nice.cxonechat.log.error
 import com.nice.cxonechat.log.scope
 import com.nice.cxonechat.log.warning
 import com.nice.cxonechat.ui.UiModule
+import com.nice.cxonechat.ui.util.belongsToCurrentApplication
+import com.nice.cxonechat.ui.util.isExported
+import com.nice.cxonechat.ui.util.isValidFile
+import com.nice.cxonechat.ui.util.wasGrantedPermission
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.koin.core.annotation.Factory
@@ -56,7 +60,7 @@ internal class AudioRecordingDataSource(
 
     private var session: AudioRecordSession? = null
         set(value) {
-            field?.runCatching { release() }
+            field?.runCatching { close() }
             field = value
         }
 
@@ -115,7 +119,7 @@ internal class AudioRecordingDataSource(
      * Deletes the current audio recording, no-op if there is no recording.
      */
     suspend fun deleteRecording() {
-        session?.uri?.let { context.deleteRecording(it) }
+        session?.let { context.deleteRecording(it, this) }
     }
 
     private suspend fun getFileDescriptorAndSetUri(context: Context, file: String): Pair<Uri, ParcelFileDescriptor> =
@@ -143,7 +147,7 @@ internal class AudioRecordingDataSource(
     }
 
     private fun stopRecorder() = scope("stopRecorder") {
-        session?.release()
+        session?.stop()
     }
 
     companion object {
@@ -182,11 +186,29 @@ internal class AudioRecordingDataSource(
             }
         }
 
-        private suspend fun Context.deleteRecording(recordingUri: Uri) {
-            withContext(Dispatchers.IO) {
-                applicationContext.contentResolver.delete(recordingUri, null, null)
+        private suspend fun Context.deleteRecording(recordingSession: AudioRecordSession, scope: LoggerScope) {
+            val recordingUri = recordingSession.uri
+            scope.scope("deleteRecording") {
+                withContext(Dispatchers.IO) {
+                    if (canDeleteUri(applicationContext, recordingSession)) {
+                        runCatching(recordingSession::close).onFailure {
+                            scope.warning("Failed to close recording session for $recordingUri", it)
+                        }
+                        applicationContext.contentResolver.delete(recordingUri, null, null)
+                    } else {
+                        scope.warning("Cannot delete recording $recordingUri, it does not belong to this application or is not exported.")
+                    }
+                }
             }
         }
+
+        private fun canDeleteUri(context: Context, recordingSession: AudioRecordSession): Boolean = runCatching {
+            val (recordingUri, pfd) = recordingSession.uri to recordingSession.fileDescriptor
+            recordingUri.belongsToCurrentApplication(context) ||
+                    recordingUri.isExported(context) &&
+                    recordingUri.wasGrantedPermission(context) &&
+                    recordingUri.isValidFile(pfd)
+        }.getOrDefault(false)
 
         private fun Context.getExternalDir(): File {
             val directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) ?: noBackupFilesDir
@@ -203,7 +225,7 @@ private class AudioRecordSession(
     releasableFileDescriptor: ParcelFileDescriptor,
     val uri: Uri,
     val logger: Logger,
-) : LoggerScope by LoggerScope("AudioRecordSession", logger) {
+) : LoggerScope by LoggerScope("AudioRecordSession", logger), AutoCloseable {
 
     var recorder: MediaRecorder? = releasableRecorder
         private set(value) {
@@ -217,12 +239,16 @@ private class AudioRecordSession(
             field = value
         }
 
-    fun release() = scope("release") {
+    fun stop() = scope("release") {
         runCatching {
-            fileDescriptor = null
-            recorder = null
+            recorder?.stop()
         }.onFailure {
             error("Failed to release resources for $uri", it)
         }
+    }
+
+    override fun close() {
+        fileDescriptor = null
+        recorder = null
     }
 }

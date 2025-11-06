@@ -21,6 +21,7 @@ import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -36,6 +37,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.Icons.Outlined
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
@@ -82,7 +84,6 @@ import com.nice.cxonechat.ui.composable.conversation.InputState.Audio
 import com.nice.cxonechat.ui.composable.conversation.InputState.None
 import com.nice.cxonechat.ui.composable.conversation.model.ConversationUiState
 import com.nice.cxonechat.ui.composable.generic.AttachmentPickerDialog
-import com.nice.cxonechat.ui.composable.generic.toastAudioRecordToggleFailure
 import com.nice.cxonechat.ui.composable.theme.ChatIconButton
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
@@ -105,6 +106,8 @@ import kotlinx.coroutines.launch
  * which should be retrieved and sent as an attachment message.
  * @param modifier Modifier for visible content. It should supply paddings for navigation and ime keyboard.
  * @param resetScroll Action invoked when the user closes the keyboard for the text input.
+ * @param onError Action invoked when an error occurs. The string parameter is a user friendly error message.
+ * @param showMessageProcessing Whether to show the message processing indicator.
  */
 @Composable
 internal fun UserInput(
@@ -113,6 +116,8 @@ internal fun UserInput(
     onAttachmentTypeSelection: (attachmentType: AttachmentType) -> Unit,
     modifier: Modifier = Modifier,
     resetScroll: () -> Unit = {},
+    onError: (String) -> Unit,
+    showMessageProcessing: Boolean,
 ) = UserInput(
     conversationUiState = conversationUiState,
     audioRecordingUiState = audioRecordingUiState,
@@ -120,6 +125,8 @@ internal fun UserInput(
     modifier = modifier,
     resetScroll = resetScroll,
     initialInputSelector = None,
+    showMessageProcessing = showMessageProcessing,
+    onError = onError,
 )
 
 @Suppress(
@@ -134,6 +141,8 @@ private fun UserInput(
     modifier: Modifier = Modifier,
     resetScroll: () -> Unit = {},
     initialInputSelector: InputState = None,
+    onError: (String) -> Unit,
+    showMessageProcessing: Boolean,
 ) {
     var currentInputSelector by rememberSaveable { mutableStateOf(initialInputSelector) }
 
@@ -228,6 +237,8 @@ private fun UserInput(
                     audioRecordingUiState = audioRecordingUiState,
                     currentInputSelector = currentInputSelector,
                     focusRequester = focusRequester,
+                    showMessageProcessing = showMessageProcessing,
+                    onError = onError,
                 ) {
                     UserInputText(
                         textFieldValue = textState,
@@ -320,25 +331,35 @@ private fun RowScope.UserInputText(
                 keyboardType = keyboardType,
                 imeAction = ImeAction.Send
             ),
-            onKeyboardAction = {
-                onSend()
-            },
+            onKeyboardAction = { onSend() },
             lineLimits = TextFieldLineLimits.SingleLine,
             cursorBrush = SolidColor(LocalContentColor.current),
             textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current)
         )
-
-        val disableContentColor = colorScheme.onSurface.copy(alpha = 0.38f)
         if (textFieldValue.text.isEmpty() && !isFocused) {
-            Text(
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .padding(horizontal = 16.dp),
-                text = stringResource(string.hint_enter_a_message),
-                style = ChatTheme.typography.bodyLarge.copy(color = disableContentColor)
-            )
+            UserInputHintText()
         }
+        HorizontalDivider(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(space.userInputUnderlinePadding)
+                .align(Alignment.BottomStart),
+            color = ChatTheme.chatColors.token.border.default,
+        )
     }
+}
+
+@Composable
+private fun BoxScope.UserInputHintText() {
+    Text(
+        modifier = Modifier
+            .align(Alignment.CenterStart)
+            .padding(horizontal = space.large),
+        text = stringResource(string.hint_enter_a_message),
+        style = ChatTheme.typography.bodyLarge.copy(
+            color = ChatTheme.chatColors.token.content.tertiary
+        )
+    )
 }
 
 @Composable
@@ -350,7 +371,9 @@ private fun UserInputSelector(
     audioRecordingUiState: AudioRecordingUiState,
     currentInputSelector: InputState,
     focusRequester: FocusRequester,
+    showMessageProcessing: Boolean,
     modifier: Modifier = Modifier,
+    onError: (String) -> Unit,
     content: @Composable RowScope.() -> Unit,
 ) {
     val rowMod = modifier
@@ -359,6 +382,7 @@ private fun UserInputSelector(
         .focusGroup()
     val onAudioRecordToggle = audioRecordingUiState.onAudioRecordToggle
     val coroutineScope = rememberCoroutineScope()
+    val loading = stringResource(string.loading)
     AnimatedContent(currentInputSelector) { state ->
         when (state) {
             None, Attachment -> Row(
@@ -374,9 +398,18 @@ private fun UserInputSelector(
                 }
                 content()
                 AnimatedContent(showSendButton.value) { sendMessage ->
-                    when (sendMessage) {
-                        true -> SendButton(enabled = sendMessageEnabled.value, onMessageSent = onMessageSent)
-                        false -> AudioRecorderButton(onAudioRecordToggle, onSelectorChange, coroutineScope)
+                    when {
+                        showMessageProcessing ->
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .semantics {
+                                        testTag = "attachment_upload_spinner"
+                                        contentDescription = loading
+                                    }
+                            )
+
+                        sendMessage -> SendButton(enabled = sendMessageEnabled.value, onMessageSent = onMessageSent)
+                        else -> AudioRecorderButton(onAudioRecordToggle, onSelectorChange, onError, coroutineScope)
                     }
                 }
             }
@@ -390,6 +423,7 @@ private fun UserInputSelector(
 private fun AudioRecorderButton(
     onAudioRecordToggle: suspend () -> Boolean,
     onSelectorChange: (InputState) -> Unit,
+    onError: (String) -> Unit,
     scope: CoroutineScope,
 ) {
     val context = LocalContext.current
@@ -403,7 +437,7 @@ private fun AudioRecorderButton(
                     if (toggleChangeResult) {
                         onSelectorChange(Audio)
                     } else {
-                        context.toastAudioRecordToggleFailure(false)
+                        onError(context.getString(string.recording_audio_failed_to_start))
                         onSelectorChange(None) // Failed to start audio recording
                     }
                 }
@@ -443,6 +477,8 @@ private fun UserInputPreview() {
                 conversationUiState = previewUiState(pendingAttachments = PreviewAttachments.choices),
                 audioRecordingUiState = previewAudioState(),
                 onAttachmentTypeSelection = {},
+                showMessageProcessing = false,
+                onError = {}
             )
         }
     }
@@ -459,6 +495,8 @@ private fun UserInputAudioPreview() {
                 audioRecordingUiState = previewAudioState(),
                 onAttachmentTypeSelection = {},
                 initialInputSelector = Audio,
+                showMessageProcessing = false,
+                onError = {}
             )
         }
     }

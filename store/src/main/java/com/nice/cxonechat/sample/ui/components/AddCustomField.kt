@@ -29,7 +29,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -44,7 +43,6 @@ import com.nice.cxonechat.sample.R
 import com.nice.cxonechat.sample.ui.theme.AppTheme
 
 @Composable
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 internal fun AddCustomField(onSet: (String, String) -> Unit) {
     val newKey = rememberTextFieldState()
     val newValue = rememberTextFieldState()
@@ -74,15 +72,15 @@ internal fun AddCustomField(onSet: (String, String) -> Unit) {
                     .fillMaxWidth()
                     .testTag("add_custom_field_value"),
             )
-            val size = ButtonDefaults.MediumIconSize
             Button(
                 onClick = {
                     onSet(newKey.text.toString(), newValue.text.toString())
                     newKey.clearText()
                     newValue.clearText()
                 },
+                shape = AppTheme.shapes.medium,
                 enabled = newKey.text.isNotEmpty() && newValue.text.isNotEmpty(),
-                contentPadding = ButtonDefaults.contentPaddingFor(size),
+                contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                 modifier = Modifier
                     .align(Alignment.Companion.End)
                     .padding(top = AppTheme.space.medium)
@@ -91,9 +89,9 @@ internal fun AddCustomField(onSet: (String, String) -> Unit) {
                 Icon(
                     imageVector = Icons.Outlined.Add,
                     contentDescription = stringResource(R.string.add_custom_field),
-                    modifier = Modifier.size(ButtonDefaults.iconSizeFor(size))
+                    modifier = Modifier.size(ButtonDefaults.IconSize)
                 )
-                Spacer(Modifier.size(ButtonDefaults.iconSpacingFor(size)))
+                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                 Text(stringResource(R.string.add_custom_field))
             }
         }

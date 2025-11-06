@@ -19,12 +19,13 @@ import androidx.lifecycle.ViewModel
 import com.nice.cxonechat.ChatInstanceProvider
 import com.nice.cxonechat.ChatState
 import com.nice.cxonechat.exceptions.RuntimeChatException
-import kotlinx.coroutines.channels.awaitClose
+import com.nice.cxonechat.ui.data.ChatErrorState
+import com.nice.cxonechat.ui.util.ErrorGroup
+import com.nice.cxonechat.ui.util.ErrorGroup.DO_NOTHING
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.callbackFlow
 import org.koin.android.annotation.KoinViewModel
 
 /**
@@ -39,19 +40,33 @@ internal class ChatStateViewModel(
         override fun onChatStateChanged(chatState: ChatState) {
             internalState.value = chatState
         }
+        override fun onChatRuntimeException(exception: RuntimeChatException) {
+            handleChatRuntimeException(exception)
+        }
     }.also(chatInstanceProvider::addListener)
 
-    val chatErrorState: Flow<RuntimeChatException> = callbackFlow {
-        val listener = object : ChatInstanceProvider.Listener {
-            override fun onChatRuntimeException(exception: RuntimeChatException) {
-                trySend(exception)
-            }
-        }
-        chatInstanceProvider.addListener(listener)
-        awaitClose { chatInstanceProvider.removeListener(listener) }
-    }
+    private val noError = ChatErrorState(DO_NOTHING, null)
+    private val _chatErrorState: MutableStateFlow<ChatErrorState> = MutableStateFlow(noError)
+    val chatErrorState: StateFlow<ChatErrorState> = _chatErrorState.asStateFlow()
 
     val state: StateFlow<ChatState> get() = internalState.asStateFlow()
+
+    private fun handleChatRuntimeException(exception: RuntimeChatException) {
+        val errorGroup = when (exception) {
+            is RuntimeChatException.AuthorizationError -> ErrorGroup.HIGH
+            is RuntimeChatException.ServerCommunicationError -> ErrorGroup.LOW
+            else -> DO_NOTHING
+        }
+        _chatErrorState.value = ChatErrorState(errorGroup, exception.message)
+    }
+
+    internal fun resetError() {
+        _chatErrorState.value = noError
+    }
+
+    internal fun showError(errorGroup: ErrorGroup, message: String, title: String? = null) {
+        _chatErrorState.value = ChatErrorState(errorGroup, message, title)
+    }
 
     override fun onCleared() {
         super.onCleared()

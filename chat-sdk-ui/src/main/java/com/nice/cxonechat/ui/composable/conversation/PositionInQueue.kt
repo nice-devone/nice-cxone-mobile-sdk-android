@@ -15,42 +15,113 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
-import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import com.airbnb.lottie.LottieProperty
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
+import com.airbnb.lottie.compose.rememberLottieDynamicProperties
+import com.airbnb.lottie.compose.rememberLottieDynamicProperty
+import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.R.string
-import com.nice.cxonechat.ui.composable.generic.ChatPopupContent
-import com.nice.cxonechat.ui.composable.icons.ChatIcons
-import com.nice.cxonechat.ui.composable.icons.filled.AvatarWaiting
+import com.nice.cxonechat.ui.composable.HeaderBar
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 
 @Composable
 internal fun PositionInQueue(
     position: Int,
     modifier: Modifier = Modifier,
 ) {
-    BoxWithConstraints {
-        val title = when {
-            position == 1 -> stringResource(id = string.position_in_queue_next)
-            else -> stringResource(id = string.position_in_queue_cardinal, position)
-        }
-        ChatPopupContent(
-            title = title,
-            icon = rememberVectorPainter(ChatIcons.AvatarWaiting),
-            modifier = Modifier
-                .testTag("position_in_queue")
-                .then(modifier),
-            subtitle = stringResource(string.position_in_queue_supporting_text),
-            collapsePopupHeight = this@BoxWithConstraints.maxHeight * 0.75f
+    val title = when {
+        position == 1 -> stringResource(id = string.position_in_queue_next)
+        else -> stringResource(id = string.position_in_queue_cardinal, position)
+    }
+    Column(
+        verticalArrangement = Arrangement.SpaceBetween,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+            .testTag("position_in_queue_content_view")
+            .fillMaxSize()
+            .fillMaxHeight()
+    ) {
+        HeaderBar(
+            titleText = title,
+            containerColor = chatColors.token.background.surface.emphasis,
+            messageText = stringResource(string.position_in_queue_supporting_text),
+            leadingContent = { LoadingAnimationView() }
+        )
+    }
+}
+
+private const val STROKE_VALUE = "Stroke 1"
+
+@Composable
+private fun LoadingAnimationView() {
+    val composition = rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.loading_sand)).value
+    val progress = animateLottieCompositionAsState(
+        composition,
+        iterations = LottieConstants.IterateForever,
+        speed = 1.0f
+    ).value
+    val dynamicProperties = rememberLottieDynamicProperties(
+        rememberLottieDynamicProperty(
+            property = LottieProperty.STROKE_COLOR,
+            value = chatColors.token.brand.onPrimary.toArgb(),
+            keyPath = arrayOf("**", "Group 1", STROKE_VALUE)
+        ),
+        rememberLottieDynamicProperty(
+            property = LottieProperty.STROKE_COLOR,
+            value = chatColors.token.brand.onPrimary.toArgb(),
+            keyPath = arrayOf("**", "Group 2", STROKE_VALUE)
+        ),
+        rememberLottieDynamicProperty(
+            property = LottieProperty.STROKE_COLOR,
+            value = chatColors.token.brand.onPrimary.toArgb(),
+            keyPath = arrayOf("**", "Group 3", STROKE_VALUE)
+        ),
+        rememberLottieDynamicProperty(
+            property = LottieProperty.STROKE_COLOR,
+            value = chatColors.token.brand.onPrimary.toArgb(),
+            keyPath = arrayOf("**", "Group 4", STROKE_VALUE)
+        ),
+    )
+
+    Box(
+        modifier = Modifier
+            .padding(vertical = space.large, horizontal = space.medium)
+            .size(space.positionInQueueIconSize)
+            .testTag("loading_animation_view")
+            .background(color = chatColors.token.brand.primary, shape = CircleShape),
+        contentAlignment = Alignment.Center,
+    ) {
+        LottieAnimation(
+            composition = composition,
+            progress = { progress },
+            modifier = Modifier.size(space.xxl),
+            dynamicProperties = dynamicProperties
         )
     }
 }
@@ -64,9 +135,7 @@ private fun PositionInQueue_Preview() {
                 .verticalScroll(rememberScrollState())
                 .height(300.dp)
         ) {
-            for (position in 1.until(4)) {
-                PositionInQueue(position = position)
-            }
+            PositionInQueue(position = 4)
         }
     }
 }

@@ -13,8 +13,6 @@
  * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
  */
 
-@file:Suppress("ForbiddenImport")
-
 package com.nice.cxonechat.ui.data.repository
 
 import android.content.Context
@@ -36,7 +34,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request.Builder
-import org.koin.core.annotation.Single
+import org.koin.core.annotation.Factory
 import java.io.File
 import java.io.InputStream
 
@@ -50,7 +48,7 @@ private typealias RawMimeType = String
  * @param httpClient [OkHttpClient] used to fetch remote attachments for sharing.
  * @param logger [Logger] for logging warnings and errors.
  */
-@Single
+@Factory
 internal class AttachmentSharingRepository(
     private val storage: TemporaryFileStorage,
     private val httpClient: OkHttpClient,

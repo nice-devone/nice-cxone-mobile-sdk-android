@@ -23,7 +23,7 @@ dokka {
     }
     dokkaSourceSets.configureEach { sourceSet ->
         if (name.contains("debug")) {
-            suppress.set(true) // Suppress debug sources in documentation, because of poor dokka support for buildTypes
+            suppress.set(true) // Suppress debug sources in documentation, because of issues with buildconfig plugin
         }
     }
 }

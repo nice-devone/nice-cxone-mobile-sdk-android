@@ -22,4 +22,12 @@ internal interface TreeFieldItem<ValueType> {
 
     val isLeaf: Boolean
         get() = children == null
+
+    companion object {
+        operator fun <ValueType> invoke(
+            label: String,
+            value: ValueType,
+            children: List<TreeFieldItem<ValueType>>? = null,
+        ): TreeFieldItem<ValueType> = SimpleTreeFieldItem(label, value, children)
+    }
 }

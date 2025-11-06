@@ -72,6 +72,20 @@ interface OutboundMessage {
         ): OutboundMessage = create(attachments, message, postback)
 
         /**
+         * Creates a default instance of [OutboundMessage] for reply button actions.
+         *
+         * @param action The reply button action that triggered this message.
+         * @return A new instance of [OutboundMessage].
+         */
+        @JvmStatic
+        operator fun invoke(
+            action: Action.ReplyButton,
+        ): OutboundMessage = create(
+            message = action.text,
+            postback = action.postback
+        )
+
+        /**
          * Creates default instance of [OutboundMessage] for simple text messages.
          *
          * @param message see [OutboundMessage.message].
@@ -114,8 +128,27 @@ interface OutboundMessage {
             override val message: String,
             override val attachments: Iterable<ContentDescriptor> = emptyList(),
             override val postback: String? = null,
-        ) : OutboundMessage {
+            ) : OutboundMessage {
             override fun toString(): String = "OutboundMessage(message='$message', attachments=$attachments, postback=$postback)"
+        }
+
+        internal data class LiveChatBeginOutboundMessage(
+            override val message: String,
+        ) : OutboundMessage {
+            override val attachments: Iterable<ContentDescriptor> = emptyList()
+            override val postback: String? = null
+            override fun toString(): String = "LiveChatBeginOutboundMessage()"
+        }
+
+        internal data class UnsupportedMessageTypeAnswer(
+            override val message: String,
+            val isUnsupportedMessageTypeAnswer: Boolean,
+        ) : OutboundMessage {
+            override val attachments: Iterable<ContentDescriptor> = emptyList()
+            override val postback: String? = null
+
+            override fun toString(): String =
+                "UnsupportedMessageTypeAnswer(isUnsupportedMessageTypeAnswer='$isUnsupportedMessageTypeAnswer')"
         }
     }
 }

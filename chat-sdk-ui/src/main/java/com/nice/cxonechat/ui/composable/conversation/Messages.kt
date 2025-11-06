@@ -26,10 +26,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -43,6 +47,7 @@ import com.nice.cxonechat.ui.composable.conversation.ContentType.Loading
 import com.nice.cxonechat.ui.composable.conversation.ContentType.Typing
 import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.LAST
 import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.SOLO
+import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.SOLO_GROUPED
 import com.nice.cxonechat.ui.composable.conversation.model.Message
 import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider
 import com.nice.cxonechat.ui.composable.conversation.model.Section
@@ -50,6 +55,7 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.domain.model.Person
 import com.nice.cxonechat.ui.util.preview.message.toPerson
+import java.util.UUID
 
 @Suppress("LongMethod")
 @Composable
@@ -64,12 +70,15 @@ internal fun ColumnScope.Messages(
     onAttachmentClicked: (Attachment) -> Unit,
     onMoreClicked: (List<Attachment>) -> Unit,
     onShare: (Collection<Attachment>) -> Unit,
+    snackBarHostState: SnackbarHostState,
 ) {
     LaunchedEffect(agentIsTyping) {
         if (agentIsTyping) {
             scrollState.scrollToItem(0)
         }
     }
+    val messageQuickReplyState = rememberMessageQuickReplyState(groupedMessages)
+    val messageListPickerState = rememberMessageListPickerState(groupedMessages)
     val lastDisplayedStatuses: MutableMap<MessageStatus, Position> = remember { mutableMapOf() }
     LazyColumn(
         reverseLayout = true,
@@ -109,10 +118,17 @@ internal fun ColumnScope.Messages(
                                         it >= message.status // Show last Higher status if current lower
                             }.none { position > it.value }
                 }
-                val showStatus: Boolean = remember(message.status, groupState, isLastMessage, position) {
+                val isLastMessageInChat = groupedMessages.first().messages.first().id == message.id
+                val messageStatusState = getMessageStatusState(
+                    message,
+                    isLastMessageInChat,
+                    messageQuickReplyState,
+                    messageListPickerState
+                )
+                val showStatus: DisplayStatus = remember(message.status, groupState, isLastMessage, position) {
                     message.showStatus(groupState, isLastMessage)
                 }
-                if (showStatus) {
+                if (showStatus === DisplayStatus.DISPLAY) {
                     lastDisplayedStatuses[message.status] = position
                 }
 
@@ -123,10 +139,18 @@ internal fun ColumnScope.Messages(
                     onAttachmentClicked = onAttachmentClicked,
                     onMoreClicked = onMoreClicked,
                     onShare = onShare,
+                    messageStatusState = messageStatusState,
+                    onQuickReplyOptionSelected = { newValue ->
+                        messageQuickReplyState[message.id] = newValue
+                    },
+                    onListPickerSelected = { newValue ->
+                        messageListPickerState[message.id] = newValue
+                    },
                     modifier = Modifier
                         .testTag("message_item_$position")
                         .fillParentMaxWidth()
                         .animateItem(),
+                    snackBarHostState = snackBarHostState,
                 )
             }
 
@@ -145,6 +169,55 @@ internal fun ColumnScope.Messages(
     }
 }
 
+private fun getMessageStatusState(
+    message: Message,
+    isLastMessageInChat: Boolean,
+    quickReplyState: Map<UUID, Boolean>,
+    listPickerState: Map<UUID, Boolean>
+): MessageStatusState = when (message.contentType) {
+    ContentType.QuickReply -> getQuickReplyState(isLastMessageInChat, quickReplyState[message.id] ?: true)
+    ContentType.ListPicker -> getListPickerState(listPickerState[message.id] ?: true)
+    else -> MessageStatusState.DISABLED
+}
+
+@Composable
+private fun rememberMessageQuickReplyState(groupedMessages: List<Section>): MutableMap<UUID, Boolean> {
+    val messageQuickReplyStateSaver = listSaver<MutableMap<UUID, Boolean>, Pair<UUID, Boolean>>(
+        save = { it.entries.map { entry -> entry.toPair() } },
+        restore = { pairs -> mutableStateMapOf<UUID, Boolean>().apply { pairs.forEach { put(it.first, it.second) } } }
+    )
+    val messageQuickReplyState = rememberSaveable(saver = messageQuickReplyStateSaver) { mutableStateMapOf() }
+    LaunchedEffect(groupedMessages) {
+        groupedMessages.forEach { section ->
+            section.messages.filter { it.contentType == ContentType.QuickReply }.forEach { message ->
+                if (messageQuickReplyState[message.id] == null) {
+                    messageQuickReplyState[message.id] = true
+                }
+            }
+        }
+    }
+    return messageQuickReplyState
+}
+
+@Composable
+private fun rememberMessageListPickerState(groupedMessages: List<Section>): MutableMap<UUID, Boolean> {
+    val listPickerStateSaver = listSaver<MutableMap<UUID, Boolean>, Pair<UUID, Boolean>>(
+        save = { it.entries.map { entry -> entry.toPair() } },
+        restore = { pairs -> mutableStateMapOf<UUID, Boolean>().apply { pairs.forEach { put(it.first, it.second) } } }
+    )
+    val listPickerState = rememberSaveable(saver = listPickerStateSaver) { mutableStateMapOf<UUID, Boolean>() }
+    LaunchedEffect(groupedMessages) {
+        groupedMessages.forEach { section ->
+            section.messages.filter { it.contentType == ContentType.ListPicker }.forEach { message ->
+                if (listPickerState[message.id] == null) {
+                    listPickerState[message.id] = true
+                }
+            }
+        }
+    }
+    return listPickerState
+}
+
 @Immutable
 private data class Position(
     val sectionIndex: Int,
@@ -157,12 +230,16 @@ private data class Position(
         }
 }
 
-private fun Message.showStatus(
+internal fun Message.showStatus(
     groupState: MessageItemGroupState,
     isLastMessage: Boolean,
-): Boolean = direction === ToAgent && (
-        status === MessageStatus.FailedToDeliver || isLastMessage && groupState in setOf(LAST, SOLO)
-        )
+): DisplayStatus = when {
+    direction === MessageDirection.ToClient -> DisplayStatus.HIDE
+    status === MessageStatus.FailedToDeliver -> DisplayStatus.DISPLAY
+    isLastMessage && groupState in setOf(LAST, SOLO, SOLO_GROUPED) -> DisplayStatus.DISPLAY
+    groupState in setOf(LAST, SOLO) -> DisplayStatus.SPACER
+    else -> DisplayStatus.HIDE
+}
 
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO or Configuration.UI_MODE_TYPE_NORMAL)
 @Composable
@@ -187,6 +264,7 @@ private fun MessagesPreview() {
                 onAttachmentClicked = {},
                 onMoreClicked = { _ -> },
                 onShare = {},
+                snackBarHostState = SnackbarHostState(),
             )
         }
     }

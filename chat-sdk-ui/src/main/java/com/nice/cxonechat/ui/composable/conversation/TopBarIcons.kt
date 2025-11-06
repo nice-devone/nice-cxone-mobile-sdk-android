@@ -30,7 +30,7 @@ import androidx.compose.ui.res.stringResource
 import com.nice.cxonechat.ui.R.string
 
 @Composable
-internal fun EndConversationIcon(tint: Color = LocalContentColor.current) {
+internal fun EndConversationIconForMenu(tint: Color = LocalContentColor.current) {
     Icon(
         imageVector = Default.Cancel,
         contentDescription = stringResource(string.action_end_conversation),

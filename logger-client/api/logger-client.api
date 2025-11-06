@@ -1,0 +1,10 @@
+public final class com/nice/cxonechat/logger/RemoteLogger : com/nice/cxonechat/log/Logger {
+	public static final field Companion Lcom/nice/cxonechat/logger/RemoteLogger$Companion;
+	public fun <init> (Ljava/lang/String;Lokhttp3/OkHttpClient;)V
+	public fun log (Lcom/nice/cxonechat/log/Level;Ljava/lang/String;Ljava/lang/Throwable;)V
+}
+
+public final class com/nice/cxonechat/logger/RemoteLogger$Companion {
+	public final fun setData (JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+}
+

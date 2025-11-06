@@ -181,7 +181,7 @@ private fun SingleAction(
                 enabled = threadState == ChatThreadState.Ready,
                 colors = IconButtonDefaults.iconButtonColors(contentColor = ChatTheme.colorScheme.error)
             ) {
-                EndConversationIcon()
+                EndConversationIconForMenu()
             }
         }
     }
@@ -233,7 +233,7 @@ private fun EndConversationMenu(
         onClick = remember { onClick },
         enabled = threadState.value == ChatThreadState.Ready,
         {
-            EndConversationIcon()
+            EndConversationIconForMenu()
         },
         modifier = Modifier.testTag("end_conversation_menu_item"),
     )

@@ -15,7 +15,6 @@
 
 package com.nice.cxonechat.ui.composable.generic
 
-import androidx.annotation.OptIn
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -30,6 +29,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FastForward
@@ -49,6 +49,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.State
@@ -61,14 +62,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.util.UnstableApi
 import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.composable.player.PlayerState
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
@@ -85,21 +87,21 @@ import kotlin.time.toDurationUnit
 /**
  * The view representing the audio player.
  */
-@UnstableApi
 @Composable
 internal fun AudioPlayerContent(
-    modifier: Modifier,
     currentTime: String,
     animatedProgress: Float,
     remainingTime: String,
     playerState: PlayerState,
+    modifier: Modifier = Modifier,
     onSeekBack: () -> Unit = {},
     onSeekForward: () -> Unit = {},
     onPlayPause: () -> Unit = {},
 ) {
     val enabled by playerState.available
     Column(
-        modifier = modifier,
+        modifier = modifier.clipToBounds(),
+        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
@@ -110,12 +112,13 @@ internal fun AudioPlayerContent(
             IndicatorTime(remainingTime, enabled)
         }
         Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
                 .animateContentSize(),
             horizontalArrangement = Arrangement.spacedBy(space.audioPlayerIconSpacing)
         ) {
-            AnimatedVisibility(playerState.canSeekBackward.value) {
+            AnimatedVisibility(visible = playerState.canSeekBackward.value, modifier = Modifier.minimumInteractiveComponentSize()) {
                 SeekBackButton(enabled, onSeekBack, playerState)
             }
             PlayPauseButton(enabled, onPlayPause, playerState)
@@ -136,7 +139,8 @@ private fun RowScope.ProgressIndicator(animatedProgress: Float, enabled: Boolean
         modifier = Modifier
             .padding(10.dp)
             .height(space.medium)
-            .weight(1f),
+            .weight(1f)
+            .testTag("progress_indicator"),
         trackColor = color.copy(alpha = 0.5f),
         color = color,
         strokeCap = StrokeCap.Round,
@@ -147,7 +151,13 @@ private fun RowScope.ProgressIndicator(animatedProgress: Float, enabled: Boolean
 
 @Composable
 private fun SeekBackButton(enabled: Boolean, onSeekBack: () -> Unit, playerState: PlayerState) {
-    IconButton(enabled = enabled, onClick = onSeekBack) {
+    IconButton(
+        enabled = enabled,
+        onClick = onSeekBack,
+        modifier = Modifier
+            .minimumInteractiveComponentSize()
+            .testTag("seek_back_button")
+    ) {
         AnimatedContent(playerState.seekBackIncrement.longValue) { increment ->
             val seconds = increment.milliseconds.inWholeSeconds.toInt()
             val description = pluralStringResource(R.plurals.seek_back, seconds, seconds)
@@ -164,7 +174,11 @@ private fun SeekBackButton(enabled: Boolean, onSeekBack: () -> Unit, playerState
 
 @Composable
 private fun PlayPauseButton(enabled: Boolean, onPlayPause: () -> Unit, playerState: PlayerState) {
-    IconButton(enabled = enabled, onClick = onPlayPause) {
+    IconButton(
+        enabled = enabled,
+        onClick = onPlayPause,
+        modifier = Modifier.testTag("play_pause_button")
+    ) {
         AnimatedContent(playerState.isPlaying.value) {
             val iconMod = Modifier.size(space.audioPlayerPlayIconSize)
             if (!it) {
@@ -178,7 +192,11 @@ private fun PlayPauseButton(enabled: Boolean, onPlayPause: () -> Unit, playerSta
 
 @Composable
 private fun SeekForwardButton(enabled: Boolean, onSeekForward: () -> Unit, playerState: PlayerState) {
-    IconButton(enabled = enabled, onClick = onSeekForward) {
+    IconButton(
+        enabled = enabled,
+        onClick = onSeekForward,
+        modifier = Modifier.testTag("seek_forward_button")
+    ) {
         AnimatedContent(playerState.seekForwardIncrement.longValue) { increment ->
             val seconds = increment.milliseconds.inWholeSeconds.toInt()
             val description = pluralStringResource(R.plurals.seek_forward, seconds, seconds)
@@ -204,9 +222,11 @@ private fun IndicatorTime(remainingTime: String, enabled: Boolean = true) {
     )
 }
 
-@OptIn(UnstableApi::class)
 @PreviewLightDark
 @Composable
+@Suppress(
+    "LongMethod" // Preview methods can be complex
+)
 private fun AudioPlayerContentPreview() {
     ChatTheme {
         val state = remember {
@@ -237,12 +257,17 @@ private fun AudioPlayerContentPreview() {
             targetValue = state.progress.floatValue,
             animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec
         )
-        Column(verticalArrangement = spacedBy(space.medium), modifier = Modifier.fillMaxWidth()) {
+        Column(
+            verticalArrangement = spacedBy(space.medium),
+            modifier = Modifier
+                .systemBarsPadding()
+                .fillMaxWidth()
+        ) {
             CompositionLocalProvider(
-                LocalContentColor provides chatColors.agent.foreground
+                LocalContentColor provides chatColors.token.content.primary
             ) {
                 PreviewContent(
-                    chatColors.agent.background,
+                    chatColors.token.background.surface.default,
                     currentTime,
                     animatedProgress,
                     remainingTime,
@@ -250,10 +275,10 @@ private fun AudioPlayerContentPreview() {
                 )
             }
             CompositionLocalProvider(
-                LocalContentColor provides chatColors.customer.foreground
+                LocalContentColor provides chatColors.token.brand.onPrimary
             ) {
                 PreviewContent(
-                    chatColors.customer.background,
+                    chatColors.token.brand.primary,
                     currentTime,
                     animatedProgress,
                     remainingTime,
@@ -264,7 +289,6 @@ private fun AudioPlayerContentPreview() {
     }
 }
 
-@OptIn(UnstableApi::class)
 @Composable
 private fun PreviewContent(
     color: Color,
@@ -281,11 +305,11 @@ private fun PreviewContent(
             modifier = Modifier.widthIn(min = space.smallAttachmentSize, max = maxAttachmentWidth)
         ) {
             AudioPlayerContent(
-                Modifier.padding(space.audioMessagePadding),
                 currentTime,
                 animatedProgress,
                 remainingTime,
-                state
+                state,
+                Modifier.padding(space.audioMessagePadding)
             )
         }
     }

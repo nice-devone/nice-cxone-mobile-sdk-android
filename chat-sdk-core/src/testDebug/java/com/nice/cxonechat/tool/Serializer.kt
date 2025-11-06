@@ -30,7 +30,6 @@ import com.nice.cxonechat.internal.serializer.Default
 import com.nice.cxonechat.util.timestampToDate
 import com.nice.cxonechat.util.toTimestamp
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.serializer
 import java.util.Date
 import kotlin.math.roundToLong
@@ -108,6 +107,9 @@ private class KotlinxAdapter<T>(private val type: Class<in T>) : TypeAdapter<T>(
     }
 
     override fun read(reader: JsonReader): T? {
+        @Suppress(
+            "UNCHECKED_CAST" // Safe: serializer is created for the specific type T, so decodeFromString always returns T
+        )
         return when (reader.peek()) {
             NULL -> {
                 reader.nextNull()
