@@ -15,15 +15,13 @@
 
 package com.nice.cxonechat.ui.screen
 
-import android.Manifest
-import android.annotation.SuppressLint
+import android.Manifest.permission
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -36,7 +34,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -47,14 +44,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
-import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.Lifecycle.State.DESTROYED
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.createGraph
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.nice.cxonechat.ChatMode.LiveChat
 import com.nice.cxonechat.ChatMode.MultiThread
 import com.nice.cxonechat.ChatState
@@ -64,10 +60,9 @@ import com.nice.cxonechat.ChatState.Initial
 import com.nice.cxonechat.ChatState.Prepared
 import com.nice.cxonechat.ChatState.Preparing
 import com.nice.cxonechat.ChatState.Ready
+import com.nice.cxonechat.Public
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerScope
-import com.nice.cxonechat.log.warning
-import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.ui.R.anim
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.SelectAttachmentActivityLauncher
@@ -77,7 +72,9 @@ import com.nice.cxonechat.ui.composable.ThreadContentView
 import com.nice.cxonechat.ui.composable.ThreadViewTopBar
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.Scaffold
-import com.nice.cxonechat.ui.data.repository.AttachmentSharingRepository
+import com.nice.cxonechat.ui.data.AudioRecordingManager
+import com.nice.cxonechat.ui.data.ChatAttachmentHandler
+import com.nice.cxonechat.ui.data.ChatDeeplinkHandler
 import com.nice.cxonechat.ui.data.source.AttachmentDataSource
 import com.nice.cxonechat.ui.domain.usecase.NotifyUpdateUseCase
 import com.nice.cxonechat.ui.screen.Screen.Offline
@@ -85,83 +82,92 @@ import com.nice.cxonechat.ui.screen.Screen.ThreadList
 import com.nice.cxonechat.ui.screen.Screen.ThreadScreen
 import com.nice.cxonechat.ui.storage.ValueStorage
 import com.nice.cxonechat.ui.storage.ValueStorage.Companion.removeFromStringSet
+import com.nice.cxonechat.ui.storage.ValueStorage.StringKey.RequestedPermissionsKey
+import com.nice.cxonechat.ui.util.ErrorGroup
+import com.nice.cxonechat.ui.util.ErrorGroup.LOW
 import com.nice.cxonechat.ui.util.applyFixesForKeyboardInput
 import com.nice.cxonechat.ui.util.checkNotificationPermissions
-import com.nice.cxonechat.ui.util.checkPermissions
-import com.nice.cxonechat.ui.util.contentDescription
 import com.nice.cxonechat.ui.util.koinActivityViewModel
-import com.nice.cxonechat.ui.util.openWithAndroid
 import com.nice.cxonechat.ui.util.overrideCloseAnimation
 import com.nice.cxonechat.ui.util.overrideOpenAnimation
-import com.nice.cxonechat.ui.util.parseThreadDeeplink
 import com.nice.cxonechat.ui.util.repeatOnOwnerLifecycle
 import com.nice.cxonechat.ui.util.showCancellableSnackbar
-import com.nice.cxonechat.ui.util.showToast
 import com.nice.cxonechat.ui.viewmodel.AudioRecordingViewModel
 import com.nice.cxonechat.ui.viewmodel.ChatStateViewModel
 import com.nice.cxonechat.ui.viewmodel.ChatThreadViewModel
 import com.nice.cxonechat.ui.viewmodel.ChatThreadsViewModel
 import com.nice.cxonechat.ui.viewmodel.ChatViewModel
+import com.nice.cxonechat.ui.viewmodel.ConversationDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.get
 import org.koin.android.ext.android.inject
 import org.koin.android.scope.AndroidScopeComponent
 import org.koin.androidx.scope.activityScope
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import org.koin.compose.LocalKoinScope
 import org.koin.compose.koinInject
+import org.koin.core.parameter.parametersOf
 import org.koin.core.qualifier.named
 
 /**
  * Chat container activity.
  */
-@Suppress(
-    "TooManyFunctions",
-    "LargeClass", // Will be fixed in DE-131056
-)
+@Suppress("TooManyFunctions")
 class ChatActivity : ComponentActivity(), AndroidScopeComponent {
     internal val audioViewModel: AudioRecordingViewModel by viewModel()
     internal val valueStorage: ValueStorage by inject()
     private val chatViewModel: ChatViewModel by viewModel()
     private val chatThreadsViewModel: ChatThreadsViewModel by viewModel()
-    private val chatThreadViewModel: ChatThreadViewModel by viewModel()
-    private val chatStateViewModel: ChatStateViewModel by viewModel()
-    private val attachmentSharingRepository: AttachmentSharingRepository by inject()
-
+    private val chatThreadViewModel: Lazy<ChatThreadViewModel> = viewModel()
+    internal val chatStateViewModel: ChatStateViewModel by viewModel()
     private val requestPermissionLauncher: ActivityResultLauncher<String> = getNotificationRequestResult()
     private val audioRequestPermissionLauncher = getAudioRequestResult()
 
     override val scope by activityScope()
 
+    private val audioRecordingManager: AudioRecordingManager by inject(parameters = { parametersOf(audioViewModel, chatStateViewModel) })
+
     private val loggerScope: LoggerScope by lazy {
         LoggerScope("ChatActivity", get<Logger>(named(UiModule.loggerName)))
     }
 
-    private val activityLauncher by lazy {
-        SelectAttachmentActivityLauncher(
-            context = application,
-            temporaryFileStorage = get(),
-            sendAttachments = ::addAttachment,
-            registry = activityResultRegistry
-        ).also(lifecycle::addObserver)
-    }
+    private val chatAttachmentHandler by inject<ChatAttachmentHandler>(
+        parameters = {
+            parametersOf(chatThreadViewModel, chatStateViewModel)
+        }
+    )
+
+    private val chatDeeplinkHandler by inject<ChatDeeplinkHandler>(
+        parameters = {
+            parametersOf(loggerScope)
+        }
+    )
+
+    @Suppress(
+        "LateinitUsage" // Explicitly initialized in onCreate to avoid hidden side effects
+    )
+    private lateinit var activityLauncher: SelectAttachmentActivityLauncher
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         applyFixesForKeyboardInput()
-        activityLauncher // activity launcher has to self-register before onStart
+        // Explicit initialization and registration of activityLauncher
+        activityLauncher = SelectAttachmentActivityLauncher(
+            context = application,
+            temporaryFileStorage = get(),
+            sendAttachments = chatAttachmentHandler::addAttachment,
+            registry = activityResultRegistry
+        ).also(lifecycle::addObserver)
         setupComposableUi()
-        repeatOnOwnerLifecycle { intent.handleDeeplink() }
+        repeatOnOwnerLifecycle { chatDeeplinkHandler.handleDeeplink(intent) }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        repeatOnOwnerLifecycle { intent.handleDeeplink() }
+        repeatOnOwnerLifecycle { chatDeeplinkHandler.handleDeeplink(intent) }
     }
 
     override fun onPause() {
@@ -172,7 +178,7 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
     override fun onDestroy() {
         super.onDestroy()
         val atd = inject<AttachmentDataSource>()
-        repeatOnOwnerLifecycle(state = Lifecycle.State.DESTROYED) {
+        repeatOnOwnerLifecycle(state = DESTROYED) {
             if (atd.isInitialized()) {
                 atd.value.clearCache()
             }
@@ -189,10 +195,6 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
         }
     }
 
-    private fun addAttachment(attachments: List<Uri>) {
-        chatThreadViewModel.addPendingAttachments(attachments)
-    }
-
     override fun finish() {
         super.finish()
         overrideCloseAnimation(anim.dismiss_host, anim.dismiss_chat)
@@ -201,14 +203,10 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
     private fun setupComposableUi() {
         enableEdgeToEdge()
         setContent {
-            CompositionLocalProvider(
-                LocalKoinScope provides scope // Scope all injections to this activity by default
-            ) {
-                ChatTheme {
-                    val snackbarHostState = remember { SnackbarHostState() }
-                    HandleEarlyChatState(snackbarHostState) { chatState ->
-                        ChatUi(chatState, snackbarHostState)
-                    }
+            ChatTheme {
+                val snackbarHostState = remember { SnackbarHostState() }
+                HandleEarlyChatState(snackbarHostState) { chatState ->
+                    ChatUi(chatState, snackbarHostState)
                 }
             }
         }
@@ -258,6 +256,20 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
                 ThreadScreen(snackbarHostState, isMultiThread, isLiveChat, testMod)
             }
         }
+
+        val threadNotFound by chatThreadsViewModel.threadNotFound.collectAsState()
+        LaunchedEffect(threadNotFound) {
+            if (threadNotFound && chatViewModel.chatMode === MultiThread) {
+                navController.navigate(ThreadList) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+                chatThreadsViewModel.resetThreadNotFound()
+            }
+        }
         ChatDialogScreen(
             dialogShownFlow = chatViewModel.dialogShown,
             modifier = testMod,
@@ -279,7 +291,7 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
             },
             onOfflineAction = { navController.navigate(Offline) }
         )
-        ChatErrorScreen(snackbarHostState, chatStateViewModel.chatErrorState, onTerminalError = ::finish)
+        ChatErrorScreen(onTerminalError = ::finish)
         NavHost(navController, screenGraph, modifier = testMod)
     }
 
@@ -297,13 +309,13 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
             snackbarHostState = snackbarHostState,
             topBar = {
                 val dialogState by chatThreadViewModel.dialogShown.collectAsState()
-                if (dialogState !is ChatThreadViewModel.Dialogs.FullScreenDialog) {
+                if (dialogState !is ConversationDialog.FullScreenDialog) {
                     ThreadViewTopBar(isMultiThread, isLiveChat, scrollBehavior)
                 }
             },
         ) { padding ->
             Box(modifier = Modifier.padding(padding)) {
-                ThreadView()
+                ThreadView(snackbarHostState = snackbarHostState)
                 if (isMultiThread) BackgroundThreadUpdates()
             }
         }
@@ -313,87 +325,6 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
         isLiveChat && chatState === ChatState.Offline -> Offline
         isMultiThread -> ThreadList
         else -> ThreadScreen
-    }
-
-    @SuppressLint(
-        "MissingPermission" // permission state is checked by `checkPermissions()` method
-    )
-    private suspend fun onTriggerRecording(): Boolean {
-        if (!checkPermissions(
-                valueStorage = valueStorage,
-                permissions = requiredRecordAudioPermissions,
-                rationale = string.recording_audio_permission_rationale,
-                onAcceptPermissionRequest = audioRequestPermissionLauncher::launch
-            ).also(audioViewModel::setRecordingPermissionGranted)
-        ) {
-            return false
-            // Permissions will need to be sorted out first, user will have to click the button again after that
-        }
-        return if (audioViewModel.recordingFlow.value) {
-            audioViewModel.stopRecording()
-        } else {
-            audioViewModel.startRecording().isSuccess
-        }
-    }
-
-    @SuppressLint(
-        "MissingPermission" // permission state is checked by `checkPermissions()` method
-    )
-    private fun onDismissRecording() {
-        lifecycleScope.launch {
-            if (!checkPermissions(
-                    valueStorage = valueStorage,
-                    permissions = requiredRecordAudioPermissions,
-                    rationale = string.recording_audio_permission_rationale,
-                    onAcceptPermissionRequest = audioRequestPermissionLauncher::launch
-                ).also(audioViewModel::setRecordingPermissionGranted)
-            ) {
-                return@launch
-            }
-            audioViewModel.deleteLastRecording {
-                showToast(string.record_audio_failed_cleanup, Toast.LENGTH_LONG)
-            }
-        }
-    }
-
-    private fun onShare(attachments: Collection<Attachment>) {
-        chatThreadViewModel.beginPrepareAttachments()
-        lifecycleScope.launch(Dispatchers.IO) {
-            val sharingIntent = attachmentSharingRepository.createSharingIntent(attachments, this@ChatActivity)
-            chatThreadViewModel.finishPrepareAttachments()
-            lifecycleScope.launch(Dispatchers.Main) {
-                if (sharingIntent == null) {
-                    showToast(string.prepare_attachments_failure)
-                } else {
-                    startActivity(Intent.createChooser(sharingIntent, null))
-                }
-            }
-        }
-    }
-
-    private fun onAttachmentClicked(attachment: Attachment) {
-        val url = attachment.url
-        val mimeType = attachment.mimeType.orEmpty()
-        val title by lazy { attachment.contentDescription }
-        when {
-            mimeType.startsWith("image/") -> chatThreadViewModel.showImage(
-                image = url,
-                title = title.takeUnless { it.isNullOrEmpty() } ?: getString(string.image_preview_title),
-                attachment = attachment
-            )
-
-            mimeType.startsWith("video/") -> chatThreadViewModel.showVideo(
-                url = url,
-                title = title ?: getString(string.video_preview_title),
-                attachment = attachment
-            )
-
-            else -> openWithAndroid(attachment)
-        }
-    }
-
-    private fun openWithAndroid(attachment: Attachment) {
-        if (!openWithAndroid(attachment.url, attachment.mimeType)) showInvalidAttachmentDialog(attachment)
     }
 
     override fun onResume() {
@@ -409,7 +340,7 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             checkNotificationPermissions(
-                Manifest.permission.POST_NOTIFICATIONS,
+                permission.POST_NOTIFICATIONS,
                 string.notifications_rationale,
                 requestPermissionLauncher::launch
             )
@@ -418,41 +349,40 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
 
     private fun ChatState.isAtLeastPrepared() = this === Connected || this === Ready || this === Prepared || this === Connecting
 
-    private suspend fun Intent.handleDeeplink() {
-        val data = data ?: return
-        withContext(Dispatchers.Default) {
-            data
-                .parseThreadDeeplink()
-                .mapCatching { chatThreadsViewModel.selectThreadById(it) }
-                .onFailure {
-                    loggerScope.warning("Failed to parse deeplink: $data", it)
-                }
-        }
-    }
-
     @Suppress(
         "UndocumentedPublicClass", // Companion objects don't require documentation.
     )
     companion object {
-        private val requiredRecordAudioPermissions = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
-            setOf(Manifest.permission.RECORD_AUDIO)
-        } else {
-            setOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        }
 
         @Composable
-        private fun ChatActivity.ThreadView() {
+        private fun ChatActivity.ThreadView(snackbarHostState: SnackbarHostState) {
             val chatThreadViewModel: ChatThreadViewModel = koinActivityViewModel()
             ThreadContentView(
-                onAttachmentClicked = remember { { onAttachmentClicked(it) } },
-                onShare = remember { { onShare(it) } },
+                onAttachmentClicked = remember { { chatAttachmentHandler.onAttachmentClicked(this, it) } },
+                onShare = remember {
+                    {
+                        lifecycleScope.launch {
+                            chatAttachmentHandler.onShare(this@ThreadView, it)
+                        }
+                    }
+                },
                 closeChat = remember { { finish() } },
-                onDismissRecording = remember { { onDismissRecording() } },
-                onTriggerRecording = remember { { onTriggerRecording() } },
+                onDismissRecording = remember {
+                    {
+                        lifecycleScope.launch {
+                            audioRecordingManager.dismissRecording(this@ThreadView, audioRequestPermissionLauncher)
+                        }
+                    }
+                },
+                onError = { message ->
+                    chatStateViewModel.showError(LOW, message)
+                },
+                onTriggerRecording = remember { { audioRecordingManager.triggerRecording(this, audioRequestPermissionLauncher) } },
                 chatThreadViewModel = chatThreadViewModel,
                 chatViewModel = chatViewModel,
                 audioViewModel = audioViewModel,
                 activityLauncher = activityLauncher,
+                snackBarHostState = snackbarHostState
             )
             val chatThreadsState by chatThreadsViewModel.state.collectAsState()
             if (chatThreadsState === ChatThreadsViewModel.State.ThreadSelected) {
@@ -466,6 +396,7 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
          * @param from Activity to use as a base for the new [ChatActivity].
          */
         @JvmStatic
+        @Public
         fun startChat(from: Activity) {
             from.startActivity(Intent(from, ChatActivity::class.java))
             from.overrideOpenAnimation(anim.present_chat, anim.present_host)
@@ -490,14 +421,14 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
  * This function sets up an activity result launcher that will handle the result of the notification permission request.
  * If the permission is not granted, it shows a dialog informing the user about the denied permission.
  */
-private fun ComponentActivity.getNotificationRequestResult() =
+private fun ChatActivity.getNotificationRequestResult() =
     registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
         if (!isGranted) {
-            MaterialAlertDialogBuilder(this)
-                .setTitle(string.no_notifications_title)
-                .setMessage(string.no_notifications_message)
-                .setNeutralButton(string.ok, null)
-                .show()
+            chatStateViewModel.showError(
+                errorGroup = ErrorGroup.LOW_SPECIFIC,
+                message = getString(string.no_notifications_message),
+                title = getString(string.no_notifications_title)
+            )
         }
     }
 
@@ -515,28 +446,14 @@ private fun ChatActivity.getAudioRequestResult() =
             lifecycleScope.launch(Dispatchers.Default) {
                 audioViewModel.setRecordingPermissionGranted(true)
                 // Remove permissions from the stored set since they are granted now, but it may be temporary.
-                valueStorage.removeFromStringSet(ValueStorage.StringKey.RequestedPermissionsKey, results.keys)
+                valueStorage.removeFromStringSet(RequestedPermissionsKey, results.keys)
             }
         } else {
             audioViewModel.setRecordingPermissionGranted(false)
-            MaterialAlertDialogBuilder(this)
-                .setTitle(string.recording_audio_permission_denied_title)
-                .setMessage(string.recording_audio_permission_denied_body)
-                .setNeutralButton(string.ok) { dialog, _ ->
-                    dialog.dismiss()
-                }
+            chatStateViewModel.showError(
+                errorGroup = ErrorGroup.LOW_SPECIFIC,
+                message = getString(string.recording_audio_permission_denied_body),
+                title = getString(string.recording_audio_permission_denied_title)
+            )
         }
     }
-
-/**
- * Show a dialog indicating that the attachment type is not supported.
- *
- * @param attachment The attachment that is not supported.
- */
-private fun Context.showInvalidAttachmentDialog(attachment: Attachment) {
-    MaterialAlertDialogBuilder(this)
-        .setTitle(string.unsupported_type_title)
-        .setMessage(getString(string.unsupported_type_message, attachment.mimeType))
-        .setNegativeButton(string.cancel, null)
-        .show()
-}

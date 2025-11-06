@@ -17,10 +17,10 @@ package com.nice.cxonechat.sample.ui
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -49,10 +49,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -76,6 +74,8 @@ import com.nice.cxonechat.sample.ui.theme.ScreenWithScaffold
 import com.nice.cxonechat.sample.viewModel.AnalyticsHandler.PageInfo
 import com.nice.cxonechat.sample.viewModel.StoreViewModel
 import com.nice.cxonechat.sample.viewModel.UiState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * The Product List Screen displaying a list of available products.
@@ -166,16 +166,18 @@ object ProductListScreen : Screen {
         category: String,
         attempt: Int,
         onError: (String?) -> Unit,
-        onSuccess: (List<Product>) -> Unit
+        onSuccess: (List<Product>) -> Unit,
     ) {
         LaunchedEffect(category, attempt) {
-            viewModel
-                .storeRepository
-                .getProducts(category)
-                .onSuccess(onSuccess)
-                .onFailure {
-                    onError(it.localizedMessage)
-                }
+            withContext(Dispatchers.IO) {
+                viewModel
+                    .storeRepository
+                    .getProducts(category)
+                    .onSuccess(onSuccess)
+                    .onFailure {
+                        onError(it.localizedMessage)
+                    }
+            }
         }
     }
 
@@ -246,47 +248,49 @@ object ProductListScreen : Screen {
                         product = product,
                         modifier = Modifier
                             .testTag("product_card")
-                            .then(modifier)
-                            .clickable(onClick = { onProductSelected(product) }),
-                    )
+                            .then(modifier),
+                        onClick = { onProductSelected(product) }
+                   )
                 }
             }
-        )
+    )
     }
 
     @Composable
-    private fun ProductCard(product: Product, modifier: Modifier = Modifier) {
-        val screenWidth = LocalConfiguration.current.screenWidthDp * 3 / 4 / 2
-        var size by remember { mutableIntStateOf(screenWidth) }
-
+    private fun ProductCard(product: Product, onClick: () -> Unit, modifier: Modifier = Modifier) {
         Card(
-            modifier = modifier
-                .fillMaxWidth()
-                .onSizeChanged { size = it.width * 3 / 4 },
-            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+            onClick = onClick,
+            modifier = Modifier.fillMaxWidth(),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = AppTheme.colorScheme.surfaceContainerLow,
+            ),
         ) {
             Column(
-                modifier = modifier.fillMaxWidth(),
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 AsyncImage(
                     model = product.thumbnail,
                     contentDescription = null,
-                    modifier = Modifier
-                        .then(
-                            with(LocalDensity.current) {
-                                Modifier.height(size.toDp())
-                            }
-                        ),
+                    contentScale = ContentScale.FillHeight,
                     placeholder = rememberVectorPainter(Icons.Default.Photo),
                     error = rememberVectorPainter(Icons.Default.Error),
                 )
-                Text(product.title, modifier = Modifier.padding(horizontal = space.medium), maxLines = 1)
+                Text(
+                    text = product.title,
+                    modifier = Modifier.padding(horizontal = space.medium),
+                    maxLines = 1,
+                    style = AppTheme.typography.titleMedium
+                )
                 Text(
                     product.price.asCurrency,
                     modifier = Modifier.padding(horizontal = space.medium),
                     style = LocalTextStyle.current.bold
                 )
+                Spacer(modifier = Modifier.height(space.medium))
             }
         }
     }

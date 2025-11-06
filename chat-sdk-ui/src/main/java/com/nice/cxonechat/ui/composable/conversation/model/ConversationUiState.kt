@@ -39,6 +39,7 @@ import com.nice.cxonechat.ui.util.emojiCount
 import com.nice.cxonechat.ui.util.preview.message.SdkListPicker
 import com.nice.cxonechat.ui.util.preview.message.SdkMessage
 import com.nice.cxonechat.ui.util.preview.message.SdkQuickReply
+import com.nice.cxonechat.ui.util.preview.message.SdkReplyButton
 import com.nice.cxonechat.ui.util.preview.message.SdkRichLink
 import com.nice.cxonechat.ui.util.preview.message.SdkText
 import kotlinx.coroutines.CoroutineDispatcher
@@ -70,6 +71,7 @@ import kotlinx.coroutines.flow.map
  * @property isArchived Flow indicating if the thread was archived.
  * @property isLiveChat true iff the channel is configured as live chat.
  * @property onRemovePendingAttachment An action to remove a pending attachment.
+ * @property onReplyButtonClicked An action to take when a reply button is clicked.
  * @param backgroundDispatcher Optional dispatcher used for mapping of incoming messages off the main thread,
  * intended for testing.
  */
@@ -94,6 +96,7 @@ internal data class ConversationUiState(
     internal val isArchived: StateFlow<Boolean>,
     internal val isLiveChat: Boolean,
     internal val onRemovePendingAttachment: (Attachment) -> Unit,
+    internal val onReplyButtonClicked: (SdkReplyButton) -> Unit = {},
     private val backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
 
@@ -117,8 +120,8 @@ internal data class ConversationUiState(
     private fun SdkMessage.toUiMessage(): Iterable<Message> = when (this) {
         is SdkText -> uiTextMessage()
         is SdkRichLink -> listOf(RichLink(this))
-        is SdkListPicker -> listOf(ListPicker(this, sendMessage))
-        is SdkQuickReply -> listOf(QuickReply(this, sendMessage))
+        is SdkListPicker -> listOf(ListPicker(this, onReplyButtonClicked))
+        is SdkQuickReply -> listOf(QuickReply(this, onReplyButtonClicked))
         else -> listOf(Unsupported(this))
     }
 

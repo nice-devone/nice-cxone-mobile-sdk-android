@@ -61,7 +61,7 @@ abstract class Repository<Type : Any>(
      * @throws any exception thrown by [doLoad] will be rethrown.
      */
     @Throws(SerializationException::class)
-    open fun load(context: Context) = doLoad(context)
+    open suspend fun load(context: Context) = doLoad(context)
         ?.takeIf(String::isNotEmpty)
         ?.let(::fromJson)
 
@@ -117,7 +117,7 @@ abstract class Repository<Type : Any>(
      * @param context Android [Context] to be used for resource resolution and/or file access.
      * @return [String] contents of the repository or `null` if the repository is empty or does not exist.
      */
-    abstract fun doLoad(context: Context): String?
+    abstract suspend fun doLoad(context: Context): String?
 
     /**
      * Remove or erase the contents of the repository.

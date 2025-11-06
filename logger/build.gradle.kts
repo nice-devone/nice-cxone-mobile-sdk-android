@@ -23,7 +23,6 @@ plugins {
     id("test-conventions")
     id("docs-conventions")
     id("publish-conventions")
-    id("api-conventions")
     id("org.jetbrains.dokka-javadoc")
 }
 
@@ -35,4 +34,16 @@ mavenPublishing {
             sourcesJar = true,
         )
     )
+}
+
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.addAll(
+            listOf(
+                "-Xjvm-default=all-compatibility",
+                "-Xjspecify-annotations=strict",
+                "-Xtype-enhancement-improvements-strict-mode"
+            )
+        )
+    }
 }

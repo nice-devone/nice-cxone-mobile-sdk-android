@@ -54,9 +54,12 @@ internal fun SelectAttachmentsTopBar(
             onClick = toggleSelecting,
             modifier = Modifier.testTag("select_attachments_$selecting")
         ) {
-            val toggleButtonStyle = ChatTheme.typography.titleMedium
             val text = if (selecting) stringResource(R.string.cancel) else stringResource(R.string.select)
-            Text(text, style = toggleButtonStyle, modifier = Modifier.animateContentSize())
+            Text(
+                text = text,
+                style = ChatTheme.chatTypography.selectAttachmentSelectButtonText,
+                modifier = Modifier.animateContentSize()
+            )
         }
     }
 }

@@ -218,10 +218,10 @@ internal object StrictModePolicy {
         } else {
             null
         },
-        // There seems to be an issue on Android 14 and 15 that results in releasing an Activity
+        // There seems to be an issue on Android 14, 15 and 16 that results in releasing an Activity
         // throwing an ExplicitGcViolation.  There may be something we're doing to trigger
         // it, but I don't find any more information about it.
-        if (Build.VERSION.SDK_INT in Build.VERSION_CODES.UPSIDE_DOWN_CAKE until 36) {
+        if (Build.VERSION.SDK_INT in Build.VERSION_CODES.UPSIDE_DOWN_CAKE..Build.VERSION_CODES.BAKLAVA) {
             allow(
                 allOf(
                     violation(ExplicitGcViolation::class),

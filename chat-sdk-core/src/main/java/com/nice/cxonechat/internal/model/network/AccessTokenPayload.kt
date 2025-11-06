@@ -19,7 +19,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-internal data class AccessTokenPayload constructor(
+internal data class AccessTokenPayload(
     @SerialName("token")
     val token: String,
 )

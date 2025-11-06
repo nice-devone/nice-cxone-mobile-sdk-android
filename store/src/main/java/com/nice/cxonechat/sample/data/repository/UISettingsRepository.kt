@@ -16,12 +16,8 @@
 package com.nice.cxonechat.sample.data.repository
 
 import android.content.Context
-import androidx.annotation.Keep
-import androidx.compose.ui.graphics.Brush.Companion.horizontalGradient
 import com.nice.cxonechat.sample.data.models.UISettingsModel
-import com.nice.cxonechat.sample.data.models.UISettingsModel.Colors
 import com.nice.cxonechat.ui.composable.theme.ChatThemeDetails
-import com.nice.cxonechat.ui.composable.theme.ThemeColors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,35 +47,6 @@ class UISettingsRepository(
     type = UISettingsModel::class,
     applicationScope
 ) {
-    private val Colors.asChatThemeColors: ThemeColors
-        get() = ThemeColors(
-            primary = primary,
-            onPrimary = onPrimary,
-            background = background,
-            onBackground = onBackground,
-            surface = surface,
-            onSurface = onSurface,
-            surfaceContainer = surfaceContainer,
-            surfaceVariant = surfaceVariant,
-            onSurfaceHigh = surfaceContainerHigh,
-            onSurfaceHighest = surfaceContainerHighest,
-            accent = accent,
-            onAccent = onAccent,
-            agentBackground = agentBackground,
-            agentText = agentText,
-            agentAvatarForeground = agentAvatarForeground,
-            agentAvatarBackground = agentAvatarBackground,
-            customerBackground = customerBackground,
-            customerText = customerText,
-            subtle = subtle,
-            muted = muted,
-            error = error,
-            accentHeader = horizontalGradient(listOf(accentHeaderStart, accentHeaderEnd)),
-            onAccentHeader = onAccentHeader,
-            surfaceContainerHigh = surfaceContainerHigh,
-            textFieldLabelBackground = textFieldLabelBackground,
-            textFieldLabelText = textFieldLabelText,
-        )
 
     /**
      * Update the saved UI Settings.
@@ -96,8 +63,7 @@ class UISettingsRepository(
      * Load any available saved UI Settings.  Default settings will be applied if no saved
      * settings are located.
      */
-    @Keep // Remove once the  DE-117407 is resolved
-    fun load() = super.load(context).also {
+    suspend fun load() = super.load(context).also {
         UISettingsState.value = (it ?: UISettingsModel()).apply {
             applyToChatSdk()
         }
@@ -114,7 +80,7 @@ class UISettingsRepository(
     }
 
     private fun UISettingsModel.applyToChatSdk() {
-        ChatThemeDetails.darkColors = darkModeColors.asChatThemeColors
-        ChatThemeDetails.lightColors = lightModeColors.asChatThemeColors
+        ChatThemeDetails.darkTokens = darkModeColors
+        ChatThemeDetails.lightTokens = lightModeColors
     }
 }

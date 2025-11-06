@@ -22,4 +22,7 @@ import kotlinx.serialization.Serializable
 internal data class MessagePayload(
     @SerialName("text")
     val text: String,
+
+    @SerialName("postback")
+    val postback: String? = null,
 )

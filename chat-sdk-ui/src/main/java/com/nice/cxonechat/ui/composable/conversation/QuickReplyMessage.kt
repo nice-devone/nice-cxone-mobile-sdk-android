@@ -15,37 +15,40 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
-import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircleOutline
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import com.nice.cxonechat.ui.R.string
+import com.nice.cxonechat.ui.R
+import com.nice.cxonechat.ui.composable.conversation.MessageStatusState.DISABLED
+import com.nice.cxonechat.ui.composable.conversation.MessageStatusState.SELECTABLE
+import com.nice.cxonechat.ui.composable.conversation.MessageStatusState.SELECTED
 import com.nice.cxonechat.ui.composable.conversation.model.Action
 import com.nice.cxonechat.ui.composable.conversation.model.Message.QuickReply
-import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.composable.icons.ChatIcons
+import com.nice.cxonechat.ui.composable.icons.outlined.FingerDownArrow
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.util.preview.message.UiSdkQuickReply
@@ -64,56 +67,84 @@ internal fun QuickReplyMessage(
 }
 
 @Composable
-internal fun QuickReplySubFrame(
+internal fun QuickReplyOptionSubFrame(
     message: QuickReply,
-    isMessageExtraAvailable: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (!isMessageExtraAvailable) {
-        Column(
-            Modifier
-                .padding(
-                    top = 9.dp,
-                    bottom = space.medium + space.messageAvatarSize / 2, // workaround to keep avatar as simple overlay
-                )
-                .alpha(0.5f)
-                .testTag("quick_reply_option_selected")
-                .then(modifier)
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(3.dp),
-            ) {
-                CompositionLocalProvider(LocalContentColor provides ChatTheme.colorScheme.onBackground) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .border(width = 1.dp, color = LocalContentColor.current, shape = RoundedCornerShape(size = 16.dp))
-                            .width(24.dp)
-                            .height(16.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = null,
-                        )
-                    }
-                    Text(text = stringResource(string.option_selected), style = chatTypography.quickReplySelectedText)
-                }
-            }
-        }
-    } else {
-        Column(
-            Modifier
-                .padding(top = 12.dp)
-                .then(modifier)
-        ) {
-            QuickReplyOptions(message, onOptionSelected = onClick)
-        }
+    Column(
+        Modifier
+            .padding(top = space.semiLarge)
+            .then(modifier)
+    ) {
+        QuickReplyOptions(message, onOptionSelected = onClick)
     }
 }
 
 @Composable
-private fun QuickReplyOptions(message: QuickReply, onOptionSelected: () -> Unit, modifier: Modifier = Modifier) {
+internal fun QuickReplyMessageStatus(messageStatusState: MessageStatusState, onClick: () -> Unit) {
+    val (icon, messageText, textColor) = when (messageStatusState) {
+        SELECTED -> Triple(
+            Icons.Default.CheckCircleOutline,
+            stringResource(R.string.option_selected),
+            chatColors.token.brand.primary
+        )
+
+        DISABLED -> Triple(
+            Icons.Default.ErrorOutline,
+            stringResource(R.string.quick_reply_options_unavailable),
+            chatColors.token.status.error
+        )
+
+        SELECTABLE -> Triple(
+            ChatIcons.FingerDownArrow,
+            stringResource(R.string.select_option_below),
+            chatColors.token.brand.primary
+        )
+    }
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
+        modifier = Modifier
+            .padding(start = space.xl, bottom = space.semiLarge, end = space.xl)
+            .testTag("quick_reply_message_status")
+            .clickable {
+                if (messageStatusState == DISABLED) {
+                    onClick()
+                }
+            },
+    ) {
+        Icon(
+            imageVector = icon,
+            modifier = Modifier.size(space.tooltipIconSize),
+            contentDescription = messageText,
+            tint = textColor
+        )
+
+        Text(
+            text = messageText,
+            style = chatTypography.messageStatusText,
+            color = textColor
+        )
+    }
+}
+
+/**
+ * Represents the state of a quick reply option.
+ */
+@Immutable
+internal enum class MessageStatusState {
+    /* User can select reply. */
+    SELECTABLE,
+
+    /* User has selected reply. */
+    SELECTED,
+
+    /* User can no select a reply. */
+    DISABLED,
+}
+
+@Composable
+internal fun QuickReplyOptions(message: QuickReply, onOptionSelected: () -> Unit, modifier: Modifier = Modifier) {
     Column(
         modifier = Modifier
             .testTag("quick_reply_options")
@@ -121,11 +152,10 @@ private fun QuickReplyOptions(message: QuickReply, onOptionSelected: () -> Unit,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         var selected: Action? by remember { mutableStateOf(null) }
-        CompositionLocalProvider(LocalContentColor provides ChatTheme.colorScheme.primary) {
+        CompositionLocalProvider(LocalContentColor provides chatColors.token.brand.primary) {
             ChipGroup(
                 actions = message.actions,
                 selection = selected,
-                colors = ChipDefaults.chipColors(containerColor = ChatTheme.chatColors.agent.background)
             ) {
                 selected = it
                 onOptionSelected()
@@ -134,7 +164,19 @@ private fun QuickReplyOptions(message: QuickReply, onOptionSelected: () -> Unit,
     }
 }
 
-@Preview
+/**
+ * Determine the current state of the quick reply options.
+ */
+internal fun getQuickReplyState(
+    isLastMessage: Boolean,
+    isMessageExtraAvailable: Boolean,
+): MessageStatusState = when {
+    isLastMessage -> SELECTABLE
+    !isLastMessage && !isMessageExtraAvailable -> SELECTED
+    else -> DISABLED
+}
+
+@PreviewLightDark
 @Composable
 private fun QuickReplyMessagePreview() {
     PreviewMessageItemBase(

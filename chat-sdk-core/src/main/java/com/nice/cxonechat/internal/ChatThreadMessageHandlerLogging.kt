@@ -62,5 +62,11 @@ internal class ChatThreadMessageHandlerLogging(
                 origin?.onSent(id)
             }
         }
+
+        override fun onProcessing(message: OutboundMessage): Unit = scope("onProcessing") {
+            duration {
+                origin?.onProcessing(message)
+            }
+        }
     }
 }

@@ -123,6 +123,7 @@ internal class NotifyUpdateUseCase(
                 }
             }
         }
+        is Message.Unsupported -> message.text
     }
 
     private companion object {

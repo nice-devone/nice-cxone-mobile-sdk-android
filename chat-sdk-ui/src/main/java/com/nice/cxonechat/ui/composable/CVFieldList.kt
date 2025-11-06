@@ -15,8 +15,8 @@
 
 package com.nice.cxonechat.ui.composable
 
-import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -31,42 +31,43 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
-import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
-import com.nice.cxonechat.state.FieldDefinition.Hierarchy
 import com.nice.cxonechat.state.FieldDefinition.Selector
-import com.nice.cxonechat.state.FieldDefinition.Text
 import com.nice.cxonechat.state.HierarchyNode
 import com.nice.cxonechat.state.SelectorNode
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.generic.DropdownField
+import com.nice.cxonechat.ui.composable.generic.DropdownItem
 import com.nice.cxonechat.ui.composable.generic.Requirements.allOf
 import com.nice.cxonechat.ui.composable.generic.Requirements.email
 import com.nice.cxonechat.ui.composable.generic.Requirements.none
 import com.nice.cxonechat.ui.composable.generic.Requirements.required
-import com.nice.cxonechat.ui.composable.generic.SimpleDropdownItem
 import com.nice.cxonechat.ui.composable.generic.TreeField
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
-import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.TextField
 import com.nice.cxonechat.ui.domain.model.CustomValueItem
 import com.nice.cxonechat.ui.domain.model.CustomValueItemList
-import com.nice.cxonechat.ui.domain.model.SimpleTreeFieldItem
 import com.nice.cxonechat.ui.domain.model.TreeFieldItem
-import com.nice.cxonechat.ui.util.isEmpty
 import com.nice.cxonechat.ui.util.pathToNode
+import com.nice.cxonechat.ui.util.preview.FieldModelListProvider
 import com.nice.cxonechat.ui.util.toggle
 
 @Composable
-internal fun CVFieldList(fields: CustomValueItemList, onUpdated: (CustomValueItemList) -> Unit = {}) {
+internal fun CVFieldList(
+    fields: CustomValueItemList,
+    modifier: Modifier = Modifier,
+    onUpdated: (CustomValueItemList) -> Unit = {},
+) {
     LazyColumn(
+        modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(items = fields) {
@@ -88,7 +89,6 @@ private fun CVField(field: CustomValueItem<*, *>, onUpdated: () -> Unit) {
 private fun CVTextField(item: CustomValueItem.Text, onUpdated: () -> Unit) {
     val details = item.definition
     val text = rememberTextFieldState(item.response.value ?: "")
-    val labelBackground = labelBackground(details.isRequired)
 
     val validator = when (details.isRequired to details.isEMail) {
         true to true -> allOf(required, email)
@@ -99,7 +99,7 @@ private fun CVTextField(item: CustomValueItem.Text, onUpdated: () -> Unit) {
 
     ChatTheme.TextField(
         label = item.label(),
-        minimizedLabelBackground = labelBackground,
+        minimizedLabelBackground = Color.Unspecified,
         value = text,
         modifier = Modifier
             .fillMaxWidth(1f)
@@ -136,17 +136,17 @@ private fun CVSelectorField(item: CustomValueItem.Selector, onUpdated: () -> Uni
 
     DropdownField(
         modifier = Modifier.testTag("custom_value_list_${item.definition.label}"),
-        label = label.orEmpty(),
+        label = label,
         errorState = error,
         value = node,
-        labelBackground = labelBackground(details.isRequired),
-        options = details.values.map { SimpleDropdownItem(it.label, it) },
+        options = details.values.map { DropdownItem(it.label, it) },
         onSelect = { selected ->
             node = if (node == selected) {
                 null
             } else {
                 selected
             }
+            item.response.value = selected
             validate(selected)
             onUpdated()
         },
@@ -155,7 +155,7 @@ private fun CVSelectorField(item: CustomValueItem.Selector, onUpdated: () -> Uni
 
 private fun <ValueType> Sequence<HierarchyNode<ValueType>>.toTreeFieldItemList(): List<TreeFieldItem<HierarchyNode<ValueType>>> {
     return map {
-        SimpleTreeFieldItem(
+        TreeFieldItem(
             it.label,
             it,
             it.children.toTreeFieldItemList().ifEmpty { null },
@@ -168,13 +168,6 @@ private fun CustomValueItem<*, *>.label(): String = StringBuilder(definition.lab
         if (definition.isRequired) append(" *")
     }
     .toString()
-
-@Composable
-private fun labelBackground(isRequired: Boolean) = if (isRequired) {
-    colorScheme.surfaceContainerHigh
-} else {
-    chatColors.textFieldLabelBackground
-}
 
 private typealias CVHFItem = TreeFieldItem<HierarchyNode<String>>
 
@@ -205,6 +198,7 @@ private fun CVHierarchyField(item: CustomValueItem.Hierarchy, onUpdated: () -> U
         if (node.isLeaf) {
             selected = if (selected == node.value) null else node.value
             validate(selected)
+            item.response.value = selected
             onUpdated()
         } else {
             expandClicked(node)
@@ -217,117 +211,28 @@ private fun CVHierarchyField(item: CustomValueItem.Hierarchy, onUpdated: () -> U
 
     TreeField(
         modifier = Modifier.testTag("custom_value_hierarchy_${item.definition.label}"),
-        label = label.orEmpty(),
+        label = label,
         items = nodes,
         isSelected = { it.value == selected },
         isExpanded = expanded::contains,
         onNodeClicked = ::selectClicked,
-        onExpandClicked = ::expandClicked
+        onExpandClicked = ::expandClicked,
+        error = error,
     )
 }
 
-/*
- * Preview support
- */
-
-private data class HierarchyNodeImpl(
-    override val label: String,
-    override val nodeId: String,
-    override val children: Sequence<HierarchyNode<String>> = sequenceOf(),
-) : HierarchyNode<String> {
-    override val isLeaf = children.isEmpty()
-}
-
-private class FieldModelListProvider : PreviewParameterProvider<CustomValueItemList> {
-    override val values = sequenceOf(
-        listOf(
-            CustomValueItem.Text(
-                object : Text {
-                    override val fieldId = "name"
-                    override val label = "Name"
-                    override val isEMail = false
-                    override val isRequired = true
-
-                    override fun validate(value: String) = Unit
-                },
-                "Some Name"
-            ),
-            CustomValueItem.Text(
-                object : Text {
-                    override val fieldId = "email"
-                    override val label = "EMail"
-                    override val isEMail = true
-                    override val isRequired = false
-
-                    override fun validate(value: String) = Unit
-                },
-                "some.one@some.where"
-            ),
-            CustomValueItem.Selector(
-                object : Selector {
-                    override val fieldId = "selector"
-                    override val label = "Selector"
-                    override val isRequired = true
-                    override val values = listOf("zero", "one", "two").mapIndexed { index, label ->
-                        object : SelectorNode {
-                            override val nodeId = "$index"
-                            override val label = label
-                        }
-                    }.asSequence()
-
-                    override fun validate(value: String) = Unit
-                },
-                "zero"
-            ),
-            CustomValueItem.Hierarchy(
-                object : Hierarchy {
-                    override val fieldId = "hierarchy"
-                    override val label = "Hierarchy"
-                    override val isRequired = true
-                    override val values = listOf<HierarchyNode<String>>(
-                        HierarchyNodeImpl(
-                            "Node 0",
-                            "0",
-                            listOf(
-                                HierarchyNodeImpl(
-                                    "Node 0-0",
-                                    "0-0",
-                                    listOf(HierarchyNodeImpl("Node 0-0-0", "0-0-0"))
-                                        .asSequence()
-                                )
-                            ).asSequence()
-                        ),
-                        HierarchyNodeImpl("Node 1", "1")
-                    ).asSequence()
-
-                    override fun validate(value: String) = Unit
-                },
-                "0-0-0"
-            )
-        )
-    )
-}
-
-@Preview(showBackground = true)
+@PreviewLightDark
 @Composable
 private fun CVFieldListPreview(
     @PreviewParameter(FieldModelListProvider::class) fields: CustomValueItemList,
 ) {
     ChatTheme {
-        Surface(modifier = Modifier.padding(space.large)) {
-            CVFieldList(fields = fields)
-        }
-    }
-}
-
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-private fun CVFieldListPreviewDark(
-    @PreviewParameter(FieldModelListProvider::class) fields: CustomValueItemList,
-) {
-    ChatTheme {
-        Surface(modifier = Modifier.padding(space.large)) {
-            CVFieldList(fields = fields)
+        Surface(
+            color = chatColors.token.background.surface.subtle,
+        ) {
+            Box(Modifier.padding(space.large)) {
+                CVFieldList(fields = fields)
+            }
         }
     }
 }

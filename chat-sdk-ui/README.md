@@ -1,4 +1,4 @@
-# About
+# Module chat-sdk-ui
 
 The chat-sdk-ui module provides a default implementation of the UI for CXone Chat SDK, which allows easier integration
 of the chat SDK into the intended target application. This module is designed to handle all channel configurations
@@ -8,11 +8,12 @@ of the chat SDK into the intended target application. This module is designed to
 
 Compile SDK version: 36
 Target SDK version: 35
+Min SDK version: 24
 
-* Kotlin 2.1.21
-* Jetpack Compose BOM 2025.06.01
-* Koin 4.1.0
-* Firebase Cloud Messaging 24.1.1 (unless the push notifications are not used)
+* Kotlin 2.2.10
+* Jetpack Compose BOM 2025.10.00
+* Koin 4.1.1
+* Firebase Cloud Messaging 34.4.0 (unless the push notifications are not used)
 
 This module requires that the integrating application uses Koin during its startup and it is also recommended
 to provide an instance of `Logger` with `UiQualifier`.
@@ -41,6 +42,10 @@ For proper functioning of the Chat UI, the following runtime permissions are req
   in landscape mode). It is recommended to use the chat in portrait mode. This limitations will be addressed in future releases.
 * Color customization is limited to only few selected colors. This feature will be fully supported in future releases.
 * The UI module does not provide translated strings. It is recommended to provide your own translations for the strings used in the UI.
+
+## Case studies
+
+You can find focused case studies for following topics also described in [case studies.md](../docs/chat-sdk-ui/case-studies.md).
 
 ## Getting Started
 
@@ -158,6 +163,8 @@ This feature enhances user experience by allowing more natural communication.
 ## Customization
 
 The UI module supports
+
+### Color customization
 
 > ⚠️ Warning: Color customization is currently not recommended to ensure accessibility standards and optimal user experience. This feature
 > will be fully available in future releases.

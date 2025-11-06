@@ -41,8 +41,21 @@ import com.nice.cxonechat.ui.composable.icons.filled.CancelDark
 import com.nice.cxonechat.ui.composable.icons.filled.Expired
 import com.nice.cxonechat.ui.composable.icons.filled.Offline
 import com.nice.cxonechat.ui.composable.icons.filled.PlayCircle
+import com.nice.cxonechat.ui.composable.icons.filled.SelectionFrameEmpty
 import com.nice.cxonechat.ui.composable.icons.notint.Document
 import com.nice.cxonechat.ui.composable.icons.notint.DocumentLarge
+import com.nice.cxonechat.ui.composable.icons.notint.SelectionFrame
+import com.nice.cxonechat.ui.composable.icons.notint.SelectionFrameDark
+import com.nice.cxonechat.ui.composable.icons.outlined.ArrowLeft
+import com.nice.cxonechat.ui.composable.icons.outlined.ArrowRight
+import com.nice.cxonechat.ui.composable.icons.outlined.Camera
+import com.nice.cxonechat.ui.composable.icons.outlined.FingerDownArrow
+import com.nice.cxonechat.ui.composable.icons.outlined.Folder
+import com.nice.cxonechat.ui.composable.icons.outlined.Image
+import com.nice.cxonechat.ui.composable.icons.outlined.MessageChatCircle
+import com.nice.cxonechat.ui.composable.icons.outlined.MessageXCircle
+import com.nice.cxonechat.ui.composable.icons.outlined.PressFinger
+import com.nice.cxonechat.ui.composable.icons.outlined.VideoAdd
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 
 /**
@@ -58,14 +71,27 @@ internal object ChatIcons {
                 return _AllIcons!!
             }
             _AllIcons = listOf(
+                ArrowLeft,
+                ArrowRight,
+                AvatarWaiting,
+                Camera,
                 Cancel,
                 CancelDark,
-                PlayCircle,
-                AvatarWaiting,
-                Expired,
-                Offline,
-                DocumentLarge,
                 Document,
+                DocumentLarge,
+                Expired,
+                FingerDownArrow,
+                Folder,
+                Image,
+                MessageChatCircle,
+                MessageXCircle,
+                Offline,
+                PlayCircle,
+                SelectionFrame,
+                SelectionFrameDark,
+                SelectionFrameEmpty,
+                VideoAdd,
+                PressFinger,
             )
             return _AllIcons!!
         }

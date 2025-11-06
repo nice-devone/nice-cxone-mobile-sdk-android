@@ -19,9 +19,9 @@ plugins {
     id "android-library-conventions"
     id "android-ui-conventions"
     id "android-kotlin-conventions"
-    id "android-docs-conventions"
     id "ksp-conventions"
     id "koin-conventions"
+    id "android-docs-conventions"
     id "android-test-conventions"
     id "android-library-style-conventions"
     id 'androidx.navigation.safeargs.kotlin'
@@ -56,6 +56,15 @@ android {
     testOptions {
         unitTests {
             it.includeAndroidResources = true
+        }
+        managedDevices {
+            localDevices {
+                create("pixel2api30") {
+                    device = "Pixel 2"
+                    apiLevel = 30
+                    systemImageSource = "aosp-atd"
+                }
+            }
         }
     }
 }
@@ -107,8 +116,32 @@ dependencies {
     // Jetpack Compose - 1.8.0-alpha
     implementation libs.androidx.compose.foundation
 
+    //  Lottie for animations
+    implementation libs.lottie.compose
+
     // Emoji support
     implementation libs.androidx.emoji2
-    testImplementation("org.robolectric:robolectric:4.15.1")
+
+    // Support flexible layouts
+    implementation libs.androidx.material3.adaptive
+    implementation libs.androidx.window
+
+    testImplementation("org.robolectric:robolectric:4.16")
     testImplementation libs.androidx.emoji.bundled
+
+    androidTestImplementation libs.androidx.emoji.bundled
+    androidTestImplementation libs.androidx.window.testing
+    androidTestImplementation libs.androidx.compose.ui.test.junit4
+}
+
+dokka {
+    dokkaSourceSets.configureEach {
+        includes.from(
+                "README.md",
+        )
+        perPackageOption {
+            matchingRegex.set(".*\\.internal.*|.*\\.generated.*")
+            suppress.set(true)
+        }
+    }
 }

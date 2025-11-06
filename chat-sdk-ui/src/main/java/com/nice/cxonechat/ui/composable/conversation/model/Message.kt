@@ -20,12 +20,13 @@ import com.nice.cxonechat.message.Media
 import com.nice.cxonechat.message.Message.QuickReplies
 import com.nice.cxonechat.message.MessageDirection
 import com.nice.cxonechat.message.MessageStatus
-import com.nice.cxonechat.message.OutboundMessage
 import com.nice.cxonechat.ui.domain.model.Person
 import com.nice.cxonechat.ui.domain.model.asPerson
 import com.nice.cxonechat.ui.util.preview.message.SdkAttachment
 import com.nice.cxonechat.ui.util.preview.message.SdkListPicker
 import com.nice.cxonechat.ui.util.preview.message.SdkMessage
+import com.nice.cxonechat.ui.util.preview.message.SdkMessageUnsupported
+import com.nice.cxonechat.ui.util.preview.message.SdkReplyButton
 import com.nice.cxonechat.ui.util.preview.message.SdkRichLink
 import com.nice.cxonechat.ui.util.preview.message.SdkText
 import com.nice.cxonechat.ui.util.toShortDateString
@@ -112,7 +113,7 @@ internal sealed class Message(original: SdkMessage) {
      */
     data class ListPicker(
         private val message: SdkListPicker,
-        private val sendMessage: (OutboundMessage) -> Unit,
+        private val sendMessage: (SdkReplyButton) -> Unit,
     ) : Message(message) {
         /** Title of the List Picker in the conversation. */
         val title: String = message.title
@@ -149,7 +150,7 @@ internal sealed class Message(original: SdkMessage) {
      */
     data class QuickReply(
         private val message: QuickReplies,
-        private val sendMessage: (OutboundMessage) -> Unit
+        private val sendMessage: (SdkReplyButton) -> Unit,
     ) : Message(message) {
         /** title to be displayed. */
         val title = message.title
@@ -163,5 +164,7 @@ internal sealed class Message(original: SdkMessage) {
     /**
      * Default class used for messages which are not yet supported in the UI.
      */
-    class Unsupported(message: SdkMessage) : Message(message)
+    class Unsupported(message: SdkMessage) : Message(message) {
+        val text: String? = (message as? SdkMessageUnsupported)?.text ?: fallbackText
+    }
 }

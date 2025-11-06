@@ -79,7 +79,6 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatShapes
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
-import com.nice.cxonechat.ui.composable.theme.DefaultColors
 import com.nice.cxonechat.ui.composable.theme.PopupButton
 
 /**
@@ -153,7 +152,7 @@ internal fun ChatPopup(
  *
  * @param title The title displayed in the layout under the header, with prominent styling.
  * @param icon The icon displayed in the header, the supplied [Painter] will be tinted with the
- * [com.nice.cxonechat.ui.composable.theme.ChatColors.onAccentHeader] color.
+ * [com.nice.cxonechat.ui.composable.theme.ThemeColorTokens.Brand.onPrimary] color.
  * The icon is placed in prominent position in the header.
  * @param collapsePopupHeight The height of the popup at which the layout will collapse the header in order to be smaller.
  * @param modifier The modifier to applied to the [ElevatedCard] layout.
@@ -181,7 +180,7 @@ internal fun ChatPopupContent(
             .sizeIn(maxWidth = space.popupMaxWidth),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = space.popupElevation),
     ) {
-        Column(modifier = Modifier.background(chatColors.accentHeader)) {
+        Column(modifier = Modifier.background(chatColors.token.brand.primary)) {
             val windowImeInsets = WindowInsets.ime.asPaddingValues()
             val insets = windowImeInsets.calculateBottomPadding() + windowImeInsets.calculateTopPadding()
             val availableHeight = collapsePopupHeight - insets
@@ -213,7 +212,7 @@ internal fun ChatPopupContent(
                     if (subtitle != null) {
                         Text(
                             text = subtitle,
-                            style = chatTypography.popupSubtitle,
+                            style = chatTypography.bottomSheetSubtitleText,
                             modifier = Modifier.alpha(0.5f)
                         )
                     }
@@ -240,7 +239,7 @@ private fun ColumnScope.ChatPopupHeader(showHeader: Boolean, icon: Painter, icon
             Icon(
                 painter = icon,
                 contentDescription = iconContentDescription,
-                tint = chatColors.onAccentHeader
+                tint = chatColors.token.brand.onPrimary
             )
         }
     }
@@ -293,7 +292,7 @@ private fun ChatPopupPreview() {
                     ) {
                         PopupButton("Start a New Chat") {}
                         PopupButton("Back to Conversation") {}
-                        PopupButton("Close the Chat", colors = ButtonDefaults.buttonColors(containerColor = DefaultColors.danger)) {}
+                        PopupButton("Close the Chat", colors = ButtonDefaults.buttonColors(containerColor = colorScheme.error)) {}
                     }
                 }
                 Text("Background content")

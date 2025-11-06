@@ -23,13 +23,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -46,18 +46,19 @@ internal fun LazyItemScope.LoadMore(modifier: Modifier = Modifier, loadMore: () 
         modifier
             .fillMaxWidth()
             .animateItem()
+            .testTag("Load_More")
             .padding(top = space.medium, bottom = space.xSmall),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         CircularProgressIndicator(
             modifier = Modifier.size(20.dp),
-            color = LocalContentColor.current.copy(alpha = 0.5f)
+            color = ChatTheme.chatColors.token.content.tertiary
         )
         Text(
             text = stringResource(string.text_loading_more_messages),
             style = ChatTheme.chatTypography.chatLoadMoreCaption,
-            color = LocalContentColor.current.copy(alpha = 0.5f),
+            color = ChatTheme.chatColors.token.content.tertiary
         )
         LaunchedEffect(key1 = null) { // The whole LoadMore should be removed after recomposition
             while (this.isActive) { // Workaround for issue with scrollToken reset - otherwise loadMore() should suffice

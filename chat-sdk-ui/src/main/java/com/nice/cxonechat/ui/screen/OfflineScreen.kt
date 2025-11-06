@@ -16,24 +16,48 @@
 package com.nice.cxonechat.ui.screen
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ButtonDefaults.buttonColors
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.currentWindowDpSize
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewFontScale
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import coil3.compose.AsyncImage
+import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.R.string
-import com.nice.cxonechat.ui.composable.generic.ChatPopup
 import com.nice.cxonechat.ui.composable.icons.ChatIcons
 import com.nice.cxonechat.ui.composable.icons.filled.Offline
 import com.nice.cxonechat.ui.composable.theme.BackButton
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
-import com.nice.cxonechat.ui.composable.theme.DefaultColors.danger
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatShapes
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.PopupButton
 import com.nice.cxonechat.ui.composable.theme.Scaffold
 import com.nice.cxonechat.ui.composable.theme.TopBar
@@ -52,13 +76,9 @@ internal fun OfflineScreen(
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
 ) {
-    BackHandler {
-        onBackPress()
-    }
+    BackHandler(onBack = onBackPress)
     ChatTheme.Scaffold(
-        modifier = Modifier
-            .testTag("offline_view")
-            .then(modifier),
+        modifier = modifier.testTag("offline_view"),
         snackbarHostState = snackbarHostState,
         topBar = {
             ChatTheme.TopBar(
@@ -67,7 +87,12 @@ internal fun OfflineScreen(
             )
         }
     ) {
-        Box(modifier = Modifier.padding(it)) {
+        Box(
+            contentAlignment = Alignment.TopCenter,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it)
+        ) {
             OfflineView(onDismiss = onBackPress)
         }
     }
@@ -79,25 +104,93 @@ internal fun OfflineScreen(
  * @param modifier [Modifier] to be applied to the offline view.
  * @param onDismiss Callback to be invoked when the user dismisses the offline view.
  */
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 internal fun OfflineView(
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit,
 ) {
-    ChatPopup(
-        stringResource(string.offline_banner),
-        icon = rememberVectorPainter(ChatIcons.Offline),
-        iconContentDescription = stringResource(string.offline),
-        subtitle = stringResource(string.offline_message),
-        onDismissRequest = onDismiss,
-        modifier = Modifier
+    Column(
+        verticalArrangement = Arrangement.SpaceBetween,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
             .testTag("offline_content_view")
-            .then(modifier),
+            .width(IntrinsicSize.Max)
+            .fillMaxHeight()
     ) {
+        HeaderBar()
+        // Decide whether to show the top app bar based on window size.
+        val showImage = currentWindowDpSize().height >= space.offlineImageMinimumScreenHeight
+        AnimatedVisibility(
+            visible = showImage,
+            modifier = Modifier.weight(1f)
+        ) {
+            AsyncImage(
+                R.drawable.offline,
+                contentDescription = stringResource(string.offline),
+                modifier = Modifier
+                    .testTag("offline_image")
+                    .padding(horizontal = space.offlineImageHorizontalPadding)
+            )
+        }
         PopupButton(
-            text = stringResource(string.disconnect),
-            colors = buttonColors(containerColor = danger),
+            modifier = Modifier
+                .testTag("offline_close_button")
+                .padding(space.xxl)
+                .requiredHeight(space.clickableSize),
+            text = stringResource(string.chat_offline_action_close),
+            colors = buttonColors(
+                containerColor = chatColors.token.status.error,
+                contentColor = chatColors.token.status.onError
+            ),
             onClick = onDismiss
+        )
+    }
+}
+
+@Composable
+internal fun HeaderBar() {
+    Surface(
+        color = Color.Unspecified,
+        shape = chatShapes.headerBarShape,
+        modifier = Modifier.padding(bottom = space.xxl)
+    ) {
+        ListItem(
+            modifier = Modifier.testTag("offline_header_bar"),
+            colors = ListItemDefaults.colors(
+                containerColor = chatColors.token.status.errorContainer,
+                headlineColor = chatColors.token.content.primary,
+                supportingColor = chatColors.token.content.secondary,
+            ),
+            headlineContent = {
+                Text(stringResource(string.offline_banner), style = chatTypography.offlineBannerText)
+            },
+            supportingContent = {
+                Text(stringResource(string.offline_message), style = chatTypography.offlineSupportingText)
+            },
+            leadingContent = {
+                OfflineIcon()
+            }
+        )
+    }
+}
+
+@Composable
+private fun OfflineIcon() {
+    Box(
+        modifier = Modifier
+            .padding(vertical = space.large, horizontal = space.medium)
+            .size(space.offlineIconSize)
+            .background(color = chatColors.token.status.error, shape = CircleShape),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = ChatIcons.Offline,
+            contentDescription = stringResource(string.offline),
+            tint = chatColors.token.status.onError,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(space.offlineLeadingIconPadding)
         )
     }
 }
@@ -117,6 +210,8 @@ private fun PreviewOfflineContent() {
 }
 
 @PreviewLightDark
+@PreviewScreenSizes
+@PreviewFontScale
 @Composable
 private fun PreviewOfflineView() {
     ChatTheme {

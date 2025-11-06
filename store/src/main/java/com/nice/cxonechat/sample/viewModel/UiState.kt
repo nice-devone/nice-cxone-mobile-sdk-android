@@ -15,15 +15,21 @@
 
 package com.nice.cxonechat.sample.viewModel
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.nice.cxonechat.sample.R.string
 import com.nice.cxonechat.sample.data.repository.UISettings
+import com.nice.cxonechat.sample.ui.ErrorDialog
 import com.nice.cxonechat.sample.ui.LoginDialog
 import com.nice.cxonechat.sample.ui.SdkConfigurationDialog
+import com.nice.cxonechat.sample.ui.theme.AppTheme
+import com.nice.cxonechat.sample.ui.theme.OutlinedButton
 import com.nice.cxonechat.sample.ui.uisettings.UISettingsDialog
 import com.nice.cxonechat.ui.composable.theme.BusySpinner
 import org.koin.androidx.compose.koinViewModel
@@ -132,6 +138,27 @@ sealed class UiState(val isInDialog: Boolean) {
                 pickImage = context::pickImage,
                 onReset = viewModel.uiSettingsRepository::clear,
                 onConfirm = viewModel.uiSettingsRepository::save
+            )
+        }
+    }
+
+    /** Displaying an SdkVersionNotSupported error dialog. */
+    data object SdkNotSupported : UiState(isInDialog = true) {
+        @Composable
+        override fun Content(context: UiStateContext) {
+            val viewModel: StoreViewModel = koinViewModel<StoreViewModel>()
+            val activity = LocalActivity.current
+            ErrorDialog(
+                title = stringResource(string.sdk_not_supported_title),
+                message = stringResource(string.sdk_not_supported_message),
+                onDismiss = { viewModel.setUiState(Prepared) },
+                confirmButton = {
+                    AppTheme.OutlinedButton(
+                        text = stringResource(string.ok),
+                        modifier = Modifier.testTag("sdk_not_supported_dialog_ok_button"),
+                        onClick = { activity?.finishAffinity() },
+                    )
+                }
             )
         }
     }

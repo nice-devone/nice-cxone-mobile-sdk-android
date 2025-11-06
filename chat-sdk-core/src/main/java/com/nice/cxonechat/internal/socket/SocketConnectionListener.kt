@@ -15,25 +15,12 @@
 
 package com.nice.cxonechat.internal.socket
 
-import com.nice.cxonechat.ChatStateListener
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 
 internal class SocketConnectionListener(
-    val onUnexpectedDisconnect: () -> Unit = {},
     val onConnected: () -> Unit,
 ) : WebSocketListener() {
-
-    constructor(
-        listener: ChatStateListener? = null,
-        onConnected: () -> Unit,
-    ) : this(
-        onConnected = onConnected,
-        onUnexpectedDisconnect = listener?.let { it::onUnexpectedDisconnect } ?: {}
-    )
-
     override fun onOpen(webSocket: WebSocket, response: Response): Unit = onConnected()
-
-    override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?): Unit = onUnexpectedDisconnect()
 }

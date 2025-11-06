@@ -30,6 +30,7 @@ import com.nice.cxonechat.internal.model.ConfigurationInternal
 import com.nice.cxonechat.internal.model.Visitor
 import com.nice.cxonechat.internal.socket.ProxyWebSocketListener
 import com.nice.cxonechat.internal.socket.SocketFactory
+import com.nice.cxonechat.internal.socket.SocketState
 import com.nice.cxonechat.internal.socket.WebSocketSpec
 import com.nice.cxonechat.internal.socket.WebsocketLogging
 import com.nice.cxonechat.state.Connection
@@ -66,16 +67,29 @@ internal class ChatImpl(
 
     override var eventHandlerProvider = ChatEventHandlerProvider()
 
+    private val retryApiHandler = RetryApiHandler(maxRetries = 2, retryIntervalMs = 30_000L)
+
     override fun setDeviceToken(token: String?) {
         val currentToken = entrails.storage.deviceToken
-        val newToken = token
-        if (currentToken == newToken) return
-        entrails.storage.deviceToken = newToken
-        entrails.service.createOrUpdateVisitor(
+        if (currentToken == token) return
+        entrails.storage.deviceToken = token
+        entrails.threading.background {
+            sendVisitorInfo(token)
+        }
+    }
+
+    private fun sendVisitorInfo(token: String?) {
+        val createOrUpdateVisitor = entrails.service.createOrUpdateVisitor(
             brandId = connection.brandId,
             visitorId = entrails.storage.visitorId.toString(),
-            visitor = Visitor(connection, deviceToken = newToken)
-        ).enqueue(callback)
+            visitor = Visitor(connection, deviceToken = token)
+        )
+        val params = createVisitorRetryParams(createOrUpdateVisitor, callback, chatStateListener)
+        retryApiHandler.executeWithRetry(params.action, params.onSuccess, params.onFailure)
+    }
+
+    private fun cancelVisitorHandle() {
+        retryApiHandler.cancel()
     }
 
     override fun threads(): ChatThreadsHandler {
@@ -105,13 +119,19 @@ internal class ChatImpl(
     }
 
     override fun close() {
+        cancelVisitorHandle()
         socketSession.getAndSet(null)?.close(WebSocketSpec.CLOSE_NORMAL_CODE, null)
     }
 
     override fun connect(): Cancellable {
+        socketListener.reportState(SocketState.CONNECTING)
+        chatStateListener?.onConnecting()
         socketSession.set(
             WebsocketLogging(
-                socket = socketFactory.create(socketListener, storage.visitorId.toString()),
+                socket = socketFactory.create(socketListener, storage.visitorId.toString())
+                    .also {
+                        socketListener.reportState(SocketState.CONNECTED)
+                    },
                 logger = entrails.logger,
             )
         )

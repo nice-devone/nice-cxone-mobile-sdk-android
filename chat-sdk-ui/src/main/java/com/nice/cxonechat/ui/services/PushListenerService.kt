@@ -21,6 +21,8 @@ import android.content.Context
 import android.net.Uri
 import androidx.annotation.Keep
 import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ProcessLifecycleOwner
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.nice.cxonechat.ChatInstanceProvider
@@ -107,7 +109,8 @@ internal class PushListenerService : FirebaseMessagingService() {
     private fun isChatActivityInForeground(context: Context): Boolean {
         val activityManager = context.getSystemService(ActivityManager::class.java)
         val appTasks = activityManager.appTasks
-        return appTasks.firstOrNull()?.taskInfo?.topActivity?.className == ChatActivity::class.java.name
+        return appTasks.firstOrNull()?.taskInfo?.topActivity?.className == ChatActivity::class.java.name &&
+                ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
     }
 
     private companion object {

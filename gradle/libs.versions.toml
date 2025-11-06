@@ -1,44 +1,46 @@
 [versions]
-jetbrains-annotations = "26.0.2"
+jetbrains-annotations = "26.0.2-1"
 
-kotlin = "2.1.21"
-kotlinx-serialization-json = "1.8.1"
-ksp = "2.1.21-2.0.2"
+kotlin = "2.2.10"
+kotlinx-serialization-json = "1.9.0"
+ksp = "2.2.10-2.0.2"
 
 detekt = "1.23.8"
 dokka = "2.0.0"
 
-androidx-ktx = "1.16.0"
-gson = "2.13.1"
-okhttp = "4.12.0"
+androidx-ktx = "1.17.0"
+gson = "2.13.2"
+lottie-compose = "6.6.9"
+okhttp = "5.1.0"
 retrofit = "3.0.0"
 security-crypto = "1.0.0"
 
 androidx-appcompat = "1.7.1"
 androidx-datastore = "1.1.7"
-androidx-compose-bom = "2025.06.01"
-androidx-compose-activity = "1.10.1"
+androidx-compose-bom = "2025.10.00"
+androidx-compose-activity = "1.11.0"
 androidx-constraintlayout = "1.1.1"
-androidx-lifecycle = "2.9.1"
-androidx-media3 = "1.6.1"
-androidx-navigation = "2.9.0"
-androidx-safe-args = "2.9.0"
-androidx-test-runner = "1.6.2"
-androidx-test-espresso = "3.6.1"
+androidx-lifecycle = "2.9.4"
+androidx-media3 = "1.8.0"
+androidx-navigation = "2.9.5"
+androidx-safe-args = "2.9.5"
+androidx-test-runner = "1.7.0"
+androidx-test-espresso = "3.7.0"
+androidx-window = "1.4.0"
 coil = "3.1.0"
-emoji = "1.5.0"
+emoji = "1.6.0"
 findbugs = "3.0.2"
-firebase = "33.16.0"
-koin = "4.1.0"
+firebase = "34.4.0"
+koin = "4.1.1"
 koin-annotations = "2.1.0"
 kotlin-coroutines = "1.10.2"
 leakcanary-android = "2.14"
 zoomable = "2.7.0"
 
 junit = "4.13.2"
-junit-jupiter = "5.13.2"
-mockk = "1.14.4"
-kotest = "5.9.1"
+junit-jupiter = "6.0.0"
+mockk = "1.14.5"
+kotest = "6.0.3"
 strucut = "[1,2["
 
 [libraries]
@@ -59,8 +61,11 @@ kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 kotlin-reflection = { group = "org.jetbrains.kotlin", name = "kotlin-reflect" }
 kotlin-test-junit = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlin-coroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlin-coroutines" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary-android" }
+lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottie-compose" }
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 strucut = { group = "io.github.diareuse", name = "strucut", version.ref = "strucut" }
 
@@ -73,7 +78,7 @@ detekt-rules-libraries = { group = "io.gitlab.arturbosch.detekt", name = "detekt
 
 # android-test
 androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidx-test-runner" }
-androidx-test-espesso = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidx-test-espresso" }
+androidx-test-espresso = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidx-test-espresso" }
 
 # android-ui
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidx-appcompat" }
@@ -83,12 +88,15 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 androidx-navigation-runtime = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "androidx-navigation" }
 androidx-navigation-ui = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "androidx-navigation" }
 kotlin-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlin-coroutines" }
+androidx-window = { group = "androidx.window", name = "window", version.ref = "androidx-window" }
+androidx-window-testing = { group = "androidx.window", name = "window-testing", version.ref = "androidx-window" }
 
 # ui-compose
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "androidx-compose-bom" }
 androidx-compose-activity = { group = "androidx.activity", name = "activity-compose", version.ref = "androidx-compose-activity" }
 androidx-constraintlayout-compose = { module = "androidx.constraintlayout:constraintlayout-compose", version.ref = "androidx-constraintlayout" }
-androidx-material3 = { group = "androidx.compose.material3", name = "material3", version = "1.4.0-alpha16" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-material3-adaptive = { group = "androidx.compose.material3.adaptive", name = "adaptive" }
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation-android" }
@@ -98,6 +106,7 @@ androidx-compose-ui-graphic = { group = "androidx.compose.ui", name = "ui-graphi
 androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 
 # koin
 koin-android = { group = "io.insert-koin", name = "koin-android" }
@@ -122,7 +131,7 @@ coil-network = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", versi
 coil-video = { group = "io.coil-kt.coil3", name = "coil-video", version.ref = "coil" }
 findbugs = { group = "com.google.code.findbugs", name = "jsr305", version.ref = "findbugs" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase" }
-firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging-ktx" }
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
 media-datasource-okhttp = { group = "androidx.media3", name = "media3-datasource-okhttp", version.ref = "androidx-media3" }
 media-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "androidx-media3" }
 media-exoplayer-hls = { group = "androidx.media3", name = "media3-exoplayer-hls", version.ref = "androidx-media3" }
@@ -135,7 +144,8 @@ androidx-emoji-bundled = { module = "androidx.emoji2:emoji2-bundled", version.re
 androidx-lifecycle-common = { group = "androidx.lifecycle", name = "lifecycle-common", version.ref = "androidx-lifecycle" }
 androidx-startup = { group = "androidx.startup", name = "startup-runtime", version = "1.2.0" }
 colorpicker = { group = "com.godaddy.android.colorpicker", name = "compose-color-picker-android", version = "0.7.0" }
-firebase-crashlytics-ktx = { module = "com.google.firebase:firebase-crashlytics-ktx" }
+firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePluginVersion" }
@@ -146,15 +156,15 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-build-config = { id = "com.github.gmazzo.buildconfig", version = "5.6.6" }
+build-config = { id = "com.github.gmazzo.buildconfig", version = "5.7.0" }
 
 androidx-safeargs = { id = "androidx.navigation.safeargs", version.ref = "androidx-safe-args" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 firebase-appdistribution = { id = "com.google.firebase.appdistribution", version = "5.1.1" }
-firebase-crashlytics = { id = "com.google.firebase.crashlytics", version = "3.0.4" }
-google-services = { id = "com.google.gms.google-services", version = "4.4.2" }
-maven-publish = { id = "com.vanniktech.maven.publish", version = "0.33.0" }
-metalava = { id = "me.tylerbwong.gradle.metalava", version = "0.4.0-alpha03" }
-rootcoverage = { id = "nl.neotech.plugin.rootcoverage", version = "1.10.0" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version = "3.0.6" }
+google-services = { id = "com.google.gms.google-services", version = "4.4.4" }
+maven-publish = { id = "com.vanniktech.maven.publish", version = "0.34.0" }
+rootcoverage = { id = "nl.neotech.plugin.rootcoverage", version = "1.11.0" }
 semantic-version = { id = "com.dipien.semantic-version", version = "2.0.0" }
+kotlinx-binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.18.1" }

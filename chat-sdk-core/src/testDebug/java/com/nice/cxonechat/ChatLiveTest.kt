@@ -24,6 +24,7 @@ import com.nice.cxonechat.internal.ChatThreadHandlerLiveChat.Companion.BEGIN_CON
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.model.AvailabilityStatus.Offline
 import com.nice.cxonechat.internal.model.MessageModel
+import com.nice.cxonechat.internal.model.network.Parameters
 import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.model.makeMessageModel
 import com.nice.cxonechat.server.ServerRequest
@@ -136,10 +137,12 @@ internal class ChatLiveTest : AbstractChatTest() {
             ServerRequest.ReconnectConsumer(connection),
             ServerRequest.RecoverLiveChatThread(connection, null), // Connect
             ServerRequest.RecoverLiveChatThread(connection, null), // Refresh thread state on first call
-            ServerRequest.SendMessage(connection,
+            ServerRequest.SendMessage(
+                connection,
                 makeChatThread(TestUUIDValue, ""),
                 storage = storage,
-                message = BEGIN_CONVERSATION_MESSAGE
+                message = BEGIN_CONVERSATION_MESSAGE,
+                parameters = Parameters.Object(isInitialMessage = true),
             )
         ) {
             connect()

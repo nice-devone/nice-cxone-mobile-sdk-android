@@ -20,6 +20,7 @@ import com.nice.cxonechat.internal.model.CustomFieldPolyType
 import com.nice.cxonechat.internal.model.ErrorModel
 import com.nice.cxonechat.internal.model.network.EventMessageReadByAgent
 import com.nice.cxonechat.internal.model.network.MessagePolyContent
+import com.nice.cxonechat.internal.model.network.MessagePolyContent.Plugin.PluginElement
 import com.nice.cxonechat.internal.model.network.PolyAction
 import com.nice.cxonechat.internal.serializer.Default.DateAsNumberSerializer
 import com.nice.cxonechat.internal.serializer.Default.DateSerializer
@@ -28,6 +29,7 @@ import com.nice.cxonechat.util.DateTime
 import com.nice.cxonechat.util.IsoDate
 import com.nice.cxonechat.util.timestampToDate
 import com.nice.cxonechat.util.toTimestamp
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -39,8 +41,11 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.ClassDiscriminatorMode.POLYMORPHIC
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonContentPolymorphicSerializer
 import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
 import kotlinx.serialization.modules.plus
@@ -67,7 +72,28 @@ internal object Default {
             subclass(MessagePolyContent.QuickReplies::class)
             subclass(MessagePolyContent.ListPicker::class)
             subclass(MessagePolyContent.RichLink::class)
-            defaultDeserializer { MessagePolyContent.Noop.serializer() }
+            subclass(MessagePolyContent.Plugin::class)
+            defaultDeserializer { DefaultMessagePolyContentSerializer }
+        }
+    }
+
+    private val pluginElementModule = SerializersModule {
+        polymorphic(PluginElement::class) {
+            subclass(PluginElement.StructuredElements.InactivityPlugin::class)
+            subclass(PluginElement.SimpleElement.TitleElement::class)
+            subclass(PluginElement.SimpleElement.TextElement::class)
+            subclass(PluginElement.SimpleElement.ButtonElement::class)
+            subclass(PluginElement.SimpleElement.CounterElement::class)
+            defaultDeserializer { DefaultElementPolyContentSerializer }
+        }
+    }
+    private val pluginSimpleElementModule = SerializersModule {
+        polymorphic(PluginElement.SimpleElement::class) {
+            subclass(PluginElement.SimpleElement.TitleElement::class)
+            subclass(PluginElement.SimpleElement.TextElement::class)
+            subclass(PluginElement.SimpleElement.ButtonElement::class)
+            subclass(PluginElement.SimpleElement.CounterElement::class)
+            defaultDeserializer { DefaultSimpleElementPolyContentSerializer }
         }
     }
 
@@ -90,6 +116,7 @@ internal object Default {
         contextual(DateSerializer)
         contextual(DateTimeSerializer)
         contextual(IsoDateSerializer)
+        @Suppress("UNCHECKED_CAST")
         contextual(UUIDSerializer as KSerializer<UUID>)
     }
 
@@ -97,6 +124,8 @@ internal object Default {
     val serializer: Json = Json {
         serializersModule = webSocketModule +
                 messageContentModule +
+                pluginElementModule +
+                pluginSimpleElementModule +
                 customFieldTypeModule +
                 actionModule +
                 contextualModule
@@ -105,6 +134,7 @@ internal object Default {
         isLenient = false // Default is false
         coerceInputValues = true
         explicitNulls = false // Backend omits null values
+        @Suppress("KotlinConstantConditions") // BuildConfig.DEBUG is a build-time generated constant
         prettyPrint = BuildConfig.DEBUG
         classDiscriminatorMode = POLYMORPHIC // Mostly implicit
     }
@@ -133,13 +163,31 @@ internal object Default {
         }
     }
 
+    /**
+     * Serializer for [IsoDate] that serializes the date in ISO 8601 format.
+     *
+     * Supported formats for deserialization:
+     *   - "yyyy-MM-dd'T'HH:mm:ss.SSSXXX" (e.g., 2023-12-31T23:59:59.123+00:00)
+     *   - "yyyy-MM-dd'T'HH:mm:ssXXX"     (e.g., 2023-12-31T23:59:59+00:00)
+     *
+     * The date is always serialized in the format with milliseconds.
+     *
+     * If the input string does not match either format, a [SerializationException] is thrown.
+     */
     internal object IsoDateSerializer : KSerializer<IsoDate> {
-        val dateFormatter: SimpleDateFormat
+        val dateWithMillisFormatter: SimpleDateFormat
             get() = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.US)
+        val dateFormatter: SimpleDateFormat
+            get() = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
         override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("IsoDateSerializer", PrimitiveKind.STRING)
-        override fun serialize(encoder: Encoder, value: IsoDate) = encoder.encodeString(dateFormatter.format(value.date))
+        override fun serialize(encoder: Encoder, value: IsoDate) = encoder.encodeString(dateWithMillisFormatter.format(value.date))
         override fun deserialize(decoder: Decoder): IsoDate {
-            val date = dateFormatter.parse(decoder.decodeString()) ?: throw IsoDateSerializationException()
+            val source = decoder.decodeString()
+            val date = runCatching {
+                dateWithMillisFormatter.parse(source)
+            }.getOrElse {
+                dateFormatter.parse(source)
+            } ?: throw IsoDateSerializationException()
             return IsoDate(
                 date
             )
@@ -169,6 +217,34 @@ internal object Default {
                 null
             }
             return out
+        }
+    }
+
+    /**
+     * Fallback deserializer for [MessagePolyContent], it checks if the received json contains fields required for parsing
+     * of [MessagePolyContent.Unsupported], if the fields are missing it will use [MessagePolyContent.Noop].
+     */
+    internal object DefaultMessagePolyContentSerializer :
+        JsonContentPolymorphicSerializer<MessagePolyContent>(MessagePolyContent::class) {
+        override fun selectDeserializer(element: JsonElement): DeserializationStrategy<MessagePolyContent> = when {
+            "type" in element.jsonObject && "fallbackText" in element.jsonObject -> MessagePolyContent.Unsupported.serializer()
+            else -> MessagePolyContent.Noop.serializer()
+        }
+    }
+
+    internal object DefaultElementPolyContentSerializer :
+        JsonContentPolymorphicSerializer<PluginElement>(PluginElement::class) {
+        override fun selectDeserializer(element: JsonElement): DeserializationStrategy<PluginElement> = when {
+            "type" in element.jsonObject -> PluginElement.SimpleElement.Unsupported.serializer()
+            else -> PluginElement.SimpleElement.Noop.serializer()
+        }
+    }
+
+    internal object DefaultSimpleElementPolyContentSerializer :
+        JsonContentPolymorphicSerializer<PluginElement.SimpleElement>(PluginElement.SimpleElement::class) {
+        override fun selectDeserializer(element: JsonElement): DeserializationStrategy<PluginElement.SimpleElement> = when {
+            "type" in element.jsonObject -> PluginElement.SimpleElement.Unsupported.serializer()
+            else -> PluginElement.SimpleElement.Noop.serializer()
         }
     }
 }

@@ -35,6 +35,14 @@ internal fun makeMessageContent(
     payload = MessagePolyContent.Text.Payload(text)
 )
 
+internal fun makeUnsupportedMessageContent() = MessagePolyContent.Unsupported(
+    type = nextString(),
+    fallbackText = nextString(),
+    payload = MessagePolyContent.Unsupported.Payload(
+        elements = listOf(MessagePolyContent.Unsupported.SubElement(nextString()))
+    )
+)
+
 internal fun makeUserStatistics(
     seenAt: Date? = null,
     readAt: Date? = null,

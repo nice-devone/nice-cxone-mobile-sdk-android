@@ -25,7 +25,9 @@ import com.nice.cxonechat.exceptions.RuntimeChatException
 @Public
 interface ChatStateListener {
     /**
-     * Method is invoked when chat session is unexpectedly lost.
+     * Method is invoked when chat session is unexpectedly lost during initial connection, or if the initial connection
+     * was established, but then lost and retry mechanism has been exhausted without success.
+     *
      * [Chat] instance should be considered unusable, until reconnect is performed.
      * If this method is invoked while the [Chat.reconnect] is being performed, then application should consider the
      * reconnection attempt as failed. It is recommended that only a limited number of reconnection attempts are
@@ -36,6 +38,15 @@ interface ChatStateListener {
      * Integration should also check for possibly lost incoming messages & thread changes once reconnection is done.
      */
     fun onUnexpectedDisconnect()
+
+    /**
+     * Method is invoked when the application initiates connection to chat session or if the session was lost and
+     * chat attempts automatically to reconnect.
+     * Chat should be considered temporarily unavailable until [onConnected] is invoked.
+     *
+     * For compatibility reasons this interface provides default empty implementation.
+     */
+    fun onConnecting() = Unit
 
     /**
      * Method is invoked when chat instance is connected and ready to send/receive messages, events or actions.

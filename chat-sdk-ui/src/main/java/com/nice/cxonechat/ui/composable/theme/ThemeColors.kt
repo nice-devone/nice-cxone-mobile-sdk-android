@@ -15,6 +15,7 @@
 
 package com.nice.cxonechat.ui.composable.theme
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement.spacedBy
@@ -36,11 +37,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import com.nice.cxonechat.Public
 
 /** A set of colors to be applied in either dark or light mode. */
+@Deprecated("Use ThemeColorTokens instead.")
 @Suppress(
     "ComplexInterface" // Serves as definition of constants.
 )
+@Public
 interface ThemeColors {
     /** Android primary color. */
     val primary: Color
@@ -242,46 +246,165 @@ interface ThemeColors {
 @Suppress("LongParameterList")
 @Immutable
 internal data class ThemeColorsImpl(
-    override val primary: Color,
-    override val onPrimary: Color,
-    override val background: Color,
-    override val onBackground: Color,
-    override val surface: Color,
-    override val onSurface: Color,
-    override val surfaceVariant: Color,
-    override val surfaceContainer: Color,
-    override val surfaceContainerHigh: Color,
-    override val surfaceContainerHighest: Color,
-    override val accent: Color,
-    override val onAccent: Color,
-    override val agentBackground: Color,
-    override val agentText: Color,
-    override val customerBackground: Color,
-    override val customerText: Color,
-    override val positionInQueueBackground: Color,
-    override val positionInQueueForeground: Color,
-    override val messageSent: Color,
-    override val messageSending: Color,
-    override val agentAvatarForeground: Color,
-    override val agentAvatarBackground: Color,
-    override val subtle: Color,
-    override val muted: Color,
-    override val error: Color,
-    override val accentHeader: Brush,
-    override val onAccentHeader: Color,
-    override val textFieldLabelBackground: Color,
-    override val textFieldLabelText: Color,
+    override val primary: Color = Color.Unspecified,
+    override val onPrimary: Color = Color.Unspecified,
+    override val background: Color = Color.Unspecified,
+    override val onBackground: Color = Color.Unspecified,
+    override val surface: Color = Color.Unspecified,
+    override val onSurface: Color = Color.Unspecified,
+    override val surfaceVariant: Color = Color.Unspecified,
+    override val surfaceContainer: Color = Color.Unspecified,
+    override val surfaceContainerHigh: Color = Color.Unspecified,
+    override val surfaceContainerHighest: Color = Color.Unspecified,
+    override val accent: Color = Color.Unspecified,
+    override val onAccent: Color = Color.Unspecified,
+    override val agentBackground: Color = Color.Unspecified,
+    override val agentText: Color = Color.Unspecified,
+    override val customerBackground: Color = Color.Unspecified,
+    override val customerText: Color = Color.Unspecified,
+    override val positionInQueueBackground: Color = Color.Unspecified,
+    override val positionInQueueForeground: Color = Color.Unspecified,
+    override val messageSent: Color = Color.Unspecified,
+    override val messageSending: Color = Color.Unspecified,
+    override val agentAvatarForeground: Color = Color.Unspecified,
+    override val agentAvatarBackground: Color = Color.Unspecified,
+    override val subtle: Color = Color.Unspecified,
+    override val muted: Color = Color.Unspecified,
+    override val error: Color = Color.Unspecified,
+    override val accentHeader: Brush = Brush.horizontalGradient(listOf(Color.Unspecified)),
+    override val onAccentHeader: Color = Color.Unspecified,
+    override val textFieldLabelBackground: Color = Color.Unspecified,
+    override val textFieldLabelText: Color = Color.Unspecified,
 ) : ThemeColors
 
-@Composable
-@PreviewLightDark
-private fun PreviewThemeColors() {
-    ThemeColorsList()
+// Color palette interfaces moved from DefaultColors.kt
+
+/**
+ * Represents the base colors used in the theme.
+ */
+interface Base {
+    /**
+     * The white color used in the theme.
+     */
+    val white: Color
+
+    /**
+     * The black color used in the theme.
+     */
+    val black: Color
 }
+
+/**
+ * Represents a color palette with shades ranging from light to dark.
+ * Each shade is represented by a color value, allowing for a consistent and harmonious color scheme.
+ * The palette includes shades from 50 (lightest) to 950 (darkest),
+ * with an additional base color.
+ */
+@Suppress(
+    "ComplexInterface" // Serves as definition of constants.
+)
+interface ColorShadesPalette {
+    /**
+     * The lightest shade in the palette (5% saturation).
+     */
+    val color50: Color
+
+    /**
+     * The second lightest shade in the palette (10% saturation).
+     */
+    val color100: Color
+
+    /**
+     * The third lightest shade in the palette (20% saturation).
+     */
+    val color200: Color
+
+    /**
+     * The fourth lightest shade in the palette (30% saturation).
+     */
+    val color300: Color
+
+    /**
+     * The fifth lightest shade in the palette (40% saturation).
+     */
+    val color400: Color
+
+    /**
+     * The base shade in the palette, typically the primary color (50% saturation).
+     */
+    val color500: Color
+
+    /**
+     * The sixth darkest shade in the palette  (60% saturation).
+     */
+    val color600: Color
+
+    /**
+     * The fifth darkest shade in the palette  (70% saturation).
+     */
+    val color700: Color
+
+    /**
+     * The fourth darkest shade in the palette (80% saturation).
+     */
+    val color800: Color
+
+    /**
+     * The third darkest shade in the palette (90% saturation).
+     */
+    val color900: Color
+
+    /**
+     * The second darkest shade in the palette (95% saturation).
+     */
+    val color950: Color
+
+    /**
+     * The main base color of the palette.
+     */
+    val base: Color
+}
+
+/**
+ * Primary colors are bold and eye-catching, perfect for drawing attention and making a strong visual statement.
+ * They are often used to highlight key elements and call-to-actions in a design.
+ */
+interface BrandPrimary : ColorShadesPalette
+
+/**
+ * Secondary colors provide additional visual interest and contrast when paired with primary colors.
+ * They are useful for accentuating features and breaking up monotony in a design.
+ */
+interface BrandSecondary : ColorShadesPalette
+
+/**
+ * Neutral colors offer a subtle and sophisticated backdrop, complementing other hues without overwhelming them.
+ * They are ideal for creating balance and visual rest in a design.
+ */
+interface Neutral : ColorShadesPalette
+
+/**
+ * Positive colors are associated with happiness and optimism, often used to convey a cheerful, uplifting mood.
+ * They are ideal for creating a friendly and welcoming atmosphere in a design.
+ */
+interface Positive : ColorShadesPalette
+
+/**
+ * Negative colors typically signify caution or restraint, conveying a sense of seriousness or formality.
+ * They are often used in designs where a sober or professional tone is required.
+ */
+interface Negative : ColorShadesPalette
+
+/**
+ * Warning colors are designed to grab attention quickly and convey urgency or importance.
+ * They are most effective for alerts, error messages, or important notices in a design.
+ */
+interface Warning : ColorShadesPalette
 
 @Suppress(
     "LongMethod" // Preview method
 )
+@PreviewLightDark
 @Composable
 private fun ThemeColorsList() {
     ChatTheme {
@@ -298,10 +421,9 @@ private fun ThemeColorsList() {
             "onSecondary" to ChatTheme.colorScheme.onSecondary,
             "agentBackground" to ChatTheme.chatColors.agent.background,
             "customerBackground" to ChatTheme.chatColors.customer.background,
-            "leadingMessageIconBorder" to ChatTheme.chatColors.leadingMessageIconBorder,
-            "leadingMessageIconContainer" to ChatTheme.chatColors.leadingMessageIconContainer,
+            "leadingMessageIconBorder" to ChatTheme.chatColors.token.border.default,
+            "leadingMessageIconContainer" to ChatTheme.chatColors.token.background.surface.subtle,
             "error" to ChatTheme.colorScheme.error,
-            "subtle" to ChatTheme.chatColors.subtle,
         )
         val scrollState = rememberScrollState()
         Surface {
@@ -322,7 +444,7 @@ private fun ThemeColorsList() {
                 }
                 BrushPreviewItem(
                     "popupHeader",
-                    ChatTheme.chatColors.accentHeader,
+                    Brush.horizontalGradient(listOf(ChatTheme.chatColors.token.brand.primary)),
                     itemMod,
                     rowMod,
                     textMod,
@@ -333,6 +455,7 @@ private fun ThemeColorsList() {
     }
 }
 
+@SuppressLint("ModifierParameter")
 @Composable
 private fun BrushPreviewItem(
     label: String,

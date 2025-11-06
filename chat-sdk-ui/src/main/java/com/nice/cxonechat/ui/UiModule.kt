@@ -25,6 +25,8 @@ import com.nice.cxonechat.ui.api.UiCustomFieldsProvider
 import com.nice.cxonechat.ui.data.PinpointPushMessageParser
 import com.nice.cxonechat.ui.domain.PushMessageParser
 import com.nice.cxonechat.utilities.TaggingSocketFactory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import org.koin.core.KoinApplication
 import org.koin.core.annotation.ComponentScan
@@ -71,9 +73,11 @@ class UiModule internal constructor() {
      * @return The [OkHttpClient] instance.
      */
     @Singleton
-    internal fun produceOkHttpClient() = OkHttpClient.Builder()
-        .socketFactory(TaggingSocketFactory)
-        .build()
+    internal fun produceOkHttpClient() = runBlocking(Dispatchers.IO) {
+        OkHttpClient.Builder()
+            .socketFactory(TaggingSocketFactory)
+            .build()
+    }
 
     @Suppress("UndocumentedPublicClass")
     companion object {

@@ -17,6 +17,8 @@ package com.nice.cxonechat.internal
 
 import com.nice.cxonechat.Cancellable
 import com.nice.cxonechat.ChatFieldHandler
+import com.nice.cxonechat.ChatMode
+import com.nice.cxonechat.ChatThreadActionHandler
 import com.nice.cxonechat.ChatThreadEventHandler
 import com.nice.cxonechat.ChatThreadHandler
 import com.nice.cxonechat.ChatThreadHandler.OnThreadUpdatedListener
@@ -28,8 +30,10 @@ import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.updateWith
 import com.nice.cxonechat.internal.model.ChatThreadMutable
 import com.nice.cxonechat.internal.model.CustomFieldInternal.Companion.updateWith
+import com.nice.cxonechat.internal.model.MessageText
 import com.nice.cxonechat.internal.model.network.EventThreadRecovered
 import com.nice.cxonechat.internal.model.network.EventThreadUpdated
+import com.nice.cxonechat.internal.model.network.Parameters
 import com.nice.cxonechat.internal.serializer.Default
 import com.nice.cxonechat.internal.socket.EventCallback.Companion.addCallback
 import com.nice.cxonechat.message.Message
@@ -69,7 +73,12 @@ internal class ChatThreadHandlerImpl(
     }
 
     private fun updateFromEvent(event: EventThreadRecovered) {
-        val messages = event.messages.sortedBy(Message::createdAt)
+        val messages = event.messages
+            .filterNot { message ->
+                // Filter out unsupported messages type answers
+                ((message as? MessageText)?.parameters as? Parameters.Object)?.isUnsupportedMessageTypeAnswer == true
+            }
+            .sortedBy(Message::createdAt)
         thread += thread.asCopyable().copy(
             threadName = event.thread.threadName,
             messages = thread.messages.updateWith(messages),
@@ -116,8 +125,20 @@ internal class ChatThreadHandlerImpl(
     override fun events(): ChatThreadEventHandler {
         var handler: ChatThreadEventHandler
         handler = ChatThreadEventHandlerImpl(chat, thread)
+        handler = ChatThreadEventHandlerReplyEvent(handler, this, chat)
         handler = ChatThreadEventHandlerTokenGuard(handler, chat)
         handler = ChatThreadEventHandlerThreading(handler, chat)
+        return handler
+    }
+
+    override fun actions(): ChatThreadActionHandler {
+        var handler: ChatThreadActionHandler = ChatThreadActionHandlerImpl(chat, thread)
+        handler = if (chat.chatMode === ChatMode.LiveChat) {
+            ChatThreadActionHandlerLiveChat(ChatThreadActionHandlerImpl(chat, thread), chat, thread)
+        } else {
+            handler
+        }
+        handler = ChatThreadActionHandlerThreading(handler, chat)
         return handler
     }
 

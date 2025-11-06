@@ -16,6 +16,7 @@
 package com.nice.cxonechat.internal.model
 
 import com.nice.cxonechat.internal.model.network.MessagePolyContent
+import com.nice.cxonechat.internal.model.network.Parameters
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.message.Message.Text
 import com.nice.cxonechat.message.MessageAuthor
@@ -49,6 +50,8 @@ internal data class MessageText(
         get() = content.payload.text
     override val fallbackText: String?
         get() = content.fallbackText
+    val parameters: Parameters?
+        get() = content.parameters
 
     override fun toString() = buildString {
         append("Message.Text(id=")
@@ -67,6 +70,8 @@ internal data class MessageText(
         append(attachments)
         append(", text='")
         append(text)
+        append(", parameters=")
+        append(parameters)
         append("')")
     }
 }

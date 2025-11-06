@@ -31,12 +31,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.ui.R
@@ -44,10 +43,9 @@ import com.nice.cxonechat.ui.composable.conversation.model.Message.RichLink
 import com.nice.cxonechat.ui.composable.generic.AutoLinkedText
 import com.nice.cxonechat.ui.composable.generic.PresetAsyncImage
 import com.nice.cxonechat.ui.composable.theme.ChatColors.ColorPair
-import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
-import com.nice.cxonechat.ui.composable.theme.ChatTheme.typography
 import com.nice.cxonechat.ui.util.openWithAndroid
 import com.nice.cxonechat.ui.util.preview.message.UiSdkRichLink
 
@@ -62,8 +60,12 @@ internal fun RichLinkMessage(
         val maxWidth = this.maxWidth.times(0.6f)
         val maxHeight = this.maxHeight.div(3)
         Column(
-            modifier
-                .clickable {
+            Modifier
+                .testTag("rich_link_message")
+                .then(modifier)
+                .clickable(
+                    onClickLabel = message.url
+                ) {
                     context.openWithAndroid(url = message.url, mimeType = null)
                 }
                 .width(Max)
@@ -82,19 +84,19 @@ internal fun RichLinkMessage(
             )
             Text(
                 text = message.title,
-                style = ChatTheme.chatTypography.chatCardTitle,
+                style = chatTypography.chatCardTitle,
                 color = textColor.foreground,
-                modifier = Modifier.padding(start = space.semiLarge, top = space.small, end = space.semiLarge)
+                modifier = Modifier.padding(start = space.semiLarge, top = space.medium, end = space.semiLarge)
             )
             Row(
                 verticalAlignment = Alignment.Top,
                 modifier = Modifier
-                    .padding(start = space.semiLarge, bottom = space.medium, end = space.semiLarge)
+                    .padding(start = space.semiLarge, top = 3.dp, bottom = space.semiLarge, end = space.semiLarge)
             ) {
-                val linkColor = colorScheme.primary.copy(0.8f).compositeOver(textColor.foreground)
+                val linkColor = colorScheme.primary
                 AutoLinkedText(
                     text = message.url,
-                    style = typography.labelSmall,
+                    style = chatTypography.chatCardLink,
                     color = linkColor,
                 )
                 Icon(
@@ -102,15 +104,15 @@ internal fun RichLinkMessage(
                     contentDescription = stringResource(R.string.content_description_url_link),
                     tint = linkColor,
                     modifier = Modifier
+                        .testTag("rich_link_icon")
                         .padding(start = 2.dp, bottom = 2.dp)
-                        .size(width = 12.dp, height = 15.dp)
+                        .size(width = 12.dp, height = 11.dp)
                 )
             }
         }
     }
 }
 
-@Preview
 @PreviewLightDark
 @Composable
 private fun PreviewMessageRichLink() {

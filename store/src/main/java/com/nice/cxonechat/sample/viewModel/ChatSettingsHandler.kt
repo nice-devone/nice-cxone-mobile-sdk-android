@@ -19,8 +19,8 @@ import android.content.Context
 import com.amazon.identity.auth.device.AuthError
 import com.amazon.identity.auth.device.api.Listener
 import com.amazon.identity.auth.device.api.authorization.AuthorizationManager
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.messaging.ktx.messaging
+import com.google.firebase.Firebase
+import com.google.firebase.messaging.messaging
 import com.nice.cxonechat.Authorization
 import com.nice.cxonechat.ChatInstanceProvider
 import com.nice.cxonechat.ChatInstanceProvider.DeviceTokenProvider

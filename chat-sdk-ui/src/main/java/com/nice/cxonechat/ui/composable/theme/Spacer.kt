@@ -24,8 +24,3 @@ import androidx.compose.ui.Modifier
 internal fun SmallSpacer() {
     Spacer(modifier = Modifier.size(ChatTheme.space.small))
 }
-
-@Composable
-internal fun TinySpacer() {
-    Spacer(modifier = Modifier.size(ChatTheme.space.xSmall))
-}

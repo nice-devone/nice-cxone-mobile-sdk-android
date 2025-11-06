@@ -24,6 +24,8 @@ import com.nice.cxonechat.enums.ErrorType.ConsumerReconnectionFailed
 import com.nice.cxonechat.enums.ErrorType.TokenRefreshingFailed
 import com.nice.cxonechat.exceptions.RuntimeChatException
 import com.nice.cxonechat.internal.ChatImpl
+import com.nice.cxonechat.internal.ChatStoreVisitor
+import com.nice.cxonechat.internal.ChatWithParameters
 import com.nice.cxonechat.internal.model.ChannelConfiguration
 import com.nice.cxonechat.internal.model.ConfigurationInternal
 import com.nice.cxonechat.internal.model.Visitor
@@ -35,7 +37,10 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifyOrder
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Test
+import retrofit2.Callback
+import retrofit2.Response
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
@@ -66,11 +71,22 @@ internal class ChatTest : AbstractChatTest() {
             service.createOrUpdateVisitor(
                 brandId = connection.brandId,
                 visitorId = connection.visitorId.toString(),
-                visitor = Visitor(connection, token)
+                visitor = Visitor(connection, deviceToken = token)
             )
         }
 
         confirmVerified(service)
+    }
+
+    @Test
+    fun sendVisitorInfo_doesNotRetryOnClientError() {
+        every { service.createOrUpdateVisitor(any(), any(), any()).execute() } returns Response.error(400, "".toResponseBody(null))
+
+        val origin = mockk<ChatWithParameters>(relaxed = true)
+        val callback = mockk<Callback<Void>>(relaxed = true)
+        ChatStoreVisitor(origin, callback)
+
+        verify(exactly = 0) { callback.onResponse(any(), any()) }
     }
 
     @Test

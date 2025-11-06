@@ -33,7 +33,7 @@ internal class ChatMultiThread(
     init {
         chatStateListener?.let { listener ->
             socketListener.addListener(
-                SocketConnectionListener(listener = listener) {
+                SocketConnectionListener {
                     listener.onConnected()
                     listener.onReady()
                 }

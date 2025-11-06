@@ -36,10 +36,13 @@ internal class ChatThreadMessageHandlerPolyTest : AbstractChatTest() {
     private lateinit var handler: ChatThreadHandler
     private lateinit var thread: ChatThread
 
+    private lateinit var actions: ChatThreadActionHandler
+
     override fun prepare() {
         super.prepare()
         thread = makeChatThread()
         handler = chat.threads().thread(thread)
+        actions = handler.actions()
     }
 
     @Test
@@ -100,12 +103,28 @@ internal class ChatThreadMessageHandlerPolyTest : AbstractChatTest() {
     }
 
     @Test
-    fun ignores_unknownContentType() {
+    fun ignores_invalidContentType() {
         val result = testCallback(::thread) {
             val message = ServerResponse.Message.InvalidContent(thread.id)
             sendServerMessage(ServerResponse.ThreadMetadataLoaded(message))
         }
         assertNull(result)
+    }
+
+    @Test
+    fun parses_unknownContentType() {
+        val message = awaitMessage(ServerResponse.Message.UnknownContent(thread.id))
+        assertIs<Message.Unsupported>(message)
+        assertNotNull(message.text)
+        assertNotNull(message.fallbackText)
+    }
+
+    @Test
+    fun parses_inactivityPopup() {
+        isLiveChat = true
+        prepare()
+        val action = awaitAction(thread, ServerResponse.Message.InactivityPopup(thread.id))
+        assertIs<Popup.InactivityPopup>(action)
     }
 
     // ---
@@ -119,5 +138,14 @@ internal class ChatThreadMessageHandlerPolyTest : AbstractChatTest() {
 
     private fun thread(function: (ChatThread) -> Unit): Cancellable {
         return handler.get { function(it) }
+    }
+
+    private fun awaitAction(thread: ChatThread, message: Any): Popup {
+        val body: ((Popup) -> Unit) -> Unit = { onPopup ->
+            actions.onPopup { popup -> onPopup(popup) }
+        }
+        return testCallback(body) {
+            serverResponds(ServerResponse.MessageCreated(thread, message))
+        }
     }
 }

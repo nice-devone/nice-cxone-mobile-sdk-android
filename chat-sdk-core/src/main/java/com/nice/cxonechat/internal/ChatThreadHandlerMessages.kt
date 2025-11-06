@@ -21,10 +21,21 @@ import com.nice.cxonechat.ChatThreadHandler.OnThreadUpdatedListener
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.updateWith
 import com.nice.cxonechat.internal.model.ChatThreadMutable
+import com.nice.cxonechat.internal.model.MessageText
+import com.nice.cxonechat.internal.model.MessageUnsupported
 import com.nice.cxonechat.internal.model.network.EventMessageCreated
 import com.nice.cxonechat.internal.model.network.EventMoreMessagesLoaded
+import com.nice.cxonechat.internal.model.network.Parameters
 import com.nice.cxonechat.internal.socket.EventCallback.Companion.addCallback
+import com.nice.cxonechat.message.OutboundMessage.Companion.UnsupportedMessageTypeAnswer
+import java.util.concurrent.ConcurrentSkipListSet
 
+/**
+ * This class wraps the original [ChatThreadHandler] and adds handling for events related to messages:
+ * * - listens for [EventMoreMessagesLoaded] to update the thread with more messages.
+ * * - listens for [EventMessageCreated] to update the thread with newly created messages.
+ * * It also handles unsupported message types by sending a fallback answer.
+ */
 internal class ChatThreadHandlerMessages(
     private val origin: ChatThreadHandler,
     private val chat: ChatWithParameters,
@@ -43,12 +54,22 @@ internal class ChatThreadHandlerMessages(
             }
         val messageCreated = chat.socketListener.addCallback(EventMessageCreated) { event ->
             val message = event.message
-            if (!event.inThread(thread) || thread.messages.contains(message)) return@addCallback
+            if (
+                !event.inThread(thread) ||
+                thread.messages.contains(message) ||
+                // Skip answers for unsupported messages
+                ((message as? MessageText)?.parameters as? Parameters.Object)?.isUnsupportedMessageTypeAnswer == true
+            ) {
+                return@addCallback
+            }
             thread += thread.asCopyable().copy(
                 contactId = event.contactId,
                 threadState = event.threadState,
                 messages = thread.messages.updateWith(listOfNotNull(message))
             )
+            if (message is MessageUnsupported) {
+                sendUnsupportedMessageType(message)
+            }
             listener.onUpdated(thread)
         }
         return Cancellable(
@@ -56,5 +77,23 @@ internal class ChatThreadHandlerMessages(
             messageCreated,
             origin.get(listener)
         )
+    }
+
+    private fun sendUnsupportedMessageType(message: MessageUnsupported) {
+        val messageId = message.id.toString()
+        // Avoid sending multiple answers for the same unsupported message
+        if (answersForUnsupportedMessages.add(messageId)) {
+            this@ChatThreadHandlerMessages.messages().send(
+                UnsupportedMessageTypeAnswer(
+                    message = "Last agent's message is not supported in the mobile SDK.\n" +
+                            "Fallback text is:${message.text}",
+                    isUnsupportedMessageTypeAnswer = true
+                )
+            )
+        }
+    }
+
+    companion object {
+        private val answersForUnsupportedMessages = ConcurrentSkipListSet<String>()
     }
 }

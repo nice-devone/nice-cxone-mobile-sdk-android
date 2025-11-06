@@ -50,7 +50,7 @@ open class FileRepository<Type : Any>(
         }
     }
 
-    override fun doLoad(context: Context): String? = try {
+    override suspend fun doLoad(context: Context): String? = try {
         context.openFileInput(fileName).use {
             doLoad(it)
         }

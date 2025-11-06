@@ -30,6 +30,7 @@ import com.nice.cxonechat.internal.model.AgentModel
 import com.nice.cxonechat.internal.model.CustomFieldModel
 import com.nice.cxonechat.internal.model.MessageModel
 import com.nice.cxonechat.internal.model.network.EventCaseStatusChanged.CaseStatus
+import com.nice.cxonechat.internal.model.network.MessagePolyContent.Plugin.PluginElement.StructuredElements
 import com.nice.cxonechat.model.makeAgent
 import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.model.makeMessageModel
@@ -40,6 +41,7 @@ import com.nice.cxonechat.thread.CustomField
 import com.nice.cxonechat.tool.nextString
 import com.nice.cxonechat.tool.serialize
 import com.nice.cxonechat.util.DateTime
+import com.nice.cxonechat.util.IsoDate
 import java.util.Date
 import java.util.UUID
 
@@ -197,7 +199,7 @@ internal object ServerResponse {
         thread: ChatThread = makeChatThread(),
         agent: AgentModel = makeAgent(),
         customerCustomFields: List<CustomField> = emptyList(),
-        vararg messages: MessageModel,
+        vararg messages: Any,
     ) = object {
         val eventId = TestUUID
         val postback = object {
@@ -292,7 +294,7 @@ internal object ServerResponse {
 
     fun MessageCreated(
         thread: ChatThread,
-        message: MessageModel,
+        message: Any,
     ) = object {
         val eventId = TestUUID
         val eventType = "MessageCreated"
@@ -364,7 +366,7 @@ internal object ServerResponse {
     fun EventInS3(
         url: String = "https://some.other.url/some/path",
         date: String = "2024-05-06T20:45:53.654Z",
-        eventType: EventType = CustomerAuthorized
+        eventType: EventType = CustomerAuthorized,
     ) = object {
         val eventId = TestUUID
         val eventType = "EventInS3".also { assert(it == EventType.EventInS3.value) }
@@ -385,7 +387,7 @@ internal object ServerResponse {
         agent: AgentModel? = makeAgent(),
         customerCustomFields: List<CustomField> = emptyList(),
         status: ContactStatus = New,
-        vararg messages: MessageModel,
+        vararg messages: Any,
     ) = object {
         val eventId = TestUUID
         val postback = object {
@@ -554,6 +556,123 @@ internal object ServerResponse {
             threadId = threadId,
             content = object {
                 val type = "FOOBAR"
+            }
+        )
+
+        fun UnknownContent(threadId: UUID) = Message(
+            threadId = threadId,
+            content = object {
+                val type = "UNKNOWN"
+                val fallbackText = "Unsupported message content"
+            }
+        )
+
+        fun PluginMenu(threadId: UUID) = Message(
+            threadId = threadId,
+            content = object {
+                val type = "PLUGIN"
+                val fallbackText = "Unsupported message content"
+                val payload = object {
+                    val postback = ""
+                    val elements = listOf(object {
+                        val id = "Ek4tPy1h4"
+                        val type = "MENU"
+                        val elements = listOf(
+                            object {
+                                val id = "Uk4tPy1h2"
+                                val type = "FILE"
+                                val url = "https=//picsum.photos/300/150"
+                                val filename = "photo.jpg"
+                                val mimeType = "image/jpeg"
+                            },
+                            object {
+                                val id = "Ck4tPy1h3"
+                                val type = "TITLE"
+                                val text = "Hello!"
+                            },
+                            object {
+                                val id = "CA4tPy333"
+                                val type = "SUBTITLE"
+                                val text = "Hello, but smaller!"
+                            },
+                            object {
+                                val id = "Ek4tPy1h1"
+                                val type = "TEXT"
+                                val text = "Lorem Impsum..."
+                            },
+                            object {
+                                val id = "Nkm0hRAiE"
+                                val type = "BUTTON"
+                                val text = "Click me!"
+                                val postback = "click-on-button-1"
+                            },
+                            object {
+                                val id = "NkGJ6CAiN"
+                                val type = "BUTTON"
+                                val text = "No click me!"
+                                val postback = "click-on-button-2"
+                            },
+                            object {
+                                val id = "EyCyTRCi4"
+                                val type = "BUTTON"
+                                val text = "Aww don`t click on me"
+                                val postback = "click-on-button-3"
+                            }
+                        )
+                    })
+                }
+            }
+        )
+
+        fun InactivityPopup(threadId: UUID) = Message(
+            threadId = threadId,
+            content = object {
+                val type = "PLUGIN"
+                val fallbackText = "Unsupported message content"
+                val payload = object {
+                    val postback = ""
+                    val elements = listOf(object {
+                        val id = UUID.randomUUID().toString()
+                        val type = StructuredElements.InactivityPlugin.TYPE
+                        val elements = listOf(
+                            object {
+                                val id = UUID.randomUUID().toString()
+                                val type = "TITLE"
+                                val text = "Hello!"
+                            },
+                            object {
+                                val id = UUID.randomUUID().toString()
+                                val type = "TEXT"
+                                val text = "Lorem Impsum..."
+                            },
+                            object {
+                                val id = UUID.randomUUID().toString()
+                                val type = "COUNTDOWN"
+                                val variables = object {
+                                    val startedAt = IsoDate(Date(0))
+                                    val numberOfSeconds = 60L
+                                }
+                            },
+                            object {
+                                val id = UUID.randomUUID().toString()
+                                val type = "TEXT"
+                                val text = "Do you wish to continue?"
+                            },
+                            object {
+                                val id = UUID.randomUUID().toString()
+                                val type = "BUTTON"
+                                val text = "Yes"
+                                val postback = """{"type":"sessionExpiration", "isExpired":false, "workflowJobId":"40180433-4438-4ef7-af4e-d6f69d3bda25"}"""
+                            },
+                            object {
+                                val id = UUID.randomUUID().toString()
+                                val type = "BUTTON"
+                                val text = "No"
+                                val postback = """{"type":"sessionExpiration", "isExpired":true, "workflowJobId":"40180433-4438-4ef7-af4e-d6f69d3bda25"}"""
+                            },
+                        )
+                    })
+                }
             }
         )
     }

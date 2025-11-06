@@ -49,5 +49,11 @@ internal class ChatThreadMessageHandlerThreading(
                 listener.onSent(id)
             }
         }
+
+        override fun onProcessing(message: OutboundMessage) {
+            chat.entrails.threading.foreground {
+                listener.onProcessing(message)
+            }
+        }
     }
 }

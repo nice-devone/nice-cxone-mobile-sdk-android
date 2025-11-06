@@ -15,49 +15,68 @@
 
 package com.nice.cxonechat.ui.composable.generic
 
-import android.content.res.Configuration
+import androidx.annotation.VisibleForTesting
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType.Companion.PrimaryNotEditable
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.SemanticsPropertyKey
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.nice.cxonechat.ui.R.string
-import com.nice.cxonechat.ui.composable.generic.TreeFieldDefaults.LeafNodeElevation
-import com.nice.cxonechat.ui.composable.generic.TreeFieldDefaults.ParentNodeElevation
-import com.nice.cxonechat.ui.composable.generic.TreeFieldDefaults.SelectedLeafNodeElevation
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
 import com.nice.cxonechat.ui.composable.theme.LocalChatTypography
 import com.nice.cxonechat.ui.composable.theme.LocalSpace
-import com.nice.cxonechat.ui.domain.model.SimpleTreeFieldItem
 import com.nice.cxonechat.ui.domain.model.TreeFieldItem
 import com.nice.cxonechat.ui.util.findRecursive
+import com.nice.cxonechat.ui.util.pathToNode
 import com.nice.cxonechat.ui.util.toggle
 
+/** Semantics key used in tests to record the ARGB color of the label. Tests can read this
+ *  ARGB integer value from the semantics tree to assert that the label is tinted with the
+ *  theme error color when validation fails.
+ */
+@VisibleForTesting
+internal val TreeFieldLabelColorKey = SemanticsPropertyKey<Int>("TreeFieldLabel")
+
+/**
+ * Renders a selectable tree of `TreeFieldItem`s with an optional label and validation error.
+ *
+ * The composable displays an optional label above the nodes and the list of items. Each
+ * entry is rendered by the internal `TreeNode` composable. When `error` is non-null the
+ * label is tinted with the theme error color and the error text is shown below all rendered
+ * nodes.
+ *
+ * This is a controlled composable: callers must provide the selection and expansion
+ * predicates and update their state from the provided callbacks.
+ */
 @Suppress("LongParameterList")
 @Composable
 internal fun <ValueType> TreeField(
@@ -68,6 +87,7 @@ internal fun <ValueType> TreeField(
     isSelected: (TreeFieldItem<ValueType>) -> Boolean,
     onNodeClicked: (TreeFieldItem<ValueType>) -> Unit,
     onExpandClicked: (TreeFieldItem<ValueType>) -> Unit,
+    error: String? = null,
 ) {
     Box(
         contentAlignment = Alignment.TopStart,
@@ -75,52 +95,87 @@ internal fun <ValueType> TreeField(
             .fillMaxWidth()
             .defaultMinSize(minHeight = LocalSpace.current.clickableSize)
     ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            if (label.isNotBlank()) {
-                Text(
-                    text = label,
-                    style = LocalChatTypography.current.surveyLabel,
-                )
-            }
-            items.forEach { item ->
-                TreeNode(
-                    node = item,
-                    modifier = modifier.fillMaxWidth(),
-                    indent = LocalSpace.current.treeFieldIndent,
-                    isExpanded = isExpanded,
-                    isSelected = isSelected,
-                    onNodeClicked = onNodeClicked,
-                    onExpandClicked = onExpandClicked,
-                )
-            }
+        // Extracted content into a separate composable to lower cognitive complexity of TreeField.
+        TreeFieldContent(
+            label = label,
+            items = items,
+            isExpanded = isExpanded,
+            isSelected = isSelected,
+            onNodeClicked = onNodeClicked,
+            onExpandClicked = onExpandClicked,
+            error = error,
+        )
+    }
+}
+
+/**
+ * Renders the content of the TreeField, extracted to reduce cognitive complexity of the
+ * TreeField composable.
+ */
+@Composable
+private fun <ValueType> TreeFieldContent(
+    label: String,
+    items: List<TreeFieldItem<ValueType>>,
+    isExpanded: (TreeFieldItem<ValueType>) -> Boolean,
+    isSelected: (TreeFieldItem<ValueType>) -> Boolean,
+    onNodeClicked: (TreeFieldItem<ValueType>) -> Unit,
+    onExpandClicked: (TreeFieldItem<ValueType>) -> Unit,
+    error: String?,
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        if (label.isNotBlank()) {
+            TreeFieldLabel(label = label, error = error)
+        }
+        items.forEach { item ->
+            TreeNode(
+                node = item,
+                isExpanded = isExpanded,
+                isSelected = isSelected,
+                onNodeClicked = onNodeClicked,
+                onExpandClicked = onExpandClicked,
+            )
+        }
+
+        // Render validation/error text below the tree nodes when provided.
+        if (error != null) {
+            Text(
+                text = error,
+                color = colorScheme.error,
+                style = ChatTheme.typography.bodySmall,
+                modifier = Modifier
+                    .testTag("tree_field_error")
+                    .padding(start = LocalSpace.current.treeFieldIndent, top = LocalSpace.current.small)
+            )
         }
     }
 }
 
+/**
+ * Renders a single tree node and its optional children. The node relies on external
+ * expansion/selection predicates and will invoke callbacks to notify the host of user
+ * actions (node click, expand click).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
-@Suppress("CognitiveComplexMethod", "LongParameterList")
 @Composable
 private fun <ValueType> TreeNode(
     node: TreeFieldItem<ValueType>,
-    modifier: Modifier,
-    indent: Dp,
+    indent: Dp = 0.dp,
     isExpanded: (TreeFieldItem<ValueType>) -> Boolean,
     isSelected: (TreeFieldItem<ValueType>) -> Boolean,
     onNodeClicked: (TreeFieldItem<ValueType>) -> Unit,
     onExpandClicked: (TreeFieldItem<ValueType>) -> Unit,
 ) {
     val expanded = isExpanded(node)
-
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expandedStateChanged ->
             if (expandedStateChanged) onExpandClicked(node)
         },
-        modifier = modifier,
     ) {
         Column(modifier = Modifier.menuAnchor(PrimaryNotEditable)) {
-            TreeNodeMenuItem(node, expanded, isSelected, onNodeClicked)
+            TreeNodeMenuItem(node, expanded, Modifier.padding(start = indent), isSelected = isSelected, onNodeClicked = onNodeClicked)
             val children = node.children
+            HorizontalDivider()
             if (children != null) {
                 SubTree(
                     expanded = expanded,
@@ -136,8 +191,15 @@ private fun <ValueType> TreeNode(
     }
 }
 
+/**
+ * Renders a subtree (children) of a node when expanded.
+ *
+ * Important: children are only composed when [expanded] is true. This avoids unnecessary
+ * composition and keeps rendering efficient for large trees. The indentation is applied to
+ * non-leaf child nodes to visually represent hierarchy.
+ */
 @Composable
-private fun <ValueType> ColumnScope.SubTree(
+private fun <ValueType> SubTree(
     expanded: Boolean,
     children: Iterable<TreeFieldItem<ValueType>>,
     indent: Dp,
@@ -146,14 +208,12 @@ private fun <ValueType> ColumnScope.SubTree(
     onNodeClicked: (TreeFieldItem<ValueType>) -> Unit,
     onExpandClicked: (TreeFieldItem<ValueType>) -> Unit,
 ) {
-    HorizontalDivider()
+    val newIndent = indent + LocalSpace.current.treeFieldIndent
     if (expanded) {
         children.forEach { childNode ->
             TreeNode(
                 node = childNode,
-                modifier = Modifier
-                    .padding(start = if (childNode.isLeaf) 0.dp else indent),
-                indent = indent,
+                indent = newIndent,
                 isExpanded = isExpanded,
                 isSelected = isSelected,
                 onNodeClicked = onNodeClicked,
@@ -163,124 +223,95 @@ private fun <ValueType> ColumnScope.SubTree(
     }
 }
 
+/**
+ * Renders the clickable menu item for a tree node including selection and trailing icon.
+ *
+ * The visual appearance differs for leaf and non-leaf nodes. Leaf nodes can be selected
+ * and show a check icon when selected. Non-leaf nodes show an expand/collapse icon.
+ */
+@Composable
+private fun menuItemColor(expanded: Boolean, isLeaf: Boolean): Color =
+    if (expanded && !isLeaf) colorScheme.primary else LocalContentColor.current
+
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 private fun <ValueType> TreeNodeMenuItem(
     node: TreeFieldItem<ValueType>,
     expanded: Boolean,
+    modifier: Modifier = Modifier,
     isSelected: (TreeFieldItem<ValueType>) -> Boolean,
     onNodeClicked: (TreeFieldItem<ValueType>) -> Unit,
 ) {
     val isLeaf = node.isLeaf
     val isNodeSelected = isSelected(node)
-    Surface(
-        color = nodeColor(isLeaf, isNodeSelected),
-        tonalElevation = nodeElevation(isLeaf, isNodeSelected),
-    ) {
-        DropdownMenuItem(
-            text = { Text(node.label) },
-            onClick = {
-                if (isLeaf || expanded) onNodeClicked(node)
-            },
-            trailingIcon = {
-                when {
-                    isLeaf -> Box(contentAlignment = Alignment.Center) {
-                        if (isNodeSelected) {
-                            SelectedIcon(node.label)
-                        }
+    val menuItemColor = menuItemColor(expanded, isLeaf)
+    DropdownMenuItem(
+        modifier = Modifier
+            .background(color = nodeColor(isNodeSelected))
+            .testTag("tree_node_${node.label}"),
+        text = {
+            Row(modifier) {
+                Text(text = node.label, style = LocalChatTypography.current.treeNodeItemLabel)
+            }
+        },
+        onClick = {
+            if (isLeaf || expanded) onNodeClicked(node)
+        },
+        trailingIcon = {
+            when {
+                isLeaf -> Box(contentAlignment = Alignment.Center) {
+                    if (isNodeSelected) {
+                        SelectedIcon(node.label)
                     }
-
-                    else -> ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                 }
-            },
-            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-        )
-    }
-}
 
-@Composable
-private fun nodeElevation(isLeaf: Boolean, isSelected: Boolean) = if (isLeaf) {
-    if (isSelected) SelectedLeafNodeElevation else LeafNodeElevation
-} else {
-    ParentNodeElevation
-}
-
-@Composable
-private fun nodeColor(isLeaf: Boolean, isSelected: Boolean) = if (isLeaf) {
-    if (isSelected) colorScheme.surfaceContainerHighest else colorScheme.surfaceContainer
-} else {
-    colorScheme.surface
-}
-
-@Composable
-private fun SelectedIcon(label: String) {
-    Icon(
-        imageVector = Icons.Default.Check,
-        contentDescription = stringResource(
-            id = string.content_description_icon_is_selected,
-            formatArgs = arrayOf(
-                label,
-            )
-        ),
-        tint = colorScheme.primary,
+                else -> TrailingIcon(expanded = expanded)
+            }
+        },
+        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+        colors = MenuDefaults.itemColors(textColor = menuItemColor, trailingIconColor = menuItemColor)
     )
 }
 
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO or Configuration.UI_MODE_TYPE_UNDEFINED)
 @Composable
-private fun TreeFieldPreviewLight() {
-    TreeFieldPreview()
+private fun TreeFieldLabel(label: String, error: String?) {
+    val labelModifier = error?.let {
+        val argb = colorScheme.error.toArgb()
+        Modifier
+            .testTag("tree_field_label")
+            .semantics { this[TreeFieldLabelColorKey] = argb }
+    } ?: Modifier.testTag("tree_field_label")
+
+    Text(
+        text = label,
+        style = LocalChatTypography.current.surveyLabel,
+        color = if (error != null) colorScheme.error else Color.Unspecified,
+        modifier = labelModifier,
+    )
 }
 
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_UNDEFINED)
-@Composable
-private fun TreeFieldPreviewDark() {
-    TreeFieldPreview()
-}
-
-@Suppress("CognitiveComplexMethod", "LongParameterList", "UnusedPrivateMember")
+@PreviewLightDark
 @Composable
 private fun TreeFieldPreview() {
-    val nodes = listOf(
-        SimpleTreeFieldItem(
-            "Node 0",
-            "0",
-            listOf(
-                SimpleTreeFieldItem(
-                    "Node 0-0",
-                    "0-0",
-                    listOf(
-                        SimpleTreeFieldItem("Node 0-0-0", "0-0-0"),
-                        SimpleTreeFieldItem("Node 0-0-1", "0-0-1"),
-                        SimpleTreeFieldItem(
-                            "Node 0-0-2",
-                            "0-0-2",
-                            listOf(
-                                SimpleTreeFieldItem("Node 0-0-2-0", "0-0-2-0"),
-                                SimpleTreeFieldItem("Node 0-0-2-1", "0-0-2-1"),
-                            )
-                        )
-                    )
-                ),
-                SimpleTreeFieldItem("Node 0-1", "0-1"),
-                SimpleTreeFieldItem("Node 0-2", "0-2"),
-            ),
-        ),
-        SimpleTreeFieldItem("Node 1", "1")
-    )
+    val testItems = testItems()
     var selected: TreeFieldItem<String>? by remember {
-        mutableStateOf(nodes.findRecursive { it.value == "1" })
+        mutableStateOf(testItems.findRecursive { it.value == "level-5" })
     }
-    var expanded: Set<TreeFieldItem<String>> by remember { mutableStateOf(setOf()) }
+    var expanded: Set<TreeFieldItem<String>> by remember {
+        mutableStateOf(testItems.pathToNode { it == selected }?.toSet().orEmpty())
+    }
 
     ChatTheme {
-        Surface(modifier = Modifier.fillMaxSize()) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = colorScheme.background,
+        ) {
             Column {
                 Text("Current selected: ${selected?.label ?: ""}")
                 HorizontalDivider()
                 TreeField(
                     label = "Label",
-                    items = nodes,
+                    items = testItems,
                     isExpanded = expanded::contains,
                     isSelected = { selected == it },
                     onNodeClicked = { node ->
@@ -299,8 +330,57 @@ private fun TreeFieldPreview() {
     }
 }
 
-internal object TreeFieldDefaults {
-    val ParentNodeElevation = 0.dp
-    val LeafNodeElevation = 1.dp
-    val SelectedLeafNodeElevation = 12.dp
+@PreviewLightDark
+@Composable
+private fun TreeFieldErrorPreview() {
+    val nodes = listOf(
+        TreeFieldItem(label = "One", value = "1"),
+    )
+    ChatTheme {
+        Surface(color = colorScheme.background) {
+            TreeField(
+                label = "Label",
+                items = nodes,
+                isExpanded = { false },
+                isSelected = { false },
+                onNodeClicked = {},
+                onExpandClicked = {},
+                error = "This field is required"
+            )
+        }
+    }
 }
+
+@Stable
+private fun testItems(): List<TreeFieldItem<String>> = listOf(
+    TreeFieldItem(
+        "1. Level",
+        "0",
+        listOf(
+            TreeFieldItem(
+                "2. Level",
+                "0-0",
+                listOf(
+                    TreeFieldItem(
+                        "3. Level",
+                        "0-0-2",
+                        listOf(
+                            TreeFieldItem(
+                                label = "4. Level",
+                                value = "0-0-2-0",
+                                children = listOf(
+                                    TreeFieldItem(label = "5. Level", value = "level-5"),
+                                    TreeFieldItem(label = "5. Level", value = "level-5-0")
+                                )
+                            )
+                        )
+                    )
+                )
+            ),
+        ),
+    ),
+    TreeFieldItem(
+        "1. Level",
+        "level-1-0"
+    )
+)

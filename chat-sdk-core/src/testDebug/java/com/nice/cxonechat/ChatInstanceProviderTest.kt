@@ -38,9 +38,12 @@ import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import io.mockk.runs
+import android.net.Uri
 import io.mockk.verify
 import io.mockk.verifyOrder
+import org.junit.Before
 import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -53,8 +56,14 @@ import kotlin.test.assertTrue
 @Suppress("LargeClass", "StringLiteralDuplication")
 internal class ChatInstanceProviderTest {
     private val applicationContext = mockk<Context>()
+    private val baseUrl = "https://chat.server/"
+    private val chatUrl by lazy { "${baseUrl}chat/" }
+    private val loggerUrl by lazy { "${baseUrl}logger-public" }
     private val socketEnvironment: Environment by lazy {
-        mockk()
+        mockk<Environment> {
+            every { chatUrl } returns this@ChatInstanceProviderTest.chatUrl
+            every { loggerUrl } returns this@ChatInstanceProviderTest.loggerUrl
+        }
     }
     private val socketFactoryConfiguration by lazy {
         object : SocketFactoryConfiguration {
@@ -62,6 +71,18 @@ internal class ChatInstanceProviderTest {
             override val brandId = BRAND_ID
             override val channelId = CHANNEL_ID
         }
+    }
+
+    @Before
+    fun setUp() {
+        mockkStatic(Uri::class)
+        val mockUri = mockk<Uri>(relaxed = true)
+        val mockBuilder = mockk<Uri.Builder>(relaxed = true)
+        every { Uri.parse(any()) } returns mockUri
+        every { mockUri.buildUpon() } returns mockBuilder
+        every { mockBuilder.appendQueryParameter(any(), any()) } returns mockBuilder
+        every { mockBuilder.build() } returns mockUri
+        every { mockUri.toString() } returns "https://mocked-uri"
     }
 
     @Suppress("LABEL_NAME_CLASH")
@@ -98,8 +119,8 @@ internal class ChatInstanceProviderTest {
                         }
                     }
                     every { isChatAvailable } returns isOnline
-                }
-
+                   }
+                every { chat.environment } returns socketEnvironment
                 onBuilt(chat, onDone)
             }
         }
@@ -690,6 +711,69 @@ internal class ChatInstanceProviderTest {
         provider.cancel()
 
         assertEquals(Prepared, provider.chatState)
+    }
+
+    @Test
+    fun onChatChangedNotifiesListener() {
+        val (provider) = provider(socketFactoryConfiguration)
+        val listener = mockk<Listener>(relaxUnitFun = true)
+        provider.addListener(listener)
+        provider.prepare(applicationContext)
+        verify { listener.onChatChanged(provider.chat) }
+    }
+
+    @Test
+    fun deviceTokenProviderAsyncCallback() {
+        var callback: ((String) -> Unit)? = null
+        val tokenProvider = DeviceTokenProvider { cb -> callback = cb }
+        val (provider, builder) = provider(socketFactoryConfiguration)
+        provider.configure(applicationContext) {
+            deviceTokenProvider = tokenProvider
+        }
+        callback?.invoke("async-token")
+        verify { builder.setDeviceToken("async-token") }
+        verify { provider.chat?.setDeviceToken("async-token") }
+    }
+
+    @Test
+    fun removeMultipleListeners() {
+        val (provider) = provider(socketFactoryConfiguration)
+        val listener1 = mockk<Listener>(relaxUnitFun = true)
+        val listener2 = mockk<Listener>(relaxUnitFun = true)
+        provider.addListener(listener1)
+        provider.addListener(listener2)
+        provider.removeListener(listener1)
+        provider.onConnected()
+        verify(exactly = 0) { listener1.onChatStateChanged(any()) }
+        verify { listener2.onChatStateChanged(Connected) }
+    }
+
+    @Test
+    fun signOutNotifiesListeners() {
+        val (provider) = provider(socketFactoryConfiguration)
+        val listener = mockk<Listener>(relaxUnitFun = true)
+        provider.addListener(listener)
+        provider.prepare(applicationContext)
+        provider.signOut()
+        verify { listener.onChatChanged(null) }
+        verify { listener.onChatStateChanged(Initial) }
+    }
+
+    @Test
+    fun createReplacesSingleton() {
+        val instance1 = ChatInstanceProvider.create(socketFactoryConfiguration)
+        val instance2 = ChatInstanceProvider.create(socketFactoryConfiguration)
+        assertNotSame(instance1, instance2)
+        assertSame(instance2, ChatInstanceProvider.get())
+    }
+
+    @Test(expected = IllegalStateException::class)
+    fun getThrowsIfNotCreated() {
+        // Reset singleton for test
+        val field = ChatInstanceProvider::class.java.getDeclaredField("instance")
+        field.isAccessible = true
+        field.set(null, null)
+        ChatInstanceProvider.get()
     }
 
     companion object {

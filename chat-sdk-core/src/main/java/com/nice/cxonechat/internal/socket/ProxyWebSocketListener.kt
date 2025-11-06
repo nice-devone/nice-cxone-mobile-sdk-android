@@ -27,6 +27,8 @@ import java.util.concurrent.ConcurrentHashMap
  */
 internal class ProxyWebSocketListener : WebSocketListener() {
 
+    private var lastState = SocketState.INITIAL
+
     private val listeners: MutableCollection<WebSocketListener> = Collections.newSetFromMap(ConcurrentHashMap())
 
     fun addListener(listener: WebSocketListener) {
@@ -38,30 +40,35 @@ internal class ProxyWebSocketListener : WebSocketListener() {
     }
 
     override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+        reportState(SocketState.CLOSED)
         for (listener in listeners) {
             listener.onClosed(webSocket, code, reason)
         }
     }
 
     override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+        reportState(SocketState.CLOSING)
         for (listener in listeners) {
             listener.onClosing(webSocket, code, reason)
         }
     }
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+        reportState(SocketState.CLOSED)
         for (listener in listeners) {
             listener.onFailure(webSocket, t, response)
         }
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {
+        reportState(SocketState.OPEN)
         for (listener in listeners) {
             listener.onMessage(webSocket, text)
         }
     }
 
     override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
+        reportState(SocketState.OPEN)
         for (listener in listeners) {
             listener.onMessage(webSocket, bytes)
         }
@@ -71,5 +78,14 @@ internal class ProxyWebSocketListener : WebSocketListener() {
         for (listener in listeners) {
             listener.onOpen(webSocket, response)
         }
+    }
+
+    /**
+     * Reports the given [SocketState] to all listeners implementing [SocketStateListener].
+     */
+    fun reportState(state: SocketState) {
+        if (state === lastState) return
+        listeners.filterIsInstance<SocketStateListener>().forEach { listener -> listener.onStateChanged(state) }
+        lastState = state
     }
 }

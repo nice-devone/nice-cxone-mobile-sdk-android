@@ -22,7 +22,6 @@ plugins {
     id("android-test-conventions")
     id("android-library-style-conventions")
     id("publish-conventions")
-    id("api-conventions")
 }
 
 android {

@@ -56,6 +56,12 @@ object ConfirmationScreen : Screen {
                         route = ProductListScreen.defaultRoute,
                         inclusive = false
                     )
+                },
+                onBackClick = {
+                    navHostController.popBackStack(
+                        route = ProductListScreen.defaultRoute,
+                        inclusive = false
+                    )
                 }
             )
         }
@@ -71,10 +77,14 @@ object ConfirmationScreen : Screen {
     }
 
     @Composable
-    internal fun Screen(onContinue: () -> Unit) {
+    internal fun Screen(
+        onContinue: () -> Unit,
+        onBackClick: () -> Unit,
+    ) {
         AppTheme.ScreenWithScaffold(
             title = stringResource(string.payment),
             modifier = TestModifier.testTag("confirmation_screen"),
+            onBackClick = onBackClick
         ) {
             BackHandler(onBack = onContinue)
             Column(Modifier.fillMaxSize()) {
@@ -90,6 +100,9 @@ object ConfirmationScreen : Screen {
 @Composable
 private fun ConfirmationPreview() {
     AppTheme {
-        ConfirmationScreen.Screen(onContinue = {})
+        ConfirmationScreen.Screen(
+            onContinue = {},
+            onBackClick = {}
+        )
     }
 }

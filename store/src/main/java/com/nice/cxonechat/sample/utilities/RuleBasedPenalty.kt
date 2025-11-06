@@ -23,9 +23,8 @@ import android.os.PatternMatcher
 import android.os.strictmode.Violation
 import android.util.Log
 import androidx.annotation.RequiresApi
-import com.nice.cxonechat.sample.utilities.RuleBasedPenalty.Action
 import com.nice.cxonechat.sample.utilities.RuleBasedPenalty.Companion.Actions.allow
-import com.nice.cxonechat.sample.utilities.RuleBasedPenalty.Predicate
+import com.nice.cxonechat.sample.utilities.RuleBasedPenalty.Companion.Predicates.violation
 import kotlin.reflect.KClass
 
 /**

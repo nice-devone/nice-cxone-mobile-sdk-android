@@ -21,8 +21,10 @@ import com.nice.cxonechat.message.MessageStatus.FailedToDeliver
 import com.nice.cxonechat.message.MessageStatus.Sending
 import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.FIRST
 import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.LAST
+import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.LAST_SQUASHED
 import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.MIDDLE
 import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.SOLO
+import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.SOLO_GROUPED
 import com.nice.cxonechat.ui.composable.conversation.model.Message
 import com.nice.cxonechat.ui.composable.conversation.model.Section
 import com.nice.cxonechat.ui.domain.model.Person
@@ -41,8 +43,9 @@ internal fun getGroupState(
     return when {
         isFailedMessage(currentMessage) -> handleFailedMessage(nextMessage, messageSender)
         isSoloMessage(section) -> SOLO
+        isSoloGrouped(previousMessage, nextMessage) -> SOLO_GROUPED
         isStartOfGroup(i, messageSender, previousMessage, currentMessage) ->
-            handleStartOfGroup(isLast, nextMessage, messageSender, currentMessage)
+            handleStartOfGroup(isLast, nextMessage, messageSender, currentMessage, previousMessage)
 
         else -> handleMiddleOrEndOfGroup(
             isLast = isLast,
@@ -71,10 +74,21 @@ private fun handleFailedMessage(
 /**
  * Checks if the section contains only one message.
  */
-private fun isSoloMessage(section: Section) = section.messages.size == 1
+private fun isSoloMessage(
+    section: Section,
+) = section.messages.size == 1
+
+/**
+ * Checks if the current message is surrounded by emoji text.
+ */
+private fun isSoloGrouped(
+    previousMessage: Message?,
+    nextMessage: Message?,
+) = previousMessage is Message.EmojiText && nextMessage is Message.EmojiText
 
 /**
  * Determines if the current message is the start of a new group.
+ * A new group can be forced to start if the previous message is an emoji text message.
  */
 private fun isStartOfGroup(
     index: Int,
@@ -83,7 +97,8 @@ private fun isStartOfGroup(
     currentMessage: Message,
 ) = index == 0 ||
         messageSender != previousMessage?.sender ||
-        currentMessage.status > previousMessage.statusNonNull()
+        currentMessage.status > previousMessage.statusNonNull() ||
+        previousMessage is Message.EmojiText
 
 /**
  * Handles the group state for the start of a new group.
@@ -93,10 +108,16 @@ private fun handleStartOfGroup(
     nextMessage: Message?,
     messageSender: Person?,
     currentMessage: Message,
-) = if (isLast || nextMessage?.sender != messageSender || currentMessage.status < nextMessage.statusNonNull()) {
-    SOLO
-} else {
-    LAST
+    previousMessage: Message?,
+) = when {
+    isLast ||
+            nextMessage is Message.EmojiText ||
+            nextMessage?.sender != messageSender ||
+            currentMessage.status < nextMessage.statusNonNull() ->
+        if (previousMessage is Message.EmojiText) SOLO_GROUPED else SOLO
+
+    previousMessage is Message.EmojiText -> LAST_SQUASHED
+    else -> LAST
 }
 
 /**
@@ -110,7 +131,13 @@ private fun handleMiddleOrEndOfGroup(
     currentMessage: Message,
 ) =
     if (isLast || isEndOfGroup(nextMessage, previousMessage, messageSender, currentMessage)) {
-        if (currentMessage.status > previousMessage.statusNonNull()) SOLO else FIRST
+        if (currentMessage.status > previousMessage.statusNonNull()) {
+            SOLO
+        } else if (previousMessage is Message.EmojiText) {
+            SOLO_GROUPED
+        } else {
+            FIRST
+        }
     } else {
         MIDDLE
     }
@@ -125,6 +152,7 @@ private fun isEndOfGroup(
     currentMessage: Message,
 ) = FailedToDeliver === nextMessage?.status ||
         previousMessage?.sender == messageSender && nextMessage?.sender != messageSender ||
+        nextMessage is Message.EmojiText || previousMessage is Message.EmojiText ||
         currentMessage.status != nextMessage.statusNonNull()
 
 /**

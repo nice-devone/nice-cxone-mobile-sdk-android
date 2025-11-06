@@ -15,6 +15,7 @@
 
 package com.nice.cxonechat.internal.model.network
 
+import com.nice.cxonechat.Popup
 import com.nice.cxonechat.enums.EventType.ThreadRecovered
 import com.nice.cxonechat.internal.model.AgentModel
 import com.nice.cxonechat.internal.model.CustomFieldModel
@@ -35,12 +36,19 @@ internal data class EventThreadRecovered(
     private val data get() = postback.data
     val agent get() = data.inboxAssignee?.toAgent()
     val messages get() = data.messages.orEmpty().mapNotNull(MessageModel::toMessage)
-    val thread get() = data.thread
-        .toChatThread()
-        .copy(
-            fields = postback.data.contact?.customFields.orEmpty().map(CustomFieldModel::toCustomField),
-            contactId = data.contact?.id,
-        )
+
+    /**
+     * Popups are filtered out of regular messages, but if it is last message in the recovered thread,
+     * it can be recovered here.
+     */
+    val popup: Popup? get() = data.messages.orEmpty().lastOrNull()?.toPopup()
+    val thread
+        get() = data.thread
+            .toChatThread()
+            .copy(
+                fields = postback.data.contact?.customFields.orEmpty().map(CustomFieldModel::toCustomField),
+                contactId = data.contact?.id,
+            )
     val scrollToken get() = data.messagesScrollToken
     val customerCustomFields get() = data.customer?.customFields.orEmpty().map(CustomFieldModel::toCustomField)
 
@@ -62,7 +70,7 @@ internal data class EventThreadRecovered(
         val customer: CustomFieldsData? = null,
         @SerialName("contact")
         @JsonNames("contact", "consumerContact")
-        @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+        @OptIn(ExperimentalSerializationApi::class)
         val contact: ContactFieldData? = null,
     )
 

@@ -1,0 +1,48 @@
+public final class com/nice/cxonechat/ui/UiModule {
+	public static final field $stable I
+	public static final field Companion Lcom/nice/cxonechat/ui/UiModule$Companion;
+}
+
+public final class com/nice/cxonechat/ui/UiModule$Companion {
+	public final fun chatUiModule (Lcom/nice/cxonechat/log/Logger;Lcom/nice/cxonechat/ui/api/UiCustomFieldsProvider;Lcom/nice/cxonechat/ui/api/UiCustomFieldsProvider;)Lorg/koin/dsl/KoinConfiguration;
+	public static synthetic fun chatUiModule$default (Lcom/nice/cxonechat/ui/UiModule$Companion;Lcom/nice/cxonechat/log/Logger;Lcom/nice/cxonechat/ui/api/UiCustomFieldsProvider;Lcom/nice/cxonechat/ui/api/UiCustomFieldsProvider;ILjava/lang/Object;)Lorg/koin/dsl/KoinConfiguration;
+}
+
+public final class com/nice/cxonechat/ui/api/CustomFieldProviderType : java/lang/Enum {
+	public static final field Contact Lcom/nice/cxonechat/ui/api/CustomFieldProviderType;
+	public static final field Customer Lcom/nice/cxonechat/ui/api/CustomFieldProviderType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/nice/cxonechat/ui/api/CustomFieldProviderType;
+	public static fun values ()[Lcom/nice/cxonechat/ui/api/CustomFieldProviderType;
+}
+
+public final class com/nice/cxonechat/ui/api/NoExtraCustomFields : com/nice/cxonechat/ui/api/UiCustomFieldsProvider {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/nice/cxonechat/ui/api/NoExtraCustomFields;
+	public fun customFields ()Ljava/util/Map;
+}
+
+public abstract interface class com/nice/cxonechat/ui/api/UiCustomFieldsProvider {
+	public abstract fun customFields ()Ljava/util/Map;
+}
+
+public final class com/nice/cxonechat/ui/screen/ChatActivity : androidx/activity/ComponentActivity, org/koin/android/scope/AndroidScopeComponent {
+	public static final field $stable I
+	public static final field Companion Lcom/nice/cxonechat/ui/screen/ChatActivity$Companion;
+	public fun <init> ()V
+	public fun finish ()V
+	public fun getScope ()Lorg/koin/core/scope/Scope;
+	public fun onCloseScope ()V
+	public static final fun startChat (Landroid/app/Activity;)V
+}
+
+public final class com/nice/cxonechat/ui/screen/ChatActivity$Companion {
+	public final fun startChat (Landroid/app/Activity;)V
+}
+
+public final class com/nice/cxonechat/ui/screen/ComposableSingletons$LoadingOverlayFullScreenKt {
+	public static final field INSTANCE Lcom/nice/cxonechat/ui/screen/ComposableSingletons$LoadingOverlayFullScreenKt;
+	public fun <init> ()V
+	public final fun getLambda$310804538$chat_sdk_ui_release ()Lkotlin/jvm/functions/Function2;
+}
+

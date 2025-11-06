@@ -20,14 +20,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.ContextualFlowRow
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
@@ -40,14 +39,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.nice.cxonechat.message.Attachment
@@ -65,7 +62,9 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
+import com.nice.cxonechat.ui.util.dw
 import com.nice.cxonechat.ui.util.preview.message.UiSdkText
+import java.util.UUID
 import kotlin.math.max
 
 @Composable
@@ -79,10 +78,9 @@ internal fun AttachmentMessage(
 ) {
     val attachments = remember { message.attachments.toList() }
     val totalCount = attachments.size
-    BoxWithConstraints(
+    Box(
         modifier = Modifier.testTag("attachment_message")
     ) {
-        val maxAttachmentWidth = this.maxWidth.times(0.6f)
         when (totalCount) {
             // This really can't happen since the decision to get to AttachmentMessage
             // was predicated on attachments.count > 0
@@ -98,7 +96,7 @@ internal fun AttachmentMessage(
             }
 
             1 -> SingleAttachmentPreview(
-                maxAttachmentWidth = maxAttachmentWidth,
+                messageId = message.id,
                 attachment = attachments[0],
                 onShowFrame = onShowFrame,
                 onAttachmentClicked = onAttachmentClicked,
@@ -109,7 +107,7 @@ internal fun AttachmentMessage(
                 modifier = modifier.padding(0.dp), // We want to completely fill MessageFrame
             ) {
                 AttachmentPreviewGroup(
-                    maxAttachmentWidth = maxAttachmentWidth,
+                    messageId = message.id,
                     attachments = attachments,
                     onAttachmentClicked = onAttachmentClicked,
                     onMoreClicked = onMoreClicked
@@ -126,9 +124,9 @@ internal fun AudioAttachment(
 ) {
     CompositionLocalProvider(
         LocalContentColor provides if (attachment.direction === ToClient) {
-            chatColors.agent.foreground
+            chatColors.token.content.primary
         } else {
-            chatColors.customer.foreground
+            chatColors.token.brand.onPrimary
         }
     ) {
         BoxWithConstraints(
@@ -149,39 +147,84 @@ internal fun AudioAttachment(
 @Composable
 @OptIn(ExperimentalLayoutApi::class)
 private fun AttachmentPreviewGroup(
-    maxAttachmentWidth: Dp,
+    messageId: UUID,
     attachments: List<Attachment>,
     onAttachmentClicked: (Attachment) -> Unit,
     onMoreClicked: (List<Attachment>) -> Unit,
 ) {
     val totalCount = remember { attachments.size }
     val maxAttachmentsPreview = space.smallAttachmentRowCount * space.smallAttachmentRowSizeCount
-    val widthDiv = minOf(totalCount, space.smallAttachmentRowSizeCount)
     val onMoreAttachments: (Attachment) -> Unit = remember { { onMoreClicked(attachments) } }
-    ContextualFlowRow(
-        modifier = Modifier
-            .wrapContentHeight(align = Alignment.Top)
-            .testTag("attachment_preview_group"),
-        horizontalArrangement = Arrangement.spacedBy(space.semiLarge),
-        verticalArrangement = Arrangement.spacedBy(space.semiLarge),
-        maxLines = space.smallAttachmentRowCount,
-        maxItemsInEachRow = space.smallAttachmentRowSizeCount,
-        itemCount = totalCount
-    ) { index ->
-        val sizeMod = Modifier.size(minOf(maxAttachmentWidth, maxWidthInLine).div(widthDiv))
-        val attachment = attachments[index]
-        Box(contentAlignment = Alignment.Center) {
-            val displayOverflowBlur = index >= maxAttachmentsPreview - 1 && totalCount > maxAttachmentsPreview
-            AttachmentFramedPreview(
-                attachment = attachment,
-                modifier = sizeMod.testTag("attachment_preview_$index"),
-                blurred = displayOverflowBlur,
-                thumbnailSize = ThumbnailSize.REGULAR,
-                onClick = if (displayOverflowBlur) onMoreAttachments else onAttachmentClicked,
-                onLongClick = onMoreAttachments,
+    val sizeMod = Modifier.size(space.attachmentPreviewRegularWidthPercentage.dw)
+    val chunks = attachments.chunked(space.smallAttachmentRowSizeCount)
+    val displayOverflowBlur = totalCount > maxAttachmentsPreview
+    Column(
+        verticalArrangement = Arrangement.spacedBy(space.semiLarge)
+    ) {
+        GroupRow(
+            list = chunks[0],
+            messageId = messageId,
+            modifier = sizeMod,
+            onAttachmentClicked = onAttachmentClicked,
+            onMoreAttachments = onMoreAttachments,
+            totalCount = totalCount,
+            maxAttachmentsPreview = maxAttachmentsPreview
+        )
+        if (chunks.size > 1 && chunks[1].isNotEmpty()) {
+            GroupRow(
+                list = chunks[1],
+                messageId = messageId,
+                modifier = sizeMod,
+                attachmentIdStart = space.smallAttachmentRowSizeCount,
+                onAttachmentClicked = onAttachmentClicked,
+                onMoreAttachments = onMoreAttachments,
+                displayOverflowBlur = displayOverflowBlur,
+                totalCount = totalCount,
+                maxAttachmentsPreview = maxAttachmentsPreview
             )
-            if (displayOverflowBlur) {
-                OverFlowText(totalCount, maxAttachmentsPreview)
+        }
+    }
+}
+
+@Composable
+private fun GroupRow(
+    list: List<Attachment>,
+    messageId: UUID,
+    totalCount: Int,
+    maxAttachmentsPreview: Int,
+    modifier: Modifier = Modifier,
+    attachmentIdStart: Int = 0,
+    displayOverflowBlur: Boolean = false,
+    onAttachmentClicked: (Attachment) -> Unit,
+    onMoreAttachments: (Attachment) -> Unit,
+) {
+    Row(
+        modifier = Modifier.testTag("attachment_preview_row_${attachmentIdStart / space.smallAttachmentRowSizeCount}"),
+        horizontalArrangement = Arrangement.spacedBy(space.semiLarge)
+    ) {
+        AttachmentFramedPreview(
+            attachment = list[0],
+            messageId = messageId,
+            modifier = modifier.testTag("attachment_preview_$attachmentIdStart"),
+            thumbnailSize = ThumbnailSize.REGULAR,
+            onClick = onAttachmentClicked,
+            onLongClick = onMoreAttachments,
+        )
+        if (list.size > 1) {
+            Box(contentAlignment = Alignment.Center) {
+                val onClick = if (displayOverflowBlur) onMoreAttachments else onAttachmentClicked
+                AttachmentFramedPreview(
+                    attachment = list[1],
+                    messageId = messageId,
+                    modifier = modifier.testTag("attachment_preview_${attachmentIdStart + 1}"),
+                    blurred = displayOverflowBlur,
+                    thumbnailSize = ThumbnailSize.REGULAR,
+                    onClick = onClick,
+                    onLongClick = onMoreAttachments,
+                )
+                if (displayOverflowBlur) {
+                    OverFlowText(totalCount, maxAttachmentsPreview)
+                }
             }
         }
     }
@@ -198,21 +241,22 @@ private fun OverFlowText(totalCount: Int, maxAttachmentsPreview: Int) {
                 .alpha(0.75f)
                 .padding(1.dp)
                 .size(space.xxl)
-                .background(color = Color.White, shape = CircleShape),
+                .background(color = chatColors.token.brand.onPrimary, shape = CircleShape),
         )
         val overflowCount = remember(totalCount, maxAttachmentsPreview) {
             max(0, totalCount - maxAttachmentsPreview)
         }
         Text(
             text = stringResource(string.extra_attachments_count, overflowCount),
-            style = chatTypography.overflowText
+            style = chatTypography.overflowText,
+            color = chatColors.token.content.primary
         )
     }
 }
 
 @Composable
 private fun SingleAttachmentPreview(
-    maxAttachmentWidth: Dp,
+    messageId: UUID,
     attachment: Attachment,
     onShowFrame: (Boolean) -> Unit,
     onAttachmentClicked: (Attachment) -> Unit,
@@ -220,9 +264,9 @@ private fun SingleAttachmentPreview(
 ) {
     AttachmentPreview(
         attachment = attachment,
+        messageId = messageId,
         modifier = Modifier
-            .widthIn(min = space.smallAttachmentSize, max = maxAttachmentWidth)
-            .heightIn(min = space.smallAttachmentSize)
+            .size(space.attachmentPreviewRegularWidthPercentage.dw)
             .testTag("attachment_preview_${attachment.url}"),
         onClick = onAttachmentClicked,
         onLongClick = remember { { attachment -> onShare(listOf(attachment)) } },
@@ -237,9 +281,9 @@ internal fun LeadingShareAttachmentsIcon(contentDescription: String? = null, onC
         shape = CircleShape,
         colors = IconButtonDefaults.outlinedIconButtonColors(
             contentColor = colorScheme.primary,
-            containerColor = chatColors.leadingMessageIconContainer,
+            containerColor = chatColors.token.background.surface.subtle,
         ),
-        border = BorderStroke(1.dp, chatColors.leadingMessageIconBorder),
+        border = BorderStroke(1.dp, chatColors.token.border.default),
         modifier = Modifier
             .size(34.dp)
             .testTag("share_icon_button"),

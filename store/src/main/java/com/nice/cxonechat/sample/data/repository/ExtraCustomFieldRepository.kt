@@ -37,5 +37,5 @@ class ExtraCustomFieldRepository(
      *
      * @return Returns a list of extra custom fields.
      */
-    fun load(): ExtraCustomFields = super.load(context) ?: ExtraCustomFields()
+    suspend fun load(): ExtraCustomFields = super.load(context) ?: ExtraCustomFields()
 }

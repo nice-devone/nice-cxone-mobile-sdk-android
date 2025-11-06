@@ -65,6 +65,8 @@ internal data class ChatShapes(
     val actionButtonShape: Shape = DefaultChatShapes.actionButton,
     val popupShape: Shape = DefaultChatShapes.popupShape,
     val popupButtonShape: Shape = DefaultChatShapes.largeButtonShape,
+    val headerBarShape: Shape = DefaultChatShapes.headerBarShape,
+    val documentTypeLabelShape: Shape = DefaultChatShapes.documentTypeLabelShape,
 )
 
 @Immutable
@@ -83,12 +85,21 @@ internal object DefaultChatShapes {
 
     val selectionFrame = RoundedCornerShape(10.dp)
 
-    val smallSelectionFrame = RoundedCornerShape(16.dp)
+    val smallSelectionFrame = RoundedCornerShape(10.dp)
 
     val actionButton = RoundedCornerShape(12.dp)
 
     val popupShape = RoundedCornerShape(32.dp)
     val largeButtonShape = RoundedCornerShape(9.dp)
+
+    val headerBarShape = RoundedCornerShape(
+        topStart = 0.dp,
+        topEnd = 0.dp,
+        bottomEnd = 15.dp,
+        bottomStart = 15.dp
+    )
+
+    val documentTypeLabelShape = RoundedCornerShape(6.dp)
 }
 
 internal val LocalChatShapes = staticCompositionLocalOf {
@@ -124,8 +135,8 @@ private fun PreviewShapes() {
             ) {
                 shapes.forEach { (label, shape) ->
                     Surface(
-                        color = ChatTheme.colorScheme.primary,
-                        contentColor = ChatTheme.colorScheme.onPrimary,
+                        color = ChatTheme.chatColors.token.brand.primary,
+                        contentColor = ChatTheme.chatColors.token.brand.onPrimary,
                         shape = shape,
                     ) {
                         Text(text = label, modifier = Modifier.padding(12.dp))

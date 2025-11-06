@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.Icons.AutoMirrored
@@ -41,6 +42,7 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,6 +56,7 @@ import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.ui.R.string
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatShapes
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
@@ -78,9 +81,7 @@ internal fun ChatTheme.OutlinedButton(
 ) {
     OutlinedButton(
         onClick = onClick,
-        modifier = Modifier
-            .testTag("outlined_button_$text")
-            .then(modifier),
+        modifier = modifier.testTag("outlined_button_$text"),
         enabled = enabled,
         colors = buttonColors(isDefault),
     ) {
@@ -94,9 +95,8 @@ internal fun ChatTheme.ButtonRow(
     content: @Composable RowScope.() -> Unit,
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .testTag("button_row")
-            .then(modifier)
             .fillMaxWidth()
             .padding(top = space.large),
         horizontalArrangement = Arrangement.End,
@@ -123,9 +123,10 @@ internal fun ChatIconButton(
     FilledIconButton(
         onClick = onClick,
         shape = chatShapes.actionButtonShape,
-        modifier = Modifier
-            .testTag("chat_icon_button_${description.ifBlank { "icon" }}")
-            .then(modifier),
+        modifier = modifier
+            .minimumInteractiveComponentSize()
+            .size(44.dp)
+            .testTag("chat_icon_button_${description.ifBlank { "icon" }}"),
         colors = colors,
         enabled = enabled,
     ) {
@@ -153,7 +154,7 @@ internal fun SendButton(
             .offset(2.5.dp),
         colors = IconButtonDefaults.filledIconButtonColors(
             contentColor = colorScheme.onPrimary,
-            disabledContentColor = colorScheme.onPrimary
+            disabledContentColor = chatColors.token.content.secondary
         ),
         onClick = onMessageSent
     )
@@ -197,9 +198,8 @@ internal fun PopupButton(
 ) {
     Button(
         onClick = onClick,
-        modifier = Modifier
-            .testTag("popup_button_$text")
-            .then(modifier)
+        modifier = modifier
+            .testTag("popup_button")
             .fillMaxWidth()
             .sizeIn(minHeight = space.popupButtonMinHeight),
         shape = chatShapes.popupButtonShape,
@@ -228,7 +228,7 @@ internal fun PreviewButtons() {
                     icon = Icons.Default.Add,
                     description = ""
                 ) {}
-                SendButton {}
+                SendButton(false) {}
                 BackButton {}
                 ShareButton {}
             }

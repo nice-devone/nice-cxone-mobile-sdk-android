@@ -62,6 +62,7 @@ import com.nice.cxonechat.sample.ui.components.ImageCarousel
 import com.nice.cxonechat.sample.ui.components.RatingBar
 import com.nice.cxonechat.sample.ui.theme.AppTheme
 import com.nice.cxonechat.sample.ui.theme.AppTheme.space
+import com.nice.cxonechat.sample.ui.theme.OutlinedButton
 import com.nice.cxonechat.sample.ui.theme.ScreenWithScaffold
 import com.nice.cxonechat.sample.viewModel.StoreViewModel
 
@@ -108,6 +109,9 @@ object ProductScreen : Screen {
                 showCart = {
                     CartScreen.ActionForCart(cart = cart, navHostController)
                 },
+                onBackClick = {
+                    navHostController.navigateUp()
+                }
             )
 
             error?.let { message ->
@@ -137,10 +141,12 @@ object ProductScreen : Screen {
             "ComposableLambdaParameterNaming" // This isn't intended to be a re-usable composable
         )
         showCart: @Composable RowScope.() -> Unit,
+        onBackClick: () -> Unit,
     ) {
         AppTheme.ScreenWithScaffold(
             title = product?.title ?: stringResource(string.unknown_product),
             actions = showCart,
+            onBackClick = onBackClick,
             modifier = TestModifier.testTag("product_screen"),
         ) {
             product?.let { product ->
@@ -204,9 +210,11 @@ object ProductScreen : Screen {
             }
             Description(product.description)
             Spacer(modifier = Modifier.weight(1f))
-            OutlinedButton(onClick = { addToCart(product) }, modifier = Modifier.testTag("add_to_cart_button")) {
-                Text(stringResource(string.add_to_cart))
-            }
+            AppTheme.OutlinedButton(
+                text = stringResource(string.add_to_cart),
+                modifier = Modifier.testTag("add_to_cart_button"),
+                onClick = { addToCart(product) }
+            )
         }
     }
 

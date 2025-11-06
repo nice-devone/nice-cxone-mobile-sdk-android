@@ -15,6 +15,7 @@
 
 package com.nice.cxonechat.internal.model
 
+import com.nice.cxonechat.Popup
 import com.nice.cxonechat.internal.model.MessageDirectionModel.ToAgent
 import com.nice.cxonechat.internal.model.MessageDirectionModel.ToClient
 import com.nice.cxonechat.internal.model.network.CustomerStatistics
@@ -24,7 +25,9 @@ import com.nice.cxonechat.internal.model.network.MessagePolyContent.Noop
 import com.nice.cxonechat.internal.model.network.MessagePolyContent.QuickReplies
 import com.nice.cxonechat.internal.model.network.MessagePolyContent.RichLink
 import com.nice.cxonechat.internal.model.network.MessagePolyContent.Text
+import com.nice.cxonechat.internal.model.network.MessagePolyContent.Unsupported
 import com.nice.cxonechat.internal.model.network.UserStatistics
+import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.message.MessageAuthor
 import com.nice.cxonechat.message.MessageMetadata
 import com.nice.cxonechat.util.IsoDate
@@ -112,11 +115,49 @@ internal data class MessageModel(
         authorEndUserIdentity = authorEndUserIdentity
     )
 
-    fun toMessage() = when (messageContent) {
+    fun toMessage(): Message? = when (messageContent) {
         is Text -> MessageText(this)
         is QuickReplies -> MessageQuickReplies(this)
         is ListPicker -> MessageListPicker(this)
         is RichLink -> MessageRichLink(this)
-        Noop -> null
+        is MessagePolyContent.Plugin -> pluginToMessage(messageContent)
+        is Unsupported -> MessageUnsupported(this, messageContent)
+        is MessagePolyContent.Postback, Noop -> null
     }
+
+    fun toPopup(): Popup? = when (messageContent) {
+        is MessagePolyContent.Plugin -> {
+            val rootElement = messageContent.payload?.elements.orEmpty().firstOrNull()
+            if (rootElement is MessagePolyContent.Plugin.PluginElement.StructuredElements.InactivityPlugin) {
+                InactivityPopupInternal(this, rootElement)
+            } else {
+                null
+            }
+        }
+
+        else -> null
+    }
+
+    private fun pluginToMessage(messageContent: MessagePolyContent.Plugin): Message? =
+        when (val rootElement = messageContent.payload?.elements.orEmpty().firstOrNull()) {
+            null, is MessagePolyContent.Plugin.PluginElement.SimpleElement.Noop -> MessageUnsupported(
+                model = this,
+                content = Unsupported(
+                    fallbackText = messageContent.fallbackText,
+                    type = MessagePolyContent.Plugin.TYPE,
+                    payload = null
+                )
+            )
+
+            is MessagePolyContent.Plugin.PluginElement.SimpleElement.Unsupported -> MessageUnsupported(
+                model = this,
+                content = Unsupported(
+                    fallbackText = messageContent.fallbackText,
+                    type = MessagePolyContent.Plugin.TYPE,
+                    payload = Unsupported.Payload(listOf(Unsupported.SubElement(type = rootElement.type)))
+                )
+            )
+            // Only currently supported plugin element - inactivity popup - is converted to action
+            else -> null
+        }
 }

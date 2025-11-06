@@ -22,6 +22,7 @@ comments:
     allowParamOnConstructorProperties: true # IDE requires this to display parameter documentation of data classes.
   UndocumentedPublicClass:
     active: true
+    searchInInnerObject: true
     excludes: ['**/test/**', '**/testDebug/**', '**/androidTest/**', '**/*.Spec.kt']
   UndocumentedPublicFunction:
     active: true
@@ -65,6 +66,9 @@ complexity:
     active: true
     ignoreAnnotated:
       - "androidx.compose.ui.tooling.preview.Preview"
+      - "androidx.compose.ui.tooling.preview.PreviewLightDark"
+      - "androidx.compose.ui.tooling.preview.PreviewFontScale"
+      - "androidx.compose.ui.tooling.preview.PreviewScreenSizes"
   TooManyFunctions:
     active: true
     thresholdInObjects: 12    # Raised maximum to match current state
@@ -608,8 +612,8 @@ style:
       - "com.google.gson.annotations.SerializedName"
       - "androidx.compose.ui.tooling.preview.Preview"
       - "androidx.compose.ui.tooling.preview.PreviewLightDark"
-      - "androidx.compose.ui.tooling.preview.PreviewScreenSizes"
       - "androidx.compose.ui.tooling.preview.PreviewFontScale"
+      - "androidx.compose.ui.tooling.preview.PreviewScreenSizes"
   UnusedPrivateProperty:
     active: true
     ignoreAnnotated:

@@ -22,6 +22,7 @@ import com.nice.cxonechat.log.ProxyLogger
 import com.nice.cxonechat.sample.data.repository.ExtraCustomFieldRepository
 import com.nice.cxonechat.sample.utilities.logging.FirebaseLogger
 import com.nice.cxonechat.ui.api.UiCustomFieldsProvider
+import kotlinx.coroutines.runBlocking
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Named
@@ -36,7 +37,7 @@ internal class StoreModule {
     @Single
     fun provideLogger(): Logger = ProxyLogger(
         FirebaseLogger(),
-        LoggerAndroid("SampleApp")
+        LoggerAndroid("SampleApp"),
     )
 
     @Single
@@ -44,7 +45,8 @@ internal class StoreModule {
     fun provideCustomerFieldProvider(
         extraCustomFieldRepository: ExtraCustomFieldRepository,
     ): UiCustomFieldsProvider = object : UiCustomFieldsProvider {
-        override fun customFields(): Map<String, String> = extraCustomFieldRepository.load().customerCustomFields
+        override fun customFields(): Map<String, String> =
+            runBlocking { extraCustomFieldRepository.load().customerCustomFields }
     }
 
     @Single
@@ -52,6 +54,7 @@ internal class StoreModule {
     fun provideContactFieldProvider(
         extraCustomFieldRepository: ExtraCustomFieldRepository,
     ): UiCustomFieldsProvider = object : UiCustomFieldsProvider {
-        override fun customFields(): Map<String, String> = extraCustomFieldRepository.load().contactCustomFields
+        override fun customFields(): Map<String, String> =
+            runBlocking { extraCustomFieldRepository.load().contactCustomFields }
     }
 }

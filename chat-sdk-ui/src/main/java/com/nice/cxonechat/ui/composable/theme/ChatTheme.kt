@@ -20,55 +20,23 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
+import com.nice.cxonechat.ui.composable.theme.ThemeColorTokens.Companion.toDarkColorScheme
+import com.nice.cxonechat.ui.composable.theme.ThemeColorTokens.Companion.toLightColorScheme
 
 @Composable
 internal fun ChatTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
     val theme = if (darkTheme) {
-        ChatThemeDetails.darkColors
+        ChatThemeDetails.darkTokens
     } else {
-        ChatThemeDetails.lightColors
+        ChatThemeDetails.lightTokens
     }
     val colors = if (darkTheme) {
-        darkColorScheme(
-            primary = theme.primary,
-            onPrimary = theme.onPrimary,
-            background = theme.background,
-            onBackground = theme.onBackground,
-            surface = theme.surface,
-            onSurface = theme.onSurface,
-            surfaceVariant = theme.surfaceVariant,
-            surfaceContainer = theme.surfaceContainer,
-            surfaceContainerHigh = theme.surfaceContainerHigh,
-            surfaceContainerHighest = theme.surfaceContainerHighest,
-            secondary = theme.accent,
-            onSecondary = theme.onAccent,
-            secondaryContainer = theme.primary,
-            onSecondaryContainer = theme.onPrimary,
-            error = theme.error,
-        )
+        theme.toDarkColorScheme()
     } else {
-        lightColorScheme(
-            primary = theme.primary,
-            onPrimary = theme.onPrimary,
-            background = theme.background,
-            onBackground = theme.onBackground,
-            surface = theme.surface,
-            onSurface = theme.onSurface,
-            surfaceVariant = theme.surfaceVariant,
-            surfaceContainer = theme.surfaceContainer,
-            surfaceContainerHigh = theme.surfaceContainerHigh,
-            surfaceContainerHighest = theme.surfaceContainerHighest,
-            secondary = theme.accent,
-            onSecondary = theme.onAccent,
-            secondaryContainer = theme.primary,
-            onSecondaryContainer = theme.onPrimary,
-            error = theme.error,
-        )
+        theme.toLightColorScheme()
     }
     val chatColors = ChatColors(theme)
 

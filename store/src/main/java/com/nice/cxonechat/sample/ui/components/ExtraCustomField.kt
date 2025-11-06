@@ -21,7 +21,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Cancel
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -80,7 +79,6 @@ internal fun ExtraCustomField(
     )
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 internal fun LazyListScope.extraCustomFields(
     @StringRes label: Int,
     customFields: Map<String, String>,

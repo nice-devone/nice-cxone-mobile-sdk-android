@@ -42,7 +42,6 @@ internal class ChatLiveChat(
 
         origin.socketListener.addListener(
             SocketConnectionListener(
-                listener = origin.chatStateListener,
                 onConnected = ::recoverThread
             )
         )

@@ -135,7 +135,7 @@ dependencies {
     implementation project(':logger-android')
 
     // Crashlytics
-    implementation(libs.firebase.crashlytics.ktx)
+    implementation libs.firebase.crashlytics
 
     // LoginWithAmazon
     implementation fileTree(include: ['*.jar', '*.aar'], dir: rootProject.file("libs"))

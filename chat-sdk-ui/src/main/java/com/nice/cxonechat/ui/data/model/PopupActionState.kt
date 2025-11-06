@@ -15,7 +15,7 @@
 
 package com.nice.cxonechat.ui.data.model
 
-import com.nice.cxonechat.analytics.ActionMetadata
+import com.nice.cxonechat.Popup
 
 /**
  * Represents the state of a popup action in the UI.
@@ -27,25 +27,15 @@ internal sealed interface PopupActionState {
     data object Empty : PopupActionState
 
     /**
-     * Represents a state where a popup action has been received.
-     *
-     * @property variables A map of variables associated with the popup action.
-     * @property metadata Metadata related to the action, encapsulated in `ActionMetadata`.
-     */
-    data class ReceivedPopupAction(
-        override val variables: Map<String, Any?>,
-        val metadata: ActionMetadata,
-    ) : PopupActionState, PopupActionData
-
-    /**
      * Represents a state where a mock/preview of a popup action is available.
-     *
-     * @property variables A map of variables associated with the popup action.
-     * @property metadata Metadata related to the action, represented as `Any`.
      */
     data class PreviewPopupAction(
-        override val variables: Map<String, Any?>,
+        override val popup: Popup,
         val metadata: Any,
+    ) : PopupActionState, PopupActionData
+
+    data class ThreadPopupAction(
+        override val popup: Popup,
     ) : PopupActionState, PopupActionData
 
     /**
@@ -55,6 +45,6 @@ internal sealed interface PopupActionState {
         /**
          * A map of variables associated with the popup action.
          */
-        val variables: Map<String, Any?>
+        val popup: Popup
     }
 }

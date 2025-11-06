@@ -36,6 +36,7 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.FloatingActionButtonElevation
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -79,7 +80,17 @@ internal fun ChatTheme.Scaffold(
         modifier = modifier,
         topBar = topBar,
         bottomBar = bottomBar,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = {
+            SnackbarHost(snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = chatColors.token.background.surface.default,
+                    contentColor = chatColors.token.content.primary,
+                    actionColor = chatColors.token.content.primary,
+                    dismissActionContentColor = chatColors.token.content.primary
+                )
+            }
+        },
         floatingActionButton = floatingActionButton,
         floatingActionButtonPosition = floatingActionButtonPosition,
         containerColor = backgroundColor,
@@ -95,8 +106,8 @@ internal fun ChatTheme.TopBar(
     title: String? = null,
     logo: Any? = null,
     navigationIcon: @Composable () -> Unit = { },
-    containerColor: Color = colorScheme.secondary,
-    contentColor: Color = colorScheme.onSecondary,
+    containerColor: Color = colorScheme.primary,
+    contentColor: Color = colorScheme.onPrimary,
 ) {
     TopAppBar(
         title = {
@@ -121,8 +132,8 @@ internal fun ChatTheme.MediumTopBar(
     title: String? = null,
     logo: Any? = null,
     scrollBehavior: TopAppBarScrollBehavior? = null,
-    containerColor: Color = colorScheme.secondary,
-    contentColor: Color = colorScheme.onSecondary,
+    containerColor: Color = colorScheme.primary,
+    contentColor: Color = colorScheme.onPrimary,
     navigationIcon: @Composable () -> Unit = { },
     actions: @Composable RowScope.() -> Unit = {},
 ) {

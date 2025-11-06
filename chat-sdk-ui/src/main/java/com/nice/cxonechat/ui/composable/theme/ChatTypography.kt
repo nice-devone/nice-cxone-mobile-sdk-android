@@ -18,10 +18,12 @@ package com.nice.cxonechat.ui.composable.theme
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.FontWeight.Companion.W400
 import androidx.compose.ui.text.font.FontWeight.Companion.W500
+import androidx.compose.ui.text.font.FontWeight.Companion.W600
 import androidx.compose.ui.text.font.FontWeight.Companion.W700
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
@@ -30,14 +32,28 @@ import androidx.compose.ui.unit.sp
 
 @Immutable
 internal data class ChatTypography(
-    val threadListName: TextStyle = Typography.titleMedium,
+    val threadListName: TextStyle = Typography.titleMedium.copy(
+        fontWeight = FontWeight.Normal,
+        letterSpacing = 0.5.sp
+    ),
+    val threadListNameUnread: TextStyle = Typography.titleMedium.copy(
+        letterSpacing = 0.5.sp,
+        fontWeight = FontWeight.Bold,
+    ),
     val threadListLastMessage: TextStyle = Typography.bodyMedium,
+    val threadListLastMessageUnread: TextStyle = Typography.bodyMedium.copy(
+        fontWeight = FontWeight.Bold
+    ),
     val threadListLastMessageTime: TextStyle = Typography.bodySmall,
+    val threadListLastMessageTimeUnread: TextStyle = Typography.bodySmall.copy(
+        fontWeight = FontWeight.Bold
+    ),
     val chatAgentName: TextStyle = Typography.titleMedium,
     val chatMessage: TextStyle = Typography.bodyLarge,
     val chatEmojiMessage: TextStyle = Typography.headlineLarge.copy(
-        fontSize = 50.sp,
-        lineHeight = 53.sp,
+        fontSize = 34.sp,
+        lineHeight = 40.8.sp,
+        fontWeight = W400,
     ),
     val chatStatus: TextStyle = Typography.bodySmall,
     val chatAttachmentCaption: TextStyle = Typography.bodySmall,
@@ -51,28 +67,37 @@ internal data class ChatTypography(
         lineHeight = 18.sp,
         fontWeight = W400,
     ),
-    val loadingScreenText: TextStyle = Typography.titleMedium,
+    val loadingScreenText: TextStyle = Typography.bodyLarge,
     val dialogTitle: TextStyle = Typography.headlineSmall,
     val dialogBody: TextStyle = Typography.bodyMedium,
     val chatCardTitle: TextStyle = Typography.titleMedium.copy(
+        fontSize = 12.sp,
+        lineHeight = 12.sp,
         fontWeight = FontWeight.Bold,
-        textAlign = TextAlign.Center
     ),
     val chatCardSubtitle: TextStyle = Typography.titleMedium.copy(
         fontWeight = FontWeight.Normal,
         textAlign = TextAlign.Center
     ),
+    val chatCardLink: TextStyle = Typography.labelSmall.copy(
+        fontSize = 11.sp,
+        lineHeight = 11.sp,
+        fontWeight = FontWeight.Normal,
+    ),
     val messageAvatarText: TextStyle = Typography.labelSmall.copy(
         fontSize = 10.sp,
         lineHeight = 12.sp,
-        fontWeight = W700,
+        fontWeight = FontWeight.Bold,
+        textAlign = TextAlign.Center,
     ),
     val listPickerTitle: TextStyle = Typography.titleMedium.copy(
         fontWeight = FontWeight.SemiBold,
-        fontSize = TextUnit(15f, TextUnitType.Sp),
+        fontSize = 15.sp,
     ),
     val listPickerText: TextStyle = Typography.bodyMedium,
-    val quickReplySelectedText: TextStyle = Typography.labelSmall,
+    val messageStatusText: TextStyle = Typography.labelMedium.copy(
+        fontWeight = W400
+    ),
     val surveyListItem: TextStyle = Typography.bodySmall,
     val surveyLabel: TextStyle = Typography.labelLarge.copy(
         fontWeight = FontWeight.SemiBold,
@@ -80,8 +105,15 @@ internal data class ChatTypography(
         lineHeight = TextUnit(32f, TextUnitType.Sp)
     ),
     val surveyTitle: TextStyle = Typography.titleMedium.copy(
-        fontWeight = FontWeight.Medium,
-        fontSize = TextUnit(20f, TextUnitType.Sp),
+        fontSize = 20.sp,
+        lineHeight = 20.sp,
+        fontWeight = W500,
+        letterSpacing = 0.1.sp,
+    ),
+    val surveySubtitle: TextStyle = Typography.titleSmall.copy(
+        fontSize = 14.sp,
+        lineHeight = 18.2.sp,
+        fontWeight = W400,
     ),
     val previewTitle: TextStyle = Typography.titleMedium.copy(
         fontWeight = W400,
@@ -112,16 +144,16 @@ internal data class ChatTypography(
         fontWeight = W700,
         textAlign = TextAlign.Center,
     ),
-    val popupSubtitle: TextStyle = TextStyle(
-        fontSize = 15.sp,
-        lineHeight = 21.sp,
-        fontWeight = W500,
-        textAlign = TextAlign.Center,
-    ),
     val popupButton: TextStyle = TextStyle(
         fontSize = 16.sp,
         lineHeight = 16.sp,
         fontWeight = W700,
+        textAlign = TextAlign.Center,
+    ),
+    val closeButton: TextStyle = TextStyle(
+        fontSize = 16.sp,
+        lineHeight = 16.sp,
+        fontWeight = W600,
         textAlign = TextAlign.Center,
     ),
     val topBarTitle: TextStyle = Typography.labelSmall.copy(
@@ -130,8 +162,8 @@ internal data class ChatTypography(
         fontWeight = W400,
     ),
     val timestampIndicator: TextStyle = Typography.labelSmall.copy(
-        fontWeight = W400,
-        fontSize = 11.sp,
+        fontWeight = W500,
+        fontSize = 12.sp,
         lineHeight = 13.sp,
         letterSpacing = 0.07.sp
     ),
@@ -148,27 +180,107 @@ internal data class ChatTypography(
     ),
     val documentFallackText: TextStyle = TextStyle(
         fontSize = 16.sp,
-        lineHeight = 22.sp,
         fontWeight = W700,
         textAlign = TextAlign.Center,
+        platformStyle = PlatformTextStyle(includeFontPadding = false)
     ),
     val documentFallackTextSmall: TextStyle = TextStyle(
         fontSize = 11.sp,
         lineHeight = 14.sp,
         fontWeight = W700,
         textAlign = TextAlign.Center,
+        platformStyle = PlatformTextStyle(includeFontPadding = false)
     ),
     val documentFallackTextTiny: TextStyle = TextStyle(
-        fontSize = 14.sp,
+        fontSize = 10.sp,
         lineHeight = 14.sp,
         fontWeight = W700,
         textAlign = TextAlign.Center,
+        platformStyle = PlatformTextStyle(includeFontPadding = false)
     ),
     val selectAttachmentBottomBarText: TextStyle = Typography.labelSmall.copy(
         fontSize = 17.sp,
         lineHeight = 16.sp,
         fontWeight = W400,
+        textAlign = TextAlign.Center,
     ),
+    val selectAttachmentSelectButtonText: TextStyle = Typography.titleMedium.copy(
+        lineHeight = 22.sp,
+        textAlign = TextAlign.Center,
+    ),
+    val tooltipLabelText: TextStyle = Typography.titleSmall.copy(
+        fontSize = 12.sp,
+        lineHeight = 14.4.sp,
+        fontWeight = W400
+    ),
+    val tooltipText: TextStyle = Typography.bodySmall.copy(
+        fontSize = 17.sp,
+        lineHeight = 22.sp,
+        fontWeight = W400,
+    ),
+    val headerBarTitle: TextStyle = Typography.titleMedium.copy(
+        fontSize = 18.sp,
+        letterSpacing = 0.15.sp,
+    ),
+    val headerBarMessage: TextStyle = Typography.bodyMedium.copy(
+        lineHeight = 16.sp,
+    ),
+    val unsupportedMessageText: TextStyle = Typography.bodyLarge.copy(
+        lineHeight = 16.sp,
+    ),
+    val segmentedButtonText: TextStyle = Typography.bodyMedium.copy(
+        fontWeight = W500,
+        letterSpacing = 0.1.sp
+    ),
+    val dialogButtonText: TextStyle = Typography.labelMedium.copy(
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        fontWeight = W500,
+        letterSpacing = 0.1.sp,
+    ),
+    val bottomSheetTitleText: TextStyle = Typography.headlineSmall.copy(
+        fontSize = 20.sp,
+        lineHeight = 20.sp,
+        fontWeight = W500,
+        letterSpacing = 0.1.sp,
+    ),
+    val bottomSheetSubtitleText: TextStyle = DefaultTextStyle.copy(
+        fontSize = 15.sp,
+        lineHeight = 21.sp,
+        fontWeight = W400,
+        textAlign = TextAlign.Start,
+    ),
+    val listPickerBottomSheetSubtitleText: TextStyle = Typography.bodyMedium.copy(
+        lineHeight = 13.sp
+    ),
+    val bottomSheetActionRowText: TextStyle = Typography.titleMedium.copy(
+        fontSize = 16.sp,
+        fontWeight = FontWeight.Medium,
+    ),
+    val bottomSheetFooterButtonText: TextStyle = Typography.titleMedium.copy(
+        fontSize = 17.sp,
+        lineHeight = 22.sp,
+        fontWeight = W500,
+    ),
+    val offlineBannerText: TextStyle = Typography.titleMedium.copy(
+        fontSize = 18.sp,
+        letterSpacing = 0.15.sp,
+    ),
+    val offlineSupportingText: TextStyle = TextStyle(
+        fontSize = 14.sp,
+        lineHeight = 16.sp,
+        fontWeight = W400,
+    ),
+    val treeNodeItemLabel: TextStyle = Typography.bodyLarge.copy(
+        fontSize = 16.sp,
+        lineHeight = 24.sp,
+        fontWeight = W400,
+        letterSpacing = 0.5.sp,
+    ),
+)
+
+private val DefaultTextStyle = TextStyle(
+    platformStyle = PlatformTextStyle()
 )
 
 internal val LocalChatTypography = staticCompositionLocalOf {

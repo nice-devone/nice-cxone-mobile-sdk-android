@@ -20,18 +20,22 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.message.Message
-import com.nice.cxonechat.message.MessageDirection
+import com.nice.cxonechat.message.MessageDirection.ToAgent
 import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.SOLO
+import com.nice.cxonechat.ui.composable.conversation.MessageStatusState.SELECTABLE
 import com.nice.cxonechat.ui.composable.conversation.model.ConversationUiState
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
-import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.domain.model.Person
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
@@ -90,13 +94,19 @@ internal object PreviewAttachments {
         override val mimeType: String = "application/pdf"
     }
 
+    val txt = object : Attachment {
+        override val url: String = "https://www.nice.com/robots.txt"
+        override val friendlyName: String = "robots.txt"
+        override val mimeType: String = "text/plain"
+    }
+
     val evil = object : Attachment {
         override val url: String = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types"
         override val friendlyName: String = "evil"
         override val mimeType: String? = null
     }
 
-    val choices = listOf(image, image2, movie, sound, pdf, evil)
+    val choices = listOf(image, image2, movie, sound, pdf, txt, evil)
 
     fun getAttachments(count: Int = 1): Sequence<Attachment> {
         var index = count
@@ -141,7 +151,7 @@ internal fun PreviewMessageItemBase(
 internal fun PreviewMessageItem(
     message: UiMessage,
     itemGroupState: MessageItemGroupState = SOLO,
-    showStatus: Boolean = message.direction === MessageDirection.ToAgent,
+    showStatus: DisplayStatus = if (message.direction === ToAgent) DisplayStatus.DISPLAY else DisplayStatus.HIDE,
     onAttachmentClicked: (Attachment) -> Unit = {},
     onMoreClicked: (List<Attachment>) -> Unit = { _ -> },
     onShare: (Collection<Attachment>) -> Unit = {},
@@ -153,7 +163,11 @@ internal fun PreviewMessageItem(
         onAttachmentClicked = onAttachmentClicked,
         onMoreClicked = onMoreClicked,
         onShare = onShare,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        messageStatusState = SELECTABLE,
+        onQuickReplyOptionSelected = {},
+        snackBarHostState = SnackbarHostState(),
+        onListPickerSelected = {},
     )
 }
 
@@ -162,9 +176,12 @@ internal fun PreviewMessageItemBase(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     ChatTheme {
-        Surface {
+        Surface(
+            modifier = Modifier.systemBarsPadding(),
+            color = chatColors.token.background.default,
+        ) {
             Column(
-                modifier = Modifier.padding(horizontal = space.medium),
+                modifier = Modifier.padding(horizontal = 17.dp),
             ) {
                 content()
             }

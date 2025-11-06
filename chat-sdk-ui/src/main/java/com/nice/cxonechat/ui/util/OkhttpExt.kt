@@ -31,7 +31,7 @@ import kotlin.coroutines.resumeWithException
  *
  * @see [Call.enqueue].
  */
-suspend fun Call.await(): ResponseBody {
+internal suspend fun Call.await(): ResponseBody {
     return suspendCancellableCoroutine { continuation ->
         continuation.invokeOnCancellation {
             cancel()

@@ -172,4 +172,24 @@ sealed class Message {
         /** URL to open if the item is selected. */
         abstract val url: String
     }
+
+    /**
+     * A generic fallback message type for messages that are not supported by the current version of the SDK, but
+     * they still can be displayed using fallback text in order to inform the user about the fact that such message is
+     * present in the conversation.
+     */
+    @Public
+    abstract class Unsupported : Message() {
+        /**
+         * Fallback text which can be used if UI integration doesn't support concrete subtype of [Message].
+         *
+         * The [text] property should be used instead of this one, as it provides a more detailed description.
+         */
+        abstract override val fallbackText: String
+
+        /**
+         * The text representation of the message.
+         */
+        abstract val text: String
+    }
 }

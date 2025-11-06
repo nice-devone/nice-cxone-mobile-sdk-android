@@ -92,7 +92,7 @@ class StoreApplication : Application(), SingletonImageLoader.Factory {
                 chatUiModule(
                     logger = ProxyLogger(
                         FirebaseLogger(),
-                        LoggerAndroid("CXoneChatUi")
+                        LoggerAndroid("CXoneChatUi"),
                     ),
                     customerFieldsProvider = get<UiCustomFieldsProvider>(named(CustomFieldProviderType.Customer)),
                     contactFieldsProvider = get<UiCustomFieldsProvider>(named(CustomFieldProviderType.Contact)),

@@ -47,7 +47,7 @@ class SdkConfigurationListRepository(
      * @return Returns a list of predefined Sdk configurations.
      */
     @Stable
-    fun load(): SdkConfigurations {
+    suspend fun load(): SdkConfigurations {
         return configurationList.value.ifEmpty {
             val configurations = super.load(context)
                 ?.configurations

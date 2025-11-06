@@ -15,25 +15,35 @@
 
 package com.nice.cxonechat.ui.composable.generic
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.clearText
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuBoxScope
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldLabelPosition
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,22 +51,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
+import com.nice.cxonechat.ui.R.string
+import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
+import com.nice.cxonechat.ui.composable.theme.LocalChatColors
 import com.nice.cxonechat.ui.composable.theme.Typography
-
-internal interface DropdownItem<KeyType> {
-    val label: String
-    val value: KeyType
-}
-
-internal data class SimpleDropdownItem<KeyType>(
-    override val label: String,
-    override val value: KeyType,
-) : DropdownItem<KeyType>
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Suppress("LongParameterList")
@@ -75,60 +83,86 @@ internal fun <KeyType> DropdownField(
     onSelect: (KeyType) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val scrollState = rememberScrollState()
-    val textFieldState = TextFieldState(options.firstOrNull { it.value == value }?.label ?: placeholder)
+    val textFieldState = rememberTextFieldState(options.firstOrNull { it.value == value }?.label ?: "")
+    val stateHolder = remember(options) { DropdownFieldState(options) }
+    stateHolder.ObserveFiltering(textFieldState)
+
+    val keyHandler = dropdownFieldKeyHandler(
+        stateHolder.filteredList,
+        onSelect,
+        { expanded = it }
+    )
 
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = it },
-        modifier = modifier,
+        modifier = modifier.onPreviewKeyEvent(keyHandler)
     ) {
-        OutlinedTextField(
-            readOnly = true,
+        DropdownFieldTextField(
             isError = isError,
-            state = textFieldState,
-            label = {
-                if (label.isNotEmpty()) Label(label, labelBackground)
+            textFieldState = textFieldState,
+            label = label,
+            labelBackground = labelBackground,
+            placeholder = placeholder,
+            errorState = errorState,
+            onClear = {
+                textFieldState.clearText()
+                expanded = true
+                stateHolder.filteredList = stateHolder.items
+                value?.let { onSelect(it) }
             },
-            labelPosition = TextFieldLabelPosition.Attached(alwaysMinimize = true),
-            placeholder = { Text(placeholder) },
-            supportingText = { errorState.value?.let { Text(it) } },
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
         )
-
-        ExposedDropdownMenu(
+        DropdownFieldMenu(
             expanded = expanded,
-            onDismissRequest = {
+            onDismiss = {
                 expanded = false
                 onDismiss()
             },
-            scrollState = scrollState,
-            matchAnchorWidth = false,
-            modifier = Modifier
-                .defaultMinSize(minWidth = LocalConfiguration.current.screenWidthDp.dp * 0.5f)
-        ) {
-            if (placeholder.isNotBlank() && showPlaceholderOption) {
-                DropdownMenuItem(
-                    enabled = false,
-                    onClick = { expanded = false },
-                    text = { Text(text = placeholder, style = Typography.bodyLarge) }
-                )
-                HorizontalDivider()
+            placeholder = placeholder,
+            showPlaceholderOption = showPlaceholderOption,
+            filteredList = stateHolder.filteredList,
+            onItemSelected = { item ->
+                expanded = false
+                textFieldState.edit { replace(0, textFieldState.text.length, item.label) }
+                onSelect(item.value)
             }
-            options.forEach { item ->
-                DropdownMenuItem(
-                    onClick = {
-                        expanded = false
-                        onSelect(item.value)
-                    },
-                    text = {
-                        Text(item.label, style = Typography.bodyLarge)
-                    }
-                )
+        )
+    }
+}
+
+private class DropdownFieldState<KeyType>(
+    options: Sequence<DropdownItem<KeyType>>,
+) {
+    val items = options.toList()
+    var filteredList by mutableStateOf(items)
+    var previousValidText by mutableStateOf("")
+
+    @Composable
+    fun ObserveFiltering(textFieldState: TextFieldState) {
+        LaunchedEffect(textFieldState.text) {
+            val current = textFieldState.text.toString()
+            if (current.isEmpty() || items.any { it.label.startsWith(current, true) }) {
+                previousValidText = current
+                filteredList = items.filter { it.label.startsWith(current, true) }
+            } else {
+                textFieldState.edit { replace(0, textFieldState.text.length, previousValidText) }
+                filteredList = items.filter { it.label.startsWith(previousValidText, true) }
             }
         }
+    }
+}
+
+private fun <KeyType> dropdownFieldKeyHandler(
+    filteredList: List<DropdownItem<KeyType>>,
+    onSelect: (KeyType) -> Unit,
+    setExpanded: (Boolean) -> Unit,
+): (KeyEvent) -> Boolean = { event ->
+    if (event.key == Key.Enter && filteredList.size == 1) {
+        onSelect(filteredList.first().value)
+        setExpanded(false)
+        true
+    } else {
+        false
     }
 }
 
@@ -136,54 +170,117 @@ internal fun <KeyType> DropdownField(
 private fun Label(label: String, labelBackground: Color) {
     Text(
         text = label,
-        color = chatColors.textFieldLabelText,
         modifier = Modifier
             .background(labelBackground)
             .padding(horizontal = space.small)
     )
 }
 
-@Suppress("UnusedPrivateMember")
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ExposedDropdownMenuBoxScope.DropdownFieldTextField(
+    isError: Boolean,
+    textFieldState: TextFieldState,
+    label: String,
+    labelBackground: Color,
+    placeholder: String,
+    errorState: State<String?>,
+    onClear: () -> Unit,
+) {
+    OutlinedTextField(
+        isError = isError,
+        state = textFieldState,
+        label = { if (label.isNotEmpty()) Label(label, labelBackground) },
+        trailingIcon = {
+            AnimatedVisibility(textFieldState.text.isNotEmpty()) {
+                IconButton(onClick = onClear) {
+                    Icon(imageVector = Icons.Outlined.Cancel, contentDescription = stringResource(string.cancel))
+                }
+            }
+        },
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+        labelPosition = TextFieldLabelPosition.Attached(alwaysMinimize = true),
+        placeholder = { Text(placeholder) },
+        supportingText = { errorState.value?.let { Text(it) } },
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("dropdown_textfield")
+            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable),
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun <KeyType> ExposedDropdownMenuBoxScope.DropdownFieldMenu(
+    expanded: Boolean,
+    onDismiss: () -> Unit,
+    placeholder: String,
+    showPlaceholderOption: Boolean,
+    filteredList: List<DropdownItem<KeyType>>,
+    onItemSelected: (DropdownItem<KeyType>) -> Unit,
+) {
+    ExposedDropdownMenu(
+        expanded = expanded,
+        onDismissRequest = onDismiss,
+        containerColor = LocalChatColors.current.token.background.surface.subtle,
+        border = BorderStroke(1.dp, LocalChatColors.current.token.border.default)
+    ) {
+        if (placeholder.isNotBlank() && showPlaceholderOption) {
+            DropdownMenuItem(
+                modifier = Modifier.testTag("dropdown_item_placeholder"),
+                enabled = false,
+                onClick = { /* no-op */ },
+                text = { Text(text = placeholder, style = Typography.bodyLarge) }
+            )
+            HorizontalDivider()
+        }
+        filteredList.forEach { item ->
+            DropdownMenuItem(
+                modifier = Modifier.testTag("dropdown_item_${item.label}"),
+                onClick = { onItemSelected(item) },
+                text = { Text(item.label, style = Typography.bodyLarge) }
+            )
+        }
+    }
+}
+
 @Preview
 @Composable
 private fun DropdownPreview() {
-    val data = sequenceOf(
-        SimpleDropdownItem("One", "1"),
-        SimpleDropdownItem("Two", "2"),
-        SimpleDropdownItem("Three", "3"),
-    )
-    var value: String? by remember { mutableStateOf(null) }
-    fun onSelect(selected: String) {
-        value = if (selected == value) {
-            null
-        } else {
-            selected
-        }
+    val options = remember {
+        sequenceOf(
+            DropdownItem("aaa", 1),
+            DropdownItem("ab", 2),
+            DropdownItem("ba", 3),
+        )
     }
+    val value = remember { mutableStateOf<Int?>(null) }
 
-    val errorState = remember { mutableStateOf<String?>("Error") }
-    MaterialTheme {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(space.large),
+    ChatTheme {
+        Surface(
+            modifier = Modifier.systemBarsPadding(),
+            color = ChatTheme.chatColors.token.background.surface.subtle,
         ) {
-            DropdownField(value = value, options = data, onSelect = ::onSelect)
-            DropdownField(
-                label = "Label",
-                value = value,
-                options = data,
-                onSelect = ::onSelect,
-                isError = true,
-                errorState = errorState
-            )
-            DropdownField(placeholder = "Placeholder", value = value, options = data, onSelect = ::onSelect)
-            DropdownField(
-                label = "Label",
-                labelBackground = colorScheme.primaryContainer,
-                placeholder = "Placeholder",
-                value = value,
-                options = data,
-                onSelect = ::onSelect
-            )
+            Column(Modifier.padding(space.large)) {
+                DropdownField(
+                    modifier = Modifier.testTag("custom_value_list"),
+                    label = "label",
+                    value = value.value,
+                    options = options,
+                    onSelect = { selected ->
+                        value.value = if (value.value == selected) {
+                            null
+                        } else {
+                            selected
+                        }
+                    },
+                )
+                Spacer(Modifier.height(200.dp))
+                Text(
+                    text = "Selected: ${value.value ?: "None"}",
+                    style = Typography.bodyLarge
+                )
+            }
         }
     }
 }

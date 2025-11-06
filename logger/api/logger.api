@@ -1,0 +1,119 @@
+public abstract class com/nice/cxonechat/log/Level : java/lang/Comparable {
+	public fun compareTo (Lcom/nice/cxonechat/log/Level;)I
+	public synthetic fun compareTo (Ljava/lang/Object;)I
+	public abstract fun getIntValue ()I
+}
+
+public final class com/nice/cxonechat/log/Level$All : com/nice/cxonechat/log/Level {
+	public static final field INSTANCE Lcom/nice/cxonechat/log/Level$All;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getIntValue ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/nice/cxonechat/log/Level$Custom : com/nice/cxonechat/log/Level {
+	public fun <init> (I)V
+	public fun getIntValue ()I
+}
+
+public final class com/nice/cxonechat/log/Level$Debug : com/nice/cxonechat/log/Level {
+	public static final field INSTANCE Lcom/nice/cxonechat/log/Level$Debug;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getIntValue ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/nice/cxonechat/log/Level$Error : com/nice/cxonechat/log/Level {
+	public static final field INSTANCE Lcom/nice/cxonechat/log/Level$Error;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getIntValue ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/nice/cxonechat/log/Level$Info : com/nice/cxonechat/log/Level {
+	public static final field INSTANCE Lcom/nice/cxonechat/log/Level$Info;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getIntValue ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/nice/cxonechat/log/Level$Verbose : com/nice/cxonechat/log/Level {
+	public static final field INSTANCE Lcom/nice/cxonechat/log/Level$Verbose;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getIntValue ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/nice/cxonechat/log/Level$Warning : com/nice/cxonechat/log/Level {
+	public static final field INSTANCE Lcom/nice/cxonechat/log/Level$Warning;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getIntValue ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/nice/cxonechat/log/Logger {
+	public abstract fun log (Lcom/nice/cxonechat/log/Level;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public static synthetic fun log$default (Lcom/nice/cxonechat/log/Logger;Lcom/nice/cxonechat/log/Level;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+}
+
+public final class com/nice/cxonechat/log/Logger$DefaultImpls {
+	public static synthetic fun log$default (Lcom/nice/cxonechat/log/Logger;Lcom/nice/cxonechat/log/Level;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+}
+
+public final class com/nice/cxonechat/log/LoggerExtKt {
+	public static final fun debug (Lcom/nice/cxonechat/log/Logger;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public static synthetic fun debug$default (Lcom/nice/cxonechat/log/Logger;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+	public static final fun duration (Lcom/nice/cxonechat/log/Logger;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
+	public static final fun error (Lcom/nice/cxonechat/log/Logger;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public static synthetic fun error$default (Lcom/nice/cxonechat/log/Logger;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+	public static final fun info (Lcom/nice/cxonechat/log/Logger;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public static synthetic fun info$default (Lcom/nice/cxonechat/log/Logger;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+	public static final fun verbose (Lcom/nice/cxonechat/log/Logger;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public static synthetic fun verbose$default (Lcom/nice/cxonechat/log/Logger;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+	public static final fun warning (Lcom/nice/cxonechat/log/Logger;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public static synthetic fun warning$default (Lcom/nice/cxonechat/log/Logger;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+}
+
+public final class com/nice/cxonechat/log/LoggerNoop : com/nice/cxonechat/log/Logger {
+	public static final field INSTANCE Lcom/nice/cxonechat/log/LoggerNoop;
+	public fun log (Lcom/nice/cxonechat/log/Level;Ljava/lang/String;Ljava/lang/Throwable;)V
+}
+
+public abstract interface class com/nice/cxonechat/log/LoggerScope : com/nice/cxonechat/log/Logger {
+	public static final field Companion Lcom/nice/cxonechat/log/LoggerScope$Companion;
+	public static fun createNamedScope (Ljava/lang/String;Lcom/nice/cxonechat/log/Logger;)Lcom/nice/cxonechat/log/LoggerScope;
+	public abstract fun getIdentity ()Lcom/nice/cxonechat/log/Logger;
+	public abstract fun getScope ()Ljava/lang/String;
+}
+
+public final class com/nice/cxonechat/log/LoggerScope$Companion {
+	public final fun createNamedScope (Ljava/lang/String;Lcom/nice/cxonechat/log/Logger;)Lcom/nice/cxonechat/log/LoggerScope;
+	public final fun invoke (Ljava/lang/String;Lcom/nice/cxonechat/log/Logger;)Lcom/nice/cxonechat/log/LoggerScope;
+}
+
+public final class com/nice/cxonechat/log/LoggerScopeKt {
+	public static final fun scope (Lcom/nice/cxonechat/log/LoggerScope;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public static final fun timedScope (Lcom/nice/cxonechat/log/LoggerScope;Ljava/lang/String;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
+}
+
+public final class com/nice/cxonechat/log/ProxyLogger : com/nice/cxonechat/log/Logger {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/Iterable;)V
+	public synthetic fun <init> (Ljava/lang/Iterable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> ([Lcom/nice/cxonechat/log/Logger;)V
+	public final fun add (Lcom/nice/cxonechat/log/Logger;)V
+	public final fun add ([Lcom/nice/cxonechat/log/Logger;)V
+	public final fun addAll (Ljava/lang/Iterable;)V
+	public final fun clear ()V
+	public final fun getLoggerCount ()I
+	public final fun getLoggers ()Ljava/util/List;
+	public fun log (Lcom/nice/cxonechat/log/Level;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public final fun remove (Lcom/nice/cxonechat/log/Logger;)V
+}
+

@@ -123,6 +123,7 @@ internal class ChatThreadsHandlerImpl(
             // The complex condition is used to avoid sending the welcome message in unit tests
             handler = ChatThreadHandlerWelcome(handler, chat, mutableThread)
         }
+        handler = ChatThreadHandlerFilter(handler, chat)
         handler = ChatThreadHandlerAggregatingListener(handler)
         return handler
     }

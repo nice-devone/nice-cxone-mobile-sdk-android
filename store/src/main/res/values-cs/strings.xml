@@ -1,0 +1,125 @@
+<!--
+  ~ Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
+  ~
+  ~ Licensed under the NICE License;
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
+  ~
+  ~ TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
+  ~ AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
+  ~ OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
+  ~ FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+  -->
+
+<resources>
+    <string name="title_activity_store_front">NiCE Ukázková Aplikace</string>
+    <string name="add_to_cart">Přidat to Košíku</string>
+    <string name="shopping_cart">Nákupní Košík</string>
+    <string name="continue_button">Pokračovat</string>
+    <string name="quantity_label">Ks</string>
+    <string name="item_label">Položka</string>
+    <string name="price_label">Cena</string>
+    <string name="total_label">Celkem</string>
+    <string name="payment">Platba</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Zrušit</string>
+    <string name="back">Zpět</string>
+
+    <string name="content_description_dropdown_field_icon_is_selected">Položka vybrána</string>
+    <string name="content_description_dropdown_field_icon_expandable">Otevřít možnosti</string>
+
+    <!-- Validation Error Messages -->
+    <string name="error_required_field">Vyžadováno</string>
+    <string name="error_email_validation">Nevalidní E-mail</string>
+    <string name="error_validation_label">%1$s - %2$s</string>
+    <string name="error_invalid_number">Nevalidní Number</string>
+    <string name="error_invalid_integer">Nevalidní Integer</string>
+    <string name="error_invalid_color">Toto není validní barva</string>
+
+    <!-- UISettings Dialog Strings -->
+    <string name="ui_settings">UI Nastavení</string>
+    <string name="error_saving_settings">Chyba při ukládání nastavení</string>
+    <string name="unknown_error">Neznámá chyba</string>
+    <string name="day">Den</string>
+    <string name="night">Noc</string>
+
+    <!-- UISettings ColorsView Strings -->
+    <!-- Brand Colors -->
+    <string name="primary">Primary</string>
+    <string name="on_primary">On Primary</string>
+    <string name="primary_container">Primary Container</string>
+    <string name="on_primary_container">On Primary Container</string>
+    <string name="secondary">Secondary</string>
+    <string name="on_secondary">On Secondary</string>
+    <string name="secondary_container">Secondary Container</string>
+    <string name="on_secondary_container">On Secondary Container</string>
+    <string name="brand">Brand</string>
+
+    <!-- Content Colors -->
+    <string name="content_primary">Content Primary</string>
+    <string name="tertiary">Tertiary</string>
+    <string name="inverse">Inverse</string>
+
+    <!-- Border Colors -->
+    <string name="border">Border</string>
+    <string name="subtle">Subtle</string>
+
+    <!-- Status Colors -->
+    <string name="status">Status</string>
+    <string name="status_success">Success</string>
+    <string name="status_on_success">On Success</string>
+    <string name="status_success_container">Success Container</string>
+    <string name="status_on_success_container">On Success Container</string>
+    <string name="status_warning">Warning</string>
+    <string name="status_on_warning">On Warning</string>
+    <string name="status_warning_container">Warning Container</string>
+    <string name="status_on_warning_container">On Warning Container</string>
+    <string name="status_error">Error</string>
+    <string name="status_on_error">On Error</string>
+    <string name="status_error_container">Error Container</string>
+    <string name="status_on_error_container">On Error Container</string>
+
+    <!-- Background Colors -->
+    <string name="background">Background</string>
+    <string name="surface">Surface</string>
+    <string name="variant">Variant</string>
+    <string name="emphasis">Emphasis</string>
+
+    <string name="agent_background">Agent Background</string>
+    <string name="agent_text">Agent Text</string>
+    <string name="customer_background">Customer Background</string>
+    <string name="customer_text">Customer Text</string>
+    <string name="custom">Custom</string>
+    <string name="open_chat">Open Chat</string>
+    <string name="first_name">First Name</string>
+    <string name="last_name">Last Name</string>
+    <string name="customer_id">Customer Id</string>
+    <string name="sdk_configuration">Konfigurace SDK</string>
+    <string name="login">Přihlášení</string>
+    <string name="sdk_settings">SDK Settings</string>
+    <string name="loading">Nahrávám…</string>
+    <string name="connecting">Připojuji…</string>
+    <string name="logout">Odhlásit</string>
+    <string name="name">Jméno</string>
+    <string name="card_number">Číslo Karty</string>
+    <string name="card_number_placeholder">0000–0000–0000–0000</string>
+    <string name="retry">Opakovat</string>
+    <string name="unknown_product">Neznámý Product</string>
+    <string name="configuration">Nastavení</string>
+    <string name="environment">Prostředí</string>
+    <string name="set_defaults">Nastavit výchozí hodnoty</string>
+    <string name="default_version_name">Náhled</string>
+    <string name="pick_a_logo_image">Vyberte logo</string>
+
+    <!-- SDK not supported Dialog string -->
+    <string name="extra_contact_fields">Dodatečné pole kontaktu</string>
+    <string name="sdk_not_supported_title">SDK není podporováno</string>
+    <string name="sdk_not_supported_message">Vaše verze SDK již není podporována, prosím prověďte povýšení na novou verzi.</string>
+    <string name="remove_custom_field">Odstranit vlastní pole %1$s</string>
+    <string name="add_custom_field">Přidat vlastní pole</string>
+    <string name="new_custom_key">Klíč</string>
+    <string name="new_custom_value">Hodnota</string>
+    <string name="extra_customer_fields">Dodatečné pole zákazníka</string>
+</resources>

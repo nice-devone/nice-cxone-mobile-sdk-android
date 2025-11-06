@@ -27,7 +27,11 @@ import com.nice.cxonechat.internal.socket.SocketFactory
 import com.nice.cxonechat.internal.socket.SocketFactoryDefault
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerNoop
+import com.nice.cxonechat.log.ProxyLogger
+import com.nice.cxonechat.logger.RemoteLogger
 import com.nice.cxonechat.utilities.TaggingSocketFactory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 
 /**
@@ -176,21 +180,29 @@ interface ChatBuilder {
             config: SocketFactoryConfiguration,
             logger: Logger = LoggerNoop,
         ): ChatBuilder {
-            val sharedClient = OkHttpClient()
-                .newBuilder()
-                .addInterceptor { chain ->
-                    chain.proceed(
-                        chain.request()
-                            .newBuilder()
-                            .addHeader("x-sdk-platform", "android")
-                            .addHeader("x-sdk-version", BuildConfig.VERSION_NAME)
-                            .build()
-                    )
+            val sharedClient =
+                runBlocking(Dispatchers.IO) {
+                    OkHttpClient()
+                        .newBuilder()
+                        .addInterceptor { chain ->
+                            chain.proceed(
+                                chain.request()
+                                    .newBuilder()
+                                    .addHeader("x-sdk-platform", "android")
+                                    .addHeader("x-sdk-version", BuildConfig.VERSION_NAME)
+                                    .build()
+                            )
+                        }
+                        .socketFactory(TaggingSocketFactory)
+                        .build()
                 }
-                .socketFactory(TaggingSocketFactory)
-                .build()
+
             val factory = SocketFactoryDefault(config, sharedClient)
-            val entrails = ChatEntrailsAndroid(context.applicationContext, factory, config, sharedClient, logger)
+            val updateLogger = ProxyLogger(
+                RemoteLogger(BuildConfig.VERSION_NAME, sharedClient),
+                logger
+            )
+            val entrails = ChatEntrailsAndroid(context.applicationContext, factory, config, sharedClient, updateLogger)
             return invoke(
                 entrails = entrails,
                 factory = factory

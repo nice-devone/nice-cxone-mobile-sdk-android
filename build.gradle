@@ -17,6 +17,25 @@ import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.DetektPlugin
 import io.gitlab.arturbosch.detekt.report.ReportMergeTask
 
+buildscript {
+    configurations.configureEach {
+        resolutionStrategy {
+            // Android gradle plugin & root coverage plugin are using vulnerable dependencies
+            eachDependency { details ->
+                if (details.requested.group == 'io.netty' && details.requested.version < '4.1.125.Final') {
+                    details.useVersion '4.1.125.Final'
+                }
+                if (details.requested.group == 'org.apache.commons' && details.requested.name == 'commons-compress') {
+                    if (details.requested.version >= '1.21' && details.requested.version < '1.26.0') {
+                        details.useVersion '1.26.0'
+                    }
+                }
+            }
+
+        }
+    }
+}
+
 plugins {
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.jvm) apply false
@@ -32,14 +51,52 @@ plugins {
     alias(libs.plugins.firebase.appdistribution) apply false
     alias(libs.plugins.firebase.crashlytics) apply false
     alias(libs.plugins.ksp) apply false
-    alias(libs.plugins.metalava) apply false
     alias(libs.plugins.compose.compiler) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.build.config) apply false
+    alias(libs.plugins.kotlinx.binary.compatibility.validator) apply true // Remove when Kotlin is upgraded to 2.2.0 or higher
+}
+
+subprojects {
+    configurations.configureEach {
+        resolutionStrategy {
+            eachDependency { DependencyResolveDetails details ->
+                // Android tests are using vulnerable dependency
+                if (details.requested.group == 'com.google.protobuf' && details.requested.version < '3.25.5') {
+                    details.useVersion '3.25.5'
+                }
+                // Android tests are using vulnerable dependency
+                if (details.requested.group == 'io.grpc' && details.requested.version < '1.75.0') {
+                    details.useVersion '1.75.0'
+                }
+                // Android tests are using vulnerable dependency
+                if (details.requested.group == 'io.netty' && details.requested.version < '4.1.125.Final') {
+                    details.useVersion '4.1.125.Final'
+                }
+                // Android gradle plugin & root coverage plugin are using vulnerable dependency
+                if (details.requested.group == 'org.apache.commons' && details.requested.name == 'commons-compress') {
+                    if (details.requested.version >= '1.21' && details.requested.version < '1.26.0') {
+                        details.useVersion '1.26.0'
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Apply resolutionStrategy to all root project configurations
+configurations.configureEach {
+    resolutionStrategy {
+        eachDependency { details ->
+            if (details.requested.group == 'io.netty' && details.requested.name == 'netty-handler' && details.requested.version < '4.1.125.Final') {
+                details.useVersion '4.1.125.Final'
+            }
+        }
+    }
 }
 
 group = GROUP
-version = "3.0.0" // Fallback version
+version = "3.1.0" // Fallback version
 
 allprojects {
     group = rootProject.group
@@ -63,17 +120,11 @@ dependencies {
 dokka {
     moduleName.set("CXone Mobile SDK")
     dokkaPublications.html {
-        includes.from("README.MD")
+        includes.from(
+                "README.md",
+        )
         outputDirectory.set(project.file("dist"))
     }
-}
-
-tasks.register('metalavaGenerateSignature') {
-    dependsOn subprojects.collect { it.tasks.matching { it.name == "metalavaGenerateSignatureRelease" } }
-}
-
-tasks.register('metalavaCheckCompatibility') {
-    dependsOn subprojects.collect { it.tasks.matching { it.name == "metalavaCheckCompatibilityRelease" } }
 }
 
 // This task mirrors the tests that will eventually be performed in various github actions
@@ -86,8 +137,6 @@ tasks.register('precheck') {
     dependsOn(':store:lintVitalRelease')
     // Build Check
     dependsOn(':store:assembleRelease')
-    // API compatibility check
-    dependsOn(':metalavaCheckCompatibility')
 }
 
 rootCoverage {
@@ -146,4 +195,58 @@ subprojects {
             }
         }
     }
+}
+
+apiValidation {
+    /**
+     * Packages that are excluded from public API dumps even if they
+     * contain public API.
+     */
+    ignoredPackages += [
+            "com.nice.cxonechat.internal",
+            "com.nice.cxonechat.ui.composable", // Composable classes contain generated code that is not part of the public API
+            "org.koin.ksp.generated",
+    ]
+
+    /**
+     * Classes (fully qualified) that are excluded from public API dumps even if they
+     * contain public API.
+     */
+    ignoredClasses += [
+            "com.nice.cxonechat.core.BuildConfig",
+            "com.nice.cxonechat.ui.storage.TemporaryFileProvider",
+            "com.nice.cxonechat.ui.screen.ComposableSingletons\$ThreadListScreenKt",
+            "com.nice.cxonechat.ui.screen.ComposableSingletons\$OfflineScreenKt",
+            "com.nice.cxonechat.ui.screen.ComposableSingletons\$ChatErrorScreenKt",
+            "com.nice.cxonechat.ui.screen.ComposableSingletons\$ChatDialogScreenKt",
+    ]
+
+    /**
+     * Sub-projects that are excluded from API validation
+     */
+    ignoredProjects += [
+            "store",
+            "cxone-detekt-rules"
+    ]
+
+    /**
+     * Set of annotations that exclude API from being public.
+     * Typically, it is all kinds of `@InternalApi` annotations that mark
+     * effectively private API that cannot be actually private for technical reasons.
+     */
+    nonPublicMarkers += [
+            "com.nice.cxonechat.InternalApiAnnotation",
+            "androidx.compose.ui.tooling.preview.PreviewLightDark",
+            "androidx.compose.ui.tooling.preview.Preview",
+    ]
+
+    /**
+     * Flag to programmatically disable compatibility validator
+     */
+    validationDisabled = false
+
+    /**
+     * A path to a subdirectory inside the project root directory where dumps should be stored.
+     */
+    apiDumpDirectory = "api"
 }

@@ -16,7 +16,6 @@
 package com.nice.cxonechat.ui.composable.theme
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,6 +26,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -40,7 +40,6 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxState
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.SwipeToDismissBoxValue.EndToStart
-import androidx.compose.material3.SwipeToDismissBoxValue.Settled
 import androidx.compose.material3.SwipeToDismissBoxValue.StartToEnd
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
@@ -53,7 +52,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
@@ -73,7 +71,7 @@ internal fun ChatTheme.SwipeToDismiss(
             directions
         )
     },
-    onDismiss: suspend (SwipeToDismissBoxValue) -> Unit = {},
+    onDismiss: (SwipeToDismissBoxValue) -> Unit = {},
     content: @Composable ColumnScope.() -> Unit,
 ) {
     SwipeToDismissBox(
@@ -117,10 +115,6 @@ internal fun RowScope.SwipeToDismissBackground(
     val animatedColor by animateColorAsState(
         entry.color ?: colorScheme.background
     )
-    val animatedScale by animateFloatAsState(
-        if (dismissState.targetValue == Settled) 0f else 1f,
-        label = "scale"
-    )
 
     Row(
         modifier = Modifier
@@ -140,7 +134,7 @@ internal fun RowScope.SwipeToDismissBackground(
                     icon,
                     contentDescription = entry.contentDescription,
                     tint = entry.iconTint ?: Color.Unspecified,
-                    modifier = Modifier.graphicsLayer(scaleX = animatedScale, scaleY = animatedScale)
+                    modifier = Modifier.size(ChatTheme.space.swipeToDismissIconSize)
                 )
             }
         }

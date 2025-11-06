@@ -161,6 +161,17 @@ internal object ServerRequestAssertions {
         }
     }
 
+    fun String.verifyPostbackMessage() = apply {
+        verifyStructureOf(this) {
+            eventBaseline(action = ChatWindowEvent)
+            payload(type = "SendMessage") {
+                message(
+                    accessTokenStruct = {}
+                )
+            }
+        }
+    }
+
     fun String.verifySetCustomerCustomFields() = apply {
         verifyStructureOf(this) {
             eventBaseline(action = ChatWindowEvent)
@@ -228,9 +239,11 @@ internal object ServerRequestAssertions {
         verifyStructureOf(this) {
             eventBaseline(action = ChatWindowEvent)
             legacyPayload(type = EventType.SendOutbound.value) {
-                message {
-                    fingerprint("browserFingerprint", deviceToken)
-                }
+                message(
+                    fingerprintStruct = {
+                        fingerprint("browserFingerprint", deviceToken)
+                    }
+                )
             }
         }
     }
@@ -241,6 +254,7 @@ internal object ServerRequestAssertions {
         prop("action", action)
         prop("eventId")
     }
+
     private fun StructScope.payload(
         type: String,
         identityStruct: StructScope.() -> Unit = { identity() },
@@ -286,6 +300,7 @@ internal object ServerRequestAssertions {
 
     private fun StructScope.message(
         fingerprintStruct: StructScope.() -> Unit = { fingerprint() },
+        accessTokenStruct: StructScope.() -> Unit = { accessToken() },
     ) {
         thread()
         prop("messageContent") {
@@ -301,7 +316,7 @@ internal object ServerRequestAssertions {
             prop("mimeType")
         }
         fingerprintStruct()
-        accessToken()
+        accessTokenStruct()
     }
 
     private fun StructScope.fingerprint(

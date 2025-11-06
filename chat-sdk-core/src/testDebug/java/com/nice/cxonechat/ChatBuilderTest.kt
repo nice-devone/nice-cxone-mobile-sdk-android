@@ -18,6 +18,7 @@
 package com.nice.cxonechat
 
 import com.nice.cxonechat.event.thread.ArchiveThreadEvent
+import com.nice.cxonechat.exceptions.SdkVersionNotSupported
 import com.nice.cxonechat.internal.ChatWithParameters
 import com.nice.cxonechat.internal.copy.ConnectionCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.model.ChannelConfiguration
@@ -107,6 +108,28 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
     }
 
     @Test
+    fun build_handlesSdkVersionNotSupported() {
+        val errorJson = """
+        {
+            "error": {
+             "errorCode": "SdkVersionNotSupported",
+             "errorMessage": "Your version of SDK is not supported anymore, please do upgrade."
+             }
+         }
+    """.trimIndent()
+        val call = mockk<Call<ChannelConfiguration?>> {
+            every { execute() } answers {
+                Response.error(403, errorJson.toResponseBody())
+            }
+        }
+        every { service.getChannel(any(), any()) } returns call
+
+        val result = build()
+        assert(result.isFailure)
+        assert(result.exceptionOrNull() is SdkVersionNotSupported)
+    }
+
+    @Test
     fun build_handlesFailure() {
         var returnedFailure = false
         val call = mockk<Call<ChannelConfiguration?>> {
@@ -187,26 +210,26 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
     }
 
     @Test
-    fun build_authorization_updatesStorage_consumer() {
+    fun connect_authorization_updatesStorage_consumer() {
         val uuid = UUID.randomUUID().toString()
-        build()
+        connect()
         this serverResponds ServerResponse.ConsumerAuthorized(uuid)
 
         verify { storage.customerId = uuid }
     }
 
     @Test
-    fun build_authorization_updatesStorage_token() {
+    fun connect_authorization_updatesStorage_token() {
         val token = nextString()
-        build()
+        connect()
         this serverResponds ServerResponse.ConsumerAuthorized(accessToken = token)
 
         verify { storage.authToken = token }
     }
 
     @Test
-    fun build_authorization_updatesStorage_tokenExpDate() {
-        build()
+    fun connect_authorization_updatesStorage_tokenExpDate() {
+        connect()
         this serverResponds ServerResponse.ConsumerAuthorized()
         verify(exactly = 1) { storage.authTokenExpDate = any() }
     }

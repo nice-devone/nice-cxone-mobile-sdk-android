@@ -15,21 +15,17 @@
 
 package com.nice.cxonechat.ui.composable.generic
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import coil3.compose.AsyncImage
 import net.engawapg.lib.zoomable.rememberZoomState
 import net.engawapg.lib.zoomable.zoomable
 
 /**
- * A [AsyncImage] with applied [zoomable] modifier.
+ * A [PresetAsyncImage] with applied [zoomable] modifier.
  *
- * @param image A model for [AsyncImage].
- * @param modifier A [Modifier] for [AsyncImage].
- * @param contentDescription A contentDescription for [AsyncImage].
+ * @param image A model for [PresetAsyncImage].
+ * @param modifier A [Modifier] for [PresetAsyncImage].
+ * @param contentDescription A contentDescription for [PresetAsyncImage].
  */
 @Composable
 internal fun ZoomableImage(
@@ -37,10 +33,9 @@ internal fun ZoomableImage(
     modifier: Modifier = Modifier,
     contentDescription: String? = null,
 ) {
-    AsyncImage(
+    PresetAsyncImage(
         model = image,
         contentDescription = contentDescription,
-        placeholder = rememberVectorPainter(image = Icons.Default.Image),
         modifier = modifier.zoomable(rememberZoomState()),
     )
 }

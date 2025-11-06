@@ -15,8 +15,9 @@
 
 package com.nice.cxonechat.internal.model.network
 
+import com.nice.cxonechat.Popup
 import com.nice.cxonechat.enums.ContactStatus
-import com.nice.cxonechat.enums.EventType
+import com.nice.cxonechat.enums.EventType.LivechatRecovered
 import com.nice.cxonechat.internal.model.AgentModel
 import com.nice.cxonechat.internal.model.CustomFieldModel
 import com.nice.cxonechat.internal.model.MessageModel
@@ -36,6 +37,12 @@ internal data class EventLiveChatThreadRecovered(
 
     private val data get() = postback.data
     val agent get() = data.inboxAssignee?.toAgent()
+
+    /**
+     * Popups are filtered out of regular messages, but if it is last message in the recovered thread,
+     * it can be recovered here.
+     */
+    val popup: Popup? get() = data.messages.orEmpty().maxByOrNull { it.createdAt }?.toPopup()
     val messages get() = data.messages.orEmpty().mapNotNull(MessageModel::toMessage)
     val thread
         get() = data.thread
@@ -77,6 +84,6 @@ internal data class EventLiveChatThreadRecovered(
     )
 
     companion object : ReceivedEvent<EventLiveChatThreadRecovered> {
-        override val type = EventType.LivechatRecovered
+        override val type = LivechatRecovered
     }
 }

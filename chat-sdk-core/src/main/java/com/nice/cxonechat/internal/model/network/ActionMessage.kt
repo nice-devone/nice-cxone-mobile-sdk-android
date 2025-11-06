@@ -51,6 +51,7 @@ internal data class ActionMessage(
         fields: List<CustomFieldModel>,
         token: String?,
         postback: String? = null,
+        parameters: Parameters? = null,
     ) : this(
         payload = Payload(
             eventType = SendMessage,
@@ -62,7 +63,8 @@ internal data class ActionMessage(
                 attachments = attachments,
                 fields = fields,
                 token = token,
-                postback,
+                postback = postback,
+                parameters = parameters,
             )
         )
     )
@@ -99,9 +101,14 @@ internal data class ActionMessage(
             fields: List<CustomFieldModel>,
             token: String?,
             postback: String?,
+            parameters: Parameters? = null,
         ) : this(
             thread = Thread(thread),
-            messageContent = MessageContent(message, postback),
+            messageContent = MessageContent(
+                message = message,
+                postback = postback,
+                parameters = parameters
+            ),
             id = id,
             customer = fields.takeUnless { it.isEmpty() }?.let(::CustomFieldsData),
             customerContact = thread.fields.takeUnless { it.isEmpty() }

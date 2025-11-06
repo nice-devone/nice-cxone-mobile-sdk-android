@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Surface
@@ -33,6 +34,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.DpOffset
@@ -41,13 +43,19 @@ import androidx.compose.ui.unit.LayoutDirection.Ltr
 import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.message.MessageDirection
 import com.nice.cxonechat.message.MessageDirection.ToAgent
+import com.nice.cxonechat.ui.composable.conversation.ContentType.ListPicker
+import com.nice.cxonechat.ui.composable.conversation.ContentType.QuickReply
+import com.nice.cxonechat.ui.composable.conversation.ContentType.RichLink
 import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.FIRST
 import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.LAST
+import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.LAST_SQUASHED
 import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.MIDDLE
 import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.SOLO
+import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.SOLO_GROUPED
 import com.nice.cxonechat.ui.composable.generic.MessageAvatar
 import com.nice.cxonechat.ui.composable.theme.ChatColors.ColorPair
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatShapes
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.domain.model.Person
@@ -64,6 +72,7 @@ import com.nice.cxonechat.ui.domain.model.Person
 @Composable
 internal fun MessageFrame(
     position: MessageItemGroupState,
+    messageContentType: ContentType,
     isAgent: Boolean,
     modifier: Modifier = Modifier,
     avatar: Person? = null,
@@ -71,10 +80,16 @@ internal fun MessageFrame(
     showFrame: Boolean,
     leadingContent: @Composable () -> Unit = {},
     subFrameContent: @Composable () -> Unit = {},
+    messageStatusContent: @Composable () -> Unit = {},
     framedContent: @Composable () -> Unit,
 ) {
     val showAvatar = avatar != null && position in listOf(LAST, SOLO)
-    val paddingBottom = if (!showAvatar) 0.dp else space.messageAvatarSize / 2 + space.small
+    val avatarContentTypes by lazy { setOf(QuickReply, RichLink, ListPicker) }
+    val paddingBottom = when {
+        !showAvatar && messageContentType in avatarContentTypes && position in listOf(LAST, SOLO) -> space.medium
+        !showAvatar -> 0.dp
+        else -> space.messageAvatarSize / 2 + space.small
+    }
     val currentDirection = LocalLayoutDirection.current
     val direction = if (isAgent) currentDirection else currentDirection.inverse()
     val offset = DpOffset(
@@ -93,7 +108,7 @@ internal fun MessageFrame(
                 modifier = Modifier
                     .padding(bottom = paddingBottom)
             ) {
-                MainSlot(showFrame, position, colors, modifier, currentDirection, framedContent, subFrameContent)
+                MainSlot(showFrame, position, colors, modifier, currentDirection, framedContent, messageStatusContent, subFrameContent)
                 if (showAvatar) {
                     MessageAvatar(
                         avatar,
@@ -124,13 +139,17 @@ private fun MainSlot(
     modifier: Modifier,
     currentDirection: LayoutDirection,
     framedContent: @Composable (() -> Unit),
+    messageStatusContent: @Composable (() -> Unit),
     subFrameContent: @Composable (() -> Unit),
 ) {
     Column {
         AnimatedContent(showFrame) { show: Boolean ->
             if (show) {
                 Frame(position, colors.background, modifier) {
-                    Content(currentDirection, framedContent)
+                    Column {
+                        Content(currentDirection, framedContent)
+                        messageStatusContent()
+                    }
                 }
             } else {
                 Content(currentDirection, framedContent)
@@ -161,7 +180,7 @@ private fun Frame(
     framedContent: @Composable () -> Unit,
 ) {
     Surface(
-        modifier = modifier,
+        modifier = modifier.widthIn(max = LocalConfiguration.current.screenWidthDp.dp * 0.776f),
         shape = position.stateToShape(toAgent = false),
         color = color,
     ) {
@@ -175,8 +194,8 @@ private fun MessageItemGroupState.stateToShape(
 ) = when (this) {
     FIRST -> if (toAgent) chatShapes.bubbleShapeToAgent.bubbleFirstShape else chatShapes.bubbleShapeToClient.bubbleFirstShape
     MIDDLE -> if (toAgent) chatShapes.bubbleShapeToAgent.bubbleMiddleShape else chatShapes.bubbleShapeToClient.bubbleMiddleShape
-    LAST -> if (toAgent) chatShapes.bubbleShapeToAgent.bubbleLastShape else chatShapes.bubbleShapeToClient.bubbleLastShape
-    SOLO -> chatShapes.bubbleSoloShape
+    LAST, LAST_SQUASHED -> if (toAgent) chatShapes.bubbleShapeToAgent.bubbleLastShape else chatShapes.bubbleShapeToClient.bubbleLastShape
+    SOLO, SOLO_GROUPED -> chatShapes.bubbleSoloShape
 }
 
 @Suppress("CognitiveComplexMethod")
@@ -184,7 +203,7 @@ private fun MessageItemGroupState.stateToShape(
 @Composable
 internal fun PreviewMessageFrame() {
     ChatTheme {
-        Surface(modifier = Modifier.padding(space.medium)) {
+        Surface(modifier = Modifier.padding(space.medium), color = chatColors.token.background.default) {
             LazyColumn(
                 verticalArrangement = Arrangement.Top,
                 modifier = Modifier
@@ -204,9 +223,10 @@ internal fun PreviewMessageFrame() {
                             ) {
                                 MessageFrame(
                                     position = state,
+                                    messageContentType = QuickReply,
                                     isAgent = isAgent,
                                     avatar = Person(firstName = "Some", lastName = "User").takeIf { isAgent },
-                                    colors = ChatTheme.chatColors.agent,
+                                    colors = chatColors.agent,
                                     showFrame = true,
                                     subFrameContent = {
                                         if (state == MIDDLE && isAgent) {

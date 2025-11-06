@@ -131,12 +131,12 @@ internal data class MimeTypeGroup(
 /**
  * EnumMap alias for mapping attachment options to their string labels.
  */
-typealias AttachmentOptions = EnumMap<AttachmentOption, String>
+internal typealias AttachmentOptions = EnumMap<AttachmentOption, String>
 
 /**
  * Enum representing the available attachment options.
  */
-enum class AttachmentOption {
+internal enum class AttachmentOption {
     /** Capture a photo using the camera. */
     CameraPhoto,
 

@@ -1,36 +1,77 @@
 # CXone Chat for Android
 
-This repository consists out of three main modules and three tooling modules,
+## Repository overview
+
+This repository consists out of three main modules and four tooling modules,
 which are described in chapters below.
 
-## CXone Chat SDK
+### High-Level Repository Information
 
-This is the only published module. It is released as an Android multi-flavor library with Maven artifact coordinates `com.nice.cxone:chat-core`.
+- **Project Type**: Android SDK library with UI module
+- **Primary Languages**: Kotlin (99.7%)
+- **Target Runtime**: Android API 24-36 (Android 7.0 to Android 15+)
+- **Build System**: Gradle 8.14.3 with Android Gradle Plugin 8.13.0
+- **Architecture**: Multi-module Android library with Jetpack Compose UI
+
+### Key Frameworks and Dependencies
+
+- **UI Framework**: Jetpack Compose with Material Design 3
+- **Networking**: Retrofit 3.0.0 with OkHttp 5.1.0
+- **Serialization**: Kotlinx Serialization 1.9.0
+- **Dependency Injection**: Koin 4.1.1 with KSP annotations
+- **Push Notifications**: Firebase Cloud Messaging
+- **Image Loading**: Coil 3.1.0
+- **Media Playback**: AndroidX Media3 (ExoPlayer)
+- **Testing**: JUnit 4, Kotest, MockK, Robolectric
+
+## Project Layout and Architecture
+
+### Module Structure
+
+```
+├── chat-sdk-core/         # Core SDK functionality (Published artifact)
+├── chat-sdk-ui/           # Default UI implementation (Published artifact)  
+├── store/                 # Sample e-commerce application
+├── utilities/             # Shared utility classes (Published artifact - transitive dependency)
+├── logger/                # Logging interface (Published artifact - transitive dependency)
+├── logger-android/        # Android-specific logging (Published artifact - transitive dependency)
+├── logger-client/         # Client logging implementation (Published artifact - transitive dependency)
+├── cxone-detekt-rules/    # Custom lint rules
+└── buildSrc/              # Gradle convention plugins
+```
+
+## CXone Chat SDK (chat-sdk-core)
+
+This is the primary published module. It is released as an Android multi-flavor library with Maven artifact coordinates
+`com.nice.cxone:chat-core`.
+
+Main objective of the SDK is to offer one API over several CXone Chat backends together with required business logic.
 
 ### Adding the Dependency
 
-To use the published artifact, include our public Maven/Gradle GitHub repository in your project. For details, see [GitHub documentation on using published packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-gradle-registry#using-a-published-package).
+To use the published artifact, include our public Maven/Gradle GitHub repository in your project. For details,
+see [GitHub documentation on using published packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-gradle-registry#using-a-published-package).
 
 In the section where you define repositories used in your project (in our case, it is `settings.gradle`), add this part:
 
 ```groovy
     def localProperties = new Properties()
-    try {
-        localProperties.load(file("local.properties").newReader())
-    } catch (ignored) {
-        logger.trace("Unable to read local.properties")
-    }
-    repositories {
-        maven {
-            name = "github-nice-devone-cxone-mobile"
-            url = "https://maven.pkg.github.com/nice-devone/nice-cxone-mobile-sdk-android"
-            credentials {
-                // Use property key from local.properties for local builds or environment variable for CI builds
-                username = localProperties["github.user"] ?: System.getenv("GPR_USERNAME")
-                password = localProperties["github.key"] ?: System.getenv("GPR_TOKEN")
-            }
+try {
+    localProperties.load(file("local.properties").newReader())
+} catch (ignored) {
+    logger.trace("Unable to read local.properties")
+}
+repositories {
+    maven {
+        name = "github-nice-devone-cxone-mobile"
+        url = "https://maven.pkg.github.com/nice-devone/nice-cxone-mobile-sdk-android"
+        credentials {
+            // Use property key from local.properties for local builds or environment variable for CI builds
+            username = localProperties["github.user"] ?: System.getenv("GPR_USERNAME")
+            password = localProperties["github.key"] ?: System.getenv("GPR_TOKEN")
         }
     }
+}
 ```
 
 Then either add properties `github.user` and `github.key` to your local.properties
@@ -42,7 +83,7 @@ github.key=github_my_token
 ```
 
 or set system variables `GPR_USERNAME` and `GPR_TOKEN`.
-You can use any uprivilidged valid token, since the package are public.
+You can use any non-privileged valid token, since the package are public.
 
 Then you can use the dependency simply by adding:
 
@@ -62,8 +103,11 @@ documentation.
 We offer a brief how-to guide for integration [here][implementation].
 
 [NICE-docs]: https://help.nice-incontact.com/content/acd/digital/mobilesdk/cxonemobilesdk.htm
+
 [API]: https://nice-devone.github.io/nice-cxone-mobile-sdk-android/
+
 [API-1.3]: https://help.nice-incontact.com/mobilesdk/Android1.3/dist/index.html
+
 [implementation]: docs/implementation.md
 
 ## CXone Chat UI
@@ -71,22 +115,36 @@ We offer a brief how-to guide for integration [here][implementation].
 This is the default implementation of the UI for CXone Chat SDK, which allows easier integration of the SDK into the intended target
 application.
 
+It is released as an Android multi-flavor library with Maven artifact coordinates `com.nice.cxone:chat-sdk-ui`.
+
+More of the details can be found in the module [README](chat-sdk-ui/README.md)
+
 ### Chat UI provides these features:
 
 * Display the thread list (for multi-thread SDK configuration)
-  * Archive an existing thread
-  * Start a new thread
+    * Archive an existing thread
+    * Start a new thread
 * Display and service the thread conversation (including implementation for all currently supported message formats)
-  * Send message
-  * Upload attachment
-  * Record & play voice messages
-  * Name the thread (for multi-thread SDK configuration)
-  * Message pagination support
-  * Typing indication & reporting
+    * Send message
+    * Upload attachment
+    * Record & play voice messages
+    * Name the thread (for multi-thread SDK configuration)
+    * Message pagination support
+    * Typing indication & reporting
 * Filling out of pre-contact form
 * Display notification about the new message when application is in the background (requires Firebase Cloud Messaging)
 * Sharing of message attachments
 * Fullscreen previews of images & videos
+
+### Additional information
+
+A brief case study about [configuring UI module][configuring-ui] will lead you through the setup process.
+
+We offer a brief how-to guide for integration [here][integration-ui].
+
+[configuring-ui]: docs/chat-sdk-ui/cs-ui-configuration.md
+
+[integration-ui]: docs/chat-sdk-ui/cs-ui-integration.md
 
 ## Store application
 
@@ -97,7 +155,8 @@ also demonstrate an integration of the SDK analytics events like `pageView` or `
 
 When integrating the CXone Chat SDK into your application, please note the following:
 
-If your application defines its own `fullBackupContent` rules, you must explicitly exclude the CXone SDK's shared preferences
+If your application defines its own `fullBackupContent` rules, you must explicitly exclude the CXone SDK's shared
+preferences
 file to avoid backing up sensitive data, which are not transferable.
 Add the following exclusion to your backup rules:
 
@@ -125,6 +184,10 @@ Application can provide this instance to the SDK builder if it wishes the SDK to
 platform log output.
 
 The maven artifact coordinates are `com.nice.cxone:logger-android`.
+
+### logger-client
+The logger-client module provides an integrated remote logging solution that sends error logs to NICE servers for
+tracking and analysis.
 
 ### utilities
 

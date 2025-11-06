@@ -95,7 +95,8 @@ object CartScreen : Screen {
             Screen(
                 cart = viewModel.storeRepository.cart.collectAsState().value,
                 onContinue = { PaymentScreen.navigateTo(navHostController) },
-                updateItem = { viewModel.storeRepository.updateCartItem(it) }
+                updateItem = { viewModel.storeRepository.updateCartItem(it) },
+                onBackClick = { navHostController.navigateUp() }
             )
         }
     }
@@ -130,10 +131,12 @@ object CartScreen : Screen {
         cart: Cart,
         onContinue: () -> Unit,
         updateItem: (Item) -> Unit,
+        onBackClick: () -> Unit,
     ) {
         AppTheme.ScreenWithScaffold(
             title = stringResource(string.shopping_cart),
             modifier = TestModifier.testTag("cart_screen"),
+            onBackClick = onBackClick
         ) {
             CartView(
                 cart = cart,

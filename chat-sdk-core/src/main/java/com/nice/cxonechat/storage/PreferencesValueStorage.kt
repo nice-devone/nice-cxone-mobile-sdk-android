@@ -21,7 +21,6 @@ import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import com.nice.cxonechat.internal.serializer.Default
 import com.nice.cxonechat.storage.ValueStorage.VisitDetails
-import kotlinx.serialization.encodeToString
 import java.util.Date
 import java.util.UUID
 

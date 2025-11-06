@@ -52,8 +52,9 @@ internal fun asyncImagePainters(
 @Composable
 internal fun PresetAsyncImage(
     model: Any?,
-    contentDescription: String?,
     modifier: Modifier = Modifier,
+    contentDescription: String?,
+    cacheKey: String? = null,
     alignment: Alignment = Alignment.Center,
     contentScale: ContentScale = ContentScale.Fit,
     painters: AsyncImagePainters = asyncImagePainters()
@@ -75,6 +76,12 @@ internal fun PresetAsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
             .data(model)
             .crossfade(true)
+            .apply {
+                cacheKey?.let {
+                    diskCacheKey(it)
+                    memoryCacheKey(it)
+                }
+            }
             .build(),
         contentDescription = contentDescription,
         placeholder = placeholder,

@@ -15,8 +15,8 @@
 
 package com.nice.cxonechat.sample.utilities.logging
 
-import com.google.firebase.crashlytics.ktx.crashlytics
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.Firebase
+import com.google.firebase.crashlytics.crashlytics
 import com.nice.cxonechat.log.Level
 import com.nice.cxonechat.log.Level.All
 import com.nice.cxonechat.log.Level.Custom

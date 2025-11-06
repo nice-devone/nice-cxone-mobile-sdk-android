@@ -16,6 +16,7 @@
 package com.nice.cxonechat.internal.model.network
 
 import android.os.Build
+import com.nice.cxonechat.internal.serializer.Default
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.util.Locale
@@ -56,3 +57,6 @@ internal data class DeviceFingerprint(
     @SerialName("deviceToken")
     val deviceToken: String? = null,
 )
+
+internal fun DeviceFingerprint.description(): String =
+    Default.serializer.encodeToString(this)

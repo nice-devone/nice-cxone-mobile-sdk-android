@@ -26,4 +26,7 @@ internal enum class MessageContentType(val value: String) {
     /** The message is only sending text. */
     @SerialName("TEXT")
     Text("TEXT"),
+
+    @SerialName("POSTBACK")
+    Postback("POSTBACK"),
 }

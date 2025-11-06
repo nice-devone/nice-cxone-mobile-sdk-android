@@ -27,16 +27,19 @@ import com.nice.cxonechat.ui.composable.generic.ImageViewerDialogCard
 import com.nice.cxonechat.ui.composable.generic.VideoView
 import com.nice.cxonechat.ui.composable.theme.BusySpinner
 import com.nice.cxonechat.ui.viewmodel.ChatThreadViewModel
-import com.nice.cxonechat.ui.viewmodel.ChatThreadViewModel.Dialogs.CustomValues
-import com.nice.cxonechat.ui.viewmodel.ChatThreadViewModel.Dialogs.EditThreadName
-import com.nice.cxonechat.ui.viewmodel.ChatThreadViewModel.Dialogs.EndContact
-import com.nice.cxonechat.ui.viewmodel.ChatThreadViewModel.Dialogs.ImageViewer
-import com.nice.cxonechat.ui.viewmodel.ChatThreadViewModel.Dialogs.InvalidAttachments
-import com.nice.cxonechat.ui.viewmodel.ChatThreadViewModel.Dialogs.None
-import com.nice.cxonechat.ui.viewmodel.ChatThreadViewModel.Dialogs.SelectAttachments
-import com.nice.cxonechat.ui.viewmodel.ChatThreadViewModel.Dialogs.VideoPlayer
 import com.nice.cxonechat.ui.viewmodel.ChatViewModel
+import com.nice.cxonechat.ui.viewmodel.ConversationDialog.CustomValues
+import com.nice.cxonechat.ui.viewmodel.ConversationDialog.EditThreadName
+import com.nice.cxonechat.ui.viewmodel.ConversationDialog.EndContact
+import com.nice.cxonechat.ui.viewmodel.ConversationDialog.ImageViewer
+import com.nice.cxonechat.ui.viewmodel.ConversationDialog.InvalidAttachments
+import com.nice.cxonechat.ui.viewmodel.ConversationDialog.None
+import com.nice.cxonechat.ui.viewmodel.ConversationDialog.Popup
+import com.nice.cxonechat.ui.viewmodel.ConversationDialog.SelectAttachments
+import com.nice.cxonechat.ui.viewmodel.ConversationDialog.VideoPlayer
+import kotlin.time.ExperimentalTime
 
+@OptIn(ExperimentalTime::class)
 @Composable
 internal fun ThreadDialogView(
     onAttachmentClicked: (Attachment) -> Unit,
@@ -81,13 +84,14 @@ internal fun ThreadDialogView(
             message = stringResource(
                 string.invalid_attachments_message_template,
                 dialog.attachments.map {
-                    stringResource(string.invalid_attachment_template, it.key, it.value)
+                    stringResource(string.invalid_attachment_template, it.value)
                 }
             ),
             onDismiss = onDismiss
         )
 
         EndContact -> EndContactDialog(closeChat = closeChat, chatViewModel = threadViewModel, chatModel = chatModel)
+        is Popup -> Popup(dialog, threadViewModel, closeChat)
     }
 
     if (threadViewModel.preparingToShare.collectAsState().value) {

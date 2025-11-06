@@ -20,14 +20,14 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.nice.cxonechat.sample.data.repository.UISettings
+import com.nice.cxonechat.ui.composable.theme.ThemeColorTokens.Companion.toDarkColorScheme
+import com.nice.cxonechat.ui.composable.theme.ThemeColorTokens.Companion.toLightColorScheme
 
 /**
  * Composable to apply the app-specific theme.
@@ -38,35 +38,15 @@ import com.nice.cxonechat.sample.data.repository.UISettings
 @Composable
 fun AppTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
     val settings by UISettings.collectAsState()
-    val theme = if(darkTheme) {
+    val theme = if (darkTheme) {
         settings.darkModeColors
     } else {
         settings.lightModeColors
     }
     val colorScheme = if (darkTheme) {
-        darkColorScheme(
-            primary = theme.primary,
-            onPrimary = theme.onPrimary,
-            background = theme.background,
-            onBackground = theme.onBackground,
-            surface = theme.background,
-            onSurface = theme.onBackground,
-            surfaceContainer = theme.surfaceContainer,
-            secondary = theme.accent,
-            onSecondary = theme.onAccent,
-        )
+        theme.toDarkColorScheme()
     } else {
-        lightColorScheme(
-            primary = theme.primary,
-            onPrimary = theme.onPrimary,
-            background = theme.background,
-            onBackground = theme.onBackground,
-            surface = theme.background,
-            onSurface = theme.onBackground,
-            surfaceContainer = theme.surfaceContainer,
-            secondary = theme.accent,
-            onSecondary = theme.onAccent,
-        )
+        theme.toLightColorScheme()
     }
     val appColors = if (darkTheme) {
         AppColors.darkColors

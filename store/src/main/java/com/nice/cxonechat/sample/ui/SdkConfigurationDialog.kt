@@ -18,14 +18,21 @@ package com.nice.cxonechat.sample.ui
 import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement.SpaceBetween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -51,8 +58,6 @@ import com.nice.cxonechat.sample.ui.components.DropdownItem
 import com.nice.cxonechat.sample.ui.components.extraCustomFields
 import com.nice.cxonechat.sample.ui.theme.AppTheme
 import com.nice.cxonechat.sample.ui.theme.AppTheme.space
-import com.nice.cxonechat.sample.ui.theme.Dialog
-import com.nice.cxonechat.sample.ui.theme.OutlinedButton
 import com.nice.cxonechat.sample.ui.theme.TextField
 import com.nice.cxonechat.sample.utilities.Requirements.allOf
 import com.nice.cxonechat.sample.utilities.Requirements.integer
@@ -71,6 +76,7 @@ import org.koin.androidx.compose.koinViewModel
  * @param onDismiss Function to dismiss the dialog, if it's allowed.
  * @param onConfigurationSelected Callback when the user accepts a configuration.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SdkConfigurationDialog(
     configuration: SdkConfiguration?,
@@ -86,40 +92,27 @@ fun SdkConfigurationDialog(
     } else {
         null
     }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    AppTheme.Dialog(
-        modifier = TestModifier
-            .wrapContentHeight()
-            .testTag("sdk_configuration_dialog"),
-        onDismiss = if (state.configuration != null) {
-            onDismiss
-        } else {
-            {}
-        },
-        title = stringResource(string.sdk_configuration),
-        confirmButton = {
-            AppTheme.OutlinedButton(
-                text = stringResource(string.continue_button),
-                modifier = Modifier.testTag("sdk_configuration_dialog_continue_button"),
-                enabled = builtConfiguration != null,
-            ) {
-                builtConfiguration?.let {
-                    extraCustomFieldModel.save()
-                    onConfigurationSelected(it)
-                }
-            }
-        },
-        dismissButton = {
-            if (state.configuration != null) {
-                AppTheme.OutlinedButton(
-                    text = stringResource(string.cancel),
-                    modifier = Modifier.testTag("sdk_configuration_dialog_cancel_button"),
-                    onClick = onDismiss,
-                )
-            }
-        },
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        modifier = TestModifier.testTag("sdk_configuration_dialog"),
+        sheetState = sheetState
     ) {
-        DialogBody(state, extraCustomFieldModel)
+        Column(modifier = Modifier.padding(24.dp)) {
+            Text(
+                text = stringResource(id = string.sdk_configuration),
+                style = AppTheme.typography.headlineSmall,
+                modifier = Modifier.padding(bottom = space.small)
+            )
+            DialogBody(
+                state = state,
+                extraCustomFieldModel = extraCustomFieldModel,
+                builtConfiguration = builtConfiguration,
+                onConfigurationSelected = onConfigurationSelected,
+                onDismiss = onDismiss
+                )
+           }
     }
 }
 
@@ -127,6 +120,9 @@ fun SdkConfigurationDialog(
 private fun DialogBody(
     state: SdkConfigurationState,
     extraCustomFieldModel: ExtraCustomFieldsViewModel,
+    builtConfiguration: SdkConfiguration?,
+    onConfigurationSelected: (SdkConfiguration) -> Unit,
+    onDismiss: () -> Unit,
 ) {
     val extraCustomerFields by extraCustomFieldModel.extraCustomerFieldsFlow.collectAsState()
     val extraContactFields by extraCustomFieldModel.extraContactFieldsFlow.collectAsState()
@@ -152,6 +148,36 @@ private fun DialogBody(
             onSet = extraCustomFieldModel::setContactCustomField,
             onRemove = extraCustomFieldModel::removeContactCustomField
         )
+
+        item {
+            Row(
+                horizontalArrangement = SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (state.configuration != null) {
+                    TextButton(
+                        modifier = Modifier.testTag("sdk_configuration_bottomsheet_cancel_button"),
+                        onClick = {
+                            onDismiss()
+                        }
+                    ) {
+                        Text(text = stringResource(string.cancel))
+                    }
+                }
+                TextButton(
+                    modifier = Modifier.testTag("sdk_configuration_bottomsheet_continue_button"),
+                    onClick = {
+                        builtConfiguration?.let {
+                            extraCustomFieldModel.save()
+                            onConfigurationSelected(it)
+                        }
+                    },
+                    enabled = builtConfiguration != null
+                ) {
+                    Text(text = stringResource(string.continue_button))
+                }
+            }
+        }
     }
 }
 
@@ -224,7 +250,7 @@ private fun ConfigurationSelector(
             .asSequence()
     Box(
         modifier
-            .border(1.dp, AppTheme.colorScheme.onBackground.copy(alpha = 0.50f), RoundedCornerShape(4.dp))
+            .border(1.dp, AppTheme.colorScheme.outline, RoundedCornerShape(4.dp))
     ) {
         DropdownField(
             modifier = Modifier
@@ -258,7 +284,7 @@ private fun EnvironmentSelector(
     Column(
         modifier
             .padding(top = space.medium)
-            .border(1.dp, AppTheme.colorScheme.onBackground.copy(alpha = 0.50f), RoundedCornerShape(4.dp))
+            .border(1.dp, AppTheme.colorScheme.outline, RoundedCornerShape(4.dp))
     ) {
         DropdownField(
             modifier = Modifier

@@ -26,19 +26,31 @@ import retrofit2.Callback
  * @param callback Callback which will be notified about result [Visitor] creation/update.
  */
 internal class ChatStoreVisitor(
-    origin: ChatWithParameters,
-    callback: Callback<Void>,
+    private val origin: ChatWithParameters,
+    private val callback: Callback<Void>,
 ) : ChatWithParameters by origin {
+
+    private val retryApiHandler = RetryApiHandler(maxRetries = 2, retryIntervalMs = 30_000L)
+
     init {
+        entrails.threading.background {
+            sendVisitorInfo()
+        }
+    }
+
+    private fun sendVisitorInfo() {
         val createOrUpdateVisitor = entrails.service.createOrUpdateVisitor(
             brandId = connection.brandId,
             visitorId = entrails.storage.visitorId.toString(),
             visitor = Visitor(connection, origin.storage.deviceToken)
         )
-        runCatching {
-            callback.onResponse(createOrUpdateVisitor, createOrUpdateVisitor.execute())
-        }.onFailure {
-            callback.onFailure(createOrUpdateVisitor, it)
-        }
+
+        val params = createVisitorRetryParams(createOrUpdateVisitor, callback, chatStateListener)
+        retryApiHandler.executeWithRetry(params.action, params.onSuccess, params.onFailure)
+    }
+
+    override fun close() {
+        retryApiHandler.cancel()
+        origin.close()
     }
 }

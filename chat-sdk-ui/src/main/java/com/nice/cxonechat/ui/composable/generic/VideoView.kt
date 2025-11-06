@@ -40,13 +40,13 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.ShareButton
 
 /**
- * A [CardDialog] for video which can be replaced with [FullscreenView] if the user,
+ * A FullScreen view for video which can be replaced with [FullscreenView] if the user,
  * toggles the fullscreen button.
  * The dialog is dismissed if the user click outside the view or taps the back button.
  * The fullscreen view is dismissed back to the dialog.
  *
  * @param uri The [Uri] of the video to be played.
- * @param title An optional title for the [CardDialog].
+ * @param title An optional title for the Activity while the composable is displayed.
  * @param onDismiss An action which will be triggered if the view is dismissed.
  * @param onShare An action which will be triggered if the share button is clicked.
  */

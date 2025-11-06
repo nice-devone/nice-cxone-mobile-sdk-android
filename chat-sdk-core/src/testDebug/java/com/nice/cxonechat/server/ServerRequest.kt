@@ -18,11 +18,15 @@
 package com.nice.cxonechat.server
 
 import com.nice.cxonechat.AbstractChatTestSubstrate.Companion.TestUUIDValue
+import com.nice.cxonechat.enums.EventType
 import com.nice.cxonechat.enums.EventType.RecoverLivechat
+import com.nice.cxonechat.enums.MessageContentType
 import com.nice.cxonechat.enums.VisitorEventType
 import com.nice.cxonechat.event.thread.EndContactEvent
+import com.nice.cxonechat.event.thread.PostbackEvent
 import com.nice.cxonechat.internal.model.AttachmentModel
 import com.nice.cxonechat.internal.model.CustomFieldModel
+import com.nice.cxonechat.internal.model.Thread
 import com.nice.cxonechat.internal.model.network.ActionArchiveThread
 import com.nice.cxonechat.internal.model.network.ActionAuthorizeCustomer
 import com.nice.cxonechat.internal.model.network.ActionCustomerTyping
@@ -41,6 +45,10 @@ import com.nice.cxonechat.internal.model.network.ActionSetContactCustomFields
 import com.nice.cxonechat.internal.model.network.ActionSetCustomerCustomFields
 import com.nice.cxonechat.internal.model.network.ActionStoreVisitorEvent
 import com.nice.cxonechat.internal.model.network.ActionUpdateThread
+import com.nice.cxonechat.internal.model.network.MessageContent
+import com.nice.cxonechat.internal.model.network.MessagePayload
+import com.nice.cxonechat.internal.model.network.Parameters
+import com.nice.cxonechat.internal.model.network.Payload
 import com.nice.cxonechat.internal.model.network.VisitorEvent
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyArchiveThread
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyAuthorizeConsumer
@@ -50,6 +58,7 @@ import com.nice.cxonechat.server.ServerRequestAssertions.verifyFetchThreadList
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyLoadMore
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyLoadThreadMetadata
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyMarkThreadRead
+import com.nice.cxonechat.server.ServerRequestAssertions.verifyPostbackMessage
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyReconnectConsumer
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyRecoverThread
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyRefreshToken
@@ -89,6 +98,26 @@ internal object ServerRequest {
     ).copy(eventId = TestUUIDValue)
         .serialize()
         .verifyLoadThreadMetadata()
+
+    fun PostbackEvent(connection: Connection, thread: ChatThread, postbackEvent: PostbackEvent): String = ActionMessage(
+        payload = Payload(
+            eventType = EventType.SendMessage,
+            connection = connection,
+            data = ActionMessage.Data(
+                thread = Thread(thread),
+                messageContent = MessageContent(
+                    type = MessageContentType.Postback,
+                    payload = MessagePayload(postbackEvent.text.orEmpty(), postbackEvent.postback),
+                    postback = postbackEvent.postback,
+                    parameters = null
+                ),
+                id = TestUUIDValue,
+                customerContact = null
+            )
+        )
+    ).copy(eventId = TestUUIDValue)
+        .serialize()
+        .verifyPostbackMessage()
 
     fun ArchiveThread(connection: Connection, thread: ChatThread): String = ActionArchiveThread(
         connection = connection,
@@ -157,6 +186,7 @@ internal object ServerRequest {
         fields: Map<String, String> = emptyMap(),
         attachments: List<AttachmentModel> = emptyList(),
         postback: String? = null,
+        parameters: Parameters? = null,
     ): String = ActionMessage(
         connection = connection,
         thread = thread,
@@ -166,6 +196,7 @@ internal object ServerRequest {
         fields = fields.map(::CustomFieldModel),
         token = storage.authToken,
         postback = postback,
+        parameters = parameters,
     ).copy(eventId = TestUUIDValue)
         .serialize()
         .verifySendMessage()

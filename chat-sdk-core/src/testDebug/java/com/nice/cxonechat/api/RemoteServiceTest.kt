@@ -139,7 +139,6 @@ internal class RemoteServiceTest {
         ).execute()
 
         assertEquals(1, recorder.requests.count())
-        val dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'z'"
 
         with(recorder.requests.first()) {
             assertEquals("POST", method)

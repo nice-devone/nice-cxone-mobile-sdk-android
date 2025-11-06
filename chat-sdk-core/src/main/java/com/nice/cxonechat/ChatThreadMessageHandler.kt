@@ -158,6 +158,15 @@ interface ChatThreadMessageHandler {
         fun onProcessed(id: UUID) = Unit
 
         /**
+         * Notifies about the message currently being processed.
+         *
+         * This method will always be called on the foreground thread.
+         *
+         * @param message The message that is currently being processed.
+         */
+        fun onProcessing(message: OutboundMessage) = Unit
+
+        /**
          * Notifies about the message being sent. This means that it was
          * dispatched from this device, but doesn't mean that is was
          * delivered to the server.
