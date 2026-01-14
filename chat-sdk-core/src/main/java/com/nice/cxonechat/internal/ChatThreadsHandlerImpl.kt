@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2026. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -40,11 +40,15 @@ import com.nice.cxonechat.state.validate
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState.Pending
 import com.nice.cxonechat.util.UUIDProvider
+import java.lang.ref.WeakReference
+import java.util.concurrent.CopyOnWriteArraySet
 
 internal class ChatThreadsHandlerImpl(
     private val chat: ChatWithParameters,
     override val preChatSurvey: PreChatSurvey?,
 ) : ChatThreadsHandler {
+
+    private val threadCreationListeners: MutableSet<ChatThreadHandler.OnThreadUpdatedListener> by lazy { CopyOnWriteArraySet() }
 
     override fun refresh() = Unit
 
@@ -68,29 +72,54 @@ internal class ChatThreadsHandlerImpl(
             fields = combinedCustomFieldMap.map(::CustomFieldInternal),
             threadState = Pending,
         )
-        return createHandler(thread, true)
+        val threadHandler = createHandler(thread, true)
+        threadCreationListeners.forEach { listener -> listener.onUpdated(thread = thread) }
+        return threadHandler
     }
 
     override fun threads(listener: ChatThreadsHandler.OnThreadsUpdatedListener): Cancellable {
-        var threads: List<ChatThreadMutable> = emptyList()
+        val threads: MutableList<ChatThreadMutable> = mutableListOf()
+        val weakRef = WeakReference(listener)
+        val onThreadCreatedListener = ChatThreadHandler.OnThreadUpdatedListener { chatThread ->
+            synchronized(threads) {
+                threads.add(ChatThreadMutable.from(chatThread))
+                weakRef.get()?.onThreadsUpdated(threads.toList())
+            }
+        }
+        threadCreationListeners.add(onThreadCreatedListener)
+        val unregisterOnCreatedListener = Cancellable {
+            threadCreationListeners.remove(onThreadCreatedListener)
+            weakRef.clear()
+        }
         val threadListFetched = chat.socketListener.addCallback(EventThreadListFetched) { event ->
-            threads = event.threads.map { threadData -> threadData.toChatThread().asMutable() }
-            listener.onThreadsUpdated(threads)
+            val newList = event.threads.map { threadData -> threadData.toChatThread().asMutable() }
+            val ids = newList.map(ChatThreadMutable::id)
+            synchronized(threads) {
+                val pending = threads.filter { it.threadState === Pending && it.id !in ids }
+                threads.clear()
+                threads.addAll(newList + pending)
+                listener.onThreadsUpdated(threads.toList())
+            }
         }
         if (chat.chatMode === SingleThread) {
-            return threadListFetched
+            return Cancellable(
+                unregisterOnCreatedListener,
+                threadListFetched
+            )
         }
         val threadArchived = chat.socketListener.addCallback(EventCaseStatusChanged) { event ->
-            threads.asSequence()
+            val threadCopy = synchronized(threads) { threads.toList() }
+            threadCopy.asSequence()
                 .filter(event::inThread)
                 .forEach { thread ->
                     CaseStatusChangedHandlerActions.handleCaseClosed(thread, event) { _ ->
-                        listener.onThreadsUpdated(threads)
+                        listener.onThreadsUpdated(threadCopy)
                     }
                 }
         }
 
         return Cancellable(
+            unregisterOnCreatedListener,
             threadListFetched,
             threadArchived
         )

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2026. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -122,6 +122,8 @@ internal data class Space(
     val attachmentPreviewSmallSize: DpSize = DpSize(width = 72.dp, height = 64.dp),
     /** Size of the icon used in the position in queue screen. */
     val positionInQueueIconSize: Dp = 56.dp,
+    /** Bottom padding for the header bar. */
+    val headerBarBottomPadding: Dp = 10.dp,
     /** Extra padding for the leading icon vector in the header bar. */
     val headerBarLeadingIconPadding: Dp = 11.2.dp,
     /** Size of the fallback thumbnail in the attachment preview - large variant. */

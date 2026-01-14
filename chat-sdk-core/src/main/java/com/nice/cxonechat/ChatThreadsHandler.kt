@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2026. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -109,8 +109,10 @@ interface ChatThreadsHandler {
      * _Please note that you have to perform this action on every new [ChatThreadsHandler]
      * as it exclusively remembers its own state._
      *
-     * The [ChatThreadsHandler] instance remembers at most one thread that contains no
+     * The [ChatThreadsHandler] instance remembers (the instance is memoized) at most one thread that contains no
      * messages (i.e. is not created on the server).
+     *
+     * Any registered listeners (via [threads] method) will be notified when the thread is created.
      *
      * @param customFields An initial map of custom-field key-values specific to this new thread.
      * These custom-fields can be used for personalization during thread creation
@@ -156,8 +158,10 @@ interface ChatThreadsHandler {
      * _Please note that you have to perform this action on every new [ChatThreadsHandler]
      * as it exclusively remembers its own state._
      *
-     * The [ChatThreadsHandler] instance remembers at most one thread that contains no
+     * The [ChatThreadsHandler] instance remembers (the instance is memoized) at most one thread that contains no
      * messages (i.e. is not created on the server).
+     *
+     * Any registered listeners (via [threads] method) will be notified when the thread is created.
      *
      * @param preChatSurveyResponse Iterable sequence of responses to items in [preChatSurvey].
      * The sequence has to contain responses to all items in [PreChatSurvey] which have the flag
@@ -205,8 +209,10 @@ interface ChatThreadsHandler {
      * _Please note that you have to perform this action on every new [ChatThreadsHandler]
      * as it exclusively remembers its own state._
      *
-     * The [ChatThreadsHandler] instance remembers at most one thread that contains no
+     * The [ChatThreadsHandler] instance remembers (the instance is memoized) at most one thread that contains no
      * messages (i.e. is not created on the server).
+     *
+     * Any registered listeners (via [threads] method) will be notified when the thread is created.
      *
      * @param customFields An initial map of custom-field key-values specific to this new thread.
      * These custom-fields can be used for personalization during thread creation

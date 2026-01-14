@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2026. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import com.nice.cxonechat.message.MessageDirection
 import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.R.plurals
 import com.nice.cxonechat.ui.R.string
-import com.nice.cxonechat.ui.UiModule.Companion.loggerName
+import com.nice.cxonechat.ui.UiModule.Companion.LOGGER_NAME
 import com.nice.cxonechat.ui.data.ChatNotificationManager
 import com.nice.cxonechat.ui.domain.model.Thread
 import com.nice.cxonechat.ui.screen.ChatActivity.Companion.buildOpenThreadIntent
@@ -52,7 +52,7 @@ import org.koin.core.annotation.Named
 internal class NotifyUpdateUseCase(
     private val context: Context,
     private val notificationManager: ChatNotificationManager,
-    @Named(loggerName) logger: Logger,
+    @Named(LOGGER_NAME) logger: Logger,
 ) : LoggerScope by LoggerScope(TAG, logger) {
 
     /**
@@ -123,6 +123,7 @@ internal class NotifyUpdateUseCase(
                 }
             }
         }
+
         is Message.Unsupported -> message.text
     }
 

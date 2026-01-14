@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2026. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -58,12 +58,12 @@ internal class LocalNotificationService : Service() {
     /** Storage for managing dismissed notification IDs. */
     private val valueStorage: ValueStorage by inject()
 
-    private val logger by lazy { LoggerScope(TAG, get(named(UiModule.loggerName))) }
+    private val logger by lazy { LoggerScope(TAG, get(named(UiModule.LOGGER_NAME))) }
 
     /**
      * This service does not support binding.
      */
-    override fun onBind(intent: Intent): IBinder? {
+    override fun onBind(intent: Intent): IBinder {
         throw UnsupportedOperationException("Called service is non-binding")
     }
 

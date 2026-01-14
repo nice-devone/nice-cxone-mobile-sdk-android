@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2026. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ import java.util.Date
 @Factory
 internal class AudioRecordingDataSource(
     private val context: Context,
-    @Named(UiModule.loggerName) logger: Logger,
+    @Named(UiModule.LOGGER_NAME) logger: Logger,
 ) : LoggerScope by LoggerScope(TAG, logger) {
 
     private var session: AudioRecordSession? = null

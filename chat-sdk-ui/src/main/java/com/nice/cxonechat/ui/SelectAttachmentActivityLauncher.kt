@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2026. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,16 @@ import androidx.activity.result.contract.ActivityResultContracts.CaptureVideo
 import androidx.activity.result.contract.ActivityResultContracts.GetMultipleContents
 import androidx.activity.result.contract.ActivityResultContracts.OpenMultipleDocuments
 import androidx.activity.result.contract.ActivityResultContracts.TakePicture
+import androidx.core.content.edit
+import androidx.core.net.toUri
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import com.nice.cxonechat.log.Logger
+import com.nice.cxonechat.log.LoggerScope
+import com.nice.cxonechat.log.debug
+import com.nice.cxonechat.log.scope
+import com.nice.cxonechat.log.timedScope
+import com.nice.cxonechat.log.warning
 import com.nice.cxonechat.ui.storage.TemporaryFileProvider
 import com.nice.cxonechat.ui.storage.TemporaryFileStorage
 import kotlinx.coroutines.Dispatchers
@@ -43,7 +51,8 @@ internal class SelectAttachmentActivityLauncher(
     private val temporaryFileStorage: TemporaryFileStorage,
     private val sendAttachments: (uris: List<Uri>) -> Unit,
     private val registry: ActivityResultRegistry,
-) : DefaultLifecycleObserver {
+    logger: Logger,
+) : DefaultLifecycleObserver, LoggerScope by LoggerScope<SelectAttachmentActivityLauncher>(logger) {
     private var getContent: ActivityResultLauncher<String>? = null
     private var getDocument: ActivityResultLauncher<Array<String>>? = null
 
@@ -54,60 +63,85 @@ internal class SelectAttachmentActivityLauncher(
     private var getMediaPicker: ActivityResultLauncher<PickVisualMediaRequest>? = null
 
     private var captureUri: Uri? = null
+    private val captureUriGuard = Any()
 
     override fun onCreate(owner: LifecycleOwner) {
-        getContent = registry.register(
-            key = "com.nice.cxonechat.ui.content",
-            lifecycleOwner = owner,
-            contract = GetMultipleContents(),
-            callback = sendAttachments
-        )
-        getDocument = registry.register(
-            key = "com.nice.cxonechat.ui.document",
-            lifecycleOwner = owner,
-            contract = OpenMultipleDocuments(),
-            callback = sendAttachments
-        )
-        takePhoto = registry.register(
-            key = "com.nice.cxonechat.ui.photo",
-            lifecycleOwner = owner,
-            contract = TakePicture(),
-            callback = ::captureCallback
-        )
-        captureVideo = registry.register(
-            key = "com.nice.cxonechat.ui.video",
-            lifecycleOwner = owner,
-            contract = CaptureVideo(),
-            callback = ::captureCallback
-        )
-        getMediaPicker = registry.register(
-            key = "com.nice.cxonechat.ui.media_picker",
-            lifecycleOwner = owner,
-            contract = ActivityResultContracts.PickMultipleVisualMedia(),
-            callback = sendAttachments
-        )
+        timedScope("onCreate") {
+            getContent = registry.register(
+                key = "com.nice.cxonechat.ui.content",
+                lifecycleOwner = owner,
+                contract = GetMultipleContents(),
+                callback = sendAttachments
+            )
+            getDocument = registry.register(
+                key = "com.nice.cxonechat.ui.document",
+                lifecycleOwner = owner,
+                contract = OpenMultipleDocuments(),
+                callback = sendAttachments
+            )
+            takePhoto = registry.register(
+                key = "com.nice.cxonechat.ui.photo",
+                lifecycleOwner = owner,
+                contract = TakePicture(),
+                callback = ::captureCallback
+            )
+            captureVideo = registry.register(
+                key = "com.nice.cxonechat.ui.video",
+                lifecycleOwner = owner,
+                contract = CaptureVideo(),
+                callback = ::captureCallback
+            )
+            getMediaPicker = registry.register(
+                key = "com.nice.cxonechat.ui.media_picker",
+                lifecycleOwner = owner,
+                contract = ActivityResultContracts.PickMultipleVisualMedia(),
+                callback = sendAttachments
+            )
+            Dispatchers.IO.asExecutor().execute(::restoreCaptureUri)
+            debug("SelectAttachmentActivityLauncher initialized")
+        }
     }
 
-    private fun captureCallback(success: Boolean) {
-        val uri = captureUri
+    private fun restoreCaptureUri() = scope("restoreCaptureUri") {
+        val sharedPreferences = context.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
+        synchronized(captureUriGuard) {
+            captureUri = sharedPreferences.getString(CAPTURE_URI_KEY, null)?.let { uriString ->
+                sharedPreferences.edit { remove(CAPTURE_URI_KEY) }
+                runCatching {
+                    uriString.toUri()
+                }.onSuccess {
+                    debug("CaptureUri restored")
+                }.getOrNull()
+            }
+        }
+    }
+
+    private fun captureCallback(success: Boolean) = timedScope("captureCallback") {
+        debug("Capture completed with success: $success")
+        val uri = synchronized(captureUriGuard) {
+            captureUri
+        }
         when {
             success && uri != null -> sendAttachments(listOf(uri))
             else -> sendAttachments(emptyList())
         }
     }
 
-    private fun createCaptureUri(prefix: String, suffix: String): Uri {
+    private fun createCaptureUri(prefix: String, suffix: String): Uri = scope("createCaptureUri") {
         val newFile = temporaryFileStorage.createCaptureFile(prefix, suffix)
         return if (newFile != null) {
             runCatching {
                 TemporaryFileProvider.getUriForFile(newFile, context)
+            }.onFailure {
+                warning("Failed to get uri from file provider")
             }.getOrDefault(Uri.EMPTY)
         } else {
+            warning("Failed to create temporary file for capture")
             Uri.EMPTY
         }
     }
 
-    override fun onDestroy(owner: LifecycleOwner) {
+    override fun onDestroy(owner: LifecycleOwner): Unit = timedScope("onDestroy") {
         getContent?.unregister()
         getContent = null
         getDocument?.unregister()
@@ -118,7 +152,18 @@ internal class SelectAttachmentActivityLauncher(
         captureVideo = null
         getMediaPicker?.unregister()
         getMediaPicker = null
-        captureUri = null
+        synchronized(captureUriGuard) {
+            captureUri?.let { uri ->
+                Dispatchers.IO.asExecutor().execute { storeCaptureUri(uri) }
+                captureUri = null
+            }
+        }
+    }
+
+    private fun storeCaptureUri(uri: Uri) = scope("storeCaptureUri") {
+        context.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE).edit {
+            putString(CAPTURE_URI_KEY, uri.toString())
+        }
     }
 
     /**
@@ -132,7 +177,7 @@ internal class SelectAttachmentActivityLauncher(
      * @param mimeTypes attachment types to find.
      *
      */
-    fun getDocument(mimeTypes: Array<String>) {
+    fun getDocument(mimeTypes: Array<String>) = scope("getDocument") {
         if (mimeTypes.size == 1) {
             getContent?.launch(mimeTypes[0])
         } else {
@@ -146,7 +191,7 @@ internal class SelectAttachmentActivityLauncher(
      *
      * @param mediumType The type of media to be selected (image, video, or both).
      */
-    fun pickMedia(mediumType: AttachmentType.MediaPicker) {
+    fun pickMedia(mediumType: AttachmentType.MediaPicker) = scope("pickMedia") {
         when (mediumType) {
             AttachmentType.Image ->
                 getMediaPicker?.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -163,22 +208,26 @@ internal class SelectAttachmentActivityLauncher(
      *
      * @param attachmentType The type of attachment to be captured or selected.
      */
-    fun getAttachment(attachmentType: AttachmentType) {
+    fun getAttachment(attachmentType: AttachmentType) = scope("getAttachment") {
         when (attachmentType) {
-            AttachmentType.CameraPhoto -> {
+            AttachmentType.CameraPhoto -> synchronized(captureUriGuard) {
                 captureUri = null
                 Dispatchers.IO.asExecutor().execute {
                     val uri = createCaptureUri("photo_", ".jpeg")
-                    captureUri = uri
+                    synchronized(captureUriGuard) {
+                        captureUri = uri
+                    }
                     takePhoto?.launch(uri)
                 }
             }
 
-            AttachmentType.CameraVideo -> {
+            AttachmentType.CameraVideo -> synchronized(captureUriGuard) {
                 captureUri = null
                 Dispatchers.IO.asExecutor().execute {
                     val uri = createCaptureUri("video_", ".mp4")
-                    captureUri = uri
+                    synchronized(captureUriGuard) {
+                        captureUri = uri
+                    }
                     captureVideo?.launch(uri)
                 }
             }
@@ -186,6 +235,11 @@ internal class SelectAttachmentActivityLauncher(
             is AttachmentType.MediaPicker -> pickMedia(attachmentType)
             is AttachmentType.File -> getDocument(attachmentType.mimeTypes)
         }
+    }
+
+    private companion object {
+        const val SHARED_PREF_NAME = "cxone_chat_attachment_prefs"
+        const val CAPTURE_URI_KEY = "capture_uri"
     }
 }
 

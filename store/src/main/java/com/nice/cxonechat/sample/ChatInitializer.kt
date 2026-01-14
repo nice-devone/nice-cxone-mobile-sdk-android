@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2026. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,21 @@ package com.nice.cxonechat.sample
 import android.content.Context
 import androidx.startup.Initializer
 import com.google.firebase.Firebase
+import com.google.firebase.crashlytics.crashlytics
+import com.google.firebase.crashlytics.setCustomKeys
 import com.google.firebase.messaging.messaging
 import com.nice.cxonechat.ChatInstanceProvider
 import com.nice.cxonechat.log.LoggerAndroid
+import com.nice.cxonechat.log.LoggerScope
 import com.nice.cxonechat.log.ProxyLogger
+import com.nice.cxonechat.log.debug
+import com.nice.cxonechat.log.duration
+import com.nice.cxonechat.log.scope
+import com.nice.cxonechat.log.verbose
 import com.nice.cxonechat.sample.data.models.ChatSettings
 import com.nice.cxonechat.sample.data.repository.ChatSettingsRepository
 import com.nice.cxonechat.sample.data.repository.UISettingsRepository
+import com.nice.cxonechat.sample.utilities.FileLogger
 import com.nice.cxonechat.sample.utilities.logging.FirebaseLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,29 +41,47 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 /** Automatic initialization of ChatInstanceProvider. */
-class ChatInitializer : Initializer<ChatInstanceProvider> {
-    override fun create(context: Context): ChatInstanceProvider {
-        /* set up the chat instance provider */
-        val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-        coroutineScope.launch { UISettingsRepository(context, coroutineScope).load() }
-        val settings:ChatSettings? = runBlocking {
-            ChatSettingsRepository(context, coroutineScope).load()
-        }
-        return ChatInstanceProvider.create(
-            configuration = settings?.sdkConfiguration?.asSocketFactoryConfiguration,
-            authorization = null,
-            userName = settings?.userName,
-            developmentMode = true,
-            deviceTokenProvider = { setToken ->
-                Firebase.messaging.token.addOnSuccessListener(setToken)
-            },
-            customerId = settings?.customerId,
-            logger = ProxyLogger(
-                FirebaseLogger(),
-                LoggerAndroid("CXoneChat")
+class ChatInitializer :
+    Initializer<ChatInstanceProvider>,
+    LoggerScope by LoggerScope<ChatInitializer>(StoreApplication.sampleAppLogger) {
+
+    override fun create(context: Context): ChatInstanceProvider = scope("create") {
+        duration {
+            /* set up the chat instance provider */
+            val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+            coroutineScope.launch {
+                verbose("Started async loading of UI settings")
+                UISettingsRepository(context, coroutineScope).load()
+            }
+            val settings: ChatSettings? = runBlocking {
+                ChatSettingsRepository(context, coroutineScope).load()
+            }
+            verbose("Settings loaded, starting ChatInstanceProvider creation: $settings")
+            Firebase.crashlytics.setCustomKeys {
+                key("environment", settings?.sdkConfiguration?.environment?.name ?: "null")
+                key("userName", settings?.userName?.fullName ?: "null")
+                key("customerId", settings?.customerId ?: "null")
+            }
+            val provider = ChatInstanceProvider.create(
+                configuration = settings?.sdkConfiguration?.asSocketFactoryConfiguration,
+                authorization = null,
+                userName = settings?.userName,
+                developmentMode = true,
+                deviceTokenProvider = { setToken ->
+                    Firebase.messaging.token.addOnSuccessListener(setToken)
+                },
+                customerId = settings?.customerId,
+                // SDK should use different logger then the app for readability and isolation
+                logger = ProxyLogger(
+                    FileLogger.getInstance(context),
+                    FirebaseLogger(),
+                    LoggerAndroid("CXoneChatSDK")
+                )
             )
-        )
+            debug("ChatInstanceProvider initialized")
+            provider
+        }
     }
 
-    override fun dependencies() = emptyList<Class<out Initializer<*>>>()
+    override fun dependencies(): List<Class<out Initializer<*>?>?> = listOf(FileLogInitializer::class.java)
 }

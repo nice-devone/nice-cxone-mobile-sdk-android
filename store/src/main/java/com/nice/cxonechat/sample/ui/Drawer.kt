@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2026. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
 
 package com.nice.cxonechat.sample.ui
 
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +32,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
@@ -38,10 +41,17 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import coil3.compose.AsyncImage
+import com.google.firebase.Firebase
+import com.google.firebase.crashlytics.crashlytics
+import com.nice.cxonechat.sample.LogFileProvider
 import com.nice.cxonechat.sample.R
 import com.nice.cxonechat.sample.R.string
 import com.nice.cxonechat.sample.extensions.manifestVersionName
 import com.nice.cxonechat.sample.ui.theme.AppTheme
+import com.nice.cxonechat.sample.utilities.FileLogger
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * The Composable to be displayed in the slide out drawer.
@@ -49,12 +59,14 @@ import com.nice.cxonechat.sample.ui.theme.AppTheme
  * @param onUiSettings function to display the UI Settings dialog.
  * @param onSdkSettings function to display the SDK Settings dialog.
  * @param onLogout function to logout on user request.
+ * @param close function to close the drawer.
  */
 @Composable
 fun Drawer(
     onUiSettings: () -> Unit,
     onSdkSettings: () -> Unit,
     onLogout: () -> Unit,
+    close: () -> Unit,
 ) {
     Column(
         Modifier
@@ -62,6 +74,7 @@ fun Drawer(
             .padding(AppTheme.space.defaultPadding)
     ) {
         val context = LocalContext.current
+        val coroutineScope = rememberCoroutineScope()
 
         Header()
         HorizontalDivider()
@@ -70,6 +83,13 @@ fun Drawer(
         Item(stringResource(string.sdk_settings), modifier = Modifier.testTag("sdk_settings"), onClick = onSdkSettings)
         HorizontalDivider()
         Item(stringResource(id = string.ui_settings), modifier = Modifier.testTag("ui_settings"), onClick = onUiSettings)
+        HorizontalDivider()
+        Item(modifier = Modifier.testTag("share_log"), text = "Share Log File", onClick = { coroutineScope.launch { shareLog(context) } })
+        HorizontalDivider()
+        Item(modifier = Modifier.testTag("log_exception"), text = "Log to Firebase", onClick = {
+            logNonFatal()
+            close()
+        })
         HorizontalDivider()
         Spacer(modifier = Modifier.weight(1f))
         HorizontalDivider()
@@ -93,6 +113,28 @@ private fun Header() {
     }
 }
 
+private suspend fun shareLog(context: Context) {
+    val file = withContext(Dispatchers.IO) {
+        FileLogger.getInstance(context).logFile
+    }
+    val url = withContext(Dispatchers.IO) {
+        LogFileProvider.getUriForFile(context = context, file = file)
+    }
+    context.grantUriPermission(context.packageName, url, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    val shareIntent = Intent().apply {
+        action = Intent.ACTION_SEND
+        putExtra(Intent.EXTRA_TITLE, "Send log file: ${file.name}")
+        putExtra(Intent.EXTRA_STREAM, url)
+        type = "text/plain"
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    context.startActivity(Intent.createChooser(shareIntent, "Share log file"))
+}
+
+private fun logNonFatal() {
+    Firebase.crashlytics.recordException(Exception("Non-fatal log from sample app"))
+}
+
 @Composable
 private fun Item(
     text: String,
@@ -114,7 +156,7 @@ private fun Item(
         }
         Text(text)
 
-        if(clickable) {
+        if (clickable) {
             Spacer(Modifier.weight(1f))
             Icon(Filled.KeyboardArrowRight, null)
         }
@@ -126,7 +168,7 @@ private fun Item(
 private fun DrawerPreview() {
     AppTheme {
         Column {
-            Drawer({}, {}, {})
+            Drawer({}, {}, {}, {})
         }
     }
 }

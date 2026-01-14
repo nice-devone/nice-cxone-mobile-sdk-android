@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2026. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,12 @@ import androidx.lifecycle.ViewModel
 import com.nice.cxonechat.ChatInstanceProvider
 import com.nice.cxonechat.ChatState
 import com.nice.cxonechat.exceptions.RuntimeChatException
+import com.nice.cxonechat.log.Logger
+import com.nice.cxonechat.log.LoggerScope
+import com.nice.cxonechat.log.scope
+import com.nice.cxonechat.log.timedScope
+import com.nice.cxonechat.log.verbose
+import com.nice.cxonechat.ui.UiModule
 import com.nice.cxonechat.ui.data.ChatErrorState
 import com.nice.cxonechat.ui.util.ErrorGroup
 import com.nice.cxonechat.ui.util.ErrorGroup.DO_NOTHING
@@ -27,6 +33,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.koin.android.annotation.KoinViewModel
+import org.koin.core.annotation.Named
 
 /**
  * ViewModel responsible for providing [Flow] of [ChatState].
@@ -34,12 +41,14 @@ import org.koin.android.annotation.KoinViewModel
 @KoinViewModel
 internal class ChatStateViewModel(
     private val chatInstanceProvider: ChatInstanceProvider,
-) : ViewModel() {
+    @Named(UiModule.LOGGER_NAME) logger: Logger,
+) : ViewModel(), LoggerScope by LoggerScope("ChatStateViewModel", logger) {
     private val internalState: MutableStateFlow<ChatState> = MutableStateFlow(chatInstanceProvider.chatState)
     private val providerListener = object : ChatInstanceProvider.Listener {
         override fun onChatStateChanged(chatState: ChatState) {
             internalState.value = chatState
         }
+
         override fun onChatRuntimeException(exception: RuntimeChatException) {
             handleChatRuntimeException(exception)
         }
@@ -57,18 +66,23 @@ internal class ChatStateViewModel(
             is RuntimeChatException.ServerCommunicationError -> ErrorGroup.LOW
             else -> DO_NOTHING
         }
-        _chatErrorState.value = ChatErrorState(errorGroup, exception.message)
+        setErrorState(ChatErrorState(errorGroup, exception.message))
     }
 
     internal fun resetError() {
-        _chatErrorState.value = noError
+        setErrorState(noError)
     }
 
     internal fun showError(errorGroup: ErrorGroup, message: String, title: String? = null) {
-        _chatErrorState.value = ChatErrorState(errorGroup, message, title)
+        setErrorState(ChatErrorState(errorGroup, message, title))
     }
 
-    override fun onCleared() {
+    private fun setErrorState(errorState: ChatErrorState) = scope("setErrorState") {
+        verbose("Setting error state: $errorState")
+        _chatErrorState.value = errorState
+    }
+
+    override fun onCleared() = timedScope("onCleared") {
         super.onCleared()
         chatInstanceProvider.removeListener(providerListener)
         internalState.value = ChatState.Initial

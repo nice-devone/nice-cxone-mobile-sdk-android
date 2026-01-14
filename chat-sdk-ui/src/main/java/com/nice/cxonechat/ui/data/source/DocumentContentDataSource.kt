@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2026. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import android.provider.OpenableColumns
 import android.webkit.MimeTypeMap
 import com.nice.cxonechat.ChatInstanceProvider
 import com.nice.cxonechat.message.ContentDescriptor
+import com.nice.cxonechat.state.FileRestrictions
 import kotlinx.coroutines.runInterruptible
 import org.koin.core.annotation.Single
 import java.util.UUID
@@ -83,9 +84,15 @@ internal class DocumentContentDataSource(
     }
 
     private fun getFileRestrictions(): Regex {
-        val rawRegex = chatInstanceProvider.chat?.configuration?.fileRestrictions?.allowedFileTypes?.map {
-            it.mimeType
-        }
+        val rawRegex = chatInstanceProvider.chat
+            ?.configuration
+            ?.fileRestrictions
+            ?.let { restrictions ->
+                restrictions.allowedFileTypes
+                    .takeIf { restrictions.isAttachmentsEnabled }
+                    .orEmpty()
+                    .map(FileRestrictions.AllowedFileType::mimeType)
+            }
             .orEmpty()
             .filter { acceptedMimeTypes.matches(it) }
             .joinToString("|", prefix = "(", postfix = ")")

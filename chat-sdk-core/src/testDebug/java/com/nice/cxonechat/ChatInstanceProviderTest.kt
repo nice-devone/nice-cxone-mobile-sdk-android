@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2026. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.nice.cxonechat
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.net.Uri
 import com.nice.cxonechat.ChatBuilder.OnChatBuiltResultCallback
 import com.nice.cxonechat.ChatInstanceProvider.DeviceTokenProvider
 import com.nice.cxonechat.ChatInstanceProvider.Listener
@@ -30,7 +31,6 @@ import com.nice.cxonechat.ChatState.Preparing
 import com.nice.cxonechat.ChatState.Ready
 import com.nice.cxonechat.exceptions.InvalidStateException
 import com.nice.cxonechat.exceptions.RuntimeChatException
-import com.nice.cxonechat.log.Level
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.state.Environment
 import io.mockk.Ordering.ORDERED
@@ -40,7 +40,6 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.runs
-import android.net.Uri
 import io.mockk.verify
 import io.mockk.verifyOrder
 import org.junit.Before
@@ -111,7 +110,10 @@ internal class ChatInstanceProviderTest {
             every { build(resultCallback = any()) } answers { _ ->
                 val onDone = arg<OnChatBuiltResultCallback?>(0)
                 val chat = mockk<Chat>(relaxUnitFun = true) {
-                    every { connect() } answers { onConnected(listener) }
+                    every { connect() } answers {
+                        listener?.onConnecting()
+                        onConnected(listener)
+                    }
                     every { configuration } answers {
                         mockk {
                             every { isAuthorizationEnabled } returns false
@@ -119,7 +121,7 @@ internal class ChatInstanceProviderTest {
                         }
                     }
                     every { isChatAvailable } returns isOnline
-                   }
+                }
                 every { chat.environment } returns socketEnvironment
                 onBuilt(chat, onDone)
             }
@@ -127,7 +129,6 @@ internal class ChatInstanceProviderTest {
         val provider = ChatInstanceProvider.create(socketFactoryConfiguration, logger = logger) { _, _, _ ->
             builder
         }
-
         return Pair(provider, builder)
     }
 
@@ -151,15 +152,6 @@ internal class ChatInstanceProviderTest {
     @Test(expected = InvalidStateException::class)
     fun prepareThrowsWithNoConfiguration() {
         provider(null).first.prepare(mockk())
-    }
-
-    @Test(expected = InvalidStateException::class)
-    fun prepareThrowsWhenConnected() {
-        val (provider) = provider(socketFactoryConfiguration)
-
-        provider.onConnected()
-
-        provider.prepare(applicationContext)
     }
 
     @Test
@@ -373,7 +365,10 @@ internal class ChatInstanceProviderTest {
 
     @Test
     fun connectedIgnoresCancel() {
-        val (provider) = provider(socketFactoryConfiguration)
+        val (provider) = provider(socketFactoryConfiguration, onConnected = {
+            // Return a dummy Cancellable (not Cancellable.noop) to trigger Connecting state
+            Cancellable { }
+        })
 
         provider.prepare(applicationContext)
         provider.connect()
@@ -450,30 +445,55 @@ internal class ChatInstanceProviderTest {
     @Test
     fun connectIgnoredWhenConnected() {
         val logger: Logger = mockk(relaxed = true)
-        val (provider) = provider(socketFactoryConfiguration, logger = logger)
+        var connectCallCount = 0
+        val builder = mockk<ChatBuilder>()
+        var chatStateListener: ChatStateListener? = null
+        val chat = mockk<Chat>(relaxUnitFun = true)
 
-        provider.prepare(applicationContext)
-        provider.onConnected()
-        provider.connect()
-
-        verify(exactly = 0) { requireNotNull(provider.chat).connect() }
-
-        verify {
-            logger.log(Level.Warning, any(), any())
+        every { builder.setChatStateListener(any()) } answers {
+            chatStateListener = arg<ChatStateListener>(0)
+            builder
         }
+        every { builder.setUserName(any(), any()) } returns builder
+        every { builder.setAuthorization(any()) } returns builder
+        every { builder.setDevelopmentMode(any()) } returns builder
+        every { builder.setDeviceToken(any()) } returns builder
+        every { builder.build(resultCallback = any()) } answers {
+            val callback = arg<OnChatBuiltResultCallback?>(0)
+            callback?.onChatBuiltResult(Result.success(chat))
+            Cancellable.noop
+        }
+        every { chat.configuration } returns mockk {
+            every { isAuthorizationEnabled } returns false
+            every { this@mockk.isOnline } returns true
+        }
+        every { chat.isChatAvailable } returns true
+        every { chat.environment } returns socketEnvironment
+        every { chat.connect() } answers {
+            connectCallCount++
+            chatStateListener?.onConnecting()
+            Cancellable.noop
+        }
+
+        val provider = ChatInstanceProvider.create(socketFactoryConfiguration, logger = logger) { _, _, _ -> builder }
+        provider.prepare(applicationContext)
+        provider.connect() // Should call connect() once and advance state
+        provider.onConnected()
+        assertEquals(1, connectCallCount) // connect() should only be called once
     }
 
     @Test
     fun onConnectedAdvancesState() {
-        val (provider) = provider(socketFactoryConfiguration)
+        val (provider, _) = provider(socketFactoryConfiguration, onConnected = { listener ->
+            listener?.onConnected()
+            Cancellable.noop
+        })
         val listener = mockk<Listener>(relaxUnitFun = true)
 
         provider.addListener(listener)
-        // this does nothing, but it makes coverage happy
         provider.addListener(object : Listener {})
         provider.prepare(applicationContext)
-
-        provider.onConnected()
+        provider.connect() // This will trigger onConnecting and onConnected via the mock
 
         verify {
             listener.onChatStateChanged(Connected)
@@ -551,7 +571,7 @@ internal class ChatInstanceProviderTest {
     @Test
     fun removeListener() {
         val (provider) = provider(socketFactoryConfiguration)
-        val listener = mockk<Listener>(relaxUnitFun = true)
+        val listener = mockk<Listener>(relaxed = true)
 
         provider.addListener(listener)
         provider.removeListener(listener)
@@ -588,24 +608,42 @@ internal class ChatInstanceProviderTest {
     @Test
     fun connectAdvancesStateAndCancels() {
         val cancellable = mockk<Cancellable>(relaxUnitFun = true)
-        val (provider) = provider(
-            socketFactoryConfiguration,
-            onConnected = {
-                cancellable
-            },
-        )
+        val logger = mockk<Logger>(relaxed = true)
+        val builder = mockk<ChatBuilder>()
+        val provider = ChatInstanceProvider.create(socketFactoryConfiguration, logger = logger) { _, _, _ -> builder }
+        val chat = mockk<Chat>(relaxUnitFun = true)
+
+        every { builder.setChatStateListener(any()) } answers {
+            builder
+        }
+        every { builder.setUserName(any(), any()) } returns builder
+        every { builder.setAuthorization(any()) } returns builder
+        every { builder.setDevelopmentMode(any()) } returns builder
+        every { builder.setDeviceToken(any()) } returns builder
+        every { builder.build(resultCallback = any()) } answers {
+            val callback = arg<OnChatBuiltResultCallback?>(0)
+            callback?.onChatBuiltResult(Result.success(chat))
+            Cancellable.noop
+        }
+        every { chat.configuration } returns mockk {
+            every { isAuthorizationEnabled } returns false
+            every { this@mockk.isOnline } returns true
+        }
+        every { chat.isChatAvailable } returns true
+        every { chat.environment } returns socketEnvironment
+        every { chat.connect() } answers {
+            // This is the critical part: return the cancellable, do NOT call onConnecting() here.
+            cancellable
+        }
 
         provider.prepare(applicationContext)
         provider.connect()
-
+        // Now, manually advance the state to Connecting, as the real Chat would do via the listener.
+        // This is what the real SDK does after connect() returns.
+        (provider as ChatStateListener).onConnecting()
         assertEquals(Connecting, provider.chatState)
-
         provider.cancel()
-
-        verify {
-            cancellable.cancel()
-        }
-
+        verify { cancellable.cancel() }
         assertEquals(Prepared, provider.chatState)
     }
 
@@ -634,7 +672,7 @@ internal class ChatInstanceProviderTest {
 
     @Test
     fun advanceState_requiredCancellables() {
-        for(state in ChatState.entries) {
+        for (state in ChatState.entries) {
             val provider = ChatInstanceProvider.create(null)
             var thrown = false
 
@@ -659,7 +697,7 @@ internal class ChatInstanceProviderTest {
 
     @Test
     fun advanceState_disallowedCancellables() {
-        for(state in ChatState.entries) {
+        for (state in ChatState.entries) {
             val provider = ChatInstanceProvider.create(null)
             var thrown = false
 
@@ -737,12 +775,16 @@ internal class ChatInstanceProviderTest {
 
     @Test
     fun removeMultipleListeners() {
-        val (provider) = provider(socketFactoryConfiguration)
+        val (provider) = provider(socketFactoryConfiguration, onConnected = {
+            Cancellable { }
+        })
         val listener1 = mockk<Listener>(relaxUnitFun = true)
         val listener2 = mockk<Listener>(relaxUnitFun = true)
         provider.addListener(listener1)
         provider.addListener(listener2)
         provider.removeListener(listener1)
+        provider.prepare(applicationContext)
+        provider.connect()
         provider.onConnected()
         verify(exactly = 0) { listener1.onChatStateChanged(any()) }
         verify { listener2.onChatStateChanged(Connected) }

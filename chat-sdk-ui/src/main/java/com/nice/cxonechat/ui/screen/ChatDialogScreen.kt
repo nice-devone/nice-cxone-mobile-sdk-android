@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2026. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,18 @@
 package com.nice.cxonechat.ui.screen
 
 import android.os.Build
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -43,7 +42,6 @@ import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.generic.describe
 import com.nice.cxonechat.ui.composable.theme.Alert
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
-import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.domain.model.prechat.PreChatResponse
 import com.nice.cxonechat.ui.viewmodel.ChatViewModel.DialogState
 import com.nice.cxonechat.ui.viewmodel.ChatViewModel.DialogState.None
@@ -113,21 +111,23 @@ private fun PreparingDialog(
 ) {
     Dialog(
         onDismissRequest = cancelAction,
-        properties = DialogProperties(dismissOnClickOutside = false)
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false,
+            dismissOnClickOutside = false
+        )
     ) {
         val loading = stringResource(string.loading)
-        Card(
-            shape = ChatTheme.shapes.large,
-            colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        Box(
             modifier = modifier
+                .fillMaxSize()
                 .testTag("preparing_dialog")
                 .semantics {
                     contentDescription = loading
                 },
+            contentAlignment = Alignment.Center
         ) {
-            Column(modifier.padding(space.xxl)) {
-                LoadingContent(cancelAction)
-            }
+            LoadingContent(cancelAction)
         }
     }
 }

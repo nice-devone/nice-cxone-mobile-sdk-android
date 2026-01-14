@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2026. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,9 @@ import androidx.lifecycle.viewModelScope
 import com.nice.cxonechat.Chat
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerScope
+import com.nice.cxonechat.log.scope
 import com.nice.cxonechat.log.timedScope
+import com.nice.cxonechat.log.verbose
 import com.nice.cxonechat.log.warning
 import com.nice.cxonechat.prechat.PreChatSurvey
 import com.nice.cxonechat.thread.ChatThread
@@ -77,7 +79,7 @@ internal class ChatThreadsViewModel(
     private val chat: Chat,
     private val selectedThreadRepository: SelectedThreadRepository,
 ) : ViewModel() {
-    private val logger = LoggerScope(TAG, get(Logger::class.java, named(UiModule.loggerName)))
+    private val logger = LoggerScope(TAG, get(Logger::class.java, named(UiModule.LOGGER_NAME)))
     private val uiCustomerFieldsProvider: UiCustomFieldsProvider by inject(
         clazz = UiCustomFieldsProvider::class.java,
         qualifier = named(CustomFieldProviderType.Customer),
@@ -160,7 +162,7 @@ internal class ChatThreadsViewModel(
         }
     }
 
-    private fun isThreadUpdated(chatThread: Thread): Boolean {
+    private fun isThreadUpdated(chatThread: Thread): Boolean = logger.timedScope("isThreadUpdated(${chatThread.id})") {
         val previousThreadsValue = threads.value
         val chatThreadHandler = selectedThreadRepository.chatThreadHandler
         if (
@@ -187,12 +189,14 @@ internal class ChatThreadsViewModel(
         name = chatThread.threadOrAgentName(isMultiThreadEnabled)
     )
 
-    internal fun resetState() {
+    internal fun resetState() = logger.scope("resetState") {
         internalState.value = Initial
+        verbose("State reset to Initial")
     }
 
-    internal fun resetCreateThreadState() {
+    internal fun resetCreateThreadState() = logger.scope("resetCreateThreadState") {
         createThreadFailure.value = null
+        verbose("Create thread failure reset to null")
     }
 
     internal fun createThread() = logger.timedScope("createThread") {
@@ -289,11 +293,13 @@ internal class ChatThreadsViewModel(
         threadsHandler.refresh()
     }
 
-    internal fun dismissDialog() {
+    internal fun dismissDialog() = logger.scope("dismissDialog") {
+        verbose("Dismissing dialog: ${showDialog.value}")
         showDialog.value = Dialog.None
     }
 
-    internal fun editThreadName(thread: Thread) {
+    internal fun editThreadName(thread: Thread) = logger.scope("editThreadName") {
+        verbose("Showing edit thread name dialog")
         showDialog.value = Dialog.EditThreadName(thread)
     }
 

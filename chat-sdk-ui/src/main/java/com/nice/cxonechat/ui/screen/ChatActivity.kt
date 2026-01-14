@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2026. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,10 @@ import com.nice.cxonechat.ChatState.Ready
 import com.nice.cxonechat.Public
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerScope
+import com.nice.cxonechat.log.duration
+import com.nice.cxonechat.log.error
+import com.nice.cxonechat.log.scope
+import com.nice.cxonechat.ui.AttachmentType
 import com.nice.cxonechat.ui.R.anim
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.SelectAttachmentActivityLauncher
@@ -81,17 +85,23 @@ import com.nice.cxonechat.ui.screen.Screen.Offline
 import com.nice.cxonechat.ui.screen.Screen.ThreadList
 import com.nice.cxonechat.ui.screen.Screen.ThreadScreen
 import com.nice.cxonechat.ui.storage.ValueStorage
+import com.nice.cxonechat.ui.storage.ValueStorage.Companion.getStringSet
 import com.nice.cxonechat.ui.storage.ValueStorage.Companion.removeFromStringSet
+import com.nice.cxonechat.ui.storage.ValueStorage.Companion.setStringSet
 import com.nice.cxonechat.ui.storage.ValueStorage.StringKey.RequestedPermissionsKey
 import com.nice.cxonechat.ui.util.ErrorGroup
 import com.nice.cxonechat.ui.util.ErrorGroup.LOW
+import com.nice.cxonechat.ui.util.PermissionState.DENIED
+import com.nice.cxonechat.ui.util.PermissionState.GRANTED
+import com.nice.cxonechat.ui.util.PermissionState.NOT_DECLARED
 import com.nice.cxonechat.ui.util.applyFixesForKeyboardInput
 import com.nice.cxonechat.ui.util.checkNotificationPermissions
+import com.nice.cxonechat.ui.util.getPermissionState
 import com.nice.cxonechat.ui.util.koinActivityViewModel
 import com.nice.cxonechat.ui.util.overrideCloseAnimation
 import com.nice.cxonechat.ui.util.overrideOpenAnimation
 import com.nice.cxonechat.ui.util.repeatOnOwnerLifecycle
-import com.nice.cxonechat.ui.util.showCancellableSnackbar
+import com.nice.cxonechat.ui.util.showRationale
 import com.nice.cxonechat.ui.viewmodel.AudioRecordingViewModel
 import com.nice.cxonechat.ui.viewmodel.ChatStateViewModel
 import com.nice.cxonechat.ui.viewmodel.ChatThreadViewModel
@@ -125,13 +135,15 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
     internal val chatStateViewModel: ChatStateViewModel by viewModel()
     private val requestPermissionLauncher: ActivityResultLauncher<String> = getNotificationRequestResult()
     private val audioRequestPermissionLauncher = getAudioRequestResult()
+    private val cameraRequestPermissionLauncher = getCameraRequestResult()
+    internal var pendingAttachmentType: AttachmentType? = null
 
     override val scope by activityScope()
 
     private val audioRecordingManager: AudioRecordingManager by inject(parameters = { parametersOf(audioViewModel, chatStateViewModel) })
 
-    private val loggerScope: LoggerScope by lazy {
-        LoggerScope("ChatActivity", get<Logger>(named(UiModule.loggerName)))
+    internal val loggerScope: LoggerScope by lazy {
+        LoggerScope("ChatActivity", get<Logger>(named(UiModule.LOGGER_NAME)))
     }
 
     private val chatAttachmentHandler by inject<ChatAttachmentHandler>(
@@ -149,38 +161,56 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
     @Suppress(
         "LateinitUsage" // Explicitly initialized in onCreate to avoid hidden side effects
     )
-    private lateinit var activityLauncher: SelectAttachmentActivityLauncher
+    internal lateinit var activityLauncher: SelectAttachmentActivityLauncher
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) = loggerScope.scope("onCreate") {
         super.onCreate(savedInstanceState)
-        applyFixesForKeyboardInput()
-        // Explicit initialization and registration of activityLauncher
-        activityLauncher = SelectAttachmentActivityLauncher(
-            context = application,
-            temporaryFileStorage = get(),
-            sendAttachments = chatAttachmentHandler::addAttachment,
-            registry = activityResultRegistry
-        ).also(lifecycle::addObserver)
-        setupComposableUi()
-        repeatOnOwnerLifecycle { chatDeeplinkHandler.handleDeeplink(intent) }
+        duration {
+            applyFixesForKeyboardInput()
+            // Explicit initialization and registration of activityLauncher
+            activityLauncher = SelectAttachmentActivityLauncher(
+                context = application,
+                temporaryFileStorage = get(),
+                sendAttachments = { attachment ->
+                    lifecycleScope.launch {
+                        runCatching {
+                            chatAttachmentHandler.addAttachment(attachment)
+                        }.onFailure { error ->
+                            loggerScope.error("Failed to add attachment", error)
+                            // Optionally, show a user-facing error here
+                        }
+                    }
+                },
+                registry = activityResultRegistry,
+                logger = get<Logger>(named(UiModule.LOGGER_NAME))
+            ).also(lifecycle::addObserver)
+            setupComposableUi()
+            repeatOnOwnerLifecycle { chatDeeplinkHandler.handleDeeplink(intent) }
+        }
     }
 
-    override fun onNewIntent(intent: Intent) {
+    override fun onNewIntent(intent: Intent) = loggerScope.scope("onNewIntent") {
         super.onNewIntent(intent)
-        repeatOnOwnerLifecycle { chatDeeplinkHandler.handleDeeplink(intent) }
+        duration {
+            repeatOnOwnerLifecycle { chatDeeplinkHandler.handleDeeplink(intent) }
+        }
     }
 
-    override fun onPause() {
+    override fun onPause() = loggerScope.scope("onPause") {
         super.onPause()
-        chatViewModel.close()
+        duration {
+            chatViewModel.close()
+        }
     }
 
-    override fun onDestroy() {
+    override fun onDestroy() = loggerScope.scope("onDestroy") {
         super.onDestroy()
-        val atd = inject<AttachmentDataSource>()
-        repeatOnOwnerLifecycle(state = DESTROYED) {
-            if (atd.isInitialized()) {
-                atd.value.clearCache()
+        duration {
+            val atd = inject<AttachmentDataSource>()
+            repeatOnOwnerLifecycle(state = DESTROYED) {
+                if (atd.isInitialized()) {
+                    atd.value.clearCache()
+                }
             }
         }
     }
@@ -195,40 +225,36 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
         }
     }
 
-    override fun finish() {
+    override fun finish() = loggerScope.scope("finish") {
         super.finish()
-        overrideCloseAnimation(anim.dismiss_host, anim.dismiss_chat)
+        duration {
+            overrideCloseAnimation(anim.dismiss_host, anim.dismiss_chat)
+        }
     }
 
-    private fun setupComposableUi() {
-        enableEdgeToEdge()
-        setContent {
-            ChatTheme {
-                val snackbarHostState = remember { SnackbarHostState() }
-                HandleEarlyChatState(snackbarHostState) { chatState ->
-                    ChatUi(chatState, snackbarHostState)
+    private fun setupComposableUi() = loggerScope.scope("setupComposableUi") {
+        duration {
+            enableEdgeToEdge()
+            setContent {
+                ChatTheme {
+                    val snackbarHostState = remember { SnackbarHostState() }
+                    HandleEarlyChatState { chatState ->
+                        ChatUi(chatState, snackbarHostState)
+                    }
                 }
             }
         }
     }
 
     @Composable
-    private fun HandleEarlyChatState(snackbarHostState: SnackbarHostState, onChatReady: @Composable (ChatState) -> Unit) {
+    private fun HandleEarlyChatState(onChatReady: @Composable (ChatState) -> Unit) {
         val state by chatStateViewModel.state.collectAsState()
         val context = LocalContext.current
         when (state) {
             // if the chat isn't prepared yet, prepare it.  Hopefully it's been
             // configured by the provider.
             Initial, Preparing -> LaunchedEffect(state) {
-                snackbarHostState.currentSnackbarData?.dismiss()
-                if (state == Initial) {
-                    chatViewModel.prepare(context)
-                }
-                snackbarHostState.showCancellableSnackbar(
-                    message = context.getString(string.preparing_sdk),
-                    actionLabel = context.getString(string.cancel),
-                    onAction = ::finish,
-                )
+                chatViewModel.prepare(context)
             }
 
             else -> onChatReady(state)
@@ -288,6 +314,7 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
                     launchSingleTop = true
                     restoreState = true
                 }
+                chatViewModel.onReady()
             },
             onOfflineAction = { navController.navigate(Offline) }
         )
@@ -357,6 +384,23 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
         @Composable
         private fun ChatActivity.ThreadView(snackbarHostState: SnackbarHostState) {
             val chatThreadViewModel: ChatThreadViewModel = koinActivityViewModel()
+            val onAttachmentSelection: (AttachmentType) -> Unit = { attachmentType ->
+                // Check if camera permission is needed for this attachment type
+                if (attachmentType is AttachmentType.CaptureMedia) {
+                    withCameraPermission(
+                        onGranted = {
+                            activityLauncher.getAttachment(attachmentType)
+                        },
+                        onRequest = {
+                            pendingAttachmentType = attachmentType
+                            cameraRequestPermissionLauncher.launch(permission.CAMERA)
+                        }
+                    )
+                } else {
+                    // Non-camera attachment types don't need camera permission
+                    activityLauncher.getAttachment(attachmentType)
+                }
+            }
             ThreadContentView(
                 onAttachmentClicked = remember { { chatAttachmentHandler.onAttachmentClicked(this, it) } },
                 onShare = remember {
@@ -381,7 +425,7 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
                 chatThreadViewModel = chatThreadViewModel,
                 chatViewModel = chatViewModel,
                 audioViewModel = audioViewModel,
-                activityLauncher = activityLauncher,
+                onAttachmentTypeSelection = remember { { onAttachmentSelection(it) } },
                 snackBarHostState = snackbarHostState
             )
             val chatThreadsState by chatThreadsViewModel.state.collectAsState()
@@ -413,6 +457,60 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
             uri: Uri,
         ) = Intent(Intent.ACTION_VIEW, uri, context, ChatActivity::class.java)
     }
+}
+
+/**
+ * Checks camera permission status and executes the appropriate callback.
+ *
+ * This function handles the camera permission flow by checking the current permission state
+ * and either executing the granted callback, showing a rationale dialog, or requesting the permission.
+ * It also handles the edge case where the CAMERA permission is not declared in the manifest.
+ *
+ * @param onGranted Callback to execute when the camera permission is already granted.
+ * @param onRequest Callback to execute when the permission needs to be requested from the user.
+ */
+private fun ChatActivity.withCameraPermission(onGranted: () -> Unit, onRequest: () -> Unit) =
+    lifecycleScope.launch {
+        loggerScope.scope("checkCameraPermission") {
+            when (getPermissionState(permission.CAMERA)) {
+                GRANTED -> onGranted()
+                DENIED -> if (shouldShowRequestPermissionRationale(permission.CAMERA)) {
+                    showRationale(string.camera_permission_rationale, onRequest)
+                } else {
+                    if (requestCameraPermission()) {
+                        onRequest()
+                    } else {
+                        // Permission was requested and the user has repeatedly denied the request, show error
+                        chatStateViewModel.showError(
+                            errorGroup = ErrorGroup.LOW_SPECIFIC,
+                            message = getString(string.camera_permission_denied_body),
+                            title = getString(string.camera_permission_denied_title)
+                        )
+                    }
+                }
+
+                NOT_DECLARED -> runCatching {
+                    // Permission not declared - try anyway with defensive error handling
+                    onGranted()
+                }.onFailure { throwable ->
+                    error("Failed to launch intent requiring CAMERA permission without it being declared", throwable)
+                    chatStateViewModel.showError(
+                        errorGroup = ErrorGroup.LOW_SPECIFIC,
+                        message = getString(string.camera_permission_denied_body),
+                        title = getString(string.camera_permission_denied_title)
+                    )
+                }
+            }
+        }
+    }
+
+private suspend fun ChatActivity.requestCameraPermission(): Boolean {
+    val requestedPermissions = valueStorage.getStringSet(RequestedPermissionsKey)
+    val isFirstRequest = !requestedPermissions.contains(permission.CAMERA)
+    if (isFirstRequest) {
+        valueStorage.setStringSet(RequestedPermissionsKey, requestedPermissions + permission.CAMERA)
+    }
+    return isFirstRequest
 }
 
 /**
@@ -454,6 +552,32 @@ private fun ChatActivity.getAudioRequestResult() =
                 errorGroup = ErrorGroup.LOW_SPECIFIC,
                 message = getString(string.recording_audio_permission_denied_body),
                 title = getString(string.recording_audio_permission_denied_title)
+            )
+        }
+    }
+
+/**
+ * Register for camera permission request result.
+ *
+ * This function sets up an activity result launcher that will handle the result of the camera permission request.
+ * If the permission is granted, it launches the camera activity immediately. If not granted, it shows a dialog
+ * informing the user about the denied permission.
+ */
+private fun ChatActivity.getCameraRequestResult() =
+    registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+        if (isGranted) {
+            lifecycleScope.launch(Dispatchers.Default) {
+                valueStorage.removeFromStringSet(RequestedPermissionsKey, setOf(permission.CAMERA))
+            }
+            // Launch the camera activity immediately if pending
+            pendingAttachmentType?.let { activityLauncher.getAttachment(it) }
+            pendingAttachmentType = null
+        } else {
+            pendingAttachmentType = null
+            chatStateViewModel.showError(
+                errorGroup = ErrorGroup.LOW_SPECIFIC,
+                message = getString(string.camera_permission_denied_body),
+                title = getString(string.camera_permission_denied_title)
             )
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2026. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,13 @@ import com.nice.cxonechat.ChatThreadEventHandlerActions.triggerAction
 import com.nice.cxonechat.ChatThreadEventHandlerActions.typingEnd
 import com.nice.cxonechat.ChatThreadEventHandlerActions.typingStart
 import com.nice.cxonechat.ChatThreadMessageHandler.OnMessageTransferListener
+import com.nice.cxonechat.log.Logger
+import com.nice.cxonechat.log.LoggerScope
+import com.nice.cxonechat.log.debug
+import com.nice.cxonechat.log.scope
+import com.nice.cxonechat.log.timedScope
+import com.nice.cxonechat.log.verbose
+import com.nice.cxonechat.log.warning
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.message.ContentDescriptor
 import com.nice.cxonechat.message.MessageAuthor
@@ -38,6 +45,7 @@ import com.nice.cxonechat.prechat.PreChatSurvey
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState
 import com.nice.cxonechat.thread.CustomField
+import com.nice.cxonechat.ui.UiModule
 import com.nice.cxonechat.ui.api.CustomFieldProviderType
 import com.nice.cxonechat.ui.api.UiCustomFieldsProvider
 import com.nice.cxonechat.ui.data.flow
@@ -86,6 +94,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.annotation.KoinViewModel
+import org.koin.core.annotation.Named
 import org.koin.core.qualifier.named
 import org.koin.java.KoinJavaComponent.inject
 import java.lang.ref.WeakReference
@@ -103,7 +112,8 @@ internal class ChatThreadViewModel(
     private val contentDataSource: ContentDataSourceList,
     private val selectedThreadRepository: SelectedThreadRepository,
     private val chat: Chat,
-) : ViewModel() {
+    @Named(UiModule.LOGGER_NAME) logger: Logger,
+) : ViewModel(), LoggerScope by LoggerScope("ChatThreadViewModel", logger) {
     private val threads by lazy { chat.threads() }
 
     private val uiCustomFieldsProvider: UiCustomFieldsProvider by inject(
@@ -266,18 +276,19 @@ internal class ChatThreadViewModel(
         }
     }
 
-    fun refresh() {
+    fun refresh() = timedScope("refresh") {
         viewModelScope.launch {
             chatThreadHandler.first().refresh()
         }
     }
 
-    fun sendMessageWithAttachments(message: OutboundMessage) {
+    fun sendMessageWithAttachments(message: OutboundMessage): Unit = timedScope("sendMessageWithAttachments") {
         if (message.attachments.isEmpty() && message.postback.isNullOrBlank()) {
             if (pendingAttachments.value.isNotEmpty()) {
                 sendAttachments(pendingAttachments.value, message.message)
                 return
             } else if (message.message.isBlank()) {
+                warning("Dropping completely empty message.")
                 // Ignore messages with no text, attachments, or postback.
                 return
             }
@@ -290,7 +301,7 @@ internal class ChatThreadViewModel(
                 text = message.message,
             )
         }
-        val listener = OnMessageSentListener(appMessage, sentMessagesFlow, _showMessageProcessing)
+        val listener = OnMessageSentListener(appMessage, sentMessagesFlow, _showMessageProcessing, this)
         viewModelScope.launch {
             messageHandler.first().send(message, listener)
         }
@@ -300,20 +311,22 @@ internal class ChatThreadViewModel(
         private val message: (UUID) -> SdkMessage,
         flow: MutableStateFlow<Map<UUID, SdkMessage>>,
         loaderFlow: MutableStateFlow<Boolean>,
-    ) : OnMessageTransferListener {
+        loggerScope: LoggerScope,
+    ) : OnMessageTransferListener, LoggerScope by LoggerScope<OnMessageSentListener>(loggerScope) {
 
         private val weakRef = WeakReference(flow)
         private val weakRefLoader = WeakReference(loaderFlow)
-        override fun onProcessed(id: UUID) {
+        override fun onProcessed(id: UUID): Unit = scope("onProcessed") {
             val map = weakRef.get() ?: return
             val appMessage = message(id)
             map.value = map.value.plus(appMessage.id to appMessage)
+            verbose("Message processed, adding temporary message with id: $id")
             weakRefLoader.get()?.let {
                 (it as? MutableStateFlow<Boolean>)?.update { false }
             }
         }
 
-        override fun onProcessing(message: OutboundMessage) {
+        override fun onProcessing(message: OutboundMessage): Unit = timedScope("onProcessing") {
             // Notifies that message processing has started
             weakRefLoader.get()?.let {
                 (it as? MutableStateFlow<Boolean>)?.update { true }
@@ -321,17 +334,18 @@ internal class ChatThreadViewModel(
         }
     }
 
-    fun sendAttachment(attachment: Uri) {
+    fun sendAttachment(attachment: Uri) = timedScope("sendAttachment") {
         prepareAttachmentsAndTrigger(listOf(attachment)) { contents -> sendAttachments(contents, null) }
     }
 
-    fun addPendingAttachments(attachments: List<Uri>) {
+    fun addPendingAttachments(attachments: List<Uri>) = timedScope("addPendingAttachments") {
         prepareAttachmentsAndTrigger(attachments) { contents ->
             // Combine new attachments with existing ones, avoiding duplicates.
             val currentAttachments = mutablePendingAttachments.value
             val newAttachments = contents.filterNot { newAttachment ->
                 currentAttachments.any { existingAttachment -> existingAttachment.url == newAttachment.url }
             }
+            verbose("New attachments: $newAttachments, existing attachments: $currentAttachments")
             mutablePendingAttachments.value = currentAttachments + newAttachments
         }
     }
@@ -339,18 +353,20 @@ internal class ChatThreadViewModel(
     private fun prepareAttachmentsAndTrigger(
         attachments: List<Uri>,
         trigger: (List<PreparedAttachment>) -> Unit,
-    ) {
+    ) = scope("prepareAttachmentsAndTrigger") {
         viewModelScope.launch(Dispatchers.IO) {
             val (requestResults, requestErrors) = attachments.map { uri ->
                 contentDataSource.descriptorForUri(uri)
             }.partition { it is RequestSuccess }
             if (requestErrors.isNotEmpty()) {
+                verbose("Some attachments failed to prepare: $requestErrors")
                 val errors = requestErrors.associate { result: ContentRequestResult ->
                     require(result is Error)
                     result.uri to result.cause
                 }
                 showDialog(ConversationDialog.InvalidAttachments(errors))
             } else {
+                verbose("Prepared attachments successfully: $requestResults")
                 val contents = requestResults.map { result: ContentRequestResult ->
                     require(result is RequestSuccess)
                     PreparedAttachment(
@@ -363,7 +379,7 @@ internal class ChatThreadViewModel(
         }
     }
 
-    private fun sendAttachments(attachments: List<PreparedAttachment>, message: String?) {
+    private fun sendAttachments(attachments: List<PreparedAttachment>, message: String?) = scope("sendAttachments") {
         val appMessage: (UUID) -> SdkMessage = { id ->
             TemporarySentMessage(
                 id = id,
@@ -373,8 +389,9 @@ internal class ChatThreadViewModel(
             )
         }
         val contentDescriptors = attachments.map(PreparedAttachment::contentDescriptor)
-        val listener = OnMessageSentListener(appMessage, sentMessagesFlow, _showMessageProcessing)
+        val listener = OnMessageSentListener(appMessage, sentMessagesFlow, _showMessageProcessing, this)
         viewModelScope.launch(Dispatchers.IO) { // For attachment use IO thread to upload it on server
+            debug("Sending message with attachments: $attachments")
             messageHandler.first().send(
                 OutboundMessage(
                     attachments = contentDescriptors,
@@ -383,6 +400,7 @@ internal class ChatThreadViewModel(
                 listener = listener,
             )
             mutablePendingAttachments.value -= attachments
+            verbose("Attachments sent and removed from pending list.")
         }
     }
 
@@ -423,29 +441,31 @@ internal class ChatThreadViewModel(
         selectedThreadRepository.chatThreadHandler.setName(threadName)
     }
 
-    private fun showDialog(dialog: ConversationDialog) {
+    private fun showDialog(dialog: ConversationDialog) = scope("showDialog") {
+        verbose("Show dialog set to: $dialog")
         showDialog.value = dialog
     }
 
-    internal fun dismissDialog() {
+    internal fun dismissDialog() = scope("dismissDialog") {
+        verbose("Show dialog dismissed")
         showDialog.value = None
     }
 
-    internal fun editThreadName() {
+    internal fun editThreadName() = scope("editThreadName") {
         showDialog(EditThreadName)
     }
 
-    internal fun confirmEditThreadName(name: String) {
+    internal fun confirmEditThreadName(name: String) = scope("confirmEditThreadName") {
         dismissDialog()
         setThreadName(name)
         threadNameOverride.value = name
     }
 
-    internal fun startEditingCustomValues() {
+    internal fun startEditingCustomValues() = scope("startEditingCustomValues") {
         showDialog(CustomValues)
     }
 
-    internal fun confirmEditingCustomValues(values: CustomValueItemList) {
+    internal fun confirmEditingCustomValues(values: CustomValueItemList) = scope("confirmEditingCustomValues") {
         dismissDialog()
         viewModelScope.launch(Dispatchers.Default) {
             chatThreadHandler.firstOrNull()?.customFields()?.add(
@@ -456,11 +476,11 @@ internal class ChatThreadViewModel(
         }
     }
 
-    internal fun cancelEditingCustomValues() {
+    internal fun cancelEditingCustomValues() = scope("cancelEditingCustomValues") {
         dismissDialog()
     }
 
-    internal fun selectAttachments(attachments: List<Attachment>) {
+    internal fun selectAttachments(attachments: List<Attachment>) = scope("selectAttachments") {
         showDialog(SelectAttachments(attachments))
     }
 
@@ -472,25 +492,25 @@ internal class ChatThreadViewModel(
         preparing.value = false
     }
 
-    internal fun showImage(image: Any, title: String?, attachment: Attachment) {
+    internal fun showImage(image: Any, title: String?, attachment: Attachment) = scope("showImage") {
         showDialog(ConversationDialog.ImageViewer(image, title, attachment))
     }
 
-    internal fun showVideo(url: String, title: String?, attachment: Attachment) {
+    internal fun showVideo(url: String, title: String?, attachment: Attachment) = scope("showVideo") {
         showDialog(ConversationDialog.VideoPlayer(url, title, attachment))
     }
 
-    internal fun endContact() {
+    internal fun endContact() = scope("endContact") {
         viewModelScope.launch {
             chatThreadHandler.firstOrNull()?.endContact()
         }
     }
 
-    internal fun showEndContactDialog() {
+    internal fun showEndContactDialog() = scope("showEndContactDialog") {
         showDialog(EndContact)
     }
 
-    internal fun reportReplyButtonClicked(replyButton: SdkReplyButton) {
+    internal fun reportReplyButtonClicked(replyButton: SdkReplyButton) = scope("reportReplyButtonClicked") {
         viewModelScope.launch {
             eventHandler.first().triggerAction(replyButton)
             // If the reply button was clicked from a popup, dismiss the popup dialog.

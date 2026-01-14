@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025. NICE Ltd. All rights reserved.
+ * Copyright (c) 2021-2026. NICE Ltd. All rights reserved.
  *
  * Licensed under the NICE License;
  * you may not use this file except in compliance with the License.
@@ -24,20 +24,33 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.emoji2.bundled.BundledEmojiCompatConfig
 import androidx.emoji2.text.EmojiCompat
 import androidx.test.core.app.ApplicationProvider
+import com.nice.cxonechat.state.Configuration
+import com.nice.cxonechat.state.FileRestrictions
 import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider
+import com.nice.cxonechat.ui.util.KoinTestRule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.koin.dsl.module
 
 class ChatConversationUiTest {
 
     @get:Rule
     val composeTestRule = createComposeRule()
 
+    @get:Rule
+    val koinTestRule = KoinTestRule(
+        modules = listOf(
+            module {
+                single<Configuration?> { _ -> configuration() }
+            }
+        )
+    )
+
     @Before
-    fun initEmojiCompat() {
+    fun init() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         EmojiCompat.init(BundledEmojiCompatConfig(context, Dispatchers.IO.asExecutor()))
     }
@@ -58,6 +71,20 @@ class ChatConversationUiTest {
         }
         composeTestRule.onNodeWithTag("chat_conversation_column").assertIsDisplayed()
         composeTestRule.onNodeWithTag("user_input").assertIsDisplayed()
+    }
+
+    private fun configuration(): Configuration = object : Configuration {
+        override val hasMultipleThreadsPerEndUser: Boolean = true
+        override val isProactiveChatEnabled: Boolean = false
+        override val isAuthorizationEnabled: Boolean = false
+        override val fileRestrictions: FileRestrictions = object : FileRestrictions {
+            override val allowedFileSize: Int = 40
+            override val allowedFileTypes: List<FileRestrictions.AllowedFileType> = emptyList()
+            override val isAttachmentsEnabled: Boolean = false
+        }
+        override val isLiveChat: Boolean = false
+        override val isOnline: Boolean = false
+        override fun hasFeature(feature: String): Boolean = false
     }
 
     @Test
