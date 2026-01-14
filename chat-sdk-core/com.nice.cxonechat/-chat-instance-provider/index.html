@@ -1,0 +1,776 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>ChatInstanceProvider</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+    <div class="root">
+    <nav class="navigation theme-dark" id="navigation-wrapper">
+<a class="library-name--link" href="../../../index.html">
+                    CXone Mobile SDK
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">3.1.1-SNAPSHOT
+        </div>
+        <div class="navigation-controls">
+        <div class="filter-section filter-section_loading" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":chat-sdk-core/release">androidJvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
+                    <div class="dropdown--header"><span>Platform filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":chat-sdk-core/release" data-filter=":chat-sdk-core/release">
+                                <span class="checkbox--icon"></span>
+                                androidJvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </div>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
+                        <div class="dropdown--header">
+                            <span>
+                                    CXone Mobile SDK
+                            </span>
+                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                            </button>
+                        </div>
+                        <div class="sidebar--inner" id="sideMenu"></div>
+                    </ul>
+                    <div class="dropdown--overlay"></div>
+                </div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="chat-sdk-core::com.nice.cxonechat/ChatInstanceProvider///PointingToDeclaration//978106144">
+  <div class="breadcrumbs"><a href="../../index.html">chat-sdk-core</a><span class="delimiter">/</span><a href="../index.html">com.nice.cxonechat</a><span class="delimiter">/</span><span class="current">ChatInstanceProvider</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Chat</span><wbr><span>Instance</span><wbr><span><span>Provider</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><span class="token keyword">class </span><a href="index.html">ChatInstanceProvider</a><span class="token keyword"> implements </span><a href="../-chat-state-listener/index.html">ChatStateListener</a><span class="token punctuation">, </span><a href="../../../logger/com.nice.cxonechat.log/-logger-scope/index.html">LoggerScope</a></div><p class="paragraph">ChatRepository owns and maintains the chat object and its state.</p><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>configuration</span></span></u></div></span></div><div><div class="title"><p class="paragraph">Initial Sdk Configuration to use.</p></div></div></div></div><div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>authorization</span></span></u></div></span></div><div><div class="title"><p class="paragraph">Initial authorization to use.</p></div></div></div></div><div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>user</span><wbr><span><span>Name</span></span></u></div></span></div><div><div class="title"><p class="paragraph">Initial user name to use.</p></div></div></div></div><div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>development</span><wbr><span><span>Mode</span></span></u></div></span></div><div><div class="title"><p class="paragraph">True if in development mode to get extra logging.</p></div></div></div></div><div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>device</span><wbr><span>Token</span><wbr><span><span>Provider</span></span></u></div></span></div><div><div class="title"><p class="paragraph">Provider of device tokens for push messages, default implementation will disable push notifications.</p></div></div></div></div><div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>logger</span></span></u></div></span></div><div><div class="title"><p class="paragraph">The <a href="../../../logger/com.nice.cxonechat.log/-logger/index.html">Logger</a> used by the SDK, default is no-op implementation.</p></div></div></div></div><div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>customer</span><wbr><span><span>Id</span></span></u></div></span></div><div><div class="title"><p class="paragraph">Optional customerId of the user.</p></div></div></div></div><div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>chat</span><wbr><span>Builder</span><wbr><span><span>Provider</span></span></u></div></span></div><div><div class="title"><p class="paragraph"><strong>INTERNAL USAGE ONLY</strong> Provides <a href="../-chat-builder/index.html">ChatBuilder</a>.  For internal testing usage only.</p></div></div></div></div></div></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="TYPE">
+        <h2 class="">Types</h2>
+        <div class="table"><a data-name="-19795253%2FClasslikes%2F978106144" anchor-label="Companion" id="-19795253%2FClasslikes%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-companion/index.html"><span><span>Companion</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-19795253%2FClasslikes%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace"><span class="token keyword">public </span><span class="token keyword">class </span><a href="-companion/index.html">Companion</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1163877773%2FClasslikes%2F978106144" anchor-label="ConfigurationScope" id="1163877773%2FClasslikes%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-configuration-scope/index.html"><span>Configuration</span><wbr><span><span>Scope</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1163877773%2FClasslikes%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace"><span class="token keyword">public </span><span class="token keyword">interface </span><a href="-configuration-scope/index.html">ConfigurationScope</a></div><div class="brief "><p class="paragraph">Configuration scope used to reconfigure and restart the chat session.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1502754563%2FClasslikes%2F978106144" anchor-label="DeviceTokenProvider" id="1502754563%2FClasslikes%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-device-token-provider/index.html"><span>Device</span><wbr><span>Token</span><wbr><span><span>Provider</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1502754563%2FClasslikes%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace"><span class="token keyword">public </span><span class="token keyword">interface </span><a href="-device-token-provider/index.html">DeviceTokenProvider</a></div><div class="brief "><p class="paragraph">Defines provider of device token for push notifications, typically this will be <code class="lang-kotlin">Firebase.messaging.token</code>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1844351721%2FClasslikes%2F978106144" anchor-label="Listener" id="-1844351721%2FClasslikes%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-listener/index.html"><span><span>Listener</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1844351721%2FClasslikes%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace"><span class="token keyword">public </span><span class="token keyword">interface </span><a href="-listener/index.html">Listener</a></div><div class="brief "><p class="paragraph">those interested in ChatInstanceProvider updates.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="-278048853%2FProperties%2F978106144" anchor-label="authorization" id="-278048853%2FProperties%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-278048853%2FProperties%2F978106144"><span><span>authorization</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-278048853%2FProperties%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-authorization/index.html">Authorization</a>&nbsp;<a href="index.html#-278048853%2FProperties%2F978106144">authorization</a></div><div class="brief "><p class="paragraph">Current authorization.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1363688130%2FProperties%2F978106144" anchor-label="chat" id="-1363688130%2FProperties%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1363688130%2FProperties%2F978106144"><span><span>chat</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1363688130%2FProperties%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-chat/index.html">Chat</a>&nbsp;<a href="index.html#-1363688130%2FProperties%2F978106144">chat</a></div><div class="brief "><p class="paragraph">Current chat object.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="803317643%2FProperties%2F978106144" anchor-label="chatState" id="803317643%2FProperties%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#803317643%2FProperties%2F978106144"><span>chat</span><wbr><span><span>State</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="803317643%2FProperties%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-chat-state/index.html">ChatState</a>&nbsp;<a href="index.html#803317643%2FProperties%2F978106144">chatState</a></div><div class="brief "><p class="paragraph">Current chat state.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1770904282%2FProperties%2F978106144" anchor-label="Companion" id="1770904282%2FProperties%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#1770904282%2FProperties%2F978106144"><span><span>Companion</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1770904282%2FProperties%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword">static </span><a href="-companion/index.html">ChatInstanceProvider.Companion</a>&nbsp;<a href="index.html#1770904282%2FProperties%2F978106144">Companion</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1729113650%2FProperties%2F978106144" anchor-label="configuration" id="-1729113650%2FProperties%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1729113650%2FProperties%2F978106144"><span><span>configuration</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1729113650%2FProperties%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-socket-factory-configuration/index.html">SocketFactoryConfiguration</a>&nbsp;<a href="index.html#-1729113650%2FProperties%2F978106144">configuration</a></div><div class="brief "><p class="paragraph">Current configuration.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-986209443%2FProperties%2F978106144" anchor-label="customerId" id="-986209443%2FProperties%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-986209443%2FProperties%2F978106144"><span>customer</span><wbr><span><span>Id</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-986209443%2FProperties%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a>&nbsp;<a href="index.html#-986209443%2FProperties%2F978106144">customerId</a></div><div class="brief "><p class="paragraph">Current optional customerId.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-777993082%2FProperties%2F978106144" anchor-label="developmentMode" id="-777993082%2FProperties%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-777993082%2FProperties%2F978106144"><span>development</span><wbr><span><span>Mode</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-777993082%2FProperties%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/java/lang/Boolean.html">Boolean</a>&nbsp;<a href="index.html#-777993082%2FProperties%2F978106144">developmentMode</a></div><div class="brief "><p class="paragraph">Current developmentMode state.  If true, additional debugging is provided</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2119339280%2FProperties%2F978106144" anchor-label="deviceTokenProvider" id="-2119339280%2FProperties%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-2119339280%2FProperties%2F978106144"><span>device</span><wbr><span>Token</span><wbr><span><span>Provider</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2119339280%2FProperties%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="-device-token-provider/index.html">ChatInstanceProvider.DeviceTokenProvider</a>&nbsp;<a href="index.html#-2119339280%2FProperties%2F978106144">deviceTokenProvider</a></div><div class="brief "><p class="paragraph">Current deviceToken provider.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1893658088%2FProperties%2F978106144" anchor-label="identity" id="-1893658088%2FProperties%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1893658088%2FProperties%2F978106144"><span><span>identity</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1893658088%2FProperties%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../../../logger/com.nice.cxonechat.log/-logger/index.html">Logger</a>&nbsp;<a href="index.html#-1893658088%2FProperties%2F978106144">identity</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-450773050%2FProperties%2F978106144" anchor-label="logger" id="-450773050%2FProperties%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-450773050%2FProperties%2F978106144"><span><span>logger</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-450773050%2FProperties%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../../../logger/com.nice.cxonechat.log/-logger/index.html">Logger</a>&nbsp;<a href="index.html#-450773050%2FProperties%2F978106144">logger</a></div><div class="brief "><p class="paragraph">Current <a href="../../../logger/com.nice.cxonechat.log/-logger/index.html">Logger</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2057969192%2FProperties%2F978106144" anchor-label="scope" id="2057969192%2FProperties%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#2057969192%2FProperties%2F978106144"><span><span>scope</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2057969192%2FProperties%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a>&nbsp;<a href="index.html#2057969192%2FProperties%2F978106144">scope</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="338572512%2FProperties%2F978106144" anchor-label="userName" id="338572512%2FProperties%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#338572512%2FProperties%2F978106144"><span>user</span><wbr><span><span>Name</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="338572512%2FProperties%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-user-name/index.html">UserName</a>&nbsp;<a href="index.html#338572512%2FProperties%2F978106144">userName</a></div><div class="brief "><p class="paragraph">Current user name.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="1765264340%2FFunctions%2F978106144" anchor-label="addListener" id="1765264340%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="add-listener.html"><span>add</span><wbr><span><span>Listener</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1765264340%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a>&nbsp;<a href="add-listener.html"><span class="token function">addListener</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword"></span><a href="-listener/index.html">ChatInstanceProvider.Listener</a>&nbsp;listener</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Add a listener to receive notifications of chat and state changes.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1918140956%2FFunctions%2F978106144" anchor-label="cancel" id="1918140956%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="cancel.html"><span><span>cancel</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1918140956%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><span data-unresolved-link="/<Error class: unknown class>///PointingToDeclaration/">&lt;Error class: unknown class&gt;</span>&nbsp;<a href="cancel.html"><span class="token function">cancel</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Cancel any pending prepare or connect action and return the state to an appropriate starting point.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="51799564%2FFunctions%2F978106144" anchor-label="close" id="51799564%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="close.html"><span><span>close</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="51799564%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><span data-unresolved-link="/<Error class: unknown class>///PointingToDeclaration/">&lt;Error class: unknown class&gt;</span>&nbsp;<a href="close.html"><span class="token function">close</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Close any connected chat web sockets.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-677492206%2FFunctions%2F978106144" anchor-label="configure" id="-677492206%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="configure.html"><span><span>configure</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-677492206%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a>&nbsp;<a href="configure.html"><span class="token function">configure</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/android/content/Context.html">Context</a>&nbsp;context<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword"></span><span data-unresolved-link="kotlin.jvm.functions/Function1///PointingToDeclaration/">Function1</span><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-configuration-scope/index.html">ChatInstanceProvider.ConfigurationScope</a><span class="token punctuation">, </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token operator">&gt;</span>&nbsp;actions</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Update the configuration of chat.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="515926426%2FFunctions%2F978106144" anchor-label="connect" id="515926426%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="connect.html"><span><span>connect</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="515926426%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><span data-unresolved-link="/<Error class: unknown class>///PointingToDeclaration/">&lt;Error class: unknown class&gt;</span>&nbsp;<a href="connect.html"><span class="token function">connect</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Connect the chat web socket so chat functions are available.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1513462963%2FFunctions%2F978106144" anchor-label="getAuthorization" id="1513462963%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-authorization.html"><span>get</span><wbr><span><span>Authorization</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1513462963%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-authorization/index.html">Authorization</a>&nbsp;<a href="get-authorization.html"><span class="token function">getAuthorization</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Current authorization.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-505729226%2FFunctions%2F978106144" anchor-label="getChat" id="-505729226%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-chat.html"><span>get</span><wbr><span><span>Chat</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-505729226%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-chat/index.html">Chat</a>&nbsp;<a href="get-chat.html"><span class="token function">getChat</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Current chat object.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1319745683%2FFunctions%2F978106144" anchor-label="getChatState" id="1319745683%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-chat-state.html"><span>get</span><wbr><span>Chat</span><wbr><span><span>State</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1319745683%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-chat-state/index.html">ChatState</a>&nbsp;<a href="get-chat-state.html"><span class="token function">getChatState</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="62398166%2FFunctions%2F978106144" anchor-label="getConfiguration" id="62398166%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-configuration.html"><span>get</span><wbr><span><span>Configuration</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="62398166%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-socket-factory-configuration/index.html">SocketFactoryConfiguration</a>&nbsp;<a href="get-configuration.html"><span class="token function">getConfiguration</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Current configuration.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2138157909%2FFunctions%2F978106144" anchor-label="getCustomerId" id="2138157909%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-customer-id.html"><span>get</span><wbr><span>Customer</span><wbr><span><span>Id</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2138157909%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a>&nbsp;<a href="get-customer-id.html"><span class="token function">getCustomerId</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Current optional customerId.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1417023602%2FFunctions%2F978106144" anchor-label="getDevelopmentMode" id="-1417023602%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-development-mode.html"><span>get</span><wbr><span>Development</span><wbr><span><span>Mode</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1417023602%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/java/lang/Boolean.html">Boolean</a>&nbsp;<a href="get-development-mode.html"><span class="token function">getDevelopmentMode</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Current developmentMode state.  If true, additional debugging is provided</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1652958728%2FFunctions%2F978106144" anchor-label="getDeviceTokenProvider" id="-1652958728%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-device-token-provider.html"><span>get</span><wbr><span>Device</span><wbr><span>Token</span><wbr><span><span>Provider</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1652958728%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="-device-token-provider/index.html">ChatInstanceProvider.DeviceTokenProvider</a>&nbsp;<a href="get-device-token-provider.html"><span class="token function">getDeviceTokenProvider</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Current deviceToken provider.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1309589520%2FFunctions%2F978106144" anchor-label="getIdentity" id="1309589520%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-identity.html"><span>get</span><wbr><span><span>Identity</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1309589520%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword"></span><a href="../../../logger/com.nice.cxonechat.log/-logger/index.html">Logger</a>&nbsp;<a href="get-identity.html"><span class="token function">getIdentity</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-585987138%2FFunctions%2F978106144" anchor-label="getLogger" id="-585987138%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-logger.html"><span>get</span><wbr><span><span>Logger</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-585987138%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../../../logger/com.nice.cxonechat.log/-logger/index.html">Logger</a>&nbsp;<a href="get-logger.html"><span class="token function">getLogger</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Current <a href="../../../logger/com.nice.cxonechat.log/-logger/index.html">Logger</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1558396480%2FFunctions%2F978106144" anchor-label="getScope" id="1558396480%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#1558396480%2FFunctions%2F978106144"><span>get</span><wbr><span><span>Scope</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1558396480%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a>&nbsp;<a href="index.html#1558396480%2FFunctions%2F978106144"><span class="token function">getScope</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-753147176%2FFunctions%2F978106144" anchor-label="getUserName" id="-753147176%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-user-name.html"><span>get</span><wbr><span>User</span><wbr><span><span>Name</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-753147176%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-user-name/index.html">UserName</a>&nbsp;<a href="get-user-name.html"><span class="token function">getUserName</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Current user name.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-504466193%2FFunctions%2F978106144" anchor-label="log" id="-504466193%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-504466193%2FFunctions%2F978106144"><span><span>log</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-504466193%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a>&nbsp;<a href="index.html#-504466193%2FFunctions%2F978106144"><span class="token function">log</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword"></span><a href="../../../logger/com.nice.cxonechat.log/-level/index.html">Level</a>&nbsp;level<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a>&nbsp;message<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/java/lang/Throwable.html">Throwable</a>&nbsp;throwable</span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="651052008%2FFunctions%2F978106144" anchor-label="onChatRuntimeException" id="651052008%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-chat-runtime-exception.html"><span>on</span><wbr><span>Chat</span><wbr><span>Runtime</span><wbr><span><span>Exception</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="651052008%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a>&nbsp;<a href="on-chat-runtime-exception.html"><span class="token function">onChatRuntimeException</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword"></span><a href="../../com.nice.cxonechat.exceptions/-runtime-chat-exception/index.html">RuntimeChatException</a>&nbsp;exception</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Method is invoked when <a href="../-chat/index.html">Chat</a> instance encounters possible exception in a background process. Application should handle these exceptions according to the description of each <a href="../../com.nice.cxonechat.exceptions/-runtime-chat-exception/index.html">RuntimeChatException</a>. Some of these exceptions can indicate issues during transfer of messages while others may indicate that further interactions with <a href="../-chat/index.html">Chat</a> will be ignored.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1464764646%2FFunctions%2F978106144" anchor-label="onConnected" id="-1464764646%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-connected.html"><span>on</span><wbr><span><span>Connected</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1464764646%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword"></span><span data-unresolved-link="/<Error class: unknown class>///PointingToDeclaration/">&lt;Error class: unknown class&gt;</span>&nbsp;<a href="on-connected.html"><span class="token function">onConnected</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Method is invoked when chat instance is connected and ready to send/receive messages, events or actions. This happens once initial connection is established or after Chat.reconnect is called.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1256754561%2FFunctions%2F978106144" anchor-label="onConnecting" id="-1256754561%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-connecting.html"><span>on</span><wbr><span><span>Connecting</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1256754561%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword"></span><span data-unresolved-link="/<Error class: unknown class>///PointingToDeclaration/">&lt;Error class: unknown class&gt;</span>&nbsp;<a href="on-connecting.html"><span class="token function">onConnecting</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Method is invoked when the application initiates connection to chat session or if the session was lost and chat attempts automatically to reconnect. Chat should be considered temporarily unavailable until <a href="on-connected.html">onConnected</a> is invoked.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1689543872%2FFunctions%2F978106144" anchor-label="onReady" id="1689543872%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-ready.html"><span>on</span><wbr><span><span>Ready</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1689543872%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword"></span><span data-unresolved-link="/<Error class: unknown class>///PointingToDeclaration/">&lt;Error class: unknown class&gt;</span>&nbsp;<a href="on-ready.html"><span class="token function">onReady</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Method is invoked when chat instance has finished performing background tasks after connection was established.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1550328458%2FFunctions%2F978106144" anchor-label="onUnexpectedDisconnect" id="1550328458%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-unexpected-disconnect.html"><span>on</span><wbr><span>Unexpected</span><wbr><span><span>Disconnect</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1550328458%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword"></span><span data-unresolved-link="/<Error class: unknown class>///PointingToDeclaration/">&lt;Error class: unknown class&gt;</span>&nbsp;<a href="on-unexpected-disconnect.html"><span class="token function">onUnexpectedDisconnect</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Method is invoked when chat session is unexpectedly lost during initial connection, or if the initial connection was established, but then lost and retry mechanism has been exhausted without success.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1337935490%2FFunctions%2F978106144" anchor-label="prepare" id="-1337935490%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="prepare.html"><span><span>prepare</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1337935490%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.jvm/-jvm-overloads/index.html"><span class="token annotation builtin">JvmOverloads</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><span data-unresolved-link="/<Error class: unknown class>///PointingToDeclaration/">&lt;Error class: unknown class&gt;</span>&nbsp;<a href="prepare.html"><span class="token function">prepare</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/android/content/Context.html">Context</a>&nbsp;context<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword"></span><a href="../-socket-factory-configuration/index.html">SocketFactoryConfiguration</a>&nbsp;newConfig</span></span><span class="token punctuation">)</span></div><div class="symbol monospace block"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.jvm/-jvm-overloads/index.html"><span class="token annotation builtin">JvmOverloads</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><span data-unresolved-link="/<Error class: unknown class>///PointingToDeclaration/">&lt;Error class: unknown class&gt;</span>&nbsp;<a href="prepare.html"><span class="token function">prepare</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/android/content/Context.html">Context</a>&nbsp;context</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Reestablish a chat connection if one does not currently exist.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1022556387%2FFunctions%2F978106144" anchor-label="removeListener" id="1022556387%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="remove-listener.html"><span>remove</span><wbr><span><span>Listener</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1022556387%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a>&nbsp;<a href="remove-listener.html"><span class="token function">removeListener</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword"></span><a href="-listener/index.html">ChatInstanceProvider.Listener</a>&nbsp;listener</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Remove a listener no longer concerned with chat and state changes.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1080885266%2FFunctions%2F978106144" anchor-label="setCustomerValues" id="-1080885266%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-customer-values.html"><span>set</span><wbr><span>Customer</span><wbr><span><span>Values</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1080885266%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><span data-unresolved-link="/<Error class: unknown class>///PointingToDeclaration/">&lt;Error class: unknown class&gt;</span>&nbsp;<a href="set-customer-values.html"><span class="token function">setCustomerValues</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/java/util/Map.html">Map</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a><span class="token punctuation">, </span><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/java/lang/String.html">String</a><span class="token operator">&gt;</span>&nbsp;values</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Set custom values on the current chat instance.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1319494761%2FFunctions%2F978106144" anchor-label="setUserName" id="-1319494761%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-user-name.html"><span>set</span><wbr><span>User</span><wbr><span><span>Name</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1319494761%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a>&nbsp;<a href="set-user-name.html"><span class="token function">setUserName</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword"></span><a href="../-user-name/index.html">UserName</a>&nbsp;name</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Sets <a href="../-user-name/index.html">UserName</a> which will be used during creation of <a href="../-chat/index.html">Chat</a> instance and will apply it to current instance of <a href="../-chat/index.html">Chat</a>, if it exists. The username will be applied only if the chat channel configuration allows it.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1968410643%2FFunctions%2F978106144" anchor-label="signOut" id="1968410643%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="sign-out.html"><span>sign</span><wbr><span><span>Out</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1968410643%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><span data-unresolved-link="/<Error class: unknown class>///PointingToDeclaration/">&lt;Error class: unknown class&gt;</span>&nbsp;<a href="sign-out.html"><span class="token function">signOut</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Sign out/terminate the chat connection and clear any saved credentials.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+        <span>© 2026 Copyright</span>
+        <span class="pull-right">
+            <span>Generated by </span>
+            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                <span>dokka</span>
+            </a>
+        </span>
+    </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

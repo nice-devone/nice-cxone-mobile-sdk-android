@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>All modules</title>
+    <link href="images/logo-icon.svg" rel="icon" type="image/svg">
+    <script>var pathToRoot = "";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="scripts/sourceset_dependencies.js" async="async"></script>
+<link href="styles/style.css" rel="Stylesheet">
+<link href="styles/main.css" rel="Stylesheet">
+<link href="styles/prism.css" rel="Stylesheet">
+<link href="styles/logo-styles.css" rel="Stylesheet">
+<link href="styles/font-jb-sans-auto.css" rel="Stylesheet">
+<link href="ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="scripts/clipboard.js" async="async"></script>
+<script type="text/javascript" src="scripts/navigation-loader.js" async="async"></script>
+<script type="text/javascript" src="scripts/platform-content-handler.js" async="async"></script>
+<script type="text/javascript" src="scripts/main.js" defer="defer"></script>
+<script type="text/javascript" src="scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="ui-kit/ui-kit.min.js" defer="defer"></script>
+<script type="text/javascript" src="scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
+</head>
+<body>
+    <div class="root">
+    <nav class="navigation theme-dark" id="navigation-wrapper">
+            <a class="library-name--link" href="index.html">
+                    CXone Mobile SDK
+            </a>
+        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle"
+                type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">
+3.1.1-SNAPSHOT        </div>
+        <div class="navigation-controls">
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button"
+                    type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list"
+                        data-role="dropdown-listbox">
+                        <div class="dropdown--header">
+                            <span>
+                                    CXone Mobile SDK
+                            </span>
+                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                            </button>
+                        </div>
+                        <div class="sidebar--inner" id="sideMenu"></div>
+                    </ul>
+                    <div class="dropdown--overlay"></div>
+                </div>
+            </div>
+            <div id="main">
+<div class="main-content" id="content" pageIds="CXone Mobile SDK::.ext/allModules///PointingToDeclaration//0">
+  <div class="breadcrumbs"></div>
+  <div class="cover ">
+    <div class="cover ">
+      <h1 class="">CXone Chat for Android</h1>
+      <h2 class="">Repository overview</h2>
+      <p class="paragraph">This repository consists out of three main modules and four tooling modules, which are described in chapters below.</p>
+      <h3 class="">High-Level Repository Information</h3>
+      <ul>
+        <li>
+          <p class="paragraph"><strong>Project Type</strong>: Android SDK library with UI module</p>
+        </li>
+        <li>
+          <p class="paragraph"><strong>Primary Languages</strong>: Kotlin (99.7%)</p>
+        </li>
+        <li>
+          <p class="paragraph"><strong>Target Runtime</strong>: Android API 24-36 (Android 7.0 to Android 15+)</p>
+        </li>
+        <li>
+          <p class="paragraph"><strong>Build System</strong>: Gradle 8.14.3 with Android Gradle Plugin 8.13.0</p>
+        </li>
+        <li>
+          <p class="paragraph"><strong>Architecture</strong>: Multi-module Android library with Jetpack Compose UI</p>
+        </li>
+      </ul>
+      <h3 class="">Key Frameworks and Dependencies</h3>
+      <ul>
+        <li>
+          <p class="paragraph"><strong>UI Framework</strong>: Jetpack Compose with Material Design 3</p>
+        </li>
+        <li>
+          <p class="paragraph"><strong>Networking</strong>: Retrofit 3.0.0 with OkHttp 5.1.0</p>
+        </li>
+        <li>
+          <p class="paragraph"><strong>Serialization</strong>: Kotlinx Serialization 1.9.0</p>
+        </li>
+        <li>
+          <p class="paragraph"><strong>Dependency Injection</strong>: Koin 4.1.1 with KSP annotations</p>
+        </li>
+        <li>
+          <p class="paragraph"><strong>Push Notifications</strong>: Firebase Cloud Messaging</p>
+        </li>
+        <li>
+          <p class="paragraph"><strong>Image Loading</strong>: Coil 3.1.0</p>
+        </li>
+        <li>
+          <p class="paragraph"><strong>Media Playback</strong>: AndroidX Media3 (ExoPlayer)</p>
+        </li>
+        <li>
+          <p class="paragraph"><strong>Testing</strong>: JUnit 4, Kotest, MockK, Robolectric</p>
+        </li>
+      </ul>
+      <h2 class="">Project Layout and Architecture</h2>
+      <h3 class="">Module Structure</h3>
+      <div class="sample-container">
+        <pre><code class="block lang-kotlin" theme="idea">├── chat-sdk-core/         # Core SDK functionality (Published artifact)<br>├── chat-sdk-ui/           # Default UI implementation (Published artifact)  <br>├── store/                 # Sample e-commerce application<br>├── utilities/             # Shared utility classes (Published artifact - transitive dependency)<br>├── logger/                # Logging interface (Published artifact - transitive dependency)<br>├── logger-android/        # Android-specific logging (Published artifact - transitive dependency)<br>├── logger-client/         # Client logging implementation (Published artifact - transitive dependency)<br>├── cxone-detekt-rules/    # Custom lint rules<br>└── buildSrc/              # Gradle convention plugins</code></pre>
+<span class="top-right-position"><span class="copy-icon"></span>
+          <div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div>
+        </span></div>
+      <h2 class="">CXone Chat SDK (chat-sdk-core)</h2>
+      <p class="paragraph">This is the primary published module. It is released as an Android multi-flavor library with Maven artifact coordinates <code class="lang-kotlin">com.nice.cxone:chat-core</code>.</p>
+      <p class="paragraph">Main objective of the SDK is to offer one API over several CXone Chat backends together with required business logic.</p>
+      <h3 class="">Adding the Dependency</h3>
+      <p class="paragraph">To use the published artifact, include our public Maven/Gradle GitHub repository in your project. For details, see <a href="https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-gradle-registry#using-a-published-package">GitHub documentation on using published packages</a>.</p>
+      <p class="paragraph">In the section where you define repositories used in your project (in our case, it is <code class="lang-kotlin">settings.gradle</code>), add this part:</p>
+      <div class="sample-container">
+        <pre><code class="block lang-groovy" theme="idea">    def localProperties = new Properties()<br>try {<br>    localProperties.load(file(&quot;local.properties&quot;).newReader())<br>} catch (ignored) {<br>    logger.trace(&quot;Unable to read local.properties&quot;)<br>}<br>repositories {<br>    maven {<br>        name = &quot;github-nice-devone-cxone-mobile&quot;<br>        url = &quot;https://maven.pkg.github.com/nice-devone/nice-cxone-mobile-sdk-android&quot;<br>        credentials {<br>            // Use property key from local.properties for local builds or environment variable for CI builds<br>            username = localProperties[&quot;github.user&quot;] ?: System.getenv(&quot;GPR_USERNAME&quot;)<br>            password = localProperties[&quot;github.key&quot;] ?: System.getenv(&quot;GPR_TOKEN&quot;)<br>        }<br>    }<br>}</code></pre>
+<span class="top-right-position"><span class="copy-icon"></span>
+          <div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div>
+        </span></div>
+      <p class="paragraph">Then either add properties <code class="lang-kotlin">github.user</code> and <code class="lang-kotlin">github.key</code> to your local.properties e.g.:</p>
+      <div class="sample-container">
+        <pre><code class="block lang-kotlin" theme="idea">github.user=myuser<br>github.key=github_my_token</code></pre>
+<span class="top-right-position"><span class="copy-icon"></span>
+          <div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div>
+        </span></div>
+      <p class="paragraph">or set system variables <code class="lang-kotlin">GPR_USERNAME</code> and <code class="lang-kotlin">GPR_TOKEN</code>. You can use any non-privileged valid token, since the package are public.</p>
+      <p class="paragraph">Then you can use the dependency simply by adding:</p>
+      <div class="sample-container">
+        <pre><code class="block lang-groovy" theme="idea">    implementation &quot;com.nice.cxone:chat-sdk-core:$currentVersion&quot;</code></pre>
+<span class="top-right-position"><span class="copy-icon"></span>
+          <div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div>
+        </span></div>
+      <h3 class="">Additional information</h3>
+      <p class="paragraph">Visit <a href="https://help.nice-incontact.com/content/acd/digital/mobilesdk/cxonemobilesdk.htm">NICE documentation</a> for more information about CXone Chat and pre-requisites for the SDK.</p>
+      <p class="paragraph">Current <a href="https://nice-devone.github.io/nice-cxone-mobile-sdk-android/">API</a>.</p>
+      <p class="paragraph">You can also find a simplified example of possible SDK usage in docs/case-studies.md documentation.</p>
+      <p class="paragraph">We offer a brief how-to guide for integration docs/implementation.md.</p>
+      <h2 class="">CXone Chat UI</h2>
+      <p class="paragraph">This is the default implementation of the UI for CXone Chat SDK, which allows easier integration of the SDK into the intended target application.</p>
+      <p class="paragraph">It is released as an Android multi-flavor library with Maven artifact coordinates <code class="lang-kotlin">com.nice.cxone:chat-sdk-ui</code>.</p>
+      <p class="paragraph">More of the details can be found in the module chat-sdk-ui/README.md</p>
+      <h3 class="">Chat UI provides these features:</h3>
+      <ul>
+        <li>
+          <p class="paragraph">Display the thread list (for multi-thread SDK configuration)</p>
+        </li>
+        <ul>
+          <li>
+            <p class="paragraph">Archive an existing thread</p>
+          </li>
+          <li>
+            <p class="paragraph">Start a new thread</p>
+          </li>
+        </ul>
+        <li>
+          <p class="paragraph">Display and service the thread conversation (including implementation for all currently supported message formats)</p>
+        </li>
+        <ul>
+          <li>
+            <p class="paragraph">Send message</p>
+          </li>
+          <li>
+            <p class="paragraph">Upload attachment</p>
+          </li>
+          <li>
+            <p class="paragraph">Record & play voice messages</p>
+          </li>
+          <li>
+            <p class="paragraph">Name the thread (for multi-thread SDK configuration)</p>
+          </li>
+          <li>
+            <p class="paragraph">Message pagination support</p>
+          </li>
+          <li>
+            <p class="paragraph">Typing indication & reporting</p>
+          </li>
+        </ul>
+        <li>
+          <p class="paragraph">Filling out of pre-contact form</p>
+        </li>
+        <li>
+          <p class="paragraph">Display notification about the new message when application is in the background (requires Firebase Cloud Messaging)</p>
+        </li>
+        <li>
+          <p class="paragraph">Sharing of message attachments</p>
+        </li>
+        <li>
+          <p class="paragraph">Fullscreen previews of images & videos</p>
+        </li>
+      </ul>
+      <h3 class="">Additional information</h3>
+      <p class="paragraph">A brief case study about docs/chat-sdk-ui/cs-ui-configuration.md will lead you through the setup process.</p>
+      <p class="paragraph">We offer a brief how-to guide for integration docs/chat-sdk-ui/cs-ui-integration.md.</p>
+      <h2 class="">Store application</h2>
+      <p class="paragraph">This is a mock application that tries to imitate e-store with its purchase flow, so we can also demonstrate an integration of the SDK analytics events like <code class="lang-kotlin">pageView</code> or <code class="lang-kotlin">conversion</code>.</p>
+      <h2 class="">Integration</h2>
+      <p class="paragraph">When integrating the CXone Chat SDK into your application, please note the following:</p>
+      <p class="paragraph">If your application defines its own <code class="lang-kotlin">fullBackupContent</code> rules, you must explicitly exclude the CXone SDK's shared preferences file to avoid backing up sensitive data, which are not transferable. Add the following exclusion to your backup rules:</p>
+      <div class="sample-container">
+        <pre><code class="block lang-xml" theme="idea">&lt;exclude domain=&quot;sharedpref&quot; path=&quot;com.nice.cxonechat.secure.xml&quot; /&gt;</code></pre>
+<span class="top-right-position"><span class="copy-icon"></span>
+          <div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div>
+        </span></div>
+      <p class="paragraph">This ensures that the SDK's secure preferences are not included in the application's backup and won't cause an issue if the application is restored on a different device.</p>
+      <h2 class="">Tooling modules:</h2>
+      <h3 class="">logger</h3>
+      <p class="paragraph">The logger module is a minimalistic logging framework used by the chat-sdk-core without any platform-specific code. It is distributed as a java library at the moment.</p>
+      <p class="paragraph">The maven artifact coordinates are <code class="lang-kotlin">com.nice.cxone:logger</code>.</p>
+      <h3 class="">logger-android</h3>
+      <p class="paragraph">The logger-android module provides the default android-specific implementation of the Logger. Application can provide this instance to the SDK builder if it wishes the SDK to log to the Android platform log output.</p>
+      <p class="paragraph">The maven artifact coordinates are <code class="lang-kotlin">com.nice.cxone:logger-android</code>.</p>
+      <h3 class="">logger-client</h3>
+      <p class="paragraph">The logger-client module provides an integrated remote logging solution that sends error logs to NICE servers for tracking and analysis.</p>
+      <h3 class="">utilities</h3>
+      <p class="paragraph">This is an internal module that attempts to resolve some of the issues reported by the strict mode. </p>
+    </div>
+    <h2 class="">All modules:</h2>
+    <div class="table"><a data-name="-636145082%2FMain%2F0" anchor-label="chat-sdk-core" id="-636145082%2FMain%2F0" data-filterable-set=""></a>
+      <div class="table-row">
+        <div class="main-subrow ">
+          <div class="w-100"><span class="inline-flex">
+              <div><a href="chat-sdk-core/index.html">chat-sdk-core</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-636145082%2FMain%2F0"></span>
+                <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+              </span></span></div>
+          <div><span class="brief-comment"></span></div>
+        </div>
+      </div>
+<a data-name="-732772879%2FMain%2F0" anchor-label="chat-sdk-ui" id="-732772879%2FMain%2F0" data-filterable-set=""></a>
+      <div class="table-row">
+        <div class="main-subrow ">
+          <div class="w-100"><span class="inline-flex">
+              <div><a href="chat-sdk-ui/index.html">chat-sdk-ui</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-732772879%2FMain%2F0"></span>
+                <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+              </span></span></div>
+          <div><span class="brief-comment">
+              <p class="paragraph">The chat-sdk-ui module provides a default implementation of the UI for CXone Chat SDK, which allows easier integration of the chat SDK into the intended target application. This module is designed to handle all channel configurations (single, multi-thread and live chat) and provides a ready-to-use UI for the chat experience.</p>
+            </span></div>
+        </div>
+      </div>
+<a data-name="1717527493%2FMain%2F0" anchor-label="logger" id="1717527493%2FMain%2F0" data-filterable-set=""></a>
+      <div class="table-row">
+        <div class="main-subrow ">
+          <div class="w-100"><span class="inline-flex">
+              <div><a href="logger/index.html">logger</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1717527493%2FMain%2F0"></span>
+                <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+              </span></span></div>
+          <div><span class="brief-comment"></span></div>
+        </div>
+      </div>
+<a data-name="1452945507%2FMain%2F0" anchor-label="logger-android" id="1452945507%2FMain%2F0" data-filterable-set=""></a>
+      <div class="table-row">
+        <div class="main-subrow ">
+          <div class="w-100"><span class="inline-flex">
+              <div><a href="logger-android/index.html">logger-android</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1452945507%2FMain%2F0"></span>
+                <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+              </span></span></div>
+          <div><span class="brief-comment"></span></div>
+        </div>
+      </div>
+<a data-name="1416420035%2FMain%2F0" anchor-label="utilities" id="1416420035%2FMain%2F0" data-filterable-set=""></a>
+      <div class="table-row">
+        <div class="main-subrow ">
+          <div class="w-100"><span class="inline-flex">
+              <div><a href="utilities/index.html">utilities</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1416420035%2FMain%2F0"></span>
+                <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+              </span></span></div>
+          <div><span class="brief-comment"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+        <span>© 2026 Copyright</span>
+        <span class="pull-right">
+            <span>Generated by </span>
+            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                <span>dokka</span>
+            </a>
+        </span>
+    </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

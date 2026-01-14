@@ -1,0 +1,260 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>chat-sdk-ui</title>
+<link href="../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../scripts/sourceset_dependencies.js" async></script>
+<link href="../styles/style.css" rel="Stylesheet">
+<link href="../styles/main.css" rel="Stylesheet">
+<link href="../styles/prism.css" rel="Stylesheet">
+<link href="../styles/logo-styles.css" rel="Stylesheet">
+<link href="../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<link href="../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../scripts/main.js" defer></script>
+<script type="text/javascript" src="../scripts/prism.js" async></script>
+<script type="text/javascript" src="../ui-kit/ui-kit.min.js" defer></script>
+<script type="text/javascript" src="../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+    <div class="root">
+    <nav class="navigation theme-dark" id="navigation-wrapper">
+<a class="library-name--link" href="../index.html">
+                    CXone Mobile SDK
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">3.1.1-SNAPSHOT
+        </div>
+        <div class="navigation-controls">
+        <div class="filter-section filter-section_loading" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":chat-sdk-ui/release">androidJvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
+                    <div class="dropdown--header"><span>Platform filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":chat-sdk-ui/release" data-filter=":chat-sdk-ui/release">
+                                <span class="checkbox--icon"></span>
+                                androidJvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </div>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
+                        <div class="dropdown--header">
+                            <span>
+                                    CXone Mobile SDK
+                            </span>
+                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                            </button>
+                        </div>
+                        <div class="sidebar--inner" id="sideMenu"></div>
+                    </ul>
+                    <div class="dropdown--overlay"></div>
+                </div>
+            </div>
+            <div id="main">
+<div class="main-content" id="content" pageids="chat-sdk-ui::////PointingToDeclaration//1616567189">
+  <div class="breadcrumbs"></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>chat-sdk-ui</span></span></h1>
+    <div class="platform-hinted UnderCoverText" data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><p class="paragraph">The chat-sdk-ui module provides a default implementation of the UI for CXone Chat SDK, which allows easier integration of the chat SDK into the intended target application. This module is designed to handle all channel configurations (single, multi-thread and live chat) and provides a ready-to-use UI for the chat experience.</p><h2 class="">Requirements:</h2><p class="paragraph">Compile SDK version: 36 Target SDK version: 35 Min SDK version: 24</p><ul><li><p class="paragraph">Kotlin 2.2.10</p></li><li><p class="paragraph">Jetpack Compose BOM 2025.10.00</p></li><li><p class="paragraph">Koin 4.1.1</p></li><li><p class="paragraph">Firebase Cloud Messaging 34.4.0 (unless the push notifications are not used)</p></li></ul><p class="paragraph">This module requires that the integrating application uses Koin during its startup and it is also recommended to provide an instance of <code class="lang-kotlin">Logger</code> with <code class="lang-kotlin">UiQualifier</code>.</p><h3 class="">Known issues</h3><h4 class="">Foreground service permission</h4><p class="paragraph">The Chat UI declares usage of <code class="lang-kotlin">android.permission.FOREGROUND_SERVICE</code> and <code class="lang-kotlin">android.permission.FOREGROUND_SERVICE_DATA_SYNC</code> permission in its manifest. These permissions are actually not used since the <code class="lang-kotlin">PlayerDownloadService</code> is never started as a foreground service.</p><h5 class="">Workarounds:</h5><ol><li><p class="paragraph">The integrating application can safely remove these permissions from the merged manifest, if it doesn't use any other foreground service    by adding the following to its own manifest:</p></li></ol><div class="sample-container"><pre><code class="block lang-xml" theme="idea">&lt;uses-permission android:name="android.permission.FOREGROUND_SERVICE" tools:node="remove" /&gt;<br>&lt;uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" tools:node="remove" /&gt;</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><ol><li><p class="paragraph">If you are using foreground services, then specify the usage of these permissions in Google Play Console if the application is    distributed via Google Play Store.    The official use-case in the case of <code class="lang-kotlin">PlayerDownloadService</code> is "Audio message pre-caching".</p></li></ol><h5 class="">Expected fix:</h5><p class="paragraph">This issue will be fixed in the future minor releases of the Chat UI module by replacing the <code class="lang-kotlin">Service</code> with a pre-caching download mechanism which will be scoped to the application lifecycle.</p><h3 class="">Runtime permissions:</h3><p class="paragraph">For proper functioning of the Chat UI, the following runtime permissions are requested from the user, unless they are already granted:</p><ul><li><p class="paragraph"><code class="lang-kotlin">android.permission.POST_NOTIFICATIONS</code> - Required for displaying of notifications regarding new messages in the chat, requested when the   chat is started.   The Chat UI will disable the notifications feature if the permission is not granted.   For single-thread chat / live-chat, the notifications will be used only if the push notifications are configured for the channel, but the   permission   is always requested.</p></li><li><p class="paragraph"><code class="lang-kotlin">android.permission.RECORD_AUDIO</code> - Required for recording&amp;sending of voice messages, requested when the user tries to send a voice   message   (via a microphone icon in the chat input). Chat UI will disable the voice message feature if the permission is not granted.</p></li><li><p class="paragraph"><code class="lang-kotlin">android.permission.WRITE_EXTERNAL_STORAGE</code> - This permission is used only for Android 10 and below, in order to store recorded audio   messages,   in a storage accessible by the user. On newer Android versions, the audio messages are stored in using the <code class="lang-kotlin">MediaStore</code> API, which does   not require this permission.</p></li><li><p class="paragraph"><code class="lang-kotlin">android.permission.CAMERA</code> - Required (<strong>IFF</strong> it is declared in application manifest) for capturing photos or videos using the device   camera to send as attachments in the chat.   This permission is requested when the user attempts to capture media through the chat interface and the permission is declared in the   application manifest. If the permission is not granted, the chat UI will disable the camera functionality for attachments.</p></li></ul><h2 class="">Limitations:</h2><ul><li><p class="paragraph">The UI module has limited support for landscape mode (this concern devices which have small height while   in landscape mode). It is recommended to use the chat in portrait mode. This limitations will be addressed in future releases.</p></li><li><p class="paragraph">Color customization is limited to only few selected colors. This feature will be fully supported in future releases.</p></li><li><p class="paragraph">The UI module does not provide translated strings. It is recommended to provide your own translations for the strings used in the UI.</p></li></ul><h2 class="">Case studies</h2><p class="paragraph">You can find focused case studies for following topics also described in ../docs/chat-sdk-ui/case-studies.md.</p><h2 class="">Getting Started</h2><p class="paragraph">To use the chat-sdk-ui module, you need to add it as a dependency in your project. You can do this by adding the following line to your <code class="lang-kotlin">build.gradle</code> file:</p><div class="sample-container"><pre><code class="block lang-groovy" theme="idea">    implementation("com.nice.cxone:chat-sdk-ui:${chatSdkVersion}")</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><h3 class="">Before you start Chat UI</h3><h4 class="">Initializing the Chat SDK</h4><p class="paragraph">Before you start using the Chat UI, you need to initialize the CXone Chat SDK in your application using the <code class="lang-kotlin">ChatInstanceProvider</code> class. Specifically the <code class="lang-kotlin">ChatInstanceProvider</code> has to be at least in the <code class="lang-kotlin">Prepared</code> state, which means that the <code class="lang-kotlin">ChatInstanceProvider</code> has to be initialized with the <code class="lang-kotlin">ChatSdkConfig</code>. This can be done in the <code class="lang-kotlin">onCreate</code> method of your <code class="lang-kotlin">Application</code> class or in a dedicated <code class="lang-kotlin">androidx.startup.Initializer</code> implementation.</p><h4 class="">Initialize the Chat UI Dependency Injection</h4><p class="paragraph">If you are not using Koin in your application you can just call</p><div class="sample-container"><pre><code class="block lang-koin" theme="idea">   startKoin {<br>      UiModule.chatUiModule()<br>   }</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><p class="paragraph">Otherwise add the <code class="lang-kotlin">UiModule.chatUiModule()</code> to your Koin modules, which will provide the necessary dependencies for the Chat UI.</p><h5 class="">Custom fields</h5><p class="paragraph">If you are using custom fields (applies to both contact and customer) in the chat which are not user editable, you need to provide the <code class="lang-kotlin">UiCustomFieldsProvider</code> implementation(s) to the UI Koin module. These implementations will be used to append the custom fields to events sent to the server.</p><h5 class="">Logging</h5><p class="paragraph">If you want to enable logging in the Chat UI, you can provide an instance of <code class="lang-kotlin">Logger</code> to the Koin UI module as parameter <code class="lang-kotlin">logger</code>, default instance is a No-op variant.</p><h3 class="">Starting the Chat UI</h3><p class="paragraph">To start the Chat UI call <code class="lang-kotlin">ChatActivity.startChat(from: Activity)</code> method.</p><h3 class="">Push notifications</h3><p class="paragraph">For the push notifications to work, you need to add the Firebase Cloud Messaging dependency to your project. See the <a href="https://firebase.google.com/docs/cloud-messaging/android/client">Firebase Cloud Messaging documentation</a> for more instructions on how to set up FCM in your project.</p><p class="paragraph">For more focused information about this topic see the ../docs/cs-push-notifications.md.</p><h4 class="">Provide required resources</h4><p class="paragraph">The UI module defines drawable resource id, for which the integrating application must provide the corresponding drawable resources. The following resources are required:</p><ul><li><p class="paragraph"><code class="lang-kotlin">ic_chat_push_service</code> - used for the push notification icon as a fallback when the notification does not define a custom icon.   Application   should provide a drawable resource which follows instructions   from <a href="https://developer.android.com/reference/androidx/core/app/NotificationCompat.Builder#setSmallIcon(int)">NotificationCompat.Builder.setSmallIcon()</a>.</p></li></ul><h4 class="">Configuration</h4><h4 class="">Technical configuration</h4><p class="paragraph">You can configure the notification channel for both local &amp; push notifications by overriding the <code class="lang-kotlin">default_notification_channel_id</code> string resource.</p><h4 class="">String resources</h4><p class="paragraph"><code class="lang-kotlin">notification_channel_title</code> - The title of the notification channel used for local and push notifications. The default value is "Chat notifications".</p><h4 class="">Not using push notifications/FCM?</h4><p class="paragraph">If you are not using push notifications, you should disable the automatic startup of Firebase initialization in order to avoid unnecessary overhead.</p><p class="paragraph">(see Take Control of Your Firebase Init on Androidhttps://firebase.blog/posts/2017/03/take-control-of-your-firebase-init-on/) and disable the <code class="lang-kotlin">PushListenerService</code> in the merged manifest.</p><h2 class="">Features</h2><h3 class="">Single thread configuration</h3><p class="paragraph">The UI modules provides near effortless support of the single thread chat configuration. This configuration allows users to engage in one-on-one conversations with agents.</p><h3 class="">Multi-thread configuration</h3><p class="paragraph">The UI module also supports multi-thread chat configuration, which allows users to engage in multiple conversations with agents simultaneously. Switch between the conversations via list, review the transcript of an archived conversation and receive notifications about new messages in background conversations.</p><h3 class="">Live chat configuration</h3><p class="paragraph">The UI module supports live chat configuration, which allows users to engage in real-time conversations with agents, including UX for queuing for an agent to become available and handling of the end of conversation.</p><h3 class="">Voice messages</h3><p class="paragraph">The UI module supports sending and receiving voice messages, which allows users to record and send audio messages during the conversation. This feature enhances user experience by allowing more natural communication.</p><blockquote class="quotation"><p class="paragraph">⚠️ Warning: The UI module is using AMR format for voice recording. It is necessary to specify "audio/amr" or "audio/\*" mimeType in the brand Settings to enable voice recording.</p></blockquote><h2 class="">Customization</h2><p class="paragraph">The UI module supports</p><h3 class="">Color customization</h3><blockquote class="quotation"><p class="paragraph">⚠️ Warning: Color customization is currently not recommended to ensure accessibility standards and optimal user experience. This feature will be fully available in future releases.</p></blockquote><h3 class="">Localization</h3><p class="paragraph">The UI module does not provide translated strings. It is recommended to provide your own translations for the strings used in the UI, using standard Android localization practices. All localized strings used in the UI are defined in the <code class="lang-kotlin">strings.xml</code> file of the module, which can be overridden in the integrating application.</p></div></div>
+  </div>
+  <h2 class="">Packages</h2>
+  <div class="table"><a data-name="1856866399%2FPackages%2F1616567189" anchor-label="com.nice.cxonechat.ui" id="1856866399%2FPackages%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+    <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+      <div>
+        <div class="main-subrow ">
+          <div class=""><span class="inline-flex">
+              <div><a href="com.nice.cxonechat.ui/index.html">com.nice.cxonechat.ui</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1856866399%2FPackages%2F1616567189"></span>
+                <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+              </span></span></div>
+          <div class="pull-right">
+            <div class="platform-tags no-gutters">
+              <div class="platform-tag jvm-like">androidJvm</div>
+            </div>
+          </div>
+        </div>
+        <div></div>
+      </div>
+    </div>
+<a data-name="-209779189%2FPackages%2F1616567189" anchor-label="com.nice.cxonechat.ui.api" id="-209779189%2FPackages%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+    <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+      <div>
+        <div class="main-subrow ">
+          <div class=""><span class="inline-flex">
+              <div><a href="com.nice.cxonechat.ui.api/index.html">com.nice.cxonechat.ui.api</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-209779189%2FPackages%2F1616567189"></span>
+                <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+              </span></span></div>
+          <div class="pull-right">
+            <div class="platform-tags no-gutters">
+              <div class="platform-tag jvm-like">androidJvm</div>
+            </div>
+          </div>
+        </div>
+        <div></div>
+      </div>
+    </div>
+<a data-name="1765869943%2FPackages%2F1616567189" anchor-label="com.nice.cxonechat.ui.composable.conversation.attachments" id="1765869943%2FPackages%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+    <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+      <div>
+        <div class="main-subrow ">
+          <div class=""><span class="inline-flex">
+              <div><a href="com.nice.cxonechat.ui.composable.conversation.attachments/index.html">com.nice.cxonechat.ui.composable.conversation.attachments</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1765869943%2FPackages%2F1616567189"></span>
+                <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+              </span></span></div>
+          <div class="pull-right">
+            <div class="platform-tags no-gutters">
+              <div class="platform-tag jvm-like">androidJvm</div>
+            </div>
+          </div>
+        </div>
+        <div></div>
+      </div>
+    </div>
+<a data-name="821458921%2FPackages%2F1616567189" anchor-label="com.nice.cxonechat.ui.composable.generic" id="821458921%2FPackages%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+    <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+      <div>
+        <div class="main-subrow ">
+          <div class=""><span class="inline-flex">
+              <div><a href="com.nice.cxonechat.ui.composable.generic/index.html">com.nice.cxonechat.ui.composable.generic</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="821458921%2FPackages%2F1616567189"></span>
+                <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+              </span></span></div>
+          <div class="pull-right">
+            <div class="platform-tags no-gutters">
+              <div class="platform-tag jvm-like">androidJvm</div>
+            </div>
+          </div>
+        </div>
+        <div></div>
+      </div>
+    </div>
+<a data-name="1606628699%2FPackages%2F1616567189" anchor-label="com.nice.cxonechat.ui.composable.theme" id="1606628699%2FPackages%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+    <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+      <div>
+        <div class="main-subrow ">
+          <div class=""><span class="inline-flex">
+              <div><a href="com.nice.cxonechat.ui.composable.theme/index.html">com.nice.cxonechat.ui.composable.theme</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1606628699%2FPackages%2F1616567189"></span>
+                <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+              </span></span></div>
+          <div class="pull-right">
+            <div class="platform-tags no-gutters">
+              <div class="platform-tag jvm-like">androidJvm</div>
+            </div>
+          </div>
+        </div>
+        <div></div>
+      </div>
+    </div>
+<a data-name="-1569174433%2FPackages%2F1616567189" anchor-label="com.nice.cxonechat.ui.screen" id="-1569174433%2FPackages%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+    <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+      <div>
+        <div class="main-subrow ">
+          <div class=""><span class="inline-flex">
+              <div><a href="com.nice.cxonechat.ui.screen/index.html">com.nice.cxonechat.ui.screen</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1569174433%2FPackages%2F1616567189"></span>
+                <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+              </span></span></div>
+          <div class="pull-right">
+            <div class="platform-tags no-gutters">
+              <div class="platform-tag jvm-like">androidJvm</div>
+            </div>
+          </div>
+        </div>
+        <div></div>
+      </div>
+    </div>
+<a data-name="-614283348%2FPackages%2F1616567189" anchor-label="com.nice.cxonechat.ui.storage" id="-614283348%2FPackages%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+    <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+      <div>
+        <div class="main-subrow ">
+          <div class=""><span class="inline-flex">
+              <div><a href="com.nice.cxonechat.ui.storage/index.html">com.nice.cxonechat.ui.storage</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-614283348%2FPackages%2F1616567189"></span>
+                <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+              </span></span></div>
+          <div class="pull-right">
+            <div class="platform-tags no-gutters">
+              <div class="platform-tag jvm-like">androidJvm</div>
+            </div>
+          </div>
+        </div>
+        <div></div>
+      </div>
+    </div>
+<a data-name="1423957173%2FPackages%2F1616567189" anchor-label="com.nice.cxonechat.ui.util" id="1423957173%2FPackages%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+    <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+      <div>
+        <div class="main-subrow ">
+          <div class=""><span class="inline-flex">
+              <div><a href="com.nice.cxonechat.ui.util/index.html">com.nice.cxonechat.ui.util</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1423957173%2FPackages%2F1616567189"></span>
+                <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+              </span></span></div>
+          <div class="pull-right">
+            <div class="platform-tags no-gutters">
+              <div class="platform-tag jvm-like">androidJvm</div>
+            </div>
+          </div>
+        </div>
+        <div></div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+        <span>© 2026 Copyright</span>
+        <span class="pull-right">
+            <span>Generated by </span>
+            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                <span>dokka</span>
+            </a>
+        </span>
+    </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

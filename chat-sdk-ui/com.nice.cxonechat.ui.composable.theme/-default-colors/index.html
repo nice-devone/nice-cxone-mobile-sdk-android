@@ -1,0 +1,592 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>DefaultColors</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+    <div class="root">
+    <nav class="navigation theme-dark" id="navigation-wrapper">
+<a class="library-name--link" href="../../../index.html">
+                    CXone Mobile SDK
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">3.1.1-SNAPSHOT
+        </div>
+        <div class="navigation-controls">
+        <div class="filter-section filter-section_loading" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":chat-sdk-ui/release">androidJvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
+                    <div class="dropdown--header"><span>Platform filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":chat-sdk-ui/release" data-filter=":chat-sdk-ui/release">
+                                <span class="checkbox--icon"></span>
+                                androidJvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </div>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
+                        <div class="dropdown--header">
+                            <span>
+                                    CXone Mobile SDK
+                            </span>
+                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                            </button>
+                        </div>
+                        <div class="sidebar--inner" id="sideMenu"></div>
+                    </ul>
+                    <div class="dropdown--overlay"></div>
+                </div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="chat-sdk-ui::com.nice.cxonechat.ui.composable.theme/DefaultColors///PointingToDeclaration//1616567189">
+  <div class="breadcrumbs"><a href="../../index.html">chat-sdk-ui</a><span class="delimiter">/</span><a href="../index.html">com.nice.cxonechat.ui.composable.theme</a><span class="delimiter">/</span><span class="current">DefaultColors</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Default</span><wbr><span><span>Colors</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace"><span class="token keyword">public </span><span class="token keyword">class </span><a href="index.html">DefaultColors</a></div><p class="paragraph">Provides default color palettes and theme tokens for the chat UI.</p><p class="paragraph">This object contains predefined color schemes for light and dark modes, as well as individual color categories such as primary, secondary, neutral, positive, warning, and negative. It also includes deprecated properties for backward compatibility.</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="1644529271%2FProperties%2F1616567189" anchor-label="accentHeaderEndDark" id="1644529271%2FProperties%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#1644529271%2FProperties%2F1616567189"><span>accent</span><wbr><span>Header</span><wbr><span>End</span><wbr><span><span>Dark</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1644529271%2FProperties%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-deprecated/index.html"><span class="token annotation builtin">Deprecated</span></a><span class="token punctuation">(</span><span>message<span class="token operator"> = </span><span class="breakable-word"><span class="token string">"No longer used"</span></span></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a>&nbsp;<a href="index.html#1644529271%2FProperties%2F1616567189"><strike>accentHeaderEndDark</strike></a></div><div class="brief "><p class="paragraph">Default dark ending <a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a> of the <a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Brush.Companion.html#lineargradient">Brush.linearGradient</a> for the accent header.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1999257609%2FProperties%2F1616567189" anchor-label="accentHeaderEndLight" id="-1999257609%2FProperties%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1999257609%2FProperties%2F1616567189"><span>accent</span><wbr><span>Header</span><wbr><span>End</span><wbr><span><span>Light</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1999257609%2FProperties%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-deprecated/index.html"><span class="token annotation builtin">Deprecated</span></a><span class="token punctuation">(</span><span>message<span class="token operator"> = </span><span class="breakable-word"><span class="token string">"No longer used"</span></span></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a>&nbsp;<a href="index.html#-1999257609%2FProperties%2F1616567189"><strike>accentHeaderEndLight</strike></a></div><div class="brief "><p class="paragraph">Default light ending <a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a> of the <a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Brush.Companion.html#lineargradient">Brush.linearGradient</a> for the accent header.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="107001232%2FProperties%2F1616567189" anchor-label="accentHeaderStartDark" id="107001232%2FProperties%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#107001232%2FProperties%2F1616567189"><span>accent</span><wbr><span>Header</span><wbr><span>Start</span><wbr><span><span>Dark</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="107001232%2FProperties%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-deprecated/index.html"><span class="token annotation builtin">Deprecated</span></a><span class="token punctuation">(</span><span>message<span class="token operator"> = </span><span class="breakable-word"><span class="token string">"No longer used"</span></span></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a>&nbsp;<a href="index.html#107001232%2FProperties%2F1616567189"><strike>accentHeaderStartDark</strike></a></div><div class="brief "><p class="paragraph">Default dark starting <a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a> of the <a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Brush.Companion.html#lineargradient">Brush.linearGradient</a> for the accent header.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1876980734%2FProperties%2F1616567189" anchor-label="accentHeaderStartLight" id="1876980734%2FProperties%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#1876980734%2FProperties%2F1616567189"><span>accent</span><wbr><span>Header</span><wbr><span>Start</span><wbr><span><span>Light</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1876980734%2FProperties%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-deprecated/index.html"><span class="token annotation builtin">Deprecated</span></a><span class="token punctuation">(</span><span>message<span class="token operator"> = </span><span class="breakable-word"><span class="token string">"No longer used"</span></span></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a>&nbsp;<a href="index.html#1876980734%2FProperties%2F1616567189"><strike>accentHeaderStartLight</strike></a></div><div class="brief "><p class="paragraph">Default light starting <a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a> of the <a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Brush.Companion.html#lineargradient">Brush.linearGradient</a> for the accent header.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1983278088%2FProperties%2F1616567189" anchor-label="Base" id="-1983278088%2FProperties%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1983278088%2FProperties%2F1616567189"><span><span>Base</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1983278088%2FProperties%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-base/index.html">Base</a>&nbsp;<a href="index.html#-1983278088%2FProperties%2F1616567189">Base</a></div><div class="brief "><p class="paragraph">The base color palette (white and black).</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1986978418%2FProperties%2F1616567189" anchor-label="BrandPrimary" id="-1986978418%2FProperties%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1986978418%2FProperties%2F1616567189"><span>Brand</span><wbr><span><span>Primary</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1986978418%2FProperties%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-brand-primary/index.html">BrandPrimary</a>&nbsp;<a href="index.html#-1986978418%2FProperties%2F1616567189">BrandPrimary</a></div><div class="brief "><p class="paragraph">The primary brand color palette.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1708393884%2FProperties%2F1616567189" anchor-label="BrandSecondary" id="1708393884%2FProperties%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#1708393884%2FProperties%2F1616567189"><span>Brand</span><wbr><span><span>Secondary</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1708393884%2FProperties%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-brand-secondary/index.html">BrandSecondary</a>&nbsp;<a href="index.html#1708393884%2FProperties%2F1616567189">BrandSecondary</a></div><div class="brief "><p class="paragraph">The secondary brand color palette.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-668152045%2FProperties%2F1616567189" anchor-label="dark" id="-668152045%2FProperties%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-668152045%2FProperties%2F1616567189"><span><span>dark</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-668152045%2FProperties%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-deprecated/index.html"><span class="token annotation builtin">Deprecated</span></a><span class="token punctuation">(</span><span>message<span class="token operator"> = </span><span class="breakable-word"><span class="token string">"Use ThemeColorTokens and ThemeColorTokens-based palettes instead."</span></span></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-theme-colors/index.html">ThemeColors</a>&nbsp;<a href="index.html#-668152045%2FProperties%2F1616567189"><strike>dark</strike></a></div><div class="brief "><p class="paragraph">Default color palette used by the chat for the dark mode.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1498057241%2FProperties%2F1616567189" anchor-label="darkTokens" id="1498057241%2FProperties%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#1498057241%2FProperties%2F1616567189"><span>dark</span><wbr><span><span>Tokens</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1498057241%2FProperties%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-theme-color-tokens/index.html">ThemeColorTokens</a>&nbsp;<a href="index.html#1498057241%2FProperties%2F1616567189">darkTokens</a></div><div class="brief "><p class="paragraph">Default ThemeColorTokens for dark mode, based on Figma design system.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1813382356%2FProperties%2F1616567189" anchor-label="INSTANCE" id="1813382356%2FProperties%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#1813382356%2FProperties%2F1616567189"><span><span>INSTANCE</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1813382356%2FProperties%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword">static </span><a href="index.html">DefaultColors</a>&nbsp;<a href="index.html#1813382356%2FProperties%2F1616567189">INSTANCE</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-677934373%2FProperties%2F1616567189" anchor-label="light" id="-677934373%2FProperties%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-677934373%2FProperties%2F1616567189"><span><span>light</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-677934373%2FProperties%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-deprecated/index.html"><span class="token annotation builtin">Deprecated</span></a><span class="token punctuation">(</span><span>message<span class="token operator"> = </span><span class="breakable-word"><span class="token string">"Use ThemeColorTokens and ThemeColorTokens-based palettes instead."</span></span></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-theme-colors/index.html">ThemeColors</a>&nbsp;<a href="index.html#-677934373%2FProperties%2F1616567189"><strike>light</strike></a></div><div class="brief "><p class="paragraph">Default color palette used by the chat for the light mode.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="576409569%2FProperties%2F1616567189" anchor-label="lightTokens" id="576409569%2FProperties%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#576409569%2FProperties%2F1616567189"><span>light</span><wbr><span><span>Tokens</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="576409569%2FProperties%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-theme-color-tokens/index.html">ThemeColorTokens</a>&nbsp;<a href="index.html#576409569%2FProperties%2F1616567189">lightTokens</a></div><div class="brief "><p class="paragraph">Default ThemeColorTokens for light mode, based on Figma design system.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="266195220%2FProperties%2F1616567189" anchor-label="Negative" id="266195220%2FProperties%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#266195220%2FProperties%2F1616567189"><span><span>Negative</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="266195220%2FProperties%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-negative/index.html">Negative</a>&nbsp;<a href="index.html#266195220%2FProperties%2F1616567189">Negative</a></div><div class="brief "><p class="paragraph">The negative color palette.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1260121494%2FProperties%2F1616567189" anchor-label="Neutral" id="-1260121494%2FProperties%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1260121494%2FProperties%2F1616567189"><span><span>Neutral</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1260121494%2FProperties%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-neutral/index.html">Neutral</a>&nbsp;<a href="index.html#-1260121494%2FProperties%2F1616567189">Neutral</a></div><div class="brief "><p class="paragraph">The neutral color palette.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1572767696%2FProperties%2F1616567189" anchor-label="Positive" id="1572767696%2FProperties%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#1572767696%2FProperties%2F1616567189"><span><span>Positive</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1572767696%2FProperties%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-positive/index.html">Positive</a>&nbsp;<a href="index.html#1572767696%2FProperties%2F1616567189">Positive</a></div><div class="brief "><p class="paragraph">The positive color palette.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1718367691%2FProperties%2F1616567189" anchor-label="Warning" id="-1718367691%2FProperties%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1718367691%2FProperties%2F1616567189"><span><span>Warning</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1718367691%2FProperties%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">private </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-warning/index.html">Warning</a>&nbsp;<a href="index.html#-1718367691%2FProperties%2F1616567189">Warning</a></div><div class="brief "><p class="paragraph">The warning color palette.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="2144043909%2FFunctions%2F1616567189" anchor-label="getAccentHeaderEndDark" id="2144043909%2FFunctions%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-accent-header-end-dark.html"><span>get</span><wbr><span>Accent</span><wbr><span>Header</span><wbr><span>End</span><wbr><span><span>Dark</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2144043909%2FFunctions%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a>&nbsp;<a href="get-accent-header-end-dark.html"><span class="token function">getAccentHeaderEndDark</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Default dark ending <a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a> of the <a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Brush.Companion.html#lineargradient">Brush.linearGradient</a> for the accent header.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="600794281%2FFunctions%2F1616567189" anchor-label="getAccentHeaderEndLight" id="600794281%2FFunctions%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-accent-header-end-light.html"><span>get</span><wbr><span>Accent</span><wbr><span>Header</span><wbr><span>End</span><wbr><span><span>Light</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="600794281%2FFunctions%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a>&nbsp;<a href="get-accent-header-end-light.html"><span class="token function">getAccentHeaderEndLight</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Default light ending <a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a> of the <a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Brush.Companion.html#lineargradient">Brush.linearGradient</a> for the accent header.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-895768802%2FFunctions%2F1616567189" anchor-label="getAccentHeaderStartDark" id="-895768802%2FFunctions%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-accent-header-start-dark.html"><span>get</span><wbr><span>Accent</span><wbr><span>Header</span><wbr><span>Start</span><wbr><span><span>Dark</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-895768802%2FFunctions%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a>&nbsp;<a href="get-accent-header-start-dark.html"><span class="token function">getAccentHeaderStartDark</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Default dark starting <a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a> of the <a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Brush.Companion.html#lineargradient">Brush.linearGradient</a> for the accent header.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="855880752%2FFunctions%2F1616567189" anchor-label="getAccentHeaderStartLight" id="855880752%2FFunctions%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-accent-header-start-light.html"><span>get</span><wbr><span>Accent</span><wbr><span>Header</span><wbr><span>Start</span><wbr><span><span>Light</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="855880752%2FFunctions%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a>&nbsp;<a href="get-accent-header-start-light.html"><span class="token function">getAccentHeaderStartLight</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Default light starting <a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a> of the <a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Brush.Companion.html#lineargradient">Brush.linearGradient</a> for the accent header.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-332174134%2FFunctions%2F1616567189" anchor-label="getBase" id="-332174134%2FFunctions%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-base.html"><span>get</span><wbr><span><span>Base</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-332174134%2FFunctions%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-base/index.html">Base</a>&nbsp;<a href="get-base.html"><span class="token function">getBase</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">The base color palette (white and black).</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-792329120%2FFunctions%2F1616567189" anchor-label="getBrandPrimary" id="-792329120%2FFunctions%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-brand-primary.html"><span>get</span><wbr><span>Brand</span><wbr><span><span>Primary</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-792329120%2FFunctions%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-brand-primary/index.html">BrandPrimary</a>&nbsp;<a href="get-brand-primary.html"><span class="token function">getBrandPrimary</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">The primary brand color palette.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1284866066%2FFunctions%2F1616567189" anchor-label="getBrandSecondary" id="-1284866066%2FFunctions%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-brand-secondary.html"><span>get</span><wbr><span>Brand</span><wbr><span><span>Secondary</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1284866066%2FFunctions%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-brand-secondary/index.html">BrandSecondary</a>&nbsp;<a href="get-brand-secondary.html"><span class="token function">getBrandSecondary</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">The secondary brand color palette.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="278534085%2FFunctions%2F1616567189" anchor-label="getDark" id="278534085%2FFunctions%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-dark.html"><span>get</span><wbr><span><span>Dark</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="278534085%2FFunctions%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-theme-colors/index.html">ThemeColors</a>&nbsp;<a href="get-dark.html"><span class="token function">getDark</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Default color palette used by the chat for the dark mode.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1421280587%2FFunctions%2F1616567189" anchor-label="getDarkTokens" id="1421280587%2FFunctions%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-dark-tokens.html"><span>get</span><wbr><span>Dark</span><wbr><span><span>Tokens</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1421280587%2FFunctions%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-theme-color-tokens/index.html">ThemeColorTokens</a>&nbsp;<a href="get-dark-tokens.html"><span class="token function">getDarkTokens</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Default ThemeColorTokens for dark mode, based on Figma design system.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1395435415%2FFunctions%2F1616567189" anchor-label="getLight" id="-1395435415%2FFunctions%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-light.html"><span>get</span><wbr><span><span>Light</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1395435415%2FFunctions%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-theme-colors/index.html">ThemeColors</a>&nbsp;<a href="get-light.html"><span class="token function">getLight</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Default color palette used by the chat for the light mode.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1803666705%2FFunctions%2F1616567189" anchor-label="getLightTokens" id="-1803666705%2FFunctions%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-light-tokens.html"><span>get</span><wbr><span>Light</span><wbr><span><span>Tokens</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1803666705%2FFunctions%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-theme-color-tokens/index.html">ThemeColorTokens</a>&nbsp;<a href="get-light-tokens.html"><span class="token function">getLightTokens</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Default ThemeColorTokens for light mode, based on Figma design system.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="86700262%2FFunctions%2F1616567189" anchor-label="getNegative" id="86700262%2FFunctions%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-negative.html"><span>get</span><wbr><span><span>Negative</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="86700262%2FFunctions%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-negative/index.html">Negative</a>&nbsp;<a href="get-negative.html"><span class="token function">getNegative</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">The negative color palette.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="812298328%2FFunctions%2F1616567189" anchor-label="getNeutral" id="812298328%2FFunctions%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-neutral.html"><span>get</span><wbr><span><span>Neutral</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="812298328%2FFunctions%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-neutral/index.html">Neutral</a>&nbsp;<a href="get-neutral.html"><span class="token function">getNeutral</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">The neutral color palette.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1393272738%2FFunctions%2F1616567189" anchor-label="getPositive" id="1393272738%2FFunctions%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-positive.html"><span>get</span><wbr><span><span>Positive</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1393272738%2FFunctions%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-positive/index.html">Positive</a>&nbsp;<a href="get-positive.html"><span class="token function">getPositive</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">The positive color palette.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="354052131%2FFunctions%2F1616567189" anchor-label="getWarning" id="354052131%2FFunctions%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-warning.html"><span>get</span><wbr><span><span>Warning</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="354052131%2FFunctions%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-warning/index.html">Warning</a>&nbsp;<a href="get-warning.html"><span class="token function">getWarning</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">The warning color palette.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+        <span>© 2026 Copyright</span>
+        <span class="pull-right">
+            <span>Generated by </span>
+            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                <span>dokka</span>
+            </a>
+        </span>
+    </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

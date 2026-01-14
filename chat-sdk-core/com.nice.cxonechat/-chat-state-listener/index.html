@@ -1,0 +1,198 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>ChatStateListener</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+    <div class="root">
+    <nav class="navigation theme-dark" id="navigation-wrapper">
+<a class="library-name--link" href="../../../index.html">
+                    CXone Mobile SDK
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">3.1.1-SNAPSHOT
+        </div>
+        <div class="navigation-controls">
+        <div class="filter-section filter-section_loading" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":chat-sdk-core/release">androidJvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
+                    <div class="dropdown--header"><span>Platform filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":chat-sdk-core/release" data-filter=":chat-sdk-core/release">
+                                <span class="checkbox--icon"></span>
+                                androidJvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </div>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
+                        <div class="dropdown--header">
+                            <span>
+                                    CXone Mobile SDK
+                            </span>
+                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                            </button>
+                        </div>
+                        <div class="sidebar--inner" id="sideMenu"></div>
+                    </ul>
+                    <div class="dropdown--overlay"></div>
+                </div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="chat-sdk-core::com.nice.cxonechat/ChatStateListener///PointingToDeclaration//978106144">
+  <div class="breadcrumbs"><a href="../../index.html">chat-sdk-core</a><span class="delimiter">/</span><a href="../index.html">com.nice.cxonechat</a><span class="delimiter">/</span><span class="current">ChatStateListener</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Chat</span><wbr><span>State</span><wbr><span><span>Listener</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace"><span class="token keyword">public </span><span class="token keyword">interface </span><a href="index.html">ChatStateListener</a></div><p class="paragraph">Listener for <a href="../-chat/index.html">Chat</a> instance state changes. The current main purpose of this listener is to provide callbacks which notify integrating application about chat session connectivity changes.</p><h4 class="">Inheritors</h4><div class="table"><div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-chat-instance-provider/index.html">ChatInstanceProvider</a></div></span></div><div></div></div></div></div></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="-40814813%2FFunctions%2F978106144" anchor-label="onChatRuntimeException" id="-40814813%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-chat-runtime-exception.html"><span>on</span><wbr><span>Chat</span><wbr><span>Runtime</span><wbr><span><span>Exception</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-40814813%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">abstract </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a>&nbsp;<a href="on-chat-runtime-exception.html"><span class="token function">onChatRuntimeException</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword"></span><a href="../../com.nice.cxonechat.exceptions/-runtime-chat-exception/index.html">RuntimeChatException</a>&nbsp;exception</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Method is invoked when <a href="../-chat/index.html">Chat</a> instance encounters possible exception in a background process. Application should handle these exceptions according to the description of each <a href="../../com.nice.cxonechat.exceptions/-runtime-chat-exception/index.html">RuntimeChatException</a>. Some of these exceptions can indicate issues during transfer of messages while others may indicate that further interactions with <a href="../-chat/index.html">Chat</a> will be ignored.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1121313281%2FFunctions%2F978106144" anchor-label="onConnected" id="-1121313281%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-connected.html"><span>on</span><wbr><span><span>Connected</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1121313281%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">abstract </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a>&nbsp;<a href="on-connected.html"><span class="token function">onConnected</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Method is invoked when chat instance is connected and ready to send/receive messages, events or actions. This happens once initial connection is established or after Chat.reconnect is called.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="800303162%2FFunctions%2F978106144" anchor-label="onConnecting" id="800303162%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-connecting.html"><span>on</span><wbr><span><span>Connecting</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="800303162%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a>&nbsp;<a href="on-connecting.html"><span class="token function">onConnecting</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Method is invoked when the application initiates connection to chat session or if the session was lost and chat attempts automatically to reconnect. Chat should be considered temporarily unavailable until <a href="on-connected.html">onConnected</a> is invoked.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1500923429%2FFunctions%2F978106144" anchor-label="onReady" id="1500923429%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-ready.html"><span>on</span><wbr><span><span>Ready</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1500923429%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">abstract </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a>&nbsp;<a href="on-ready.html"><span class="token function">onReady</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Method is invoked when chat instance has finished performing background tasks after connection was established.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1611967109%2FFunctions%2F978106144" anchor-label="onUnexpectedDisconnect" id="1611967109%2FFunctions%2F978106144" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-unexpected-disconnect.html"><span>on</span><wbr><span>Unexpected</span><wbr><span><span>Disconnect</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1611967109%2FFunctions%2F978106144"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">abstract </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a>&nbsp;<a href="on-unexpected-disconnect.html"><span class="token function">onUnexpectedDisconnect</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Method is invoked when chat session is unexpectedly lost during initial connection, or if the initial connection was established, but then lost and retry mechanism has been exhausted without success.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+        <span>© 2026 Copyright</span>
+        <span class="pull-right">
+            <span>Generated by </span>
+            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                <span>dokka</span>
+            </a>
+        </span>
+    </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

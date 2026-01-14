@@ -1,0 +1,277 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>Brand</title>
+<link href="../../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../../styles/style.css" rel="Stylesheet">
+<link href="../../../../styles/main.css" rel="Stylesheet">
+<link href="../../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<link href="../../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../../ui-kit/ui-kit.min.js" defer></script>
+<script type="text/javascript" src="../../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+    <div class="root">
+    <nav class="navigation theme-dark" id="navigation-wrapper">
+<a class="library-name--link" href="../../../../index.html">
+                    CXone Mobile SDK
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">3.1.1-SNAPSHOT
+        </div>
+        <div class="navigation-controls">
+        <div class="filter-section filter-section_loading" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":chat-sdk-ui/release">androidJvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
+                    <div class="dropdown--header"><span>Platform filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":chat-sdk-ui/release" data-filter=":chat-sdk-ui/release">
+                                <span class="checkbox--icon"></span>
+                                androidJvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </div>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
+                        <div class="dropdown--header">
+                            <span>
+                                    CXone Mobile SDK
+                            </span>
+                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                            </button>
+                        </div>
+                        <div class="sidebar--inner" id="sideMenu"></div>
+                    </ul>
+                    <div class="dropdown--overlay"></div>
+                </div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="chat-sdk-ui::com.nice.cxonechat.ui.composable.theme/ThemeColorTokens.Brand///PointingToDeclaration//1616567189">
+  <div class="breadcrumbs"><a href="../../../index.html">chat-sdk-ui</a><span class="delimiter">/</span><a href="../../index.html">com.nice.cxonechat.ui.composable.theme</a><span class="delimiter">/</span><a href="../index.html">ThemeColorTokens</a><span class="delimiter">/</span><span class="current">Brand</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>Brand</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace"><span class="token keyword">public </span><span class="token keyword">interface </span><a href="index.html">Brand</a></div><p class="paragraph">Tokens related to your primary and secondary brand colors.</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button><button class="section-tab" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION,EXTENSION_PROPERTY,EXTENSION_FUNCTION">Members &amp; Extensions</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="TYPE">
+        <h2 class="">Types</h2>
+        <div class="table"><a data-name="878921488%2FClasslikes%2F1616567189" anchor-label="Companion" id="878921488%2FClasslikes%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-companion/index.html"><span><span>Companion</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="878921488%2FClasslikes%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace"><span class="token keyword">public </span><span class="token keyword">class </span><a href="-companion/index.html">Companion</a></div><div class="brief "><p class="paragraph">Companion object for <a href="index.html">Brand</a> interface, provides a factory method for creating <a href="index.html">Brand</a> instances.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="-144494693%2FFunctions%2F1616567189" anchor-label="copy" id="-144494693%2FFunctions%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-companion/copy.html"><span><span>copy</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-144494693%2FFunctions%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="index.html">ThemeColorTokens.Brand</a>&nbsp;<a href="-companion/copy.html"><span class="token function">copy</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a>&nbsp;primary<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a>&nbsp;onPrimary<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a>&nbsp;primaryContainer<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a>&nbsp;onPrimaryContainer<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a>&nbsp;secondary<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a>&nbsp;onSecondary<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a>&nbsp;secondaryContainer<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a>&nbsp;onSecondaryContainer</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Copies this <a href="index.html">Brand</a> replacing provided values.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1162668644%2FFunctions%2F1616567189" anchor-label="getOnPrimary" id="1162668644%2FFunctions%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-on-primary.html"><span>get</span><wbr><span>On</span><wbr><span><span>Primary</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1162668644%2FFunctions%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">abstract </span><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a>&nbsp;<a href="get-on-primary.html"><span class="token function">getOnPrimary</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Color for text and icons displayed on top of the <a href="../../../../chat-sdk-ui/com.nice.cxonechat.ui.composable.theme/-theme-color-tokens/-brand/primary.html">primary</a> color.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1380942923%2FFunctions%2F1616567189" anchor-label="getOnPrimaryContainer" id="-1380942923%2FFunctions%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-on-primary-container.html"><span>get</span><wbr><span>On</span><wbr><span>Primary</span><wbr><span><span>Container</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1380942923%2FFunctions%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">abstract </span><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a>&nbsp;<a href="get-on-primary-container.html"><span class="token function">getOnPrimaryContainer</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Color for text and icons placed on top of the <a href="../../../../chat-sdk-ui/com.nice.cxonechat.ui.composable.theme/-theme-color-tokens/-brand/primary-container.html">primaryContainer</a> color.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="567276786%2FFunctions%2F1616567189" anchor-label="getOnSecondary" id="567276786%2FFunctions%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-on-secondary.html"><span>get</span><wbr><span>On</span><wbr><span><span>Secondary</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="567276786%2FFunctions%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">abstract </span><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a>&nbsp;<a href="get-on-secondary.html"><span class="token function">getOnSecondary</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Color for text and icons placed on top of the <a href="../../../../chat-sdk-ui/com.nice.cxonechat.ui.composable.theme/-theme-color-tokens/-brand/secondary.html">secondary</a> color.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1816825625%2FFunctions%2F1616567189" anchor-label="getOnSecondaryContainer" id="-1816825625%2FFunctions%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-on-secondary-container.html"><span>get</span><wbr><span>On</span><wbr><span>Secondary</span><wbr><span><span>Container</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1816825625%2FFunctions%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">abstract </span><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a>&nbsp;<a href="get-on-secondary-container.html"><span class="token function">getOnSecondaryContainer</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Color for text and icons placed on top of the <a href="../../../../chat-sdk-ui/com.nice.cxonechat.ui.composable.theme/-theme-color-tokens/-brand/secondary-container.html">secondaryContainer</a> color.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1069229797%2FFunctions%2F1616567189" anchor-label="getPrimary" id="1069229797%2FFunctions%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-primary.html"><span>get</span><wbr><span><span>Primary</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1069229797%2FFunctions%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">abstract </span><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a>&nbsp;<a href="get-primary.html"><span class="token function">getPrimary</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">The main brand color, used for key interactive elements like buttons, active states, and FABs.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-561528748%2FFunctions%2F1616567189" anchor-label="getPrimaryContainer" id="-561528748%2FFunctions%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-primary-container.html"><span>get</span><wbr><span>Primary</span><wbr><span><span>Container</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-561528748%2FFunctions%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">abstract </span><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a>&nbsp;<a href="get-primary-container.html"><span class="token function">getPrimaryContainer</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">A toned-down container color derived from the <a href="../../../../chat-sdk-ui/com.nice.cxonechat.ui.composable.theme/-theme-color-tokens/-brand/primary.html">primary</a> brand color. Used for components that need less emphasis than the <a href="../../../../chat-sdk-ui/com.nice.cxonechat.ui.composable.theme/-theme-color-tokens/-brand/primary.html">primary</a> color.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="966858035%2FFunctions%2F1616567189" anchor-label="getSecondary" id="966858035%2FFunctions%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-secondary.html"><span>get</span><wbr><span><span>Secondary</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="966858035%2FFunctions%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">abstract </span><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a>&nbsp;<a href="get-secondary.html"><span class="token function">getSecondary</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">The secondary brand color, used for less prominent components that still require some accent.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-338818618%2FFunctions%2F1616567189" anchor-label="getSecondaryContainer" id="-338818618%2FFunctions%2F1616567189" data-filterable-set=":chat-sdk-ui/release"></a>
+          <div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-secondary-container.html"><span>get</span><wbr><span>Secondary</span><wbr><span><span>Container</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-338818618%2FFunctions%2F1616567189"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">abstract </span><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/graphics/Color.html">Color</a>&nbsp;<a href="get-secondary-container.html"><span class="token function">getSecondaryContainer</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">A toned-down container color derived from the <a href="../../../../chat-sdk-ui/com.nice.cxonechat.ui.composable.theme/-theme-color-tokens/-brand/secondary.html">secondary</a> brand color.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+        <span>© 2026 Copyright</span>
+        <span class="pull-right">
+            <span>Generated by </span>
+            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                <span>dokka</span>
+            </a>
+        </span>
+    </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

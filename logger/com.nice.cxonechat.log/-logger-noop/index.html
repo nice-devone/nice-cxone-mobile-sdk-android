@@ -1,0 +1,247 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>LoggerNoop</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+    <div class="root">
+    <nav class="navigation theme-dark" id="navigation-wrapper">
+<a class="library-name--link" href="../../../index.html">
+                    CXone Mobile SDK
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">3.1.1-SNAPSHOT
+        </div>
+        <div class="navigation-controls">
+        <div class="filter-section filter-section_loading" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":logger/main">jvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
+                    <div class="dropdown--header"><span>Platform filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":logger/main" data-filter=":logger/main">
+                                <span class="checkbox--icon"></span>
+                                jvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </div>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
+                        <div class="dropdown--header">
+                            <span>
+                                    CXone Mobile SDK
+                            </span>
+                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                            </button>
+                        </div>
+                        <div class="sidebar--inner" id="sideMenu"></div>
+                    </ul>
+                    <div class="dropdown--overlay"></div>
+                </div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="logger::com.nice.cxonechat.log/LoggerNoop///PointingToDeclaration//699320656">
+  <div class="breadcrumbs"><a href="../../index.html">logger</a><span class="delimiter">/</span><a href="../index.html">com.nice.cxonechat.log</a><span class="delimiter">/</span><span class="current">LoggerNoop</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Logger</span><wbr><span><span>Noop</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":logger/main"><div class="symbol monospace"><span class="token keyword">public </span><span class="token keyword">class </span><a href="index.html">LoggerNoop</a><span class="token keyword"> implements </span><a href="../-logger/index.html">Logger</a></div><p class="paragraph">A <a href="../-logger/index.html">Logger</a> instance that prevents all logging.</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button><button class="section-tab" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION,EXTENSION_PROPERTY,EXTENSION_FUNCTION">Members &amp; Extensions</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="-1341646977%2FProperties%2F699320656" anchor-label="INSTANCE" id="-1341646977%2FProperties%2F699320656" data-filterable-set=":logger/main"></a>
+          <div class="table-row" data-filterable-current=":logger/main" data-filterable-set=":logger/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="index.html#-1341646977%2FProperties%2F699320656"><span><span>INSTANCE</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1341646977%2FProperties%2F699320656"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":logger/main"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword">static </span><a href="index.html">LoggerNoop</a>&nbsp;<a href="index.html#-1341646977%2FProperties%2F699320656">INSTANCE</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="-471848159%2FFunctions%2F699320656" anchor-label="debug" id="-471848159%2FFunctions%2F699320656" data-filterable-set=":logger/main"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":logger/main" data-filterable-set=":logger/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-proxy-logger/index.html#-471848159%2FFunctions%2F699320656"><span><span>debug</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-471848159%2FFunctions%2F699320656"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":logger/main"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a>&nbsp;<a href="../-proxy-logger/index.html#-471848159%2FFunctions%2F699320656"><span class="token function">debug</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a>&nbsp;message<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-throwable/index.html">Throwable</a>&nbsp;throwable</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Calls <a href="../-logger/log.html">Logger.log</a> message with <a href="../-level/-debug/index.html">Debug</a> level.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1647565944%2FFunctions%2F699320656" anchor-label="duration" id="-1647565944%2FFunctions%2F699320656" data-filterable-set=":logger/main"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":logger/main" data-filterable-set=":logger/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-proxy-logger/index.html#-1647565944%2FFunctions%2F699320656"><span><span>duration</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1647565944%2FFunctions%2F699320656"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":logger/main"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="../-proxy-logger/index.html#-1647565944%2FFunctions%2F699320656">T</a>&nbsp;<a href="../-proxy-logger/index.html#-1647565944%2FFunctions%2F699320656"><span class="token function">duration</span></a><span class="token operator">&lt;</span>T<span class="token keyword"> extends </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-any/index.html">Any</a><span class="token operator">&gt;</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-function0/index.html">Function0</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../-proxy-logger/index.html#-1647565944%2FFunctions%2F699320656">T</a><span class="token operator">&gt;</span>&nbsp;body</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Measures the duration it takes to invoke the <a href="../-proxy-logger/index.html#-1647565944%2FFunctions%2F699320656">body</a>. Logs with <a href="../-level/-verbose/index.html">Verbose</a> level message <code class="lang-kotlin">Started</code> before the invocation and <code class="lang-kotlin">Finished took XYZms</code> after completion.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2108353164%2FFunctions%2F699320656" anchor-label="error" id="2108353164%2FFunctions%2F699320656" data-filterable-set=":logger/main"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":logger/main" data-filterable-set=":logger/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-proxy-logger/index.html#2108353164%2FFunctions%2F699320656"><span><span>error</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2108353164%2FFunctions%2F699320656"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":logger/main"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a>&nbsp;<a href="../-proxy-logger/index.html#2108353164%2FFunctions%2F699320656"><span class="token function">error</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a>&nbsp;message<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-throwable/index.html">Throwable</a>&nbsp;throwable</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Calls <a href="../-logger/log.html">Logger.log</a> message with <a href="../-level/-error/index.html">Error</a> level.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1294418704%2FFunctions%2F699320656" anchor-label="info" id="1294418704%2FFunctions%2F699320656" data-filterable-set=":logger/main"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":logger/main" data-filterable-set=":logger/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-proxy-logger/index.html#1294418704%2FFunctions%2F699320656"><span><span>info</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1294418704%2FFunctions%2F699320656"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":logger/main"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a>&nbsp;<a href="../-proxy-logger/index.html#1294418704%2FFunctions%2F699320656"><span class="token function">info</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a>&nbsp;message<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-throwable/index.html">Throwable</a>&nbsp;throwable</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Calls <a href="../-logger/log.html">Logger.log</a> message with <a href="../-level/-info/index.html">Info</a> level.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1103242835%2FFunctions%2F699320656" anchor-label="log" id="-1103242835%2FFunctions%2F699320656" data-filterable-set=":logger/main"></a>
+          <div class="table-row" data-filterable-current=":logger/main" data-filterable-set=":logger/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="log.html"><span><span>log</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1103242835%2FFunctions%2F699320656"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":logger/main"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a>&nbsp;<a href="log.html"><span class="token function">log</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword"></span><a href="../-level/index.html">Level</a>&nbsp;level<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword"></span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/String.html">String</a>&nbsp;message<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword"></span><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Throwable.html">Throwable</a>&nbsp;throwable</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Uses <a href="log.html">level</a> to determine whether it should be passed to the underlying implementation. Implementations are free to use whichever level they like.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="839100562%2FFunctions%2F699320656" anchor-label="verbose" id="839100562%2FFunctions%2F699320656" data-filterable-set=":logger/main"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":logger/main" data-filterable-set=":logger/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-proxy-logger/index.html#839100562%2FFunctions%2F699320656"><span><span>verbose</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="839100562%2FFunctions%2F699320656"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":logger/main"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a>&nbsp;<a href="../-proxy-logger/index.html#839100562%2FFunctions%2F699320656"><span class="token function">verbose</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a>&nbsp;message<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-throwable/index.html">Throwable</a>&nbsp;throwable</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Calls <a href="../-logger/log.html">Logger.log</a> message with <a href="../-level/-verbose/index.html">Verbose</a> level.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="425326264%2FFunctions%2F699320656" anchor-label="warning" id="425326264%2FFunctions%2F699320656" data-filterable-set=":logger/main"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":logger/main" data-filterable-set=":logger/main">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-proxy-logger/index.html#425326264%2FFunctions%2F699320656"><span><span>warning</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="425326264%2FFunctions%2F699320656"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":logger/main"><div class="symbol monospace block"><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a>&nbsp;<a href="../-proxy-logger/index.html#425326264%2FFunctions%2F699320656"><span class="token function">warning</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a>&nbsp;message<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-throwable/index.html">Throwable</a>&nbsp;throwable</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Calls <a href="../-logger/log.html">Logger.log</a> message with <a href="../-level/-warning/index.html">Warning</a> level.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+        <span>© 2026 Copyright</span>
+        <span class="pull-right">
+            <span>Generated by </span>
+            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                <span>dokka</span>
+            </a>
+        </span>
+    </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

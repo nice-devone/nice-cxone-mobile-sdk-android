@@ -1,0 +1,114 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>SelectAttachmentsView</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+    <div class="root">
+    <nav class="navigation theme-dark" id="navigation-wrapper">
+<a class="library-name--link" href="../../../index.html">
+                    CXone Mobile SDK
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">3.1.1-SNAPSHOT
+        </div>
+        <div class="navigation-controls">
+        <div class="filter-section filter-section_loading" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":chat-sdk-ui/release">androidJvm</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
+                    <div class="dropdown--header"><span>Platform filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":chat-sdk-ui/release" data-filter=":chat-sdk-ui/release">
+                                <span class="checkbox--icon"></span>
+                                androidJvm
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </div>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
+                        <div class="dropdown--header">
+                            <span>
+                                    CXone Mobile SDK
+                            </span>
+                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                            </button>
+                        </div>
+                        <div class="sidebar--inner" id="sideMenu"></div>
+                    </ul>
+                    <div class="dropdown--overlay"></div>
+                </div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="member" id="content" pageids="chat-sdk-ui::com.nice.cxonechat.ui.composable.conversation.attachments/SelectAttachmentsViewKt/SelectAttachmentsView/#kotlin.collections.List[com.nice.cxonechat.message.Attachment]#kotlin.Function1[com.nice.cxonechat.message.Attachment,kotlin.Unit]#kotlin.Function1[kotlin.collections.Collection[com.nice.cxonechat.message.Attachment],kotlin.Unit]#kotlin.Function0[kotlin.Unit]#androidx.compose.ui.Modifier/PointingToDeclaration//1616567189">
+  <div class="breadcrumbs"><a href="../../index.html">chat-sdk-ui</a><span class="delimiter">/</span><a href="../index.html">com.nice.cxonechat.ui.composable.conversation.attachments</a><span class="delimiter">/</span><a href="index.html">SelectAttachmentsViewKt</a><span class="delimiter">/</span><span class="current">SelectAttachmentsView</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Select</span><wbr><span>Attachments</span><wbr><span><span>View</span></span></h1>
+  </div>
+  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-ui/release"><div class="symbol monospace block"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/compose/runtime/Composable.html"><span class="token annotation builtin">Composable</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div><span class="token keyword">public </span><span class="token keyword">final </span><span class="token keyword">static </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a>&nbsp;<a href="-select-attachments-view.html"><span class="token function">SelectAttachmentsView</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/java/util/List.html">List</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../../../chat-sdk-core/com.nice.cxonechat.message/-attachment/index.html">Attachment</a><span class="token operator">&gt;</span>&nbsp;attachments<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword"></span><span data-unresolved-link="kotlin.jvm.functions/Function1///PointingToDeclaration/">Function1</span><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../../../chat-sdk-core/com.nice.cxonechat.message/-attachment/index.html">Attachment</a><span class="token punctuation">, </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token operator">&gt;</span>&nbsp;onAttachmentTapped<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword"></span><span data-unresolved-link="kotlin.jvm.functions/Function1///PointingToDeclaration/">Function1</span><span class="token operator">&lt;</span><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/java/util/Collection.html">Collection</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="../../../chat-sdk-core/com.nice.cxonechat.message/-attachment/index.html">Attachment</a><span class="token operator">&gt;</span><span class="token punctuation">, </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token operator">&gt;</span>&nbsp;onShare<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword"></span><span data-unresolved-link="kotlin.jvm.functions/Function0///PointingToDeclaration/">Function0</span><span class="token operator">&lt;</span><span class="token keyword"></span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token operator">&gt;</span>&nbsp;onCancel<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword"></span><a href="https://developer.android.com/reference/kotlin/androidx/compose/ui/Modifier.html">Modifier</a>&nbsp;modifier</span></span><span class="token punctuation">)</span></div><p class="paragraph">Present a view to select and display or share from a list of <a href="../../../chat-sdk-core/com.nice.cxonechat.message/-attachment/index.html">Attachment</a>. Current implementation utilizes <a href="https://developer.android.com/reference/kotlin/androidx/compose/material3/package-summary.html">ModalBottomSheet</a> to present the view, with enabled sheet gestures and disabled partial expansion.</p><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>attachments</span></span></u></div></span></div><div><div class="title"><p class="paragraph">Available attachments.</p></div></div></div></div><div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>on</span><wbr><span>Attachment</span><wbr><span><span>Tapped</span></span></u></div></span></div><div><div class="title"><p class="paragraph">Direct action on an attachment, typically preview a single attachment.</p></div></div></div></div><div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>on</span><wbr><span><span>Share</span></span></u></div></span></div><div><div class="title"><p class="paragraph">Share was selected for one or more attachments.  Selected attachments are passed as the sole parameter.</p></div></div></div></div><div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>on</span><wbr><span><span>Cancel</span></span></u></div></span></div><div><div class="title"><p class="paragraph">The selection user intent was cancelled via back button or a tap outside the view.</p></div></div></div></div><div class="table-row" data-filterable-current=":chat-sdk-ui/release" data-filterable-set=":chat-sdk-ui/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>modifier</span></span></u></div></span></div><div><div class="title"><p class="paragraph">Modifier for the <a href="https://developer.android.com/reference/kotlin/androidx/compose/material3/package-summary.html">ModalBottomSheet</a>.</p></div></div></div></div></div></div></div>
+</div>
+    <div class="footer">
+        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+        <span>© 2026 Copyright</span>
+        <span class="pull-right">
+            <span>Generated by </span>
+            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                <span>dokka</span>
+            </a>
+        </span>
+    </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
