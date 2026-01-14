@@ -22,6 +22,7 @@ import com.nice.cxonechat.exceptions.RuntimeChatException.AttachmentUploadError
 import com.nice.cxonechat.message.ContentDescriptor.Companion.size
 import com.nice.cxonechat.message.OutboundMessage
 import com.nice.cxonechat.state.FileRestrictions.AllowedFileType
+import com.nice.cxonechat.utilities.isEmpty
 
 /**
  * Class responsible for SDK side validation that message attachments follow [com.nice.cxonechat.state.FileRestrictions],
@@ -33,29 +34,60 @@ internal class ChatThreadMessageHandlerAttachmentVerification(
 ) : ChatThreadMessageHandler by origin {
 
     override fun send(message: OutboundMessage, listener: OnMessageTransferListener?) {
-        val fileRestrictions = chat.configuration.fileRestrictions
-        val allowedSize = fileRestrictions.allowedFileSize * 1024L * 1024L
-        val allowedTypes = fileRestrictions.allowedFileTypes.map(AllowedFileType::mimeType).toTypedArray()
-        message.attachments.forEach { descriptor ->
-            if (MimeTypeFilter.matches(descriptor.mimeType, allowedTypes) == null) {
-                notifyListener(
-                    descriptor.fileName,
-                    "The file has a prohibited type."
-                )
-                return
-            }
-            if (descriptor.size()?.let { it > allowedSize } == true) {
-                notifyListener(
-                    descriptor.fileName,
-                    "The file is too large."
-                )
-                return
-            }
+        when (val validationResult = validateAttachments(message)) {
+            is ValidationResult.Success -> origin.send(message, listener)
+            is ValidationResult.Failure -> validationResult.invalidAttachments.forEach(this::notifyListener)
+            // Do not send the message if there are invalid attachments.
         }
-        origin.send(message, listener)
     }
 
-    private fun notifyListener(filename: String, error: String) {
+    private fun validateAttachments(message: OutboundMessage): ValidationResult {
+        val fileRestrictions = chat.configuration.fileRestrictions
+        if (!fileRestrictions.isAttachmentsEnabled && !message.attachments.isEmpty()) {
+            val failedAttachments = message.attachments.map { descriptor ->
+                ValidationResult.Failure.FailedAttachment(
+                    descriptor.fileName,
+                    "Attachments are disabled."
+                )
+            }
+            return ValidationResult.Failure(failedAttachments)
+        }
+        val allowedSize = fileRestrictions.allowedFileSize * 1024L * 1024L
+        val allowedTypes = fileRestrictions.allowedFileTypes.map(AllowedFileType::mimeType).toTypedArray()
+        val failedAttachments = mutableListOf<ValidationResult.Failure.FailedAttachment>()
+        message.attachments.forEach { descriptor ->
+            if (MimeTypeFilter.matches(descriptor.mimeType, allowedTypes) == null) {
+                failedAttachments.add(
+                    ValidationResult.Failure.FailedAttachment(
+                        descriptor.fileName,
+                        "The file has a prohibited type."
+                    )
+                )
+            } else if (descriptor.size()?.let { it > allowedSize } == true) {
+                failedAttachments.add(
+                    ValidationResult.Failure.FailedAttachment(
+                        descriptor.fileName,
+                        "The file is too large."
+                    )
+                )
+            }
+        }
+        return if (failedAttachments.isEmpty()) {
+            ValidationResult.Success
+        } else {
+            ValidationResult.Failure(failedAttachments)
+        }
+    }
+
+    private sealed class ValidationResult {
+        object Success : ValidationResult()
+        data class Failure(val invalidAttachments: List<FailedAttachment>) : ValidationResult() {
+            data class FailedAttachment(val filename: String, val error: String)
+        }
+    }
+
+    private fun notifyListener(failedAttachment: ValidationResult.Failure.FailedAttachment) {
+        val (filename, error) = failedAttachment
         chat.chatStateListener?.onChatRuntimeException(
             AttachmentUploadError(
                 filename,

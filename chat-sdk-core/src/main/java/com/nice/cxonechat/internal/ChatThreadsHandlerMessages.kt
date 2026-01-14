@@ -65,6 +65,7 @@ internal class ChatThreadsHandlerMessages(
                         effect.cancel()
                     }
                 }
+                cancellable.cancel()
             }
         }
 

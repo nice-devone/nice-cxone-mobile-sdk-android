@@ -147,6 +147,7 @@ interface ThemeColorTokens {
                  * Creates a [Background.Surface] instance with the provided color values.
                  */
                 @JvmStatic
+                @JvmName("create")
                 operator fun invoke(
                     default: Color,
                     variant: Color,
@@ -154,6 +155,26 @@ interface ThemeColorTokens {
                     subtle: Color,
                     emphasis: Color,
                 ): Background.Surface = BackgroundImpl.SurfaceImpl(default, variant, container, subtle, emphasis)
+
+                /**
+                 * Copies this [Background.Surface] replacing provided values.
+                 *
+                 * Provides an immutable copy helper for external code.
+                 */
+                @JvmStatic
+                fun Background.Surface.copy(
+                    default: Color = this.default,
+                    variant: Color = this.variant,
+                    container: Color = this.container,
+                    subtle: Color = this.subtle,
+                    emphasis: Color = this.emphasis,
+                ): Background.Surface = BackgroundImpl.SurfaceImpl(
+                    default = default,
+                    variant = variant,
+                    container = container,
+                    subtle = subtle,
+                    emphasis = emphasis,
+                )
             }
         }
 
@@ -165,11 +186,28 @@ interface ThemeColorTokens {
              * Creates a [Background] instance with the provided color values.
              */
             @JvmStatic
+            @JvmName("create")
             operator fun invoke(
                 default: Color,
                 inverse: Color,
                 surface: Background.Surface,
             ): Background = BackgroundImpl(default, inverse, surface)
+
+            /**
+             * Copies this [Background] replacing provided values.
+             *
+             * Provides an immutable copy helper for external code.
+             */
+            @JvmStatic
+            fun Background.copy(
+                default: Color = this.default,
+                inverse: Color = this.inverse,
+                surface: Surface = this.surface,
+            ): Background = BackgroundImpl(
+                default = default,
+                inverse = inverse,
+                surface = surface,
+            )
         }
     }
 
@@ -220,12 +258,31 @@ interface ThemeColorTokens {
              * Creates a [Content] instance with the provided color values.
              */
             @JvmStatic
+            @JvmName("create")
             operator fun invoke(
                 primary: Color,
                 secondary: Color,
                 tertiary: Color,
                 inverse: Color,
             ): Content = ContentImpl(primary, secondary, tertiary, inverse)
+
+            /**
+             * Copies this [Content] replacing provided values.
+             *
+             * Provides an immutable copy helper for external code.
+             */
+            @JvmStatic
+            fun Content.copy(
+                primary: Color = this.primary,
+                secondary: Color = this.secondary,
+                tertiary: Color = this.tertiary,
+                inverse: Color = this.inverse,
+            ): Content = ContentImpl(
+                primary = primary,
+                secondary = secondary,
+                tertiary = tertiary,
+                inverse = inverse,
+            )
         }
     }
 
@@ -313,6 +370,7 @@ interface ThemeColorTokens {
              * Creates a [Brand] instance with the provided color values.
              */
             @JvmStatic
+            @JvmName("create")
             operator fun invoke(
                 primary: Color,
                 onPrimary: Color,
@@ -331,6 +389,32 @@ interface ThemeColorTokens {
                 onSecondary,
                 secondaryContainer,
                 onSecondaryContainer
+            )
+
+            /**
+             * Copies this [Brand] replacing provided values.
+             *
+             * Immutable copy helper for external usage.
+             */
+            @JvmStatic
+            fun Brand.copy(
+                primary: Color = this.primary,
+                onPrimary: Color = this.onPrimary,
+                primaryContainer: Color = this.primaryContainer,
+                onPrimaryContainer: Color = this.onPrimaryContainer,
+                secondary: Color = this.secondary,
+                onSecondary: Color = this.onSecondary,
+                secondaryContainer: Color = this.secondaryContainer,
+                onSecondaryContainer: Color = this.onSecondaryContainer,
+            ): Brand = BrandImpl(
+                primary = primary,
+                onPrimary = onPrimary,
+                primaryContainer = primaryContainer,
+                onPrimaryContainer = onPrimaryContainer,
+                secondary = secondary,
+                onSecondary = onSecondary,
+                secondaryContainer = secondaryContainer,
+                onSecondaryContainer = onSecondaryContainer,
             )
         }
     }
@@ -364,10 +448,23 @@ interface ThemeColorTokens {
              * Creates a [Border] instance with the provided color values.
              */
             @JvmStatic
+            @JvmName("create")
             operator fun invoke(
                 default: Color,
                 subtle: Color,
             ): Border = BorderImpl(default, subtle)
+
+            /**
+             * Copies this [Border] replacing provided values.
+             */
+            @JvmStatic
+            fun Border.copy(
+                default: Color = this.default,
+                subtle: Color = this.subtle,
+            ): Border = BorderImpl(
+                default = default,
+                subtle = subtle,
+            )
         }
     }
 
@@ -492,6 +589,7 @@ interface ThemeColorTokens {
              * Creates a [Status] instance with the provided color values.
              */
             @JvmStatic
+            @JvmName("create")
             operator fun invoke(
                 success: Color,
                 onSuccess: Color,
@@ -518,6 +616,40 @@ interface ThemeColorTokens {
                 onError,
                 errorContainer,
                 onErrorContainer
+            )
+
+            /**
+             * Copies this [Status] replacing provided values.
+             *
+             * Immutable copy helper for external usage.
+             */
+            @JvmStatic
+            fun Status.copy(
+                success: Color = this.success,
+                onSuccess: Color = this.onSuccess,
+                successContainer: Color = this.successContainer,
+                onSuccessContainer: Color = this.onSuccessContainer,
+                warning: Color = this.warning,
+                onWarning: Color = this.onWarning,
+                warningContainer: Color = this.warningContainer,
+                onWarningContainer: Color = this.onWarningContainer,
+                error: Color = this.error,
+                onError: Color = this.onError,
+                errorContainer: Color = this.errorContainer,
+                onErrorContainer: Color = this.onErrorContainer,
+            ): Status = StatusImpl(
+                success = success,
+                onSuccess = onSuccess,
+                successContainer = successContainer,
+                onSuccessContainer = onSuccessContainer,
+                warning = warning,
+                onWarning = onWarning,
+                warningContainer = warningContainer,
+                onWarningContainer = onWarningContainer,
+                error = error,
+                onError = onError,
+                errorContainer = errorContainer,
+                onErrorContainer = onErrorContainer,
             )
         }
     }
@@ -601,12 +733,33 @@ interface ThemeColorTokens {
          * Creates a [ThemeColorTokens] instance with the provided color token groups.
          */
         @JvmStatic
+        @JvmName("create")
         operator fun invoke(
             background: Background,
             content: Content,
             brand: Brand,
             border: Border,
             status: Status,
+        ): ThemeColorTokens = ThemeColorTokensImpl(
+            background = background,
+            content = content,
+            brand = brand,
+            border = border,
+            status = status
+        )
+
+        /**
+         * Copies this [ThemeColorTokens] replacing provided token groups.
+         *
+         * Immutable copy helper similar to data class copy().
+         */
+        @JvmStatic
+        fun ThemeColorTokens.copy(
+            background: Background = this.background,
+            content: Content = this.content,
+            brand: Brand = this.brand,
+            border: Border = this.border,
+            status: Status = this.status,
         ): ThemeColorTokens = ThemeColorTokensImpl(
             background = background,
             content = content,
@@ -632,14 +785,14 @@ interface ThemeColorTokens {
                     variant = themeColors.surfaceVariant,
                     container = themeColors.surfaceContainer,
                     subtle = themeColors.subtle,
-                    emphasis = themeColors.accent // FIXME: Confirm mapping
+                    emphasis = themeColors.accent,
                 )
             ),
             content = ContentImpl(
                 primary = themeColors.onBackground,
-                secondary = themeColors.onSurface, // FIXME: Confirm mapping
-                tertiary = themeColors.muted, // FIXME: Confirm mapping
-                inverse = Color.Unspecified
+                secondary = themeColors.onSurface,
+                tertiary = themeColors.muted,
+                inverse = Color.Unspecified,
             ),
             brand = BrandImpl(
                 primary = themeColors.primary,
@@ -648,12 +801,12 @@ interface ThemeColorTokens {
                 onPrimaryContainer = themeColors.onSurface,
                 secondary = themeColors.accent,
                 onSecondary = themeColors.onAccent,
-                secondaryContainer = themeColors.customerBackground, // FIXME: Confirm mapping
-                onSecondaryContainer = themeColors.customerText // FIXME: Confirm mapping
+                secondaryContainer = themeColors.customerBackground,
+                onSecondaryContainer = themeColors.customerText,
             ),
             border = BorderImpl(
-                default = themeColors.muted, // FIXME: Confirm mapping
-                subtle = themeColors.subtle // FIXME: Confirm mapping
+                default = themeColors.muted,
+                subtle = themeColors.subtle,
             ),
             status = StatusImpl(
                 success = Color.Green,
@@ -667,7 +820,7 @@ interface ThemeColorTokens {
                 error = themeColors.error,
                 onError = Color.White,
                 errorContainer = themeColors.error,
-                onErrorContainer = Color.White
+                onErrorContainer = Color.White,
             )
         )
     }

@@ -20,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.semantics.semantics
@@ -31,7 +30,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.thread.ChatThreadState
-import com.nice.cxonechat.ui.SelectAttachmentActivityLauncher
+import com.nice.cxonechat.ui.AttachmentType
 import com.nice.cxonechat.ui.composable.conversation.AudioRecordingUiState
 import com.nice.cxonechat.ui.composable.conversation.ChatConversation
 import com.nice.cxonechat.ui.composable.conversation.ThreadDialogView
@@ -58,7 +57,7 @@ internal fun ThreadContentView(
     chatViewModel: ChatViewModel,
     onError: (String) -> Unit,
     audioViewModel: AudioRecordingViewModel,
-    activityLauncher: SelectAttachmentActivityLauncher,
+    onAttachmentTypeSelection: (attachmentType: AttachmentType) -> Unit,
     snackBarHostState: SnackbarHostState,
 ) {
     val owner = LocalLifecycleOwner.current
@@ -80,16 +79,12 @@ internal fun ThreadContentView(
             onDismissRecording,
             onTriggerRecording,
         ),
-        onAttachmentTypeSelection = remember {
-            {
-                activityLauncher.getAttachment(it)
-            }
-        },
+        onAttachmentTypeSelection = onAttachmentTypeSelection,
         modifier = Modifier
             .blur(if (dialogState.value == Preparing) 4.dp else 0.dp)
             .semantics {
-            testTagsAsResourceId = true // Enabled for UI test automation
-        },
+                testTagsAsResourceId = true // Enabled for UI test automation
+            },
         showMessageProcessing = showMessageProcessing,
         onError = onError,
         snackBarHostState = snackBarHostState

@@ -25,6 +25,7 @@ import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.server.ServerResponse
 import com.nice.cxonechat.tool.nextStringMap
 import org.junit.Test
+import kotlin.test.assertEquals
 
 internal class ChatThreadsHandlerSingleThreadTest : AbstractChatTest() {
 
@@ -105,5 +106,71 @@ internal class ChatThreadsHandlerSingleThreadTest : AbstractChatTest() {
             serverResponds(ServerResponse.ThreadListFetched(listOf()))
             create(nextStringMap())
         }
+    }
+
+    @Test
+    fun threads_notifies_whenNewThreadIsCreated_inSingleThreadMode() {
+        var callCount = 0
+        val receivedThreadLists = mutableListOf<List<com.nice.cxonechat.thread.ChatThread>>()
+
+        val cancellable = threads.threads { threadList ->
+            callCount++
+            receivedThreadLists.add(threadList)
+        }
+
+        // Send empty thread list - should trigger first callback
+        socketServer.sendServerMessage(ServerResponse.ThreadListFetched(listOf()))
+
+        assertEquals(1, callCount, "Expected one callback for initial empty thread list")
+        assertEquals(0, receivedThreadLists[0].size, "Expected zero threads in initial list")
+
+        // Create a new thread - should trigger second callback with updated list
+        threads.create()
+
+        assertEquals(2, callCount, "Expected callback when new thread is created")
+        assertEquals(1, receivedThreadLists[1].size, "Expected one thread after creation")
+
+        cancellable.cancel()
+    }
+
+    @Test
+    fun threads_doesNotNotify_afterCancellableIsCancelled_inSingleThreadMode() {
+        var callCount = 0
+        var secondListenerCallCount = 0
+
+        val cancellable = threads.threads { _ ->
+            callCount++
+        }
+
+        // Send empty thread list - should trigger first callback
+        socketServer.sendServerMessage(ServerResponse.ThreadListFetched(listOf()))
+
+        assertEquals(1, callCount, "Expected one callback for initial empty thread list")
+
+        // Create a thread - should trigger second callback
+        threads.create()
+
+        assertEquals(2, callCount, "Expected callback when thread is created")
+
+        // Cancel the listener
+        cancellable.cancel()
+
+        // Verify cancellable can be called multiple times without error
+        cancellable.cancel()
+
+        // Register a second listener - this should still work
+        val secondCancellable = threads.threads { _ ->
+            secondListenerCallCount++
+        }
+
+        // Send a new thread list - should only trigger the second listener
+        socketServer.sendServerMessage(ServerResponse.ThreadListFetched(listOf(makeChatThread())))
+        // Verify first listener was not called again after cancellation
+        assertEquals(2, callCount, "First listener should not be called after cancellation")
+
+        // Verify second listener was called
+        assertEquals(1, secondListenerCallCount, "Second listener should receive callback")
+
+        secondCancellable.cancel()
     }
 }

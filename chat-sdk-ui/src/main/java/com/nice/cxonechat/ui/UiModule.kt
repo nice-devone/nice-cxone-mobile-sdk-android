@@ -32,13 +32,13 @@ import org.koin.core.KoinApplication
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Factory
 import org.koin.core.annotation.Module
-import org.koin.core.annotation.Singleton
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.KoinConfiguration
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.koin.ksp.generated.module
+import javax.inject.Singleton
 
 /**
  * Koin module for the UI layer of the application.
@@ -81,7 +81,7 @@ class UiModule internal constructor() {
 
     @Suppress("UndocumentedPublicClass")
     companion object {
-        internal const val loggerName = "com.nice.cxonechat.ui.logger"
+        internal const val LOGGER_NAME = "com.nice.cxonechat.ui.logger"
 
         /**
          * Configures the UI module for Koin dependency injection.
@@ -110,14 +110,15 @@ class UiModule internal constructor() {
             contactFieldsProvider: UiCustomFieldsProvider = NoExtraCustomFields,
         ) = KoinConfiguration {
             modules(
-                    module {
-                        // Provides a factory for parsing push messages from the Amazon Pinpoint.
-                        factoryOf(::PinpointPushMessageParser).bind(PushMessageParser::class)
-                        // Provides a named logger instance.
-                        factory(named(loggerName)) { logger }
-                        single(named(CustomFieldProviderType.Customer)) { customerFieldsProvider }
-                        single(named(CustomFieldProviderType.Contact)) { contactFieldsProvider }
-                    },
+                module {
+                    // Provides a factory for parsing push messages from the Amazon Pinpoint.
+                    factoryOf(::PinpointPushMessageParser).bind(PushMessageParser::class)
+                    // Provides a named logger instance.
+                    factory(named(LOGGER_NAME)) { logger }
+                    single(named(CustomFieldProviderType.Customer)) { customerFieldsProvider }
+                    single(named(CustomFieldProviderType.Contact)) { contactFieldsProvider }
+                    factory { runCatching { ChatInstanceProvider.get().chat?.configuration }.getOrNull() }
+                },
                 UiModule().module,
             )
         }

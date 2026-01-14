@@ -49,7 +49,7 @@ import kotlin.concurrent.atomics.incrementAndFetch
 internal class ChatNotificationManager(
     private val context: Context,
     private val valueStorage: ValueStorage,
-    @Named(UiModule.loggerName) logger: Logger,
+    @Named(UiModule.LOGGER_NAME) logger: Logger,
 ) : LoggerScope by LoggerScope(TAG, logger) {
     @OptIn(ExperimentalAtomicApi::class)
     private val counter = AtomicInt(0)

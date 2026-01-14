@@ -55,7 +55,7 @@ import java.util.Date
 @Factory
 internal class AudioRecordingDataSource(
     private val context: Context,
-    @Named(UiModule.loggerName) logger: Logger,
+    @Named(UiModule.LOGGER_NAME) logger: Logger,
 ) : LoggerScope by LoggerScope(TAG, logger) {
 
     private var session: AudioRecordSession? = null

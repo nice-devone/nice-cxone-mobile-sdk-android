@@ -18,6 +18,34 @@ Min SDK version: 24
 This module requires that the integrating application uses Koin during its startup and it is also recommended
 to provide an instance of `Logger` with `UiQualifier`.
 
+### Known issues
+
+#### Foreground service permission
+
+The Chat UI declares usage of `android.permission.FOREGROUND_SERVICE` and `android.permission.FOREGROUND_SERVICE_DATA_SYNC` permission in
+its manifest. These permissions are actually not used since the `PlayerDownloadService` is never started as a foreground service.
+
+##### Workarounds:
+
+1. The integrating application can safely remove these permissions from the merged manifest, if it doesn't use any other foreground service
+   by adding the following to its own manifest:
+
+```xml
+
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE" tools:node="remove" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" tools:node="remove" />
+```
+
+2. If you are using foreground services, then specify the usage of these permissions in Google Play Console if the application is
+   distributed via Google Play Store.
+   The official use-case in the case of `PlayerDownloadService` is "Audio message pre-caching".
+
+##### Expected fix:
+
+This issue will be fixed in the future minor releases of the Chat UI module by replacing the `Service` with a pre-caching download mechanism
+which
+will be scoped to the application lifecycle.
+
 ### Runtime permissions:
 
 For proper functioning of the Chat UI, the following runtime permissions are requested from the user, unless they are already granted:
@@ -35,6 +63,10 @@ For proper functioning of the Chat UI, the following runtime permissions are req
   messages,
   in a storage accessible by the user. On newer Android versions, the audio messages are stored in using the `MediaStore` API, which does
   not require this permission.
+* `android.permission.CAMERA` - Required (**IFF** it is declared in application manifest) for capturing photos or videos using the device
+  camera to send as attachments in the chat.
+  This permission is requested when the user attempts to capture media through the chat interface and the permission is declared in the
+  application manifest. If the permission is not granted, the chat UI will disable the camera functionality for attachments.
 
 ## Limitations:
 

@@ -249,6 +249,20 @@
     <string name="record_audio_start_content_description">Record audio message</string>
     <!-- Content description for the button to delete a recorded audio message -->
     <string name="record_audio_delete_content_description">Delete recorded audio message</string>
+
+    <!--
+      Camera capture permissions
+    -->
+    <!-- Permission rationale dialog for camera capture feature -->
+    <string name="camera_permission_rationale">Application requires camera permission to capture photos and videos</string>
+    <!-- Dialog title when camera capture is unavailable due to permissions -->
+    <string name="camera_permission_denied_title">Camera capture unavailable</string>
+    <!-- Dialog message when camera capture is unavailable due to permissions -->
+    <string name="camera_permission_denied_body">Application is not able to capture photos or videos without camera permission</string>
+
+    <!--
+        Audio capture permissions
+    -->
     <!-- Content description for the button to stop audio recording -->
     <string name="record_audio_stop_content_description">Stop audio recording</string>
     <!-- Error message when temporary audio file cannot be deleted -->
@@ -259,6 +273,8 @@
     -->
     <!-- Title for editing custom fields in pre-chat survey -->
     <string name="edit_custom_field_title">Edit pre-chat survey custom fields</string>
+    <!-- Subtitle for editing custom fields in pre-chat survey -->
+    <string name="edit_custom_field_subtitle">Please fill out all fields and confirm the form.</string>
     <!-- Action to update the conversation/thread name -->
     <string name="update_thread_name">Update conversation name</string>
     <!-- Input hint for entering a conversation/thread name -->

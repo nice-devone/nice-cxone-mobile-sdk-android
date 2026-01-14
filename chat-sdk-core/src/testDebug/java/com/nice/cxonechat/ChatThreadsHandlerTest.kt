@@ -118,6 +118,150 @@ internal class ChatThreadsHandlerTest : AbstractChatTest() {
         assertEquals(expected, actual)
     }
 
+    @Test
+    fun threads_notifies_whenNewThreadIsCreated() {
+        val initial = List(1) { makeChatThread(threadState = Received, contactId = null) }
+        var callCount = 0
+        val receivedThreadLists = mutableListOf<List<ChatThread>>()
+
+        val cancellable = threads.threads { threadList ->
+            callCount++
+            receivedThreadLists.add(threadList)
+        }
+
+        // Send initial thread list - should trigger first callback
+        socketServer.sendServerMessage(ServerResponse.ThreadListFetched(initial))
+
+        assertEquals(1, callCount, "Expected one callback for initial thread list")
+        assertEquals(1, receivedThreadLists[0].size, "Expected one thread in initial list")
+
+        // Create a new thread - should trigger second callback with updated list
+        threads.create()
+
+        assertEquals(2, callCount, "Expected callback when new thread is created")
+        assertEquals(2, receivedThreadLists[1].size, "Expected two threads after creation")
+
+        cancellable.cancel()
+    }
+
+    @Test
+    fun threads_doesNotNotify_afterCancellableIsCancelled() {
+        val initial = List(1) { makeChatThread(threadState = Received, contactId = null) }
+        var callCount = 0
+
+        val cancellable = threads.threads { _ ->
+            callCount++
+        }
+
+        // Send initial thread list - should trigger first callback
+        socketServer.sendServerMessage(ServerResponse.ThreadListFetched(initial))
+
+        assertEquals(1, callCount, "Expected one callback for initial thread list")
+
+        // Create a thread - should trigger second callback
+        threads.create()
+
+        assertEquals(2, callCount, "Expected callback when thread is created")
+
+        // Cancel the listener
+        cancellable.cancel()
+
+        // Create another thread - should NOT trigger listener
+        threads.create()
+
+        // Verify listener was not called again
+        assertEquals(2, callCount, "Listener should not be called after cancellation")
+    }
+
+    @Test
+    fun threads_handlesMultipleThreadListUpdates() {
+        val firstList = List(2) { makeChatThread(threadState = Received, contactId = null) }
+        val secondList = List(3) { makeChatThread(threadState = Received, contactId = null) }
+        val receivedThreadLists = mutableListOf<List<ChatThread>>()
+
+        val cancellable = threads.threads { threadList ->
+            receivedThreadLists.add(threadList)
+        }
+
+        // Send first thread list
+        socketServer.sendServerMessage(ServerResponse.ThreadListFetched(firstList))
+        assertEquals(1, receivedThreadLists.size, "Expected one callback")
+        assertEquals(2, receivedThreadLists[0].size, "Expected two threads in first list")
+
+        // Create a new thread
+        threads.create()
+        assertEquals(2, receivedThreadLists.size, "Expected callback for thread creation")
+        assertEquals(3, receivedThreadLists[1].size, "Expected three threads after creation")
+
+        // Send second thread list (simulating a refresh)
+        socketServer.sendServerMessage(ServerResponse.ThreadListFetched(secondList))
+        assertEquals(3, receivedThreadLists.size, "Expected callback for second list")
+        assertEquals(4, receivedThreadLists[2].size, "Expected four threads in second list")
+
+        // Create another thread
+        threads.create()
+        assertEquals(4, receivedThreadLists.size, "Expected callback for second thread creation")
+        assertEquals(5, receivedThreadLists[3].size, "Expected five threads after second creation")
+
+        cancellable.cancel()
+    }
+
+    @Test
+    fun threads_maintainsIndependentListsForMultipleListeners() {
+        val initial = List(1) { makeChatThread(threadState = Received, contactId = null) }
+        val receivedThreadLists1 = mutableListOf<List<ChatThread>>()
+        val receivedThreadLists2 = mutableListOf<List<ChatThread>>()
+
+        val cancellable1 = threads.threads { threadList ->
+            receivedThreadLists1.add(threadList)
+        }
+
+        // Send initial thread list - first listener receives it
+        socketServer.sendServerMessage(ServerResponse.ThreadListFetched(initial))
+        assertEquals(1, receivedThreadLists1.size)
+        assertEquals(1, receivedThreadLists1[0].size)
+
+        // Register second listener
+        val cancellable2 = threads.threads { threadList ->
+            receivedThreadLists2.add(threadList)
+        }
+
+        // Second listener starts with empty list, no thread list sent yet to it
+        assertEquals(0, receivedThreadLists2.size)
+
+        // Create a thread - both listeners should be notified
+        threads.create()
+        assertEquals(2, receivedThreadLists1.size, "First listener should receive update")
+        assertEquals(2, receivedThreadLists1[1].size, "First listener should have 2 threads")
+        assertEquals(1, receivedThreadLists2.size, "Second listener should receive update")
+        assertEquals(1, receivedThreadLists2[0].size, "Second listener should have 1 thread")
+
+        cancellable1.cancel()
+        cancellable2.cancel()
+    }
+
+    @Test
+    fun thread_createsHandlerForExistingThread() {
+        val existingThread = makeChatThread(threadState = Loaded, contactId = null)
+        val handler = threads.thread(existingThread)
+        assertNotNull(handler)
+        assertEquals(existingThread.id, handler.get().id)
+    }
+
+    @Test
+    fun thread_createsHandlerForThreadWithMessages() {
+        val message = makeMessageModel().toMessage()
+        val threadWithMessages = makeChatThread(
+            threadState = Loaded,
+            contactId = null,
+            messages = listOfNotNull(message)
+        )
+        val handler = threads.thread(threadWithMessages)
+        assertNotNull(handler)
+        assertEquals(threadWithMessages.id, handler.get().id)
+        assertEquals(1, handler.get().messages.size)
+    }
+
     fun threads(listener: (List<ChatThread>) -> Unit): Cancellable =
         threads.threads(listener = { listener(it) })
 }

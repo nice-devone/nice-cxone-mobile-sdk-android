@@ -54,7 +54,7 @@ internal fun HeaderBar(
     Surface(
         color = Color.Unspecified,
         shape = chatShapes.headerBarShape,
-        modifier = Modifier.padding(bottom = space.xxl)
+        modifier = Modifier.padding(bottom = space.headerBarBottomPadding)
     ) {
         ListItem(
             modifier = Modifier.testTag("header_bar"),

@@ -36,7 +36,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
@@ -195,6 +197,12 @@ internal fun MessageListView(
     val canLoadMore = conversation.canLoadMore.collectAsState().value
     val agentDetails = conversation.agentTyping.collectAsState(null).value
     val agentIsTyping = conversation.isAgentTyping.collectAsState().value
+    val positionInQueue by conversation.positionInQueue.collectAsState(initial = null)
+    val showPositionInQueue by remember {
+        derivedStateOf {
+            positionInQueue != null && agentDetails == null
+        }
+    }
     Box(
         modifier = Modifier
             .testTag("message_list_view_box")
@@ -203,8 +211,7 @@ internal fun MessageListView(
         Column(
             modifier = Modifier.testTag("message_list_column")
         ) {
-            val positionInQueue by conversation.positionInQueue.collectAsState(initial = null)
-            AnimatedVisibility(positionInQueue != null && agentDetails == null, Modifier.align(CenterHorizontally)) {
+            AnimatedVisibility(showPositionInQueue, Modifier.align(CenterHorizontally)) {
                 positionInQueue?.let { position ->
                     PositionInQueue(position = position)
                 }

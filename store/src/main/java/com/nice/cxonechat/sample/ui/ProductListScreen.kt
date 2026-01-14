@@ -219,6 +219,9 @@ object ProductListScreen : Screen {
                     onLogout = {
                         close()
                         onLogout()
+                    },
+                    close = {
+                        close()
                     }
                 )
             },

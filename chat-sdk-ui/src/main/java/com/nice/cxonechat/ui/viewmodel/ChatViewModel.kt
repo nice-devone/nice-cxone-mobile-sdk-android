@@ -27,28 +27,38 @@ import com.nice.cxonechat.ChatMode.SingleThread
 import com.nice.cxonechat.ChatState
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerScope
+import com.nice.cxonechat.log.duration
 import com.nice.cxonechat.log.error
+import com.nice.cxonechat.log.scope
+import com.nice.cxonechat.log.timedScope
+import com.nice.cxonechat.log.verbose
 import com.nice.cxonechat.log.warning
 import com.nice.cxonechat.prechat.PreChatSurvey
+import com.nice.cxonechat.thread.ChatThreadState
+import com.nice.cxonechat.ui.UiModule
 import com.nice.cxonechat.ui.api.CustomFieldProviderType
 import com.nice.cxonechat.ui.api.UiCustomFieldsProvider
 import com.nice.cxonechat.ui.data.flow
 import com.nice.cxonechat.ui.data.repository.SelectedThreadRepository
 import com.nice.cxonechat.ui.domain.model.CreateThreadResult.Failure
 import com.nice.cxonechat.ui.domain.model.CreateThreadResult.Success
+import com.nice.cxonechat.ui.domain.model.NoThread
 import com.nice.cxonechat.ui.domain.model.foldToCreateThreadResult
 import com.nice.cxonechat.ui.domain.model.prechat.PreChatResponse
+import com.nice.cxonechat.ui.util.isAtLeastPrepared
 import com.nice.cxonechat.ui.viewmodel.ChatViewModel.DialogState.None
 import com.nice.cxonechat.ui.viewmodel.ChatViewModel.DialogState.Preparing
 import com.nice.cxonechat.ui.viewmodel.ChatViewModel.DialogState.Survey
 import com.nice.cxonechat.ui.viewmodel.ChatViewModel.DialogState.ThreadCreationFailed
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.annotation.KoinViewModel
+import org.koin.core.annotation.Named
 import org.koin.core.qualifier.named
 import org.koin.java.KoinJavaComponent.inject
 
@@ -57,9 +67,9 @@ import org.koin.java.KoinJavaComponent.inject
 internal class ChatViewModel(
     private val selectedThreadRepository: SelectedThreadRepository,
     private val chatProvider: ChatInstanceProvider,
-    private val logger: Logger,
+    @Named(UiModule.LOGGER_NAME) private val logger: Logger,
     private val chatStateViewModel: ChatStateViewModel,
-) : ViewModel(), LoggerScope by LoggerScope<ChatViewModel>(logger) {
+) : ViewModel(), LoggerScope by LoggerScope("ChatViewModel", logger) {
     private val chat: Chat
         get() = requireNotNull(chatProvider.chat)
 
@@ -120,22 +130,24 @@ internal class ChatViewModel(
             Preparing
         }
 
-    internal fun refreshThreadState() {
-        showDialog.value = refreshDialogState()
+    internal fun refreshThreadState() = scope("refreshThreadState") {
+        showDialog.value = refreshDialogState().also {
+            verbose("Refreshed dialog state: $it")
+        }
         viewModelScope.launch {
             resolveCurrentState()
         }
     }
 
-    private fun createThread() {
+    private fun createThread(): Unit = scope("createThread") {
         createThread(emptySequence())
     }
 
-    internal fun respondToSurvey(response: Sequence<PreChatResponse>) {
+    internal fun respondToSurvey(response: Sequence<PreChatResponse>): Unit = scope("respondToSurvey") {
         createThread(response)
     }
 
-    private fun createThread(response: Sequence<PreChatResponse>) {
+    private fun createThread(response: Sequence<PreChatResponse>) = scope("createThread") {
         viewModelScope.launch {
             val result = runCatching {
                 setCustomFields()
@@ -155,7 +167,7 @@ internal class ChatViewModel(
         }
     }
 
-    private suspend fun resolveCurrentState() {
+    private suspend fun resolveCurrentState() = timedScope("resolveCurrentState") {
         if (listOf(SingleThread, LiveChat).contains(chat.chatMode)) {
             if (chatProvider.chatState === ChatState.Offline) dismissDialog()
             when {
@@ -173,7 +185,16 @@ internal class ChatViewModel(
      *
      * Returns true iff the initial thread exists and was selected.
      */
-    private suspend fun selectFirstThread(): Boolean {
+    private suspend fun selectFirstThread(): Boolean = timedScope("selectFirstThread") {
+        val currentThread = selectedThreadRepository.chatThreadHandler.get()
+
+        if (currentThread !== NoThread && currentThread.threadState === ChatThreadState.Pending) {
+            verbose("Currently selected thread is pending, recreating handler")
+            selectedThreadRepository.chatThreadHandler = threads.thread(currentThread) // Recreating pending thread handler
+            return true
+        }
+
+        verbose("Starting thread list refresh")
         val flow = threads.flow
         threads.refresh()
 
@@ -186,38 +207,57 @@ internal class ChatViewModel(
             } == true
     }
 
-    private suspend fun setCustomFields() = withContext(Dispatchers.IO) {
-        chatProvider.setCustomerValues(uiCustomerFieldsProvider.customFields())
+    private suspend fun setCustomFields() = scope("setCustomFields") {
+        withContext(Dispatchers.IO) {
+            chatProvider.setCustomerValues(uiCustomerFieldsProvider.customFields())
+        }
     }
 
-    internal fun reportOnResume() {
+    internal fun reportOnResume() = scope("reportOnResume") {
         viewModelScope.launch(Dispatchers.IO) {
-            events.chatWindowOpen()
-            val extraCustomValues = uiCustomerFieldsProvider.customFields()
-            if (extraCustomValues.isNotEmpty()) {
-                chat.customFields().add(extraCustomValues)
+            duration {
+                chatStateViewModel.state.first { it.isAtLeastPrepared() }
+                events.chatWindowOpen()
+                val extraCustomValues = uiCustomerFieldsProvider.customFields()
+                if (extraCustomValues.isNotEmpty()) {
+                    chat.customFields().add(extraCustomValues)
+                }
             }
         }
     }
 
-    private fun showDialog(dialog: DialogState) {
+    private fun showDialog(dialog: DialogState) = scope("showDialog") {
+        verbose("Showing dialog: $dialog")
         showDialog.value = dialog
     }
 
-    private fun dismissDialog() {
+    private fun dismissDialog() = scope("dismissDialog") {
+        verbose("Dismissing dialog ${showDialog.value}")
         showDialog.value = None
     }
 
-    internal fun prepare(context: Context) {
+    internal fun prepare(context: Context) = scope("prepare") {
         val chatState = chatProvider.chatState
+        if (!chatState.isAtLeastPrepared()) {
+            showDialog(Preparing)
+        }
         if (chatState === ChatState.Initial) {
-            chatProvider.prepare(context)
+            // This can happen on low powered devices when user has to grant permissions or interact with system dialogs
+            viewModelScope.launch(Dispatchers.Default) {
+                while (chatProvider.configuration == null) {
+                    // Wait for application to set the configuration
+                    // If it never happens user can cancel preparing dialog and viewModelScope will be terminated
+                    delay(150L)
+                }
+                // Check if state is still Initial and start it up
+                if (chatProvider.chatState === ChatState.Initial) chatProvider.prepare(context)
+            }
         } else {
             warning("Chat already prepared, currentState: $chatState")
         }
     }
 
-    internal fun connect() {
+    internal fun connect() = timedScope("connect") {
         val chatState = chatProvider.chatState
         if (chatState === ChatState.Connecting) {
             warning("Ignoring connect request, chat is already connecting")
@@ -231,7 +271,14 @@ internal class ChatViewModel(
         chatProvider.connect()
     }
 
-    internal fun close() {
+    internal fun onReady() = scope("onReady") {
+        if (showDialog.value === Preparing) {
+            dismissDialog()
+        }
+    }
+
+    internal fun close() = scope("close") {
+        dismissDialog() // dismiss dialog if present when closing chat
         chatProvider.close()
     }
 }

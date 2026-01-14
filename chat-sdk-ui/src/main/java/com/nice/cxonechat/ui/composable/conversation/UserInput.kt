@@ -77,6 +77,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.message.OutboundMessage
+import com.nice.cxonechat.state.Configuration
 import com.nice.cxonechat.ui.AttachmentType
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.conversation.InputState.Attachment
@@ -93,6 +94,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 
 /**
  * Provides UI for various user inputs which is presented to user on a [Surface] as a base.
@@ -389,12 +391,18 @@ private fun UserInputSelector(
                 modifier = rowMod,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ChatIconButton(
-                    icon = Outlined.Add,
-                    description = stringResource(string.title_attachment_picker)
-                ) {
-                    focusRequester.freeFocus()
-                    onSelectorChange(Attachment)
+                val configuration = koinInject<Configuration?>()
+                val showAddAttachments: Boolean = remember(configuration) {
+                    configuration?.fileRestrictions?.isAttachmentsEnabled ?: false
+                }
+                if (showAddAttachments) {
+                    ChatIconButton(
+                        icon = Outlined.Add,
+                        description = stringResource(string.title_attachment_picker)
+                    ) {
+                        focusRequester.freeFocus()
+                        onSelectorChange(Attachment)
+                    }
                 }
                 content()
                 AnimatedContent(showSendButton.value) { sendMessage ->

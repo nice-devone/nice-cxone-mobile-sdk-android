@@ -57,7 +57,7 @@ internal class PushListenerService : FirebaseMessagingService() {
 
     private val notificationManager: ChatNotificationManager by inject()
 
-    private val logger by lazy { LoggerScope(TAG, get(named(UiModule.loggerName))) }
+    private val logger by lazy { LoggerScope(TAG, get(named(UiModule.LOGGER_NAME))) }
 
     override fun onDestroy() {
         super.onDestroy()

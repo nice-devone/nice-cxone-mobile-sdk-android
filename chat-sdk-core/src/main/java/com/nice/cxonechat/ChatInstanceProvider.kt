@@ -352,7 +352,7 @@ class ChatInstanceProvider private constructor(
      *
      * The [state] is moved to [Prepared].
      */
-    fun close() {
+    fun close() = scope("close") {
         chat?.close()
 
         advanceState(Prepared)
@@ -362,7 +362,7 @@ class ChatInstanceProvider private constructor(
      * Cancel any pending prepare or connect action and return the state
      * to an appropriate starting point.
      */
-    fun cancel() {
+    fun cancel() = scope("cancel") {
         when (chatState) {
             Initial -> Unit
             Preparing -> advanceState(Initial)
@@ -379,7 +379,7 @@ class ChatInstanceProvider private constructor(
     /**
      * Sign out/terminate the chat connection and clear any saved credentials.
      */
-    fun signOut() {
+    fun signOut() = scope("signOut") {
         synchronized(this) {
             authorization = null
             userName = null
@@ -512,11 +512,15 @@ class ChatInstanceProvider private constructor(
     // ChatStateListener Implementation
     //
 
-    override fun onConnected() {
-        advanceState(Connected)
+    override fun onConnected() = scope("onConnected") {
+        if (chatState === Connecting) { // if not in Connecting means it was cancelled. no need to update in that case
+            advanceState(Connected)
+        } else {
+            debug("Ignoring onConnected in $chatState state")
+        }
     }
 
-    override fun onReady() {
+    override fun onReady() = scope("onReady") {
         if (requireNotNull(chat).isChatAvailable) {
             advanceState(Ready)
         } else {
@@ -524,11 +528,11 @@ class ChatInstanceProvider private constructor(
         }
     }
 
-    override fun onUnexpectedDisconnect() {
+    override fun onUnexpectedDisconnect() = scope("onUnexpectedDisconnect") {
         advanceState(ConnectionLost)
     }
 
-    override fun onConnecting() {
+    override fun onConnecting() = scope("onConnecting") {
         advanceState(Connecting, Cancellable.noop, false)
     }
 

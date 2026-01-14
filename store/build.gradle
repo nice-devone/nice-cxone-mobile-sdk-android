@@ -84,7 +84,7 @@ android {
 
     firebaseAppDistribution {
         artifactType = "APK"
-        releaseNotesFile = "CHANGELOG.md"
+        releaseNotesFile = "docs/release/latest-release.md"
     }
 
     packagingOptions {

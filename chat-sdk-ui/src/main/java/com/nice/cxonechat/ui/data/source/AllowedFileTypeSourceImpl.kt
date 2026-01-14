@@ -51,12 +51,11 @@ internal class AllowedFileTypeSourceImpl(
 ) : AllowedFileTypeSource {
 
     override val allowedMimeTypes by lazy {
-        chatInstanceProvider
-            .chat
-            ?.configuration
-            ?.fileRestrictions
-            ?.allowedFileTypes
-            .orEmpty()
-            .map(::AllowedFileType)
+        val fileRestrictions = chatInstanceProvider.chat?.configuration?.fileRestrictions
+        if (fileRestrictions != null && fileRestrictions.isAttachmentsEnabled) {
+            fileRestrictions.allowedFileTypes.map(::AllowedFileType)
+        } else {
+            emptyList()
+        }
     }
 }

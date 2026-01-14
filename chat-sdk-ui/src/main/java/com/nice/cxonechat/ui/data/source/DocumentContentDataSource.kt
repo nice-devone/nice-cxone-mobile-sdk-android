@@ -21,6 +21,7 @@ import android.provider.OpenableColumns
 import android.webkit.MimeTypeMap
 import com.nice.cxonechat.ChatInstanceProvider
 import com.nice.cxonechat.message.ContentDescriptor
+import com.nice.cxonechat.state.FileRestrictions
 import kotlinx.coroutines.runInterruptible
 import org.koin.core.annotation.Single
 import java.util.UUID
@@ -83,9 +84,15 @@ internal class DocumentContentDataSource(
     }
 
     private fun getFileRestrictions(): Regex {
-        val rawRegex = chatInstanceProvider.chat?.configuration?.fileRestrictions?.allowedFileTypes?.map {
-            it.mimeType
-        }
+        val rawRegex = chatInstanceProvider.chat
+            ?.configuration
+            ?.fileRestrictions
+            ?.let { restrictions ->
+                restrictions.allowedFileTypes
+                    .takeIf { restrictions.isAttachmentsEnabled }
+                    .orEmpty()
+                    .map(FileRestrictions.AllowedFileType::mimeType)
+            }
             .orEmpty()
             .filter { acceptedMimeTypes.matches(it) }
             .joinToString("|", prefix = "(", postfix = ")")

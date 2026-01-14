@@ -50,35 +50,41 @@ internal class ChatThreadMessageHandlerAttachmentTest : AbstractChatTest() {
 
     private lateinit var messages: ChatThreadMessageHandler
     private lateinit var thread: ChatThread
+    private var channelConfiguration: ChannelConfiguration = prepareConfig()
 
     override val config: ChannelConfiguration
-        get() = ChannelConfiguration(
-            settings = ChannelConfiguration.Settings(
-                hasMultipleThreadsPerEndUser = true,
-                isProactiveChatEnabled = true,
-                fileRestrictions = FileRestrictions(
-                    FILE_SIZE,
-                    listOf(
-                        AllowedFileType(MIME_TYPE, "WTF"),
-                        AllowedFileType(MIME_TYPE_WITH_WILDCARD, "Wildcard test"),
-                    ),
-                    false,
-                ),
-                features = features
-            ),
-            isAuthorizationEnabled = true,
-            preContactForm = null,
-            isLiveChat = isLiveChat,
-            availability = mockk {
-                every { status } answers { chatAvailability }
-            }
-        )
+        get() {
+
+            return channelConfiguration
+        }
 
     override fun prepare() {
         super.prepare()
         thread = makeChatThread(messages = listOf(makeMessage()), id = TestUUIDValue)
         messages = chat.threads().thread(thread).messages()
     }
+
+    private fun prepareConfig() = ChannelConfiguration(
+        settings = ChannelConfiguration.Settings(
+            hasMultipleThreadsPerEndUser = true,
+            isProactiveChatEnabled = true,
+            fileRestrictions = FileRestrictions(
+                FILE_SIZE,
+                listOf(
+                    AllowedFileType(MIME_TYPE, "WTF"),
+                    AllowedFileType(MIME_TYPE_WITH_WILDCARD, "Wildcard test"),
+                ),
+                true,
+            ),
+            features = features
+        ),
+        isAuthorizationEnabled = true,
+        preContactForm = null,
+        isLiveChat = isLiveChat,
+        availability = mockk {
+            every { status } answers { chatAvailability }
+        }
+    )
 
     @Test
     fun send_attachments_sendsExpectedMessage() {
@@ -225,6 +231,40 @@ internal class ChatThreadMessageHandlerAttachmentTest : AbstractChatTest() {
         val upload = contentDescriptor(bytes, filename, "not_allowed_type/application")
         assertSendsNothing {
             messages.send(OutboundMessage(listOf(upload), ""))
+        }
+        assertTrue(chatStateListener.onChatRuntimeExceptions.last() is AttachmentUploadError)
+    }
+
+    @Test
+    fun send_attachment_when_disabled_via_config() {
+        channelConfiguration = channelConfiguration.copy(
+            settings = channelConfiguration.settings.copy(
+                fileRestrictions = channelConfiguration.settings.fileRestrictions.copy(
+                    isAttachmentsEnabled = false
+                )
+            )
+        )
+        prepare()
+        assertEquals(chat.configuration.fileRestrictions.isAttachmentsEnabled, false)
+
+        val bytes = Random.nextBytes(32)
+        val call: Call<AttachmentUploadResponse?> = mockCall { AttachmentUploadResponse("url") }
+
+        mockAndroidBase64()
+
+        every { service.uploadFile(any(), any(), any()) } returns call
+
+        assertSendsNothing {
+            messages.send(
+                OutboundMessage(
+                    attachments = listOf(
+                        contentDescriptor(bytes, "filename"),
+                        ContentDescriptor(bytes, MIME_TYPE_WILDCARD, "filename2", "friendlyName2")
+                    ),
+                    message = Base64.encode(bytes),
+                    postback = nextString()
+                )
+            )
         }
         assertTrue(chatStateListener.onChatRuntimeExceptions.last() is AttachmentUploadError)
     }
