@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+<a name="3.1.1"></a>
+
+## [3.1.1] - 2026-01-14
+
+### Fixed
+
+- Fix `OnThreadsUpdatedListener` listener is notified when a `ChatThreadState.Pending` thread is created locally
+- Add missing subtitle to the Pre-chat survey screen & Edit Custom Values Screen
+- Fix chat transcript layout when the position in queue counter is displayed
+- Documentation error regarding UI module Theme customization
+- Add missing Java helper methods for UI module `ThemeColorTokens` and subclasses
+- Improve handling of slow SDK start when attachments are added
+- Improve handling of slow SDK start when UI is resumed
+- Hide "Add attachment" button based on channel configuration
+- Fix missing permission request for camera attachment iff CAMERA permission is declared in the application manifest
+
 <a name="3.1.0"></a>
 
 ## [3.1.0] - 2025-11-06
@@ -513,7 +529,9 @@
         - failure
     - typing start/end
 
-[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.1.0...HEAD
+[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.1.1...HEAD
+
+[3.1.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.1.0...3.1.1
 
 [3.1.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.0.0...3.1.0
 
