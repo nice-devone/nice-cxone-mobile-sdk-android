@@ -137,6 +137,7 @@ private fun uiState(
     isLiveChat = chatThreadViewModel.isLiveChat,
     pendingAttachments = chatThreadViewModel.pendingAttachments,
     onRemovePendingAttachment = chatThreadViewModel::removePendingAttachment,
+    logger = chatThreadViewModel.logger,
 )
 
 private fun audioState(

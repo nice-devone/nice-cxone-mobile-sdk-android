@@ -112,7 +112,7 @@ internal class ChatThreadViewModel(
     private val contentDataSource: ContentDataSourceList,
     private val selectedThreadRepository: SelectedThreadRepository,
     private val chat: Chat,
-    @Named(UiModule.LOGGER_NAME) logger: Logger,
+    @Named(UiModule.LOGGER_NAME) internal val logger: Logger,
 ) : ViewModel(), LoggerScope by LoggerScope("ChatThreadViewModel", logger) {
     private val threads by lazy { chat.threads() }
 

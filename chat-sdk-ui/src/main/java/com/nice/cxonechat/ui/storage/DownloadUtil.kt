@@ -21,7 +21,6 @@ import androidx.media3.database.DatabaseProvider
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.cache.Cache
 import androidx.media3.exoplayer.offline.DownloadManager
-import androidx.media3.exoplayer.offline.DownloadNotificationHelper
 import com.nice.cxonechat.ui.composable.generic.ExoPlayerCacheHolder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
@@ -30,17 +29,12 @@ import kotlinx.coroutines.runBlocking
 @UnstableApi
 internal object DownloadUtil {
 
-    private const val CHANNEL_ID = "download_channel"
-
     @Volatile
     private var downloadManager: DownloadManager? = null
 
-    @Volatile
-    private var downloadNotificationHelper: DownloadNotificationHelper? = null
-
     fun getDownloadManager(context: Context): DownloadManager =
         downloadManager ?: synchronized(DownloadUtil) {
-            DownloadManager(
+            downloadManager ?: DownloadManager(
                 context,
                 getDatabaseProvider(context),
                 getDownloadCache(context),
@@ -50,14 +44,6 @@ internal object DownloadUtil {
                 downloadManager = it
             }
         }
-
-    fun getDownloadNotificationHelper(context: Context): DownloadNotificationHelper {
-        return downloadNotificationHelper ?: synchronized(DownloadUtil) {
-            DownloadNotificationHelper(context, CHANNEL_ID).also {
-                downloadNotificationHelper = it
-            }
-        }
-    }
 
     private fun getDatabaseProvider(context: Context): DatabaseProvider =
         ExoPlayerCacheHolder.getDatabaseProvider(context)

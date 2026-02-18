@@ -23,7 +23,10 @@ import androidx.emoji2.text.EmojiCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadRequest
-import androidx.media3.exoplayer.offline.DownloadService
+import com.nice.cxonechat.log.Logger
+import com.nice.cxonechat.log.LoggerNoop
+import com.nice.cxonechat.log.LoggerScope
+import com.nice.cxonechat.log.warning
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.message.OutboundMessage
 import com.nice.cxonechat.ui.composable.conversation.model.Message.AudioAttachment
@@ -34,7 +37,7 @@ import com.nice.cxonechat.ui.composable.conversation.model.Message.Text
 import com.nice.cxonechat.ui.composable.conversation.model.Message.Unsupported
 import com.nice.cxonechat.ui.composable.conversation.model.Message.WithAttachments
 import com.nice.cxonechat.ui.domain.model.Person
-import com.nice.cxonechat.ui.services.PlayerDownloadService
+import com.nice.cxonechat.ui.storage.DownloadUtil
 import com.nice.cxonechat.ui.util.emojiCount
 import com.nice.cxonechat.ui.util.preview.message.SdkListPicker
 import com.nice.cxonechat.ui.util.preview.message.SdkMessage
@@ -74,6 +77,7 @@ import kotlinx.coroutines.flow.map
  * @property onReplyButtonClicked An action to take when a reply button is clicked.
  * @param backgroundDispatcher Optional dispatcher used for mapping of incoming messages off the main thread,
  * intended for testing.
+ * @param logger Logger instance for logging errors and warnings. Defaults to LoggerNoop for preview/test scenarios.
  */
 @Suppress(
     "LongParameterList", // POJO class
@@ -98,7 +102,8 @@ internal data class ConversationUiState(
     internal val onRemovePendingAttachment: (Attachment) -> Unit,
     internal val onReplyButtonClicked: (SdkReplyButton) -> Unit = {},
     private val backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
-) {
+    private val logger: Logger = LoggerNoop,
+) : LoggerScope by LoggerScope("ConversationUiState", logger) {
 
     @Stable
     internal fun messages(context: Context): Flow<List<Section>> = sdkMessages
@@ -107,7 +112,12 @@ internal data class ConversationUiState(
                 .flatMap { message -> message.toUiMessage() }
                 .onEach {
                     if (it is AudioAttachment) {
-                        startDownload(context, it.attachment.url)
+                        try {
+                            startDownload(context, it.attachment.url)
+                        } catch (expected: Exception) {
+                            // Audio pre-caching is opportunistic - if it fails, audio will stream on-demand
+                            warning("Audio pre-caching failed for ${it.attachment.friendlyName}", expected)
+                        }
                     }
                 }
                 .groupMessages(context)
@@ -176,15 +186,25 @@ internal data class ConversationUiState(
     }
 }
 
+/**
+ * Initiates opportunistic pre-caching of audio attachments via Media3 DownloadManager.
+ *
+ * This is a best-effort operation - if pre-caching fails, the audio will stream on-demand
+ * during playback. Exceptions are caught and handled by the caller.
+ *
+ * @param context Android context for accessing DownloadManager
+ * @param url Audio file URL to pre-cache (expected to be provided by backend)
+ * @throws Exception if download initialization fails (network issues, storage constraints, invalid URL)
+ */
 @OptIn(UnstableApi::class)
 private fun startDownload(context: Context, url: String) {
-    val mediaItem = MediaItem.fromUri(url.toUri())
-    val downloadRequest = DownloadRequest.Builder(mediaItem.mediaId, mediaItem.localConfiguration!!.uri)
-        .build()
-    DownloadService.sendAddDownload(
-        context,
-        PlayerDownloadService::class.java,
-        downloadRequest,
-        false,
+    val uri = url.toUri()
+    val mediaItem = MediaItem.fromUri(uri)
+    val localUri = mediaItem.localConfiguration?.uri ?: uri
+    val downloadRequest = DownloadRequest.Builder(
+        mediaItem.mediaId ?: localUri.toString(),
+        localUri
     )
+        .build()
+    DownloadUtil.getDownloadManager(context.applicationContext).addDownload(downloadRequest)
 }

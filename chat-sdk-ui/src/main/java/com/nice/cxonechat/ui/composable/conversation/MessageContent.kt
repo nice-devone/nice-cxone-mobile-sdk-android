@@ -42,7 +42,7 @@ internal fun MessageStatusContentHandler(
     message: Message,
     messageStatusState: MessageStatusState,
     snackBarHostState: SnackbarHostState,
-    setShowListPickerDialog: (Boolean) -> Unit
+    setShowListPickerDialog: (Boolean) -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val quickReplyDisableMessage = stringResource(R.string.quick_reply_disable_message)
@@ -62,6 +62,7 @@ internal fun MessageStatusContentHandler(
                             )
                         }
                     }
+
                 ContentType.ListPicker ->
                     if (messageStatusState == SELECTABLE) {
                         setShowListPickerDialog(true)
@@ -69,6 +70,7 @@ internal fun MessageStatusContentHandler(
                         // No action is taken when messageStatusState is not SELECTABLE.
                         // This is the intended behavior.
                     }
+
                 ContentType.Unsupported ->
                     coroutineScope.launch {
                         snackBarHostState.showSnackbar(
@@ -77,6 +79,7 @@ internal fun MessageStatusContentHandler(
                             withDismissAction = true
                         )
                     }
+
                 else -> {}
             }
         }

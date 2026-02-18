@@ -126,7 +126,8 @@ dependencies {
     implementation libs.androidx.material3.adaptive
     implementation libs.androidx.window
 
-    testImplementation("org.robolectric:robolectric:4.16")
+    testImplementation("org.robolectric:robolectric:4.16.1")
+    testImplementation libs.androidx.test.core
     testImplementation libs.androidx.emoji.bundled
 
     androidTestImplementation libs.androidx.emoji.bundled

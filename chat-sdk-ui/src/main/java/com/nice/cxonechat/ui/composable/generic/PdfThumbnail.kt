@@ -39,14 +39,19 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.nice.cxonechat.log.Logger
+import com.nice.cxonechat.log.LoggerNoop
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.ui.R
+import com.nice.cxonechat.ui.UiModule.Companion.LOGGER_NAME
 import com.nice.cxonechat.ui.data.source.AttachmentDataSource
 import com.nice.cxonechat.ui.screen.ChatActivity
 import com.nice.cxonechat.ui.util.PdfRender
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import org.koin.compose.koinInject
+import org.koin.core.qualifier.named
 
 @Composable
 internal fun PdfThumbnail(
@@ -62,14 +67,26 @@ internal fun PdfThumbnail(
         } else {
             null
         }
-    var pdfRender by remember { mutableStateOf<PdfRender?>(null) }
+    var pdfRender by remember(attachment) { mutableStateOf<PdfRender?>(null) }
     val uri = attachment.url
+    val logger = if (!LocalInspectionMode.current && LocalActivity.current is ChatActivity) {
+        koinInject<Logger>(named(LOGGER_NAME))
+    } else {
+        LoggerNoop
+    }
     LaunchedEffect(attachment) {
-        withContext(Dispatchers.Unconfined) {
-            val fd = attachmentDataSource?.getFileDescriptor(uri, attachment.friendlyName)?.getOrNull()
-            if (fd != null) {
-                pdfRender = PdfRender.create(fd, 1).getOrNull()
-            }
+        // Close previous render before creating new one
+        pdfRender?.close()
+        pdfRender = null
+
+        pdfRender = withContext(Dispatchers.IO) {
+            // Perform IO work on IO dispatcher
+            attachmentDataSource
+                ?.getFileDescriptor(uri, attachment.friendlyName)
+                ?.getOrNull()
+                ?.let { fd ->
+                    if (isActive) PdfRender.create(fd, 1, logger).getOrNull() else null
+                }
         }
     }
     AnimatedContent(pdfRender) { render ->
@@ -114,7 +131,7 @@ private fun PdfThumbnailContent(
                 render.close()
             }
         }
-        render.pageLists.firstOrNull()?.let { page ->
+        render.pageList.firstOrNull()?.let { page ->
             @SuppressLint(
                 "UnusedBoxWithConstraintsScope" // FP - `constraints` is used in `heightByWidth`
             )

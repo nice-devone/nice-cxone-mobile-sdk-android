@@ -122,15 +122,15 @@ More of the details can be found in the module [README](chat-sdk-ui/README.md)
 ### Chat UI provides these features:
 
 * Display the thread list (for multi-thread SDK configuration)
-    * Archive an existing thread
-    * Start a new thread
-* Display and service the thread conversation (including implementation for all currently supported message formats)
-    * Send message
-    * Upload attachment
-    * Record & play voice messages
-    * Name the thread (for multi-thread SDK configuration)
-    * Message pagination support
-    * Typing indication & reporting
+  * Archive an existing thread
+  * Start a new thread
+* Display and service the thread conversation (including implementation for all message formats currently supported by the SDK)
+  * Send message
+  * Upload attachment
+  * Record & play voice messages
+  * Name the thread (for multi-thread SDK configuration)
+  * Message pagination support
+  * Typing indication & reporting
 * Filling out of pre-contact form
 * Display notification about the new message when application is in the background (requires Firebase Cloud Messaging)
 * Sharing of message attachments
@@ -155,9 +155,9 @@ also demonstrate an integration of the SDK analytics events like `pageView` or `
 
 When integrating the CXone Chat SDK into your application, please note the following:
 
-If your application defines its own `fullBackupContent` rules, you must explicitly exclude the CXone SDK's shared
-preferences
+If your application defines its own `fullBackupContent` rules, you must explicitly exclude the CXone SDK's shared preferences
 file to avoid backing up sensitive data, which are not transferable.
+
 Add the following exclusion to your backup rules:
 
 ```xml

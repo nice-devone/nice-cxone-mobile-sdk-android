@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
@@ -202,7 +203,7 @@ private fun MessageContentBody(
     onShare: (Collection<Attachment>) -> Unit,
     onListPickerSelected: (Boolean) -> Unit,
     messageStatusState: MessageStatusState,
-    setShowFrame: (Boolean) -> Unit
+    setShowFrame: (Boolean) -> Unit,
 ) {
     when (message) {
         is Unsupported -> FallbackText(message, Modifier.padding(space.unsupportedMessagePadding))
@@ -217,10 +218,12 @@ private fun MessageContentBody(
             onShare = onShare,
             onShowFrame = setShowFrame
         )
+
         is ListPicker -> ListPickerMessage(
             message,
             onMessageClick = { if (messageStatusState == SELECTABLE) onListPickerSelected(true) }
         )
+
         is RichLink -> RichLinkMessage(message, chatColor)
         is QuickReply -> QuickReplyMessage(message, Modifier.padding(space.quickReplyMessagePadding))
     }
@@ -243,7 +246,7 @@ private fun MessageFrameContent(
     onShare: (Collection<Attachment>) -> Unit,
     snackBarHostState: SnackbarHostState,
     showListPickerDialog: Boolean,
-    setShowListPickerDialog: (Boolean) -> Unit
+    setShowListPickerDialog: (Boolean) -> Unit,
 ) {
     MessageFrame(
         position = position,
@@ -341,84 +344,87 @@ private fun SubFrameContent(message: Message, messageStatusState: MessageStatusS
 @Composable
 private fun PreviewContentTextMessage() {
     ChatTheme {
-        LazyColumn {
-            item {
-                PreviewMessageItem(
-                    message = EmojiText(
-                        UiSdkText(
-                            text = "😎📱🇨🇿",
-                            direction = ToAgent
-                        )
-                    ),
-                    showStatus = DisplayStatus.DISPLAY,
-                )
-            }
-            item {
-                PreviewMessageItem(
-                    message = Text(
-                        UiSdkText(
-                            text = "Please send the videos! \uD83D\uDE4C\uD83C\uDFFC",
-                        )
-                    ),
-                    showStatus = DisplayStatus.HIDE,
-                )
-            }
-            item {
-                PreviewMessageItem(
-                    message = Text(
-                        UiSdkText(
-                            text = "Hi and thank you for your response. \n" +
-                                    "I can send the videos, sure.",
-                            direction = ToAgent
-                        )
-                    ),
-                    itemGroupState = FIRST,
-                    showStatus = DisplayStatus.HIDE,
-                )
-            }
-            item {
-                PreviewMessageItem(
-                    message = Text(
-                        UiSdkText(
-                            text = "I’ll send four if that’s OK.",
-                            direction = ToAgent
-                        )
-                    ),
-                    itemGroupState = MIDDLE,
-                    showStatus = DisplayStatus.HIDE,
-                )
-            }
-            item {
-                PreviewMessageItem(
-                    message = Text(
-                        UiSdkText(
-                            text = "Here they come!",
-                            direction = ToAgent
-                        )
-                    ),
-                    itemGroupState = LAST,
-                    showStatus = DisplayStatus.HIDE,
-                )
-            }
-            item {
-                PreviewMessageItem(
-                    message = Text(
-                        UiSdkText(
-                            text = "Please send the videos! \uD83D\uDE4C\uD83C\uDFFC",
-                        )
-                    ),
-                    showStatus = DisplayStatus.HIDE,
-                )
-            }
-            item {
-                PreviewMessageItem(
-                    message = QuickReply(UiSdkQuickReply()) {},
-                )
-            }
-            item {
-                PreviewMessageItem(
-                    Unsupported(UiSdkUnsupportedMessage()),
-                )
+        Surface(color = chatColors.token.background.default) {
+            LazyColumn {
+                item {
+                    PreviewMessageItem(
+                        message = EmojiText(
+                            UiSdkText(
+                                text = "😎📱🇨🇿",
+                                direction = ToAgent
+                            )
+                        ),
+                        showStatus = DisplayStatus.DISPLAY,
+                    )
+                }
+                item {
+                    PreviewMessageItem(
+                        message = Text(
+                            UiSdkText(
+                                text = "Please send the videos! \uD83D\uDE4C\uD83C\uDFFC",
+                            )
+                        ),
+                        showStatus = DisplayStatus.HIDE,
+                    )
+                }
+                item {
+                    PreviewMessageItem(
+                        message = Text(
+                            UiSdkText(
+                                text = "Hi and thank you for your response. \n" +
+                                        "I can send the videos, sure.",
+                                direction = ToAgent
+                            )
+                        ),
+                        itemGroupState = FIRST,
+                        showStatus = DisplayStatus.HIDE,
+                    )
+                }
+                item {
+                    PreviewMessageItem(
+                        message = Text(
+                            UiSdkText(
+                                text = "I’ll send four if that’s OK.\n" +
+                                        "Also check out https://nice.com",
+                                direction = ToAgent
+                            )
+                        ),
+                        itemGroupState = MIDDLE,
+                        showStatus = DisplayStatus.HIDE,
+                    )
+                }
+                item {
+                    PreviewMessageItem(
+                        message = Text(
+                            UiSdkText(
+                                text = "Here they come!",
+                                direction = ToAgent
+                            )
+                        ),
+                        itemGroupState = LAST,
+                        showStatus = DisplayStatus.HIDE,
+                    )
+                }
+                item {
+                    PreviewMessageItem(
+                        message = Text(
+                            UiSdkText(
+                                text = "Please send the videos! \uD83D\uDE4C\uD83C\uDFFC",
+                            )
+                        ),
+                        showStatus = DisplayStatus.HIDE,
+                    )
+                }
+                item {
+                    PreviewMessageItem(
+                        message = QuickReply(UiSdkQuickReply()) {},
+                    )
+                }
+                item {
+                    PreviewMessageItem(
+                        Unsupported(UiSdkUnsupportedMessage()),
+                    )
+                }
             }
         }
     }

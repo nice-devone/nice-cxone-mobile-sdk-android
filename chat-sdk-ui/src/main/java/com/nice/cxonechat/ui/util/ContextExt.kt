@@ -19,6 +19,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
+import android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.content.ContextCompat
@@ -39,6 +40,7 @@ import kotlinx.coroutines.withContext
 internal fun Context.openWithAndroid(url: String, mimeType: String?): Boolean {
     val intent = Intent(Intent.ACTION_VIEW).apply {
         setDataAndType(url.toUri(), mimeType)
+        addFlags(FLAG_GRANT_READ_URI_PERMISSION)
     }
 
     return if (intent.resolveActivity(packageManager) == null) {

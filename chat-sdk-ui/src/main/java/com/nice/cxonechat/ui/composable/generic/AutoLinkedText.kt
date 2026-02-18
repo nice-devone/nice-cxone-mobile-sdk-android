@@ -19,6 +19,7 @@ import android.text.Spannable
 import android.text.Spannable.Factory
 import android.text.style.URLSpan
 import android.text.util.Linkify
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.produceState
@@ -26,8 +27,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.text.util.LinkifyCompat
@@ -35,15 +39,31 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+/**
+ * Displays text with automatic detection and styling of links (URLs, emails, phone numbers).
+ *
+ * This composable scans the provided [text] for web URLs, email addresses, and phone numbers,
+ * and applies clickable link styles using [linkColor] and [linkDecoration].
+ *
+ * @param text The text to display, with links auto-detected.
+ * @param modifier Modifier to be applied to the Text. Defaults to [Modifier].
+ * @param style Text style for non-link text. Defaults to [TextStyle.Default].
+ * @param color Color for non-link text. Defaults to [Color.Unspecified].
+ * @param linkColor Color for detected links. Defaults to [Color.Unspecified], to match normal text.
+ * @param linkDecoration Text decoration for detected links (e.g., underline), `null` removes the decoration.
+ *          Defaults to [TextDecoration.Underline].
+ */
 @Composable
 internal fun AutoLinkedText(
     text: String,
     modifier: Modifier = Modifier,
     style: TextStyle = TextStyle.Default,
     color: Color = Color.Unspecified,
+    linkColor: Color = Color.Unspecified,
+    linkDecoration: TextDecoration? = TextDecoration.Underline,
 ) {
     val linked = produceState(AnnotatedString(text)) {
-        value = autoLinkedText(text)
+        value = autoLinkedText(text, linkColor, linkDecoration)
     }
     Text(
         text = linked.value,
@@ -55,10 +75,14 @@ internal fun AutoLinkedText(
 
 internal suspend fun autoLinkedText(
     text: String,
+    linkColor: Color,
+    linkDecoration: TextDecoration?,
 ): AnnotatedString = Factory.getInstance()
     .newSpannable(text)
     .let { linkify(it) }
-    .let(::spannableToAnnotated)
+    .let {
+        spannableToAnnotated(it, linkColor, linkDecoration)
+    }
 
 private suspend fun linkify(spannable: Spannable): Spannable = withContext(Dispatchers.IO) {
     // Some devices access system files defining possible phone number formats, which triggers BlogGuard
@@ -66,28 +90,42 @@ private suspend fun linkify(spannable: Spannable): Spannable = withContext(Dispa
     spannable
 }
 
-private fun spannableToAnnotated(spannable: Spannable): AnnotatedString = buildAnnotatedString {
-    var lastEnd = 0
-    for (span in spannable.getSpans(0, spannable.length, Any::class.java)) {
-        val start = spannable.getSpanStart(span)
-        val end = spannable.getSpanEnd(span)
-        append(spannable.subSequence(lastEnd, start))
-        if (span is URLSpan) {
-            withLink(LinkAnnotation.Url(url = span.url)) {
+private fun spannableToAnnotated(spannable: Spannable, linkColor: Color, linkDecoration: TextDecoration?): AnnotatedString =
+    buildAnnotatedString {
+        var lastEnd = 0
+        for (span in spannable.getSpans(0, spannable.length, Any::class.java)) {
+            val start = spannable.getSpanStart(span)
+            val end = spannable.getSpanEnd(span)
+            append(spannable.subSequence(lastEnd, start))
+            if (span is URLSpan) {
+                withLink(
+                    LinkAnnotation.Url(
+                        url = span.url,
+                        styles = TextLinkStyles(
+                            style = SpanStyle(
+                                color = linkColor,
+                                textDecoration = linkDecoration
+                            )
+                        )
+                    )
+                ) {
+                    append(spannable.subSequence(start, end))
+                }
+            } else {
                 append(spannable.subSequence(start, end))
             }
-        } else {
-            append(spannable.subSequence(start, end))
+            lastEnd = end
         }
-        lastEnd = end
+        append(spannable.subSequence(lastEnd, spannable.length))
     }
-    append(spannable.subSequence(lastEnd, spannable.length))
-}
 
 @Composable
 @Preview
 private fun PreviewAutoLinkedText() {
     ChatTheme {
-        AutoLinkedText("A text containing a link https://example.com")
+        AutoLinkedText(
+            "A text containing a link \r\n https://example.com",
+            modifier = Modifier.systemBarsPadding()
+        )
     }
 }

@@ -34,18 +34,30 @@ Example:
 
 ```kotlin
 // Set custom color tokens before launching ChatActivity
-ChatThemeDetails.lightTokens.background = ThemeColorTokens.Background(
-    default = Color(0xFFF6F6F6),
-    inverse = Color(0xFF222222),
-    surface = ThemeColorTokens.Background.Surface(
-        default = Color.White,
-        variant = Color(0xFFE0E0E0),
-        container = Color(0xFFFAFAFA),
-        subtle = Color(0xFFF0F0F0),
-        emphasis = Color(0xFF007AFF)
-    )
+
+// You can use existing tokens as templates and only replace parts you want to customize
+val currentColorTokens = ChatThemeDetails.lightTokens
+ChatThemeDetails.lightTokens = ThemeColorTokens(
+    background = ThemeColorTokens.Background(
+        default = currentColorTokens.background.default,
+        inverse = Color(0xFF222222),
+        surface = ThemeColorTokens.Background.Surface(
+            default = Color.White,
+            variant = Color(0xFFE0E0E0),
+            container = Color(0xFFFAFAFA),
+            subtle = Color(0xFFF0F0F0),
+            emphasis = Color(0xFF007AFF)
+        )
+    ),
+    // Replace other token groups as required
+    // You can also use copy extension method, similar to data classes, for easier overrides.
+    content = currentColorTokens.content.copy(
+        primary = Color.Blue,
+    ),
+    brand = currentColorTokens.brand,
+    border = currentColorTokens.border,
+    status = currentColorTokens.status,
 )
-// Repeat for other token groups: content, brand, border, status
 
 // Now start ChatActivity
 val intent = Intent(context, ChatActivity::class.java)

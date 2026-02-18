@@ -16,10 +16,12 @@
 package com.nice.cxonechat.ui.composable.conversation
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize.Max
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -36,6 +38,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.ui.R
@@ -43,6 +46,7 @@ import com.nice.cxonechat.ui.composable.conversation.model.Message.RichLink
 import com.nice.cxonechat.ui.composable.generic.AutoLinkedText
 import com.nice.cxonechat.ui.composable.generic.PresetAsyncImage
 import com.nice.cxonechat.ui.composable.theme.ChatColors.ColorPair
+import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
@@ -97,7 +101,8 @@ internal fun RichLinkMessage(
                 AutoLinkedText(
                     text = message.url,
                     style = chatTypography.chatCardLink,
-                    color = linkColor,
+                    linkColor = linkColor,
+                    linkDecoration = TextDecoration.None,
                 )
                 Icon(
                     painterResource(R.drawable.ic_link),
@@ -116,7 +121,16 @@ internal fun RichLinkMessage(
 @PreviewLightDark
 @Composable
 private fun PreviewMessageRichLink() {
-    PreviewMessageItemBase(
-        message = RichLink(UiSdkRichLink()),
-    )
+    ChatTheme {
+        Box(
+            Modifier
+                .fillMaxHeight(0.8f)
+        ) {
+            Column {
+                PreviewMessageItemBase(
+                    message = RichLink(UiSdkRichLink()),
+                )
+            }
+        }
+    }
 }

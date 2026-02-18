@@ -35,8 +35,6 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <!-- Permission is only used on API Q and lower  -->
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
@@ -103,20 +101,9 @@
             </intent-filter>
         </service>
 
-        <service
-            android:name=".services.PlayerDownloadService"
-            android:exported="false"
-            android:foregroundServiceType="dataSync">
-            <!-- This is needed for Scheduler -->
-            <intent-filter>
-                <action android:name="androidx.media3.exoplayer.downloadService.action.RESTART" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </service>
-
         <provider
             android:name=".storage.TemporaryFileProvider"
-            android:authorities="com.nice.cxonechat.fileprovider"
+            android:authorities="${applicationId}.cxonechat.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

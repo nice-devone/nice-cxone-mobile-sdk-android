@@ -17,6 +17,7 @@ package com.nice.cxonechat.ui.storage
 
 import android.content.Context
 import android.net.Uri
+import androidx.annotation.VisibleForTesting
 import androidx.core.content.FileProvider
 import com.nice.cxonechat.ui.R
 import java.io.File
@@ -27,12 +28,20 @@ import java.io.File
 class TemporaryFileProvider : FileProvider(R.xml.tmp_file_path) {
 
     internal companion object {
-        private const val AUTHORITY = "com.nice.cxonechat.fileprovider"
+        /**
+         * Constructs the FileProvider authority dynamically based on the application's package name.
+         * This ensures each app using the SDK has a unique authority, preventing conflicts on Google Play.
+         *
+         * @param context Application context used to retrieve the package name
+         * @return The constructed authority in format: "{packageName}.cxonechat.fileprovider"
+         */
+        @VisibleForTesting
+        internal fun getAuthority(context: Context): String = "${context.packageName}.cxonechat.fileprovider"
 
         fun getUriForFile(file: File, filename: String, context: Context): Uri =
-            getUriForFile(context, AUTHORITY, file, filename)
+            getUriForFile(context, getAuthority(context), file, filename)
 
         fun getUriForFile(file: File, context: Context): Uri =
-            getUriForFile(context, AUTHORITY, file, file.name)
+            getUriForFile(context, getAuthority(context), file, file.name)
     }
 }

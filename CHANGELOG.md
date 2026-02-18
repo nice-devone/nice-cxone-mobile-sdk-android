@@ -1,6 +1,20 @@
 <a name="unreleased"></a>
 
 ## [Unreleased]
+<a name="3.1.2"></a>
+
+## [3.1.2] - 2026-02-18
+
+### Fixed
+
+- Fix FileProvider authority conflict when multiple apps using the SDK are published on Google Play by making the authority dynamic based on
+  application package name instead of hardcoded value
+- Fix PdfRender thread-safety issue causing crashes during concurrent access
+- Fix PdfRenderer resource leak during rapid scrolling and constructor failures by properly closing resources in all error paths and
+  lifecycle events
+- Fix opening of non-video/image attachments by adding URI read permission flag
+- Fix issue introduced in version 3.0 where user entered text which is auto-linked is invisible on background
+- Remove remnants of unused Foreground Service implementation to prevent clash with other integrations
 
 <a name="3.1.1"></a>
 
@@ -531,7 +545,9 @@
 
 [Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.1.1...HEAD
 
-[3.1.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.1.0...3.1.1
+[3.1.2]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.1.1...3.1.2
+
+[3.1.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.1.0...3.1.1
 
 [3.1.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.0.0...3.1.0
 
