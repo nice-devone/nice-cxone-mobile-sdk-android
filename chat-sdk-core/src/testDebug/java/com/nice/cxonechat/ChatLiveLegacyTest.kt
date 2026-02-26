@@ -39,7 +39,15 @@ internal class ChatLiveLegacyTest : AbstractChatTest() {
     override fun prepare() {
         isLiveChat = true
         features[Configuration.Feature.RecoverLiveChatDoesNotFail.key] = false
-        entrails = ChatEntrailsMock(httpClient, storage, service, mockLogger(), CXoneEnvironment.EU1.value)
+        entrails = ChatEntrailsMock(
+            sharedClient = httpClient,
+            storage = storage,
+            service = service,
+            authService = authService,
+            logger = mockLogger(),
+            environment = CXoneEnvironment.EU1.value,
+            cookieJar = cookieJar,
+        )
         super.prepare()
     }
 

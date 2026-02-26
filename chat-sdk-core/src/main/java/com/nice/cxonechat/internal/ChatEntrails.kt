@@ -15,9 +15,11 @@
 
 package com.nice.cxonechat.internal
 
+import com.nice.cxonechat.api.AuthService
 import com.nice.cxonechat.api.RemoteService
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.state.Environment
+import com.nice.cxonechat.storage.PersistentCookieJar
 import com.nice.cxonechat.storage.ValueStorage
 import okhttp3.OkHttpClient
 
@@ -25,6 +27,8 @@ internal interface ChatEntrails {
     val sharedClient: OkHttpClient
     val storage: ValueStorage
     val service: RemoteService
+    val authService: AuthService
+    val cookieJar: PersistentCookieJar
     val threading: Threading
     val environment: Environment
     val logger: Logger

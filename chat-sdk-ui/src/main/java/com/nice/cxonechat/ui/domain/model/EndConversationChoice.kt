@@ -20,6 +20,7 @@ package com.nice.cxonechat.ui.domain.model
  *
  * @see SHOW_TRANSCRIPT Option to display the conversation transcript to the user.
  * @see NEW_CONVERSATION Option to start a new conversation after ending the current one.
+ * @see SEND_TRANSCRIPT Option to send the conversation transcript to the user.
  * @see CLOSE_CHAT Option to simply close the chat interface.
  */
 internal enum class EndConversationChoice {
@@ -32,6 +33,11 @@ internal enum class EndConversationChoice {
      * Start a new conversation after ending the current one.
      */
     NEW_CONVERSATION,
+
+    /**
+     * Send the transcript of the ended conversation to the user.
+     */
+    SEND_TRANSCRIPT,
 
     /**
      * Close the chat interface without any further actions.

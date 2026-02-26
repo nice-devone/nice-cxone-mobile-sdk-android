@@ -16,6 +16,7 @@
 package com.nice.cxonechat
 
 import androidx.annotation.CallSuper
+import com.nice.cxonechat.api.AuthService
 import com.nice.cxonechat.api.RemoteService
 import com.nice.cxonechat.enums.CXoneEnvironment
 import com.nice.cxonechat.internal.ChatEntrails
@@ -23,7 +24,11 @@ import com.nice.cxonechat.internal.model.AvailabilityStatus.Online
 import com.nice.cxonechat.internal.model.ChannelAvailability
 import com.nice.cxonechat.internal.model.ChannelConfiguration
 import com.nice.cxonechat.internal.model.ChannelConfiguration.FileRestrictions
+import com.nice.cxonechat.internal.model.TransactionTokenModel
 import com.nice.cxonechat.internal.socket.ProxyWebSocketListener
+import com.nice.cxonechat.model.makeCustomerIdentity
+import com.nice.cxonechat.state.Configuration.Feature.SecuredSessions
+import com.nice.cxonechat.storage.PersistentCookieJar
 import com.nice.cxonechat.storage.ValueStorage
 import com.nice.cxonechat.tool.ChatEntrailsMock
 import com.nice.cxonechat.tool.MockLogger
@@ -50,14 +55,18 @@ internal abstract class AbstractChatTestSubstrate {
 
     protected lateinit var entrails: ChatEntrails
     protected lateinit var service: RemoteService
+    protected lateinit var authService: AuthService
     protected lateinit var storage: ValueStorage
     protected lateinit var socket: WebSocket
     protected lateinit var proxyListener: ProxyWebSocketListener
     protected lateinit var socketServer: MockServer
     protected var isLiveChat = false
     protected var chatAvailability = Online
-    protected var features: MutableMap<String, Boolean> = mutableMapOf()
+    protected var features: MutableMap<String, Boolean> = mutableMapOf(
+        SecuredSessions.key to false
+    )
     protected val httpClient = mockk<OkHttpClient>()
+    protected val cookieJar = mockk<PersistentCookieJar>()
 
     protected open val config: ChannelConfiguration?
         get() = ChannelConfiguration(
@@ -69,14 +78,17 @@ internal abstract class AbstractChatTestSubstrate {
                     listOf(),
                     false,
                 ),
-                features = features
+                features = features,
+                securedSessions = false,
+                liveChatAllowTranscript = true
             ),
             isAuthorizationEnabled = true,
             preContactForm = null,
             isLiveChat = isLiveChat,
-            availability = mockk {
+            availability = mockk(relaxed = true) {
                 every { status } answers { chatAvailability }
-            }
+            },
+            isSecuredCookieEnabled = false
         )
 
     protected open val testWelcomeMessage = "welcome"
@@ -88,7 +100,16 @@ internal abstract class AbstractChatTestSubstrate {
         proxyListener = socketServer.proxyListener
         storage = mockStorage()
         service = mockService()
-        entrails = ChatEntrailsMock(httpClient, storage, service, mockLogger(), CXoneEnvironment.EU1.value)
+        authService = mockAuthService()
+        entrails = ChatEntrailsMock(
+            sharedClient = httpClient,
+            storage = storage,
+            service = service,
+            authService = authService,
+            logger = mockLogger(),
+            environment = CXoneEnvironment.EU1.value,
+            cookieJar = cookieJar,
+        )
         prepare()
     }
 
@@ -106,6 +127,7 @@ internal abstract class AbstractChatTestSubstrate {
         every { authToken } returns "token"
         every { authTokenExpDate } returns Date().plus(1.days.inWholeMilliseconds)
         every { deviceToken } returns null
+        every { transactionTokenModel } returns TransactionTokenModel(TestUUID, 3600L)
     }
 
     fun <T> mockCall(result: () -> T) = mockk<Call<T>> {
@@ -127,6 +149,16 @@ internal abstract class AbstractChatTestSubstrate {
         every { createOrUpdateVisitor(any(), any(), any()) } returns mockCall { null } as Call<Void>
         every { getChannelAvailability(any(), any()) } returns mockCall {
             ChannelAvailability(status = chatAvailability)
+        }
+    }
+
+    private fun mockAuthService() = mockk<AuthService> {
+        every { getTransactionToken(any(), any(), any(), any()) } returns mockCall {
+            TransactionTokenModel(
+                transactionToken = "token",
+                expiresIn = 3600L,
+                customerIdentity = makeCustomerIdentity()
+            )
         }
     }
 

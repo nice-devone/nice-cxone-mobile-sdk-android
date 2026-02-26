@@ -43,6 +43,7 @@ internal fun PlaceholderPreview(
     attachment: Attachment,
     modifier: Modifier = Modifier,
     thumbnailSize: ThumbnailSize = ThumbnailSize.REGULAR,
+    contentDescription: String? = attachment.contentDescription,
 ) {
     val iconMod = if (thumbnailSize == ThumbnailSize.LARGE) {
         modifier.sizeIn(maxWidth = 126.dp, maxHeight = 164.dp)
@@ -55,7 +56,7 @@ internal fun PlaceholderPreview(
     }
     Icon(
         imageVector = imageVector,
-        contentDescription = attachment.contentDescription,
+        contentDescription = contentDescription,
         modifier = iconMod,
         tint = contentColorFor(colorScheme.primary)
     )

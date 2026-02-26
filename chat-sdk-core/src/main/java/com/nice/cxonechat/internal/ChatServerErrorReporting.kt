@@ -22,7 +22,6 @@ import com.nice.cxonechat.enums.ErrorType.RecoveringThreadFailed
 import com.nice.cxonechat.enums.ErrorType.SendingMessageFailed
 import com.nice.cxonechat.enums.ErrorType.SendingOfflineMessageFailed
 import com.nice.cxonechat.enums.ErrorType.SendingOutboundFailed
-import com.nice.cxonechat.enums.ErrorType.SendingTranscriptFailed
 import com.nice.cxonechat.enums.ErrorType.UpdatingThreadFailed
 import com.nice.cxonechat.exceptions.RuntimeChatException.ServerCommunicationError
 import com.nice.cxonechat.internal.socket.ErrorCallback.Companion.addErrorCallback
@@ -49,7 +48,6 @@ internal class ChatServerErrorReporting(private val origin: ChatWithParameters) 
             socketListener.addErrorCallback(SendingOutboundFailed),
             socketListener.addErrorCallback(UpdatingThreadFailed),
             socketListener.addErrorCallback(ArchivingThreadFailed),
-            socketListener.addErrorCallback(SendingTranscriptFailed),
             socketListener.addErrorCallback(SendingOfflineMessageFailed),
         )
     }

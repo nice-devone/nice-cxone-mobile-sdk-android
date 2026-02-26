@@ -341,7 +341,6 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
         builder.setCustomerId(customerId)
         build(builder)
 
-        verify(exactly = 1) { storage.clearStorage() }
         verify(exactly = 1) { storage.customerId = customerId }
     }
 

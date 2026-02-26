@@ -24,7 +24,8 @@ internal data class EnvironmentInternal(
     override val socketUrl: String,
     override val originHeader: String,
     override val chatUrl: String,
-    override val loggerUrl: String
+    override val loggerUrl: String,
+    override val authUrl: String
 ) : Environment {
 
     override fun toString() = buildString {
@@ -42,6 +43,8 @@ internal data class EnvironmentInternal(
         append(chatUrl)
         append("', loggerUrl='")
         append(loggerUrl)
+        append("', authUrl='")
+        append(authUrl)
         append("')")
     }
 }

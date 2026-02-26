@@ -21,10 +21,13 @@ import androidx.lifecycle.viewModelScope
 import com.nice.cxonechat.Chat
 import com.nice.cxonechat.ChatThreadActionHandler
 import com.nice.cxonechat.ChatThreadEventHandlerActions.markThreadRead
+import com.nice.cxonechat.ChatThreadEventHandlerActions.sendTranscript
 import com.nice.cxonechat.ChatThreadEventHandlerActions.triggerAction
 import com.nice.cxonechat.ChatThreadEventHandlerActions.typingEnd
 import com.nice.cxonechat.ChatThreadEventHandlerActions.typingStart
 import com.nice.cxonechat.ChatThreadMessageHandler.OnMessageTransferListener
+import com.nice.cxonechat.EventResponse
+import com.nice.cxonechat.exceptions.CXoneException
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerScope
 import com.nice.cxonechat.log.debug
@@ -72,10 +75,14 @@ import com.nice.cxonechat.ui.viewmodel.ConversationDialog.SelectAttachments
 import com.nice.cxonechat.utilities.isEmpty
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -234,6 +241,7 @@ internal class ChatThreadViewModel(
     val selectedThreadName: String?
         get() = selectedThreadRepository.chatThreadHandler.get().threadName
 
+    val liveChatAllowTranscript: Boolean = chat.configuration.liveChatAllowTranscript
     val isArchived: StateFlow<Boolean> = chatThreadCachedFlow
         .mapLatest { !it.canAddMoreMessages }
         .distinctUntilChanged()
@@ -258,6 +266,15 @@ internal class ChatThreadViewModel(
 
     private val showDialog = MutableStateFlow<ConversationDialog>(None)
     val dialogShown = showDialog.asStateFlow()
+
+    private val _errorEvents = MutableSharedFlow<String>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    val errorEvents: SharedFlow<String> = _errorEvents.asSharedFlow()
+
+    private val _showTranscriptDialog = MutableStateFlow<SendTranscriptDialog>(SendTranscriptDialog.None)
+    val showTranscriptDialog = _showTranscriptDialog.asStateFlow()
+
+    private val _showFullScreenLoading = MutableStateFlow<Boolean>(false)
+    val showFullScreenLoading: StateFlow<Boolean> = _showFullScreenLoading.asStateFlow()
 
     // Note this is explicitly *not* part of Dialogs to allow it to be stacked over the select attachments dialog.
     private val preparing = MutableStateFlow(false)
@@ -312,7 +329,7 @@ internal class ChatThreadViewModel(
         flow: MutableStateFlow<Map<UUID, SdkMessage>>,
         loaderFlow: MutableStateFlow<Boolean>,
         loggerScope: LoggerScope,
-    ) : OnMessageTransferListener, LoggerScope by LoggerScope<OnMessageSentListener>(loggerScope) {
+    ) : OnMessageTransferListener, LoggerScope by LoggerScope("OnMessageSentListener", loggerScope) {
 
         private val weakRef = WeakReference(flow)
         private val weakRefLoader = WeakReference(loaderFlow)
@@ -321,15 +338,15 @@ internal class ChatThreadViewModel(
             val appMessage = message(id)
             map.value = map.value.plus(appMessage.id to appMessage)
             verbose("Message processed, adding temporary message with id: $id")
-            weakRefLoader.get()?.let {
-                (it as? MutableStateFlow<Boolean>)?.update { false }
+            weakRefLoader.get()?.let { flowRef ->
+                flowRef.update { false }
             }
         }
 
         override fun onProcessing(message: OutboundMessage): Unit = timedScope("onProcessing") {
             // Notifies that message processing has started
-            weakRefLoader.get()?.let {
-                (it as? MutableStateFlow<Boolean>)?.update { true }
+            weakRefLoader.get()?.let { flowRef ->
+                flowRef.update { true }
             }
         }
     }
@@ -346,13 +363,15 @@ internal class ChatThreadViewModel(
                 currentAttachments.any { existingAttachment -> existingAttachment.url == newAttachment.url }
             }
             verbose("New attachments: $newAttachments, existing attachments: $currentAttachments")
-            mutablePendingAttachments.value = currentAttachments + newAttachments
+            withContext(Dispatchers.Main) { // Assign on main thread to avoid concurrency issues on some devices
+                mutablePendingAttachments.value = currentAttachments + newAttachments
+            }
         }
     }
 
     private fun prepareAttachmentsAndTrigger(
         attachments: List<Uri>,
-        trigger: (List<PreparedAttachment>) -> Unit,
+        trigger: suspend (List<PreparedAttachment>) -> Unit,
     ) = scope("prepareAttachmentsAndTrigger") {
         viewModelScope.launch(Dispatchers.IO) {
             val (requestResults, requestErrors) = attachments.map { uri ->
@@ -404,7 +423,8 @@ internal class ChatThreadViewModel(
         }
     }
 
-    fun removePendingAttachment(attachment: Attachment) {
+    fun removePendingAttachment(attachment: Attachment) = scope("removePendingAttachment") {
+        verbose("Removing pending attachment: $attachment")
         mutablePendingAttachments.value = pendingAttachments.value.filterNot { it === attachment || it.url == attachment.url }
     }
 
@@ -468,11 +488,19 @@ internal class ChatThreadViewModel(
     internal fun confirmEditingCustomValues(values: CustomValueItemList) = scope("confirmEditingCustomValues") {
         dismissDialog()
         viewModelScope.launch(Dispatchers.Default) {
-            chatThreadHandler.firstOrNull()?.customFields()?.add(
-                values.extractStringValues() + withContext(Dispatchers.IO) {
-                    uiCustomFieldsProvider.customFields()
-                }
-            )
+            try {
+                chatThreadHandler.firstOrNull()?.customFields()?.add(
+                    values.extractStringValues() + withContext(Dispatchers.IO) {
+                        uiCustomFieldsProvider.customFields()
+                    }
+                )
+            } catch (expected: CXoneException) {
+                warning("Failed to update custom fields", expected)
+                val message = expected.localizedMessage?.takeIf { it.isNotBlank() }
+                    ?: expected.message?.takeIf { it.isNotBlank() }
+                    ?: "An unexpected error occurred while updating custom fields."
+                _errorEvents.tryEmit(message)
+            }
         }
     }
 
@@ -508,6 +536,36 @@ internal class ChatThreadViewModel(
 
     internal fun showEndContactDialog() = scope("showEndContactDialog") {
         showDialog(EndContact)
+    }
+
+    internal fun showSendTranscriptDialog(dialog: SendTranscriptDialog) {
+        _showTranscriptDialog.update { dialog }
+    }
+
+    internal fun dismissSendTranscriptDialog() {
+        _showFullScreenLoading.update { false }
+        _showTranscriptDialog.update { SendTranscriptDialog.None }
+    }
+
+    internal fun sendTranscript(email: String) {
+        viewModelScope.launch {
+            _showFullScreenLoading.update { true }
+            eventHandler.first().sendTranscript(
+                email = email,
+                errorListener = {
+                    _showFullScreenLoading.update { false }
+                    showSendTranscriptDialog(SendTranscriptDialog.SendTranscriptUpdateDialog(false))
+                },
+                onEventResponseListener = {
+                    _showFullScreenLoading.update { false }
+                    if (it is EventResponse.Success) {
+                        showSendTranscriptDialog(SendTranscriptDialog.SendTranscriptUpdateDialog(true))
+                    } else {
+                        showSendTranscriptDialog(SendTranscriptDialog.SendTranscriptUpdateDialog(false))
+                    }
+                }
+            )
+        }
     }
 
     internal fun reportReplyButtonClicked(replyButton: SdkReplyButton) = scope("reportReplyButtonClicked") {

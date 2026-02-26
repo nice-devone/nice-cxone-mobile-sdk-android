@@ -260,7 +260,8 @@ internal class ChatViewModel(
     internal fun connect() = timedScope("connect") {
         val chatState = chatProvider.chatState
         if (chatState === ChatState.Connecting) {
-            warning("Ignoring connect request, chat is already connecting")
+            verbose("SDK is already reconnecting autonomously, showing loading overlay")
+            showDialog(Preparing)
             return
         }
         if (chatState !== ChatState.Prepared && chatState !== ChatState.ConnectionLost && chatState !== ChatState.Offline) {

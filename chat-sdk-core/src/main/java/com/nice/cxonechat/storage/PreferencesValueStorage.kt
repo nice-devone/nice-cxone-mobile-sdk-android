@@ -16,108 +16,109 @@
 package com.nice.cxonechat.storage
 
 import android.content.Context
-import android.content.SharedPreferences
-import androidx.core.content.edit
-import androidx.security.crypto.EncryptedSharedPreferences
+import com.nice.cxonechat.internal.model.TransactionTokenModel
 import com.nice.cxonechat.internal.serializer.Default
+import com.nice.cxonechat.log.Logger
+import com.nice.cxonechat.log.LoggerNoop
 import com.nice.cxonechat.storage.ValueStorage.VisitDetails
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.runBlocking
 import java.util.Date
 import java.util.UUID
 
-internal class PreferencesValueStorage(private val sharedPreferences: SharedPreferences) : ValueStorage {
+internal class PreferencesValueStorage(
+    context: Context,
+    logger: Logger = LoggerNoop,
+    internal val store: EncryptedDataStoreContract = EncryptedDataStoreProvider.getInstance(context, logger),
+) : ValueStorage {
 
     override var authToken: String?
-        get() = sharedPreferences.getString(PREF_AUTH_TOKEN, null)
-        set(value) = sharedPreferences.edit {
-            putString(PREF_AUTH_TOKEN, value)
+        get() = runBlocking {
+            store.getString(PREF_AUTH_TOKEN).firstOrNull()
+        }
+        set(value) = runBlocking {
+            store.putString(PREF_AUTH_TOKEN, value)
+        }
+
+    override var transactionTokenModel: TransactionTokenModel?
+        get() = runBlocking {
+            store.getString(PREF_TRANSACTION_TOKEN).firstOrNull()?.let { Default.serializer.decodeFromString(it) }
+        }
+        set(value) = runBlocking {
+            if (value != null) {
+                store.putString(PREF_TRANSACTION_TOKEN, Default.serializer.encodeToString(value))
+            } else {
+                store.remove(PREF_TRANSACTION_TOKEN)
+            }
         }
 
     override var authTokenExpDate: Date?
-        get() = sharedPreferences.getLong(PREF_AUTH_TOKEN_EXP_DATE, -1)
-            .takeUnless { it == -1L }
-            ?.let(::Date)
-        set(value) = sharedPreferences.edit {
+        get() = runBlocking {
+            store.getString(PREF_AUTH_TOKEN_EXP_DATE).firstOrNull()?.toLongOrNull()?.let(::Date)
+        }
+        set(value) = runBlocking {
             if (value != null) {
-                putLong(PREF_AUTH_TOKEN_EXP_DATE, value.time)
+                store.putString(PREF_AUTH_TOKEN_EXP_DATE, value.time.toString())
             } else {
-                remove(PREF_AUTH_TOKEN_EXP_DATE)
+                store.remove(PREF_AUTH_TOKEN_EXP_DATE)
             }
         }
 
     override var customerId: String?
-        get() = sharedPreferences.getString(PREF_CUSTOMER_ID, null)
-        set(value) = sharedPreferences.edit {
-            putString(PREF_CUSTOMER_ID, value)
+        get() = runBlocking {
+            store.getString(PREF_CUSTOMER_ID).firstOrNull()
+        }
+        set(value) = runBlocking {
+            value?.let { store.putString(PREF_CUSTOMER_ID, it) } ?: store.remove(PREF_CUSTOMER_ID)
         }
 
     override var visitorId: UUID
-        get() = sharedPreferences.getUUID(PREF_VISITOR_ID) ?: UUID.randomUUID().also {
-            visitorId = it
+        get() = runBlocking {
+            store.getString(PREF_VISITOR_ID).firstOrNull()?.let(UUID::fromString)
+                ?: UUID.randomUUID().also { visitorId = it }
         }
-        set(value) = sharedPreferences.edit {
-            putString(PREF_VISITOR_ID, value.toString())
-        }
+        set(value) = runBlocking { store.putString(PREF_VISITOR_ID, value.toString()) }
 
     override var visitDetails: VisitDetails?
-        get() = sharedPreferences.getString(PREF_VISIT_DETAILS, null)?.let {
-            Default.serializer.decodeFromString(it)
+        get() = runBlocking {
+            store.getString(PREF_VISIT_DETAILS).firstOrNull()?.let { Default.serializer.decodeFromString(it) }
         }
-        set(value) = sharedPreferences.edit {
-            putString(PREF_VISIT_DETAILS, value?.let { Default.serializer.encodeToString(it) })
+        set(value) = runBlocking {
+            if (value != null) {
+                store.putString(PREF_VISIT_DETAILS, Default.serializer.encodeToString(value))
+            } else {
+                store.remove(PREF_VISIT_DETAILS)
+            }
         }
 
     override val visitId: UUID
-        get() = (
-                visitDetails ?: VisitDetails().also {
-                    visitDetails = it
-                }
-        ).visitId
+        get() = visitDetails?.visitId ?: VisitDetails().also { visitDetails = it }.visitId
 
     override val visitValidUntil: Date?
         get() = visitDetails?.validUntil
 
     override val destinationId: UUID = UUID.randomUUID()
     override var welcomeMessage: String
-        get() = sharedPreferences.getStringOrEmpty(PREF_WELCOME_MESSAGE)
-        set(value) = sharedPreferences.edit {
-            putString(PREF_WELCOME_MESSAGE, value)
+        get() = runBlocking {
+            store.getString(PREF_WELCOME_MESSAGE).firstOrNull().orEmpty()
         }
+        set(value) = runBlocking { store.putString(PREF_WELCOME_MESSAGE, value) }
 
     override var deviceToken: String?
-        get() = sharedPreferences.getString(PREF_DEVICE_TOKEN, null)
-        set(value) = sharedPreferences.edit {
-            putString(PREF_DEVICE_TOKEN, value)
+        get() = runBlocking {
+            store.getString(PREF_DEVICE_TOKEN).firstOrNull()
         }
-
-    constructor(context: Context) : this(
-        EncryptedSharedPreferences.create(
-            PREFERENCE_FILE,
-            PREFERENCE_KEY_ALIAS,
-            context,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
-        )
-    )
+        set(value) = runBlocking {
+            store.putString(PREF_DEVICE_TOKEN, value)
+        }
 
     override fun clearStorage() {
-        sharedPreferences.edit {
-            clear()
-        }
+        runBlocking { store.clear() }
     }
 
-    private fun SharedPreferences.getStringOrEmpty(
-        key: String,
-        defValue: String? = null,
-    ): String = getString(key, defValue).orEmpty()
-    private fun SharedPreferences.getUUID(
-        key: String,
-        defValue: String? = null,
-    ): UUID? = getString(key, defValue)?.let(UUID::fromString)
-
     private companion object {
-        private const val PREFERENCE_FILE = "com.nice.cxonechat.secure"
-        private const val PREFERENCE_KEY_ALIAS = "com.nice.cxonechat.secure"
         private const val PREF_AUTH_TOKEN: String = "share_sdk_auth_token"
+        private const val PREF_TRANSACTION_TOKEN: String = "share_sdk_refresh_token"
         private const val PREF_AUTH_TOKEN_EXP_DATE: String = "share_sdk_auth_token_exp_date"
         private const val PREF_VISITOR_ID: String = "share_visitor_id"
         private const val PREF_CUSTOMER_ID: String = "share_customer_id"

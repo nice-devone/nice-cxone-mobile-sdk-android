@@ -59,10 +59,10 @@ android {
         }
         managedDevices {
             localDevices {
-                create("pixel2api30") {
+                create("pixel2api35") {
                     device = "Pixel 2"
-                    apiLevel = 30
-                    systemImageSource = "aosp-atd"
+                    apiLevel = 35
+                    systemImageSource = "aosp" // ADT flavored images don't work with accessibility tests
                 }
             }
         }
@@ -87,6 +87,7 @@ dependencies {
     implementation libs.androidx.lifecycle
 
     // Async Image & Video Frame
+    implementation platform(libs.coil.bom)
     implementation libs.coil.compose
     implementation libs.coil.network
     implementation libs.coil.video
@@ -131,7 +132,6 @@ dependencies {
     testImplementation libs.androidx.emoji.bundled
 
     androidTestImplementation libs.androidx.emoji.bundled
-    androidTestImplementation libs.androidx.window.testing
     androidTestImplementation libs.androidx.compose.ui.test.junit4
 }
 

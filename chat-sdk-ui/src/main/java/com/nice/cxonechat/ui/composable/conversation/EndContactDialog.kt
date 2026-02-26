@@ -19,9 +19,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import com.nice.cxonechat.ui.domain.model.EndConversationChoice.CLOSE_CHAT
 import com.nice.cxonechat.ui.domain.model.EndConversationChoice.NEW_CONVERSATION
+import com.nice.cxonechat.ui.domain.model.EndConversationChoice.SEND_TRANSCRIPT
 import com.nice.cxonechat.ui.domain.model.EndConversationChoice.SHOW_TRANSCRIPT
 import com.nice.cxonechat.ui.viewmodel.ChatThreadViewModel
 import com.nice.cxonechat.ui.viewmodel.ChatViewModel
+import com.nice.cxonechat.ui.viewmodel.SendTranscriptDialog
 
 @Composable
 internal fun EndContactDialog(
@@ -38,7 +40,7 @@ internal fun EndContactDialog(
                 SHOW_TRANSCRIPT -> {
                     // no-op required
                 }
-
+                SEND_TRANSCRIPT -> chatViewModel.showSendTranscriptDialog(SendTranscriptDialog.SendTranscript)
                 NEW_CONVERSATION -> chatModel.refreshThreadState()
                 CLOSE_CHAT -> closeChat()
             }

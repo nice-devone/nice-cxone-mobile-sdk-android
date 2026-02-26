@@ -45,6 +45,7 @@ internal interface ChatWithParameters : Chat {
 
     val storage get() = entrails.storage
     val service get() = entrails.service
+    val cookieJar get() = entrails.cookieJar
 
     var eventHandlerProvider: ChatEventHandlerProvider
 }

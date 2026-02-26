@@ -57,6 +57,7 @@ import com.nice.cxonechat.sample.utilities.PKCE
 import com.nice.cxonechat.sample.viewModel.StoreViewModel
 import com.nice.cxonechat.sample.viewModel.UiState
 import com.nice.cxonechat.sample.viewModel.UiState.UiStateContext
+import com.nice.cxonechat.ui.screen.ChatActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -158,10 +159,10 @@ class StoreActivity : ComponentActivity(), UiStateContext {
         pickMedia.launch(PickVisualMediaRequest(ImageOnly))
     }
 
-    override fun loginWithAmazon() = logger.scope("loginWithAmazon") {
+    override fun loginWithAmazon(isForced: Boolean) = logger.scope("loginWithAmazon") {
         val (codeVerifier, codeChallenge) = PKCE.generateCodeVerifier()
 
-        requestContext.registerListener(LoggingAuthorizeListener(codeVerifier, storeViewModel, this))
+        requestContext.registerListener(LoggingAuthorizeListener(codeVerifier, storeViewModel, isForced, this))
 
         AuthorizationManager.authorize(
             AuthorizeRequest.Builder(requestContext)
@@ -175,11 +176,18 @@ class StoreActivity : ComponentActivity(), UiStateContext {
     private inner class LoggingAuthorizeListener(
         private val codeVerifier: String,
         private val storeViewModel: StoreViewModel,
+        private val isForced: Boolean,
         logger: Logger,
     ) : AuthorizeListener(), LoggerScope by LoggerScope<AuthorizeListener>(logger) {
         override fun onSuccess(result: AuthorizeResult?) = scope("onSuccess") {
-            result?.accessToken?.let { accessToken ->
-                storeViewModel.chatSettingsHandler.setAuthorization(ChatAuthorization(codeVerifier, accessToken))
+            result?.authorizationCode?.let { authorizationCode ->
+                // Ensure they are provided in the right order.
+                storeViewModel.chatSettingsHandler.setAuthorization(
+                    authorization = ChatAuthorization(code = authorizationCode, verifier = codeVerifier),
+                    onPersisted = {
+                        if (isForced) ChatActivity.startChat(this@StoreActivity)
+                    }
+                )
             } ?: error("loginWithAmazon success with no result")
         }
 
@@ -204,7 +212,7 @@ class StoreActivity : ComponentActivity(), UiStateContext {
         )
 
         suspend fun Context.copyUriInputToLocalFile(
-            pickedUri: Uri?
+            pickedUri: Uri?,
         ): String? = withContext(Dispatchers.IO) {
             runCatching {
                 val uri = checkNotNull(pickedUri)

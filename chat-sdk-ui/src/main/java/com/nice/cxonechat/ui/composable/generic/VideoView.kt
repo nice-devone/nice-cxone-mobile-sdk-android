@@ -76,9 +76,9 @@ internal fun VideoView(
         }
     }
     FullscreenView(
+        modifier = Modifier.testTag("video_view"),
         title = title,
-        onExitFullScreen = onDismiss,
-        modifier = Modifier.testTag("video_view")
+        onExitFullScreen = onDismiss
     ) {
         Column(horizontalAlignment = CenterHorizontally) {
             Row(

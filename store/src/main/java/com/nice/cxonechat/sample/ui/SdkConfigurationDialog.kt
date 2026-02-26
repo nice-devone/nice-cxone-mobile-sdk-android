@@ -42,6 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -244,9 +245,9 @@ private fun ConfigurationSelector(
     state: SdkConfigurationState,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
+    val resources = LocalResources.current
     val choices: Sequence<DropdownItem<String>> =
-        (state.configurations.map { DropdownItem(it.name) } + DropdownItem(context.getString(string.custom)))
+        (state.configurations.map { DropdownItem(it.name) } + DropdownItem(resources.getString(string.custom)))
             .asSequence()
     Box(
         modifier

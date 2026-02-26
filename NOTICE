@@ -1,40 +1,50 @@
 # NICE - CXone Chat for Android
 
-Copyright 2021-2023 NICE Ltd. licensed under the NICE LICENSE
+Copyright 2021-2026 NICE Ltd. licensed under the NICE LICENSE
 https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
 
 ## CXone Chat SDK
 
 This product includes software from the JetBrains s.r.o. and Kotlin Programming Language contributors, Kotlin Programming Language project
     * Copyright 2010-2023 JetBrains s.r.o. and Kotlin Programming Language contributors
-    * Licensed under the Apache Apache License 2.0
+    * Licensed under the Apache License 2.0
     * https://github.com/JetBrains/kotlin/blob/master/license/LICENSE.txt
 
 This product includes software from The Android Open Source Project, Androidx project
     * Copyright (C) 2017 The Android Open Source Project
-    * Licensed under the Apache Apache License 2.0
+    * Licensed under the Apache License 2.0
     * https://github.com/androidx/androidx/blob/androidx-main/LICENSE.txt
 
 This product includes software from the Square, Inc. Retrofit project
-    * Copyright 2013 Square, Inc.
-    * Licensed under the Apache Apache License 2.0
+    * Copyright 2014 Square, Inc.
+    * Licensed under the Apache License 2.0
     * https://github.com/square/retrofit/blob/master/LICENSE.txt
 
 This product includes software from the Square, Inc. OkHttp project
-    * Copyright 2019 Square, Inc.
+    * Copyright 2014 Square, Inc.
     * Licensed under the Apache License, Version 2.0
     * https://github.com/square/okhttp/blob/master/LICENSE.txt
+
+This product includes software from the Koin project
+    * Copyright 2017-present the Koin project authors
+    * Licensed under the Apache License, Version 2.0
+    * https://github.com/InsertKoinIO/koin/blob/main/LICENSE
+
+This product includes software from the Google LLC, Tink project
+    * Copyright 2017 Google LLC
+    * Licensed under the Apache License, Version 2.0
+    * https://github.com/tink-crypto/tink-java/blob/main/LICENSE
 
 ## CXone Chat UI
 
 This product includes software from the JetBrains s.r.o. and Kotlin Programming Language contributors, Kotlin Programming Language project
     * Copyright 2010-2023 JetBrains s.r.o. and Kotlin Programming Language contributors
-    * Licensed under the Apache Apache License 2.0
+    * Licensed under the Apache License 2.0
     * https://github.com/JetBrains/kotlin/blob/master/license/LICENSE.txt
 
 This product includes software from The Android Open Source Project, Androidx project
     * Copyright (C) 2017 The Android Open Source Project
-    * Licensed under the Apache Apache License 2.0
+    * Licensed under the Apache License 2.0
     * https://github.com/androidx/androidx/blob/androidx-main/LICENSE.txt
 
 This product includes software from the Google Inc. Gson project
@@ -52,30 +62,20 @@ This product includes software from the Google LLC. Material Symbols project
     * Licensed under the Apache License, Version 2.0
     * https://github.com/google/material-design-icons/blob/master/LICENSE
 
-This product includes software from the Google Inc. Gson project
-    * Copyright 2008 Google Inc.
-    * Licensed under the Apache License, Version 2.0
-    * https://github.com/google/gson/blob/main/LICENSE
-
 This product includes software from the Google LLC, Firebase project
     * Copyright 2020 Google LLC
     * Licensed under the Apache License, Version 2.0
     * https://github.com/firebase/firebase-android-sdk/blob/master/LICENSE
 
-This product includes software from the Google LLC, Dagger project
-    * Copyright 2012 The Dagger Authors
+This product includes software from the Koin project
+    * Copyright 2017-present the Koin project authors
     * Licensed under the Apache License, Version 2.0
-    * https://github.com/google/dagger/blob/master/LICENSE.txt
+    * https://github.com/InsertKoinIO/koin/blob/main/LICENSE
 
-This product includes software from Jeziel Lago, Compose Markdown project,
-    * Copyright (c) 2021 Jeziel Lago
-    * Licensed under MIT License
-    * https://github.com/jeziellago/compose-markdown/blob/main/LICENSE
-
-This product includes software from Dimitry Ivanov, Markwon project
-    * Copyright 2019 Dimitry Ivanov (legal@noties.io)
+This product includes software from the Airbnb, Inc. Lottie project
+    * Copyright 2018 Airbnb, Inc.
     * Licensed under the Apache License, Version 2.0
-    * https://github.com/noties/Markwon/blob/master/LICENSE
+    * https://github.com/airbnb/lottie-android/blob/master/LICENSE
 
 This product includes software from the Coil project
     * Copyright 2023 Coil Contributors
@@ -89,24 +89,24 @@ This product includes software from usuait, Zoomable project
 
 This product includes software from The Android Open Source Project, Media project
     * Copyright (C) 2016 The Android Open Source Project
-    * Licensed under the Apache Apache License 2.0
+    * Licensed under the Apache License 2.0
     * https://github.com/androidx/media/blob/release/LICENSE
 
 This product includes software from the JetBrains s.r.o and respective authors and developers, Kotlin Coroutines project
     * Copyright 2016-2021 JetBrains s.r.o and respective authors and developers
-    * Licensed under the Apache Apache License 2.0
+    * Licensed under the Apache License 2.0
     * https://github.com/Kotlin/kotlinx.coroutines/blob/master/LICENSE.txt
 
 ## Store Sample application
 
 This product includes software from the JetBrains s.r.o. and Kotlin Programming Language contributors, Kotlin Programming Language project
     * Copyright 2010-2023 JetBrains s.r.o. and Kotlin Programming Language contributors
-    * Licensed under the Apache Apache License 2.0
+    * Licensed under the Apache License 2.0
     * https://github.com/JetBrains/kotlin/blob/master/license/LICENSE.txt
 
 This product includes software from The Android Open Source Project, Androidx project
     * Copyright (C) 2017 The Android Open Source Project
-    * Licensed under the Apache Apache License 2.0
+    * Licensed under the Apache License 2.0
     * https://github.com/androidx/androidx/blob/androidx-main/LICENSE.txt
 
 The Android Open Source Project, Material Components for Android
@@ -124,24 +124,19 @@ This product includes software from the Google LLC, Firebase project
     * Licensed under the Apache License, Version 2.0
     * https://github.com/firebase/firebase-android-sdk/blob/master/LICENSE
 
-This product includes software from the Google LLC, Dagger project
-    * Copyright 2012 The Dagger Authors
-    * Licensed under the Apache License, Version 2.0
-    * https://github.com/google/dagger/blob/master/LICENSE.txt
-
 This product includes software from the Coil project
     * Copyright 2023 Coil Contributors
     * Licensed under the Apache License, Version 2.0
     * https://github.com/coil-kt/coil/blob/main/LICENSE.txt
 
 This product includes software from the Square, Inc. Retrofit project
-    * Copyright 2013 Square, Inc.
-    * Licensed under the Apache Apache License 2.0
+    * Copyright 2014 Square, Inc.
+    * Licensed under the Apache License 2.0
     * https://github.com/square/retrofit/blob/master/LICENSE.txt
 
 This product includes software from the JetBrains s.r.o and respective authors and developers, Kotlin Coroutines project
     * Copyright 2016-2021 JetBrains s.r.o and respective authors and developers
-    * Licensed under the Apache Apache License 2.0
+    * Licensed under the Apache License 2.0
     * https://github.com/Kotlin/kotlinx.coroutines/blob/master/LICENSE.txt
 
 This product includes software from the GoDaddy Operating Company, LLC., Jetpack Compose Android Color Picker project

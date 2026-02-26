@@ -28,7 +28,7 @@ internal class SocketFactoryMock(
     private val proxyListener: ProxyWebSocketListener,
 ) : SocketFactory {
 
-    override fun create(listener: WebSocketListener, visitorId: String): WebSocket = socket
+    override fun create(listener: WebSocketListener, visitorId: String, transactionToken: String?): WebSocket = socket
 
     override fun createProxyListener(): ProxyWebSocketListener = proxyListener
 

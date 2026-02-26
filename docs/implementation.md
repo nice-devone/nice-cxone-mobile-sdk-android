@@ -86,12 +86,13 @@ We recommend the use of `ChatInstanceProvider` since it provides state tracking 
 ```
 
 - (1) Authorization
-  - Depending on whether you use oAuth, you might be required to use Authorization.
-  - If you don't use oAuth, then don't call `.setAuthorization` method.
+  - Depending on whether you use OAuth, you might be required to use Authorization.
+  - If you don't use OAuth, then don't call `.setAuthorization` method.
+  - For third-party OAuth authentication (e.g., Amazon Login), see the [OAuth Third-Party Authentication case study](chat-sdk-core/cs-oauth-third-party.md) for detailed integration instructions, including handling token expiration and re-authentication.
 - (2) Username
-  - Usage depends on the fact if you are using oAuth.
+  - Usage depends on the fact if you are using OAuth.
     The OAuth users typically won't need to set username,
-    since user details will be retrieved from oAuth backend.
+    since user details will be retrieved from OAuth backend.
   - If you are using a manual username setup, please follow instructions on updating the username
     (if it can change in your application).
 
@@ -133,6 +134,103 @@ Great! Now you're ready to use the CXone Chat SDK.
 > It is the responsibility of the integrating application,
 > to close the chat when the user leaves the part of application dedicated to chat
 > (usually dedicated Activity) as it is outlined in terms of use for the SDK.
+
+## Runtime Exceptions
+
+The SDK communicates critical errors through the `ChatStateListener.onChatRuntimeException()` callback. Your application should implement this callback to handle various error conditions appropriately.
+
+### Exception Types
+
+#### RuntimeChatException.ConnectionTokenFailed
+
+This exception is raised when the transaction token used for authentication has expired or become invalid. This is particularly important for **third-party OAuth authentication** (e.g., Amazon Login).
+
+**When this occurs:**
+- The chat session cannot continue with the current credentials
+- User re-authentication is required
+
+**Required Actions:**
+1. Update UI state to show the OAuth/login dialog to the user
+2. Initiate OAuth re-authentication with your OAuth provider
+3. Obtain new authorization credentials (authorization code and code verifier)
+4. Set the new authorization using `ChatSettingsHandler.setAuthorization()`
+5. Open ChatActivity again so chat will automatically reconnect with the new credentials
+
+**Example Implementation:**
+
+```kotlin
+val myChatStateListener = object : ChatStateListener {
+    override fun onChatRuntimeException(exception: RuntimeChatException) {
+        when (exception) {
+            is RuntimeChatException.ConnectionTokenFailed -> {
+                // Transaction token expired - re-authentication required
+                handleTokenExpiration()
+            }
+            else -> {
+                // Handle other exceptions
+                Log.e("Chat", "Runtime exception: ${exception.message}")
+            }
+        }
+    }
+
+    private fun handleTokenExpiration() {
+        // Transaction token has expired
+        Log.w("Chat", "Transaction token expired - re-authentication required")
+
+        // Update UI state to show OAuth/login dialog
+        // This triggers the UI to show the login dialog to the user
+        // The user then completes OAuth re-authentication
+        // Once new authorization is obtained and set via ChatSettingsHandler.setAuthorization(),
+        // the chat will automatically reconnect with the new credentials
+
+        // TODO: Implement app-specific UI state update (e.g., navigate to login screen or show login dialog)
+    }
+}
+```
+
+> [!IMPORTANT]
+> For third-party OAuth authentication, you **must** handle `ConnectionTokenFailed` by re-initiating the OAuth flow.
+> The SDK cannot automatically recover from this error because it does not have direct access to OAuth provider credentials.
+
+For detailed guidance on implementing OAuth authentication and handling token expiration, see the [OAuth Third-Party Authentication case study](chat-sdk-core/cs-oauth-third-party.md).
+
+#### RuntimeChatException.AuthorizationError
+
+This exception indicates that user authorization has failed. This can occur during initial connection or when the backend rejects authorization credentials.
+
+**Common Causes:**
+- Invalid authorization code or code verifier
+- Expired authorization code (before exchange with backend)
+- Backend OAuth configuration issues
+- Network errors during token exchange
+
+**Required Actions:**
+1. Log the error details for debugging
+2. Check your OAuth provider integration
+3. Verify the authorization credentials are current and valid
+4. Create a new chat instance with correct credentials
+
+#### RuntimeChatException.ServerCommunicationError
+
+This exception indicates a problem communicating with the CXone backend.
+
+**Common Causes:**
+- Network connectivity issues
+- Backend service unavailable
+- Invalid request format
+
+**Recommended Actions:**
+1. Check network connectivity
+2. Implement retry logic with exponential backoff
+3. Inform the user of the connectivity issue
+
+### Best Practices
+
+1. **Always Implement Exception Handling**: Every integration should handle `onChatRuntimeException()`
+2. **Provide User Feedback**: Inform users when action is required (e.g., re-login)
+3. **Log for Debugging**: Log exception details to help diagnose integration issues
+4. **Test Error Scenarios**: Verify your error handling works correctly, especially token expiration
+5. **Graceful Degradation**: Ensure your app remains functional even when chat is unavailable
 
 ## Configuration
 You can use the chat `configuration` property to support different UI/UX flows in your application and also to

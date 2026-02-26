@@ -22,8 +22,8 @@
     <string name="ok">OK</string>
     <!-- Button label for cancelling an action in dialogs and popups -->
     <string name="cancel">Cancel</string>
-    <!-- Button label for completing an action, e.g. form submission -->
-    <string name="done">Done</string>
+    <!-- Button label for completing an action, e.g. form submission or chat transcript -->
+    <string name="submit">Submit</string>
     <!-- Button to open custom fields editor in pre-chat or thread details -->
     <string name="change_details_label">Change custom fields</string>
     <!-- Action to set or edit the conversation/thread name -->
@@ -303,10 +303,16 @@
     <string name="content_description_play">Play</string>
     <!-- Content description for pause button (accessibility) -->
     <string name="content_description_pause">Pause</string>
-    <!-- Content description for document preview thumbnail (accessibility), it describes file (by name) which is shown as a preview -->
-    <string name="content_description_document_preview">Preview thumbnail for <xliff:g example="IMG_0001.jpg" id="filename">%1$s</xliff:g> file</string>
+    <!-- Content description for file preview thumbnail (accessibility), it describes file (by name or Uri path) which is shown as a preview -->
+    <string name="content_description_file_preview">Preview thumbnail for file: <xliff:g example="IMG_0001.jpg" id="filename">%1$s</xliff:g></string>
     <!-- Content description for URL link (accessibility) -->
     <string name="content_description_url_link">URL link</string>
+    <!-- Content description for button which removes prepared attachment before upload -->
+    <string name="content_description_remove_prepared_attachment">Remove prepared attachment %1$s</string>
+    <!-- Content description for prepared attachment preview before upload -->
+    <string name="content_description_prepared_attachment">Preview of attachment: %1$s, click to show attachment in detail</string>
+    <!-- Fallback filename value when the actual filename and file Uri is not available -->
+    <string name="fallback_filename_value">unknown</string>
 
     <!--
       Plurals for media controls and notifications
@@ -393,4 +399,31 @@
     <!-- Prompt for single-choice quick reply -->
     <string name="select_option_below">Select one option below</string>
 
+    <!--
+      Send Transcript feature
+    -->
+    <!-- Button label for sending chat transcript via email -->
+    <string name="send_transcript">Send Transcript</string>
+    <!-- Message shown above email input for sending chat transcript -->
+    <string name="chat_transcript_message">We do not share submitted emails with any 3rd party affiliate marketing or offer programs</string>
+    <!-- Title for chat transcript screen -->
+    <string name="chat_transcript">Chat transcript</string>
+    <!-- Label for email input field -->
+    <string name="email">Email</string>
+    <!-- Validation error when email fields do not match -->
+    <string name="emails_do_not_match">Fields don\'t match</string>
+    <!-- Label for confirm email input field -->
+    <string name="confirm_email">Confirm e-mail</string>
+    <!-- Placeholder text for email input field -->
+    <string name="email_placeholder">Your e-mail address</string>
+    <!-- Placeholder text for confirm email input field -->
+    <string name="confirm_email_placeholder">Confirm your e-mail address</string>
+    <!-- Error message when sending chat transcript fails -->
+    <string name="send_transcript_failed_message">Transcript not sent.</string>
+    <!-- Success message when chat transcript is sent -->
+    <string name="send_transcript_success_message">Transcript successfully sent.</string>
+    <!-- Button label for closing dialog or screen -->
+    <string name="close">Close</string>
+    <!-- Generic error label -->
+    <string name="error">Error</string>
 </resources>

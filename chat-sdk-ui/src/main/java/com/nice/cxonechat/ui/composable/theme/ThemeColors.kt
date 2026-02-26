@@ -177,7 +177,10 @@ interface ThemeColors {
          */
         @JvmStatic
         @JvmName("create")
-        @Suppress("LongParameterList")
+        @Suppress(
+            "LongParameterList", // Hides data class constructor
+            "DEPRECATION" // Public deprecated API
+        )
         operator fun invoke(
             primary: Color,
             onPrimary: Color,
@@ -243,7 +246,7 @@ interface ThemeColors {
     }
 }
 
-@Suppress("LongParameterList")
+@Suppress("LongParameterList", "DEPRECATION") // Implementation detail, Public deprecated API
 @Immutable
 internal data class ThemeColorsImpl(
     override val primary: Color = Color.Unspecified,
@@ -443,7 +446,6 @@ private fun ThemeColorsList() {
                     ColorPreviewItem(label, color, itemMod, rowMod, textMod, shape)
                 }
                 BrushPreviewItem(
-                    "popupHeader",
                     Brush.horizontalGradient(listOf(ChatTheme.chatColors.token.brand.primary)),
                     itemMod,
                     rowMod,
@@ -458,7 +460,6 @@ private fun ThemeColorsList() {
 @SuppressLint("ModifierParameter")
 @Composable
 private fun BrushPreviewItem(
-    label: String,
     brush: Brush,
     itemMod: Modifier,
     rowMod: Modifier,
@@ -466,7 +467,7 @@ private fun BrushPreviewItem(
     shape: Shape,
 ) {
     Row(modifier = rowMod) {
-        Text(text = label, modifier = textMod)
+        Text(text = "popupHeader", modifier = textMod)
         Spacer(modifier = itemMod.background(brush = brush, shape = shape))
     }
 }
@@ -475,13 +476,13 @@ private fun BrushPreviewItem(
 private fun ColorPreviewItem(
     label: String,
     color: Color,
-    itemMod: Modifier,
+    modifier: Modifier,
     rowMod: Modifier,
     textMod: Modifier,
     shape: Shape,
 ) {
     Row(modifier = rowMod) {
         Text(text = label, modifier = textMod)
-        Spacer(modifier = itemMod.background(color = color, shape = shape))
+        Spacer(modifier = modifier.background(color = color, shape = shape))
     }
 }

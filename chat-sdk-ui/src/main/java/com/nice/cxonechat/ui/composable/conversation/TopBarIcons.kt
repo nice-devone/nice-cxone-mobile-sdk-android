@@ -28,6 +28,8 @@ import androidx.compose.runtime.NonRestartableComposable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import com.nice.cxonechat.ui.R.string
+import com.nice.cxonechat.ui.composable.icons.ChatIcons
+import com.nice.cxonechat.ui.composable.icons.outlined.Mail
 
 @Composable
 internal fun EndConversationIconForMenu(tint: Color = LocalContentColor.current) {
@@ -54,4 +56,10 @@ internal fun EditIcon() {
 @NonRestartableComposable
 internal fun MenuIcon() {
     Icon(Default.Menu, stringResource(string.livechat_conversation_options))
+}
+
+@Composable
+@NonRestartableComposable
+internal fun SendTranscriptIcon() {
+    Icon(ChatIcons.Mail, stringResource(string.send_transcript))
 }

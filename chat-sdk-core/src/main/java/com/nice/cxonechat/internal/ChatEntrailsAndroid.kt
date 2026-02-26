@@ -19,10 +19,13 @@ import android.content.Context
 import android.os.Looper
 import androidx.core.os.HandlerCompat
 import com.nice.cxonechat.SocketFactoryConfiguration
+import com.nice.cxonechat.api.AuthService
+import com.nice.cxonechat.api.AuthServiceBuilder
 import com.nice.cxonechat.api.RemoteService
 import com.nice.cxonechat.internal.socket.SocketFactory
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.state.Environment
+import com.nice.cxonechat.storage.PersistentCookieJar
 import com.nice.cxonechat.storage.PreferencesValueStorage
 import com.nice.cxonechat.storage.ValueStorage
 import okhttp3.OkHttpClient
@@ -35,14 +38,22 @@ internal class ChatEntrailsAndroid(
     config: SocketFactoryConfiguration,
     override val sharedClient: OkHttpClient,
     override val logger: Logger,
+    override val cookieJar: PersistentCookieJar,
 ) : ChatEntrails {
 
-    override val storage: ValueStorage by lazy { PreferencesValueStorage(context) }
+    override val storage: ValueStorage by lazy { PreferencesValueStorage(context = context, logger = logger) }
     override val service: RemoteService by lazy {
         RemoteServiceBuilder()
-        .setSharedOkHttpClient(sharedClient)
-        .setConnection(factory.getConfiguration(storage))
-        .build()
+            .setSharedOkHttpClient(sharedClient)
+            .setConnection(factory.getConfiguration(storage))
+            .build()
+    }
+
+    override val authService: AuthService by lazy {
+        AuthServiceBuilder()
+            .setSharedOkHttpClient(sharedClient)
+            .setConnection(factory.getConfiguration(storage))
+            .build()
     }
     override val threading: Threading = Threading(AndroidExecutor())
     override val environment: Environment = config.environment

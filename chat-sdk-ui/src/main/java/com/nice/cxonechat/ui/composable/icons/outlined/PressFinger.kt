@@ -34,10 +34,10 @@ import com.nice.cxonechat.ui.composable.icons.ChatIcons
 
 internal val ChatIcons.PressFinger: ImageVector
     get() {
-        if (_finger != null) {
-            return _finger!!
+        if (finger != null) {
+            return finger!!
         }
-        _finger = Builder(
+        finger = Builder(
             name = "Finger", defaultWidth = 15.0.dp, defaultHeight = 17.0.dp,
             viewportWidth = 15.0f, viewportHeight = 17.0f
         ).apply {
@@ -116,14 +116,14 @@ internal val ChatIcons.PressFinger: ImageVector
             }
         }
             .build()
-        return _finger!!
+        return finger!!
     }
 
-private var _finger: ImageVector? = null
+private var finger: ImageVector? = null
 
 @Preview
 @Composable
-private fun Preview() {
+private fun PreviewPressFinger() {
     Box(modifier = Modifier.padding(12.dp)) {
         Image(imageVector = ChatIcons.PressFinger, contentDescription = "")
     }

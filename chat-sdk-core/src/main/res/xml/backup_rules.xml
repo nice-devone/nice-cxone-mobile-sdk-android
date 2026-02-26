@@ -15,5 +15,8 @@
 
 <full-backup-content>
     <include domain="sharedpref" path="."/>
+    <include domain="file" path="."/>
     <exclude domain="sharedpref" path="com.nice.cxonechat.secure.xml"/>
+    <exclude domain="file" path="secure_store.preferences_pb" />
+    <exclude domain="sharedpref" path="cxonechat_tink_keyset.xml" />
 </full-backup-content>

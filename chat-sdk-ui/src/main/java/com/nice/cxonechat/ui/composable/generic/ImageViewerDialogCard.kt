@@ -49,9 +49,9 @@ internal fun ImageViewerDialogCard(
     onShare: () -> Unit,
 ) {
     FullscreenView(
+        modifier = Modifier.testTag("image_view"),
         title = title,
-        onExitFullScreen = onDismiss,
-        modifier = Modifier.testTag("image_view")
+        onExitFullScreen = onDismiss
     ) {
         Column {
             Row(

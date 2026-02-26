@@ -197,7 +197,7 @@ private fun ChatTheme.ModalBottomSheetFooter(
             enabled = canSubmit
         ) {
             Text(
-                text = stringResource(string.done),
+                text = stringResource(string.submit),
                 style = chatTypography.bottomSheetFooterButtonText
             )
         }

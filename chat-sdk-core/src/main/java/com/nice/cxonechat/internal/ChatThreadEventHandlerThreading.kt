@@ -17,6 +17,7 @@ package com.nice.cxonechat.internal
 
 import com.nice.cxonechat.ChatThreadEventHandler
 import com.nice.cxonechat.ChatThreadEventHandler.OnEventErrorListener
+import com.nice.cxonechat.ChatThreadEventHandler.OnEventResponseListener
 import com.nice.cxonechat.ChatThreadEventHandler.OnEventSentListener
 import com.nice.cxonechat.event.thread.ChatThreadEvent
 
@@ -24,9 +25,14 @@ internal class ChatThreadEventHandlerThreading(
     private val origin: ChatThreadEventHandler,
     private val chat: ChatWithParameters,
 ) : ChatThreadEventHandler {
-    override fun trigger(event: ChatThreadEvent, listener: OnEventSentListener?, errorListener: OnEventErrorListener?) {
+    override fun trigger(
+        event: ChatThreadEvent,
+        listener: OnEventSentListener?,
+        errorListener: OnEventErrorListener?,
+        responseListener: OnEventResponseListener?,
+    ) {
         chat.entrails.threading.background {
-            origin.trigger(event, listener, errorListener)
+            origin.trigger(event, listener, errorListener, responseListener)
         }
     }
 }

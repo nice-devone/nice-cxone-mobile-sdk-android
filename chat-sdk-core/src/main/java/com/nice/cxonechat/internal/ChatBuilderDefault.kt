@@ -28,7 +28,9 @@ import com.nice.cxonechat.exceptions.SdkVersionNotSupported
 import com.nice.cxonechat.internal.copy.ConnectionCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.model.ApiErrorModel
 import com.nice.cxonechat.internal.model.ChannelConfiguration
+import com.nice.cxonechat.internal.model.ChatImplDependencies
 import com.nice.cxonechat.internal.socket.SocketFactory
+import com.nice.cxonechat.state.Configuration
 import com.nice.cxonechat.state.Connection
 import kotlinx.serialization.json.Json
 import retrofit2.Call
@@ -87,7 +89,6 @@ internal class ChatBuilderDefault(
         customerId?.let { id ->
             val currentId = entrails.storage.customerId
             if (currentId != id) {
-                if (currentId != null) entrails.storage.clearStorage()
                 entrails.storage.customerId = id
             }
         }
@@ -125,17 +126,26 @@ internal class ChatBuilderDefault(
         chatParameters: ChatParameters,
     ): ChatWithParameters {
         val storeVisitorCallback: Callback<Void> = chatParameters.storeVisitorCallback
+        val configurationInternal = chatParameters.body.toConfiguration(chatParameters.connection.channelId)
         var chat: ChatWithParameters
         chat = ChatImpl(
             connection = chatParameters.connection,
             entrails = entrails,
-            socketFactory = chatParameters.socketFactory,
-            configuration = chatParameters.body.toConfiguration(chatParameters.connection.channelId),
-            callback = storeVisitorCallback,
-            chatStateListener = chatStateListener
+            dependencies = ChatImplDependencies(
+                socketFactory = chatParameters.socketFactory,
+                callback = storeVisitorCallback,
+                authorization = authorization
+            ),
+            configuration = configurationInternal,
+            chatStateListener = chatStateListener,
         )
         chat = ChatS3Events(chat)
-        chat = ChatAuthorization(chat, authorization)
+        if (!configurationInternal.hasFeature(Configuration.Feature.SecuredSessions)) {
+            chat = ChatAuthorization(
+                origin = chat,
+                authorization = authorization,
+            )
+        }
         chat = ChatStoreVisitor(chat, storeVisitorCallback)
         chat = ChatWelcomeMessageUpdate(chat)
         chat = ChatMemoizeThreadsHandler(chat)

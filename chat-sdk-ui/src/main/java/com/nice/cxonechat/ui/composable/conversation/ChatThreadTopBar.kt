@@ -37,7 +37,6 @@ import androidx.compose.material3.TopAppBarDefaults.enterAlwaysScrollBehavior
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,7 +56,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nice.cxonechat.thread.ChatThreadState
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.conversation.model.ConversationTopBarState
-import com.nice.cxonechat.ui.composable.generic.IconMenuItem
 import com.nice.cxonechat.ui.composable.theme.BackButton
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.MediumTopBar
@@ -75,6 +73,7 @@ internal fun ChatThreadTopBar(
     onEditThreadValues: () -> Unit,
     onEndContact: () -> Unit,
     displayEndConversation: () -> Unit,
+    onSendTranscript: () -> Unit,
     navigationIcon: @Composable () -> Unit = {},
 ) {
     val threadName: ThreadName? by conversationState.threadName.collectAsStateWithLifecycle(null)
@@ -85,11 +84,12 @@ internal fun ChatThreadTopBar(
         navigationIcon = navigationIcon,
         actions = {
             Actions(
-                conversationState,
-                onEditThreadName,
-                onEditThreadValues,
-                onEndContact,
-                displayEndConversation
+                conversationState = conversationState,
+                onEditThreadName = onEditThreadName,
+                onEditThreadValues = onEditThreadValues,
+                onEndContact = onEndContact,
+                displayEndConversation = displayEndConversation,
+                onSendTranscript = onSendTranscript
             )
         },
     )
@@ -102,33 +102,40 @@ private fun Actions(
     onEditThreadValues: () -> Unit,
     onEndContact: () -> Unit,
     displayEndConversation: () -> Unit,
+    onSendTranscript: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val singleItem = remember(conversationState) {
+    val isArchived by conversationState.isArchived.collectAsState()
+    val singleItem = remember(conversationState, isArchived) {
         listOf(
-            conversationState.hasQuestions,
+            conversationState.hasQuestions && !isArchived,
             conversationState.isMultiThreaded,
             conversationState.isLiveChat,
+            conversationState.liveChatAllowTranscript,
         ).count { it }.let { it <= 1 }
     }
     AnimatedContent(singleItem) { state ->
         if (state) {
             SingleAction(
-                conversationState,
-                onEditThreadName,
-                onEditThreadValues,
-                onEndContact,
-                displayEndConversation,
-                modifier
+                conversationState = conversationState,
+                isArchived = isArchived,
+                onEditThreadName = onEditThreadName,
+                onEditThreadValues = onEditThreadValues,
+                onEndContact = onEndContact,
+                displayEndConversation = displayEndConversation,
+                onSendTranscript = onSendTranscript,
+                modifier = modifier
             )
         } else {
             MultipleActions(
-                conversationState,
-                onEditThreadName,
-                onEditThreadValues,
-                onEndContact,
-                displayEndConversation,
-                modifier
+                conversationState = conversationState,
+                isArchived = isArchived,
+                onEditThreadName = onEditThreadName,
+                onEditThreadValues = onEditThreadValues,
+                onEndContact = onEndContact,
+                onSendTranscript = onSendTranscript,
+                displayEndConversation = displayEndConversation,
+                modifier = modifier
             )
         }
     }
@@ -137,10 +144,12 @@ private fun Actions(
 @Composable
 private fun SingleAction(
     conversationState: ConversationTopBarState,
+    isArchived: Boolean,
     onEditThreadName: () -> Unit,
     onEditThreadValues: () -> Unit,
     onEndContact: () -> Unit,
     displayEndConversation: () -> Unit,
+    onSendTranscript: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (conversationState.isMultiThreaded) {
@@ -152,7 +161,7 @@ private fun SingleAction(
         ) {
             ChatIcon()
         }
-    } else if (conversationState.hasQuestions) {
+    } else if (conversationState.hasQuestions && !isArchived) {
         IconButton(
             modifier = Modifier
                 .testTag("edit_thread_custom_values_button")
@@ -162,7 +171,7 @@ private fun SingleAction(
             EditIcon()
         }
     } else if (conversationState.isLiveChat) {
-        if (conversationState.isArchived.collectAsState().value) {
+        if (isArchived) {
             IconButton(
                 modifier = Modifier
                     .testTag("show_end_conversation_dialog_button")
@@ -170,6 +179,15 @@ private fun SingleAction(
                 onClick = remember { displayEndConversation }
             ) {
                 MenuIcon()
+            }
+        } else if (conversationState.liveChatAllowTranscript) {
+            IconButton(
+                modifier = Modifier
+                    .testTag("send_transcript_dialog_button")
+                    .then(modifier),
+                onClick = remember { onSendTranscript }
+            ) {
+                SendTranscriptIcon()
             }
         } else {
             val threadState by conversationState.threadState.collectAsState()
@@ -188,63 +206,13 @@ private fun SingleAction(
 }
 
 @Composable
-private fun ShowArchivedThreadMenu(displayEndConversation: () -> Unit) {
-    IconMenuItem(
-        text = string.livechat_conversation_options,
-        onClick = remember { displayEndConversation },
-        icon = {
-            MenuIcon()
-        },
-        modifier = Modifier.testTag("show_archived_thread_menu_item"),
-    )
-}
-
-@Composable
-private fun EditThreadValuesMenu(onEditThreadValues: () -> Unit) {
-    IconMenuItem(
-        text = string.change_details_label,
-        onClick = remember { onEditThreadValues },
-        icon = {
-            EditIcon()
-        },
-        modifier = Modifier.testTag("edit_thread_custom_values_menu_item"),
-    )
-}
-
-@Composable
-private fun ChangeThreadNameMenu(onEditThreadName: () -> Unit) {
-    IconMenuItem(
-        text = string.change_thread_name,
-        onClick = remember { onEditThreadName },
-        icon = {
-            ChatIcon()
-        },
-        modifier = Modifier.testTag("change_thread_name_menu_item"),
-    )
-}
-
-@Composable
-private fun EndConversationMenu(
-    threadState: State<ChatThreadState>,
-    onClick: () -> Unit,
-) {
-    IconMenuItem(
-        text = string.action_end_conversation,
-        onClick = remember { onClick },
-        enabled = threadState.value == ChatThreadState.Ready,
-        {
-            EndConversationIconForMenu()
-        },
-        modifier = Modifier.testTag("end_conversation_menu_item"),
-    )
-}
-
-@Composable
 private fun MultipleActions(
     conversationState: ConversationTopBarState,
+    isArchived: Boolean,
     onEditThreadName: () -> Unit,
     onEditThreadValues: () -> Unit,
     onEndContact: () -> Unit,
+    onSendTranscript: () -> Unit,
     displayEndConversation: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -269,14 +237,20 @@ private fun MultipleActions(
                 dismiss()
             }
         }
-        if (conversationState.hasQuestions) {
+        if (conversationState.hasQuestions && !isArchived) {
             EditThreadValuesMenu {
                 onEditThreadValues()
                 dismiss()
             }
         }
+        if (conversationState.liveChatAllowTranscript) {
+            SendTranscriptMenu {
+                onSendTranscript()
+                dismiss()
+            }
+        }
         if (conversationState.isLiveChat) {
-            if (conversationState.isArchived.collectAsState().value) {
+            if (isArchived) {
                 ShowArchivedThreadMenu {
                     displayEndConversation()
                     dismiss()
@@ -308,6 +282,7 @@ private fun PreviewChatThreadTopBar(
     val isMultiThreaded = remember { mutableStateOf(true) }
     val hasQuestions = remember { mutableStateOf(true) }
     val isLiveChat = remember { mutableStateOf(true) }
+    val liveChatAllowTranscript = remember { mutableStateOf(true) }
     val scrollBehavior = enterAlwaysScrollBehavior()
     ChatTheme {
         ChatTheme.Scaffold(
@@ -322,11 +297,13 @@ private fun PreviewChatThreadTopBar(
                         isLiveChat = isLiveChat.value,
                         isArchived = isArchivedFlow.asStateFlow(),
                         threadState = conversationStateFlow,
+                        liveChatAllowTranscript = liveChatAllowTranscript.value
                     ),
                     onEditThreadName = {},
                     onEditThreadValues = {},
                     onEndContact = {},
                     displayEndConversation = {},
+                    onSendTranscript = {},
                     navigationIcon = { BackButton {} }
                 )
             }

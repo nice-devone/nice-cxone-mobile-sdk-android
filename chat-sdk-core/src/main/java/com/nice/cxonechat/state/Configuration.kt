@@ -33,6 +33,15 @@ interface Configuration {
     /** Whether OAuth authorization is enabled for the channel. */
     val isAuthorizationEnabled: Boolean
 
+    /** Whether Send transcript is enabled for this channel. */
+    val liveChatAllowTranscript: Boolean
+
+    /** Whether secured cookie authorization is enabled for the channel. */
+    val isSecuredCookieEnabled: Boolean
+
+    /** Whether secured sessions are enabled for the channel. */
+    val securedSessions: Boolean
+
     /** File attachment restrictions. */
     val fileRestrictions: FileRestrictions
 
@@ -75,6 +84,9 @@ interface Configuration {
          * is currently available, but rather, a new thread will be created if none
          * currently exists.
          */
-        RecoverLiveChatDoesNotFail("isRecoverLivechatDoesNotFailEnabled")
+        RecoverLiveChatDoesNotFail("isRecoverLivechatDoesNotFailEnabled"),
+
+        /** If true indicates that secured sessions are enabled. */
+        SecuredSessions("securedSessions")
     }
 }

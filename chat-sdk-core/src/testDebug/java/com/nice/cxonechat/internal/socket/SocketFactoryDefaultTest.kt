@@ -73,8 +73,9 @@ class SocketFactoryDefaultTest {
                 append(channelId)
                 append("&visitorId=")
                 append(visitorId)
-                append("&sdkPlatform=android&sdkVersion=")
+                append("&sdkVersion=")
                 append(BuildConfig.VERSION_NAME)
+                append("&sdkPlatform=android")
             }
         }
     }

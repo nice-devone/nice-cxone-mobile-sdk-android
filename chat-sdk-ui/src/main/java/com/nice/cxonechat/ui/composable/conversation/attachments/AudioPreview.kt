@@ -24,19 +24,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.ui.composable.generic.forwardingPainter
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
-import com.nice.cxonechat.ui.util.contentDescription
 
 @Composable
-internal fun AudioPreview(attachment: Attachment, modifier: Modifier = Modifier) {
+internal fun AudioPreview(modifier: Modifier = Modifier, contentDescription: String?) {
     Image(
         forwardingPainter(
             painter = rememberVectorPainter(image = Icons.Outlined.Mic),
             colorFilter = ColorFilter.tint(LocalContentColor.current)
         ),
-        contentDescription = attachment.contentDescription,
+        contentDescription = contentDescription,
         modifier = modifier.padding(ChatTheme.space.small)
     )
 }

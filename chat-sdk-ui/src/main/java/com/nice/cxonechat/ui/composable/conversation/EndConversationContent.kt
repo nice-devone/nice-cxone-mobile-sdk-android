@@ -54,7 +54,8 @@ import com.nice.cxonechat.ui.composable.generic.BottomSheetActionRow
 import com.nice.cxonechat.ui.composable.generic.BottomSheetTitle
 import com.nice.cxonechat.ui.composable.icons.ChatIcons
 import com.nice.cxonechat.ui.composable.icons.outlined.ArrowLeft
-import com.nice.cxonechat.ui.composable.icons.outlined.MessageChatCircle
+import com.nice.cxonechat.ui.composable.icons.outlined.Mail
+import com.nice.cxonechat.ui.composable.icons.outlined.MessageBubble
 import com.nice.cxonechat.ui.composable.icons.outlined.MessageXCircle
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
@@ -65,6 +66,7 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.domain.model.EndConversationChoice
 import com.nice.cxonechat.ui.domain.model.EndConversationChoice.CLOSE_CHAT
 import com.nice.cxonechat.ui.domain.model.EndConversationChoice.NEW_CONVERSATION
+import com.nice.cxonechat.ui.domain.model.EndConversationChoice.SEND_TRANSCRIPT
 import com.nice.cxonechat.ui.domain.model.EndConversationChoice.SHOW_TRANSCRIPT
 
 @Composable
@@ -129,7 +131,7 @@ private fun ActionList(onUserSelection: (EndConversationChoice) -> Unit, onDismi
             testTag = "start_new_chat_button",
             leadingContent = {
                 Icon(
-                    painter = rememberVectorPainter(ChatIcons.MessageChatCircle),
+                    painter = rememberVectorPainter(ChatIcons.MessageBubble),
                     contentDescription = stringResource(string.livechat_new_chat),
                     tint = colorScheme.primary,
                     modifier = iconMod
@@ -155,24 +157,57 @@ private fun ActionList(onUserSelection: (EndConversationChoice) -> Unit, onDismi
             }
         )
         DividerItem(color = dividerColor)
-        BottomSheetActionRow(
-            text = stringResource(string.livechat_close_chat),
-            textColor = chatColors.token.content.secondary,
+        SendTranscriptRow(
+            modifier = iconMod,
+            onClick = {
+                onUserSelection(SEND_TRANSCRIPT)
+            }
+        )
+        DividerItem(color = dividerColor)
+        CloseChatRow(
+            modifier = iconMod,
             onClick = {
                 onUserSelection(CLOSE_CHAT)
                 onDismiss()
-            },
-            testTag = "close_chat_button",
-            leadingContent = {
-                Icon(
-                    painter = rememberVectorPainter(Icons.Rounded.Close),
-                    contentDescription = stringResource(string.livechat_close_chat),
-                    tint = colorScheme.tertiary,
-                    modifier = iconMod
-                )
             }
         )
     }
+}
+
+@Composable
+private fun SendTranscriptRow(modifier: Modifier, onClick: () -> Unit) {
+    BottomSheetActionRow(
+        text = stringResource(string.send_transcript),
+        textColor = colorScheme.primary,
+        onClick = onClick,
+        testTag = "send_transcript_button",
+        leadingContent = {
+            Icon(
+                painter = rememberVectorPainter(ChatIcons.Mail),
+                contentDescription = stringResource(string.send_transcript),
+                tint = colorScheme.primary,
+                modifier = modifier
+            )
+        }
+    )
+}
+
+@Composable
+private fun CloseChatRow(modifier: Modifier, onClick: () -> Unit) {
+    BottomSheetActionRow(
+        text = stringResource(string.livechat_close_chat),
+        textColor = chatColors.token.content.secondary,
+        onClick = onClick,
+        testTag = "close_chat_button",
+        leadingContent = {
+            Icon(
+                painter = rememberVectorPainter(Icons.Rounded.Close),
+                contentDescription = stringResource(string.livechat_close_chat),
+                tint = colorScheme.tertiary,
+                modifier = modifier
+            )
+        }
+    )
 }
 
 @Composable

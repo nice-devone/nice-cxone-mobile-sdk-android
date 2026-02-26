@@ -28,10 +28,12 @@ import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.message.Attachment
+import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.composable.conversation.AttachmentProvider
 import com.nice.cxonechat.ui.composable.conversation.attachments.PlayIndicator.HIDDEN
 import com.nice.cxonechat.ui.composable.conversation.attachments.PlayIndicator.STANDARD
@@ -42,6 +44,7 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatShapes
 import com.nice.cxonechat.ui.composable.theme.SelectionFrame
 import com.nice.cxonechat.ui.composable.theme.ShapedFrame
+import com.nice.cxonechat.ui.util.contentDescription
 import java.util.UUID
 
 /**
@@ -129,50 +132,81 @@ internal fun AttachmentPreview(
     thumbnailSize: ThumbnailSize = ThumbnailSize.REGULAR,
     showFrame: (Boolean) -> Unit = {},
 ) {
-    val mimeType = attachment.mimeType
+    val contentDescriptionText = stringResource(
+        id = R.string.content_description_file_preview,
+        attachment.contentDescription ?: stringResource(R.string.fallback_filename_value)
+    )
+    when (attachment.mimeType.toPreviewType(thumbnailSize)) {
+        PreviewType.PLACEHOLDER -> PlaceholderPreview(
+            attachment = attachment,
+            modifier = modifier,
+            thumbnailSize = thumbnailSize,
+            contentDescription = contentDescriptionText
+        )
 
-    when {
-        mimeType == null ->
-            PlaceholderPreview(
-                attachment = attachment,
-                modifier = modifier,
-                thumbnailSize = thumbnailSize
-            )
+        PreviewType.IMAGE -> ImagePreview(
+            attachment = attachment,
+            modifier = modifier,
+            messageId = messageId,
+            contentDescription = contentDescriptionText,
+        )
 
-        mimeType.startsWith("image/") ->
-            ImagePreview(
-                attachment = attachment,
-                modifier = modifier,
-                messageId = messageId
-            )
+        PreviewType.VIDEO -> VideoPreview(
+            attachment = attachment,
+            messageId = messageId,
+            playIndicator = playIndicator,
+            modifier = modifier,
+            thumbnailSize = thumbnailSize,
+            contentDescription = contentDescriptionText,
+        )
 
-        mimeType.startsWith("video/") ->
-            VideoPreview(
-                attachment = attachment,
-                messageId = messageId,
-                playIndicator = playIndicator,
-                modifier = modifier,
-                thumbnailSize = thumbnailSize
-            )
+        PreviewType.AUDIO -> AudioPreview(
+            modifier = modifier,
+            contentDescription = contentDescriptionText,
+        )
 
-        mimeType.startsWith("audio/") && thumbnailSize != ThumbnailSize.SMALL ->
-            AudioPreview(
-                attachment = attachment,
-                modifier = modifier
-            )
+        PreviewType.PDF -> DocumentPreview(
+            attachment = attachment,
+            modifier = modifier,
+            thumbnailSize = thumbnailSize,
+            contentDescription = contentDescriptionText,
+            showFrame = showFrame,
+        )
 
-        mimeType.startsWith("application/pdf", ignoreCase = true) ->
-            DocumentPreview(
-                attachment = attachment,
-                modifier = modifier,
-                thumbnailSize = thumbnailSize,
-                showFrame = showFrame
-            )
-        else -> {
+        PreviewType.FILE -> {
             showFrame(true)
-            FallbackThumbnail(attachment.url, modifier, attachment.mimeType, thumbnailSize)
+            FallbackThumbnail(attachment.url, contentDescriptionText, modifier, attachment.mimeType, thumbnailSize)
         }
     }
+}
+
+private fun String?.toPreviewType(thumbnailSize: ThumbnailSize): PreviewType = when {
+    this == null -> PreviewType.PLACEHOLDER
+    this.startsWith("image/", ignoreCase = true) -> PreviewType.IMAGE
+    this.startsWith("video/", ignoreCase = true) -> PreviewType.VIDEO
+    this.startsWith("audio/", ignoreCase = true) && thumbnailSize != ThumbnailSize.SMALL -> PreviewType.AUDIO
+    this.startsWith("application/pdf", ignoreCase = true) -> PreviewType.PDF
+    else -> PreviewType.FILE
+}
+
+private enum class PreviewType {
+    /** Generic file preview with extension. */
+    FILE,
+
+    /** Placeholder preview for unknown types. */
+    PLACEHOLDER,
+
+    /** Image preview. */
+    IMAGE,
+
+    /** Video preview. */
+    VIDEO,
+
+    /** Audio preview for large preview (otherwise FILE should be used). */
+    AUDIO,
+
+    /**  PDF document preview. */
+    PDF
 }
 
 /**

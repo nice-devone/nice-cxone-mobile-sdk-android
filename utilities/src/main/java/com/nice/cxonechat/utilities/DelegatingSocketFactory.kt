@@ -26,25 +26,25 @@ import javax.net.SocketFactory
  * @property origin Base [SocketFactory] to which all creation requests are delegated.
  */
 abstract class DelegatingSocketFactory(
-    val origin: SocketFactory = getDefault()
+    val origin: SocketFactory = getDefault(),
 ) : SocketFactory() {
-    override fun createSocket() = origin.createSocket().also(::configure)
+    override fun createSocket(): Socket? = origin.createSocket().also(::configure)
 
-    override fun createSocket(host: String?, port: Int) =
+    override fun createSocket(host: String?, port: Int): Socket? =
         origin.createSocket(host, port).also(::configure)
 
-    override fun createSocket(host: String?, port: Int, localHost: InetAddress?, localPort: Int) =
+    override fun createSocket(host: String?, port: Int, localHost: InetAddress?, localPort: Int): Socket? =
         origin.createSocket(host, port, localHost, localPort).also(::configure)
 
-    override fun createSocket(host: InetAddress?, port: Int) =
+    override fun createSocket(host: InetAddress?, port: Int): Socket? =
         origin.createSocket(host, port).also(::configure)
 
-    override fun createSocket(address: InetAddress?, port: Int, localAddress: InetAddress?, localPort: Int) =
+    override fun createSocket(address: InetAddress?, port: Int, localAddress: InetAddress?, localPort: Int): Socket? =
         origin.createSocket(address, port, localAddress, localPort).also(::configure)
 
     /**
      * Configure a socket after it is created by [origin] and before it is returned
-     * by [create].
+     * by `createSocket`.
      *
      * @param socket the socket to be configured.
      */

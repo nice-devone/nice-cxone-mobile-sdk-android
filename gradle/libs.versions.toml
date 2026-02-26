@@ -1,46 +1,47 @@
 [versions]
 jetbrains-annotations = "26.0.2-1"
 
-kotlin = "2.2.10"
+kotlin = "2.2.21"
 kotlinx-serialization-json = "1.9.0"
-ksp = "2.2.10-2.0.2"
+ksp = "2.3.3"
 
 detekt = "1.23.8"
 dokka = "2.0.0"
 
 androidx-ktx = "1.17.0"
 gson = "2.13.2"
-lottie-compose = "6.6.9"
-okhttp = "5.1.0"
+lottie-compose = "6.7.1"
+okhttp = "5.3.2"
 retrofit = "3.0.0"
-security-crypto = "1.0.0"
+security-crypto = "1.1.0"
+tink-android = "1.20.0"
 
 androidx-appcompat = "1.7.1"
-androidx-datastore = "1.1.7"
-androidx-compose-bom = "2025.10.00"
-androidx-compose-activity = "1.11.0"
+androidx-datastore = "1.2.0"
+androidx-compose-bom = "2026.01.01"
+androidx-compose-activity = "1.12.3"
 androidx-constraintlayout = "1.1.1"
-androidx-lifecycle = "2.9.4"
+androidx-lifecycle = "2.10.0"
 androidx-media3 = "1.8.0"
-androidx-navigation = "2.9.5"
-androidx-safe-args = "2.9.5"
+androidx-navigation = "2.9.7"
+androidx-safe-args = "2.9.7"
 androidx-test-runner = "1.7.0"
 androidx-test-espresso = "3.7.0"
-androidx-window = "1.4.0"
-coil = "3.1.0"
+androidx-window = "1.5.1"
+coil = "3.3.0"
 emoji = "1.6.0"
 findbugs = "3.0.2"
-firebase = "34.4.0"
+firebase = "34.8.0"
 koin = "4.1.1"
-koin-annotations = "2.1.0"
+koin-annotations = "2.3.1"
 kotlin-coroutines = "1.10.2"
 leakcanary-android = "2.14"
-zoomable = "2.7.0"
+zoomable = "2.9.0"
 
 junit = "4.13.2"
-junit-jupiter = "6.0.0"
-mockk = "1.14.5"
-kotest = "6.0.3"
+junit-jupiter = "6.0.2"
+mockk = "1.14.9"
+kotest = "6.1.3"
 strucut = "[1,2["
 
 [libraries]
@@ -80,6 +81,7 @@ detekt-rules-libraries = { group = "io.gitlab.arturbosch.detekt", name = "detekt
 androidx-test-core = { group = "androidx.test", name = "core", version.ref = "androidx-test-runner" }
 androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidx-test-runner" }
 androidx-test-espresso = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidx-test-espresso" }
+androidx-test-espresso-intents = { group = "androidx.test.espresso", name = "espresso-intents", version.ref = "androidx-test-espresso" }
 
 # android-ui
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidx-appcompat" }
@@ -124,12 +126,14 @@ retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = 
 retrofit-kotlinx-serialization = { group = "com.squareup.retrofit2", name = "converter-kotlinx-serialization", version.ref = "retrofit" }
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
+tink-android = { group = "com.google.crypto.tink", name = "tink-android", version.ref = "tink-android" }
 
 # chat-ui
 androidx-lifecycle = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "androidx-lifecycle" }
-coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
-coil-network = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
-coil-video = { group = "io.coil-kt.coil3", name = "coil-video", version.ref = "coil" }
+coil-bom = { group = "io.coil-kt.coil3", name = "coil-bom", version.ref = "coil" }
+coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose" }
+coil-network = { group = "io.coil-kt.coil3", name = "coil-network-okhttp" }
+coil-video = { group = "io.coil-kt.coil3", name = "coil-video" }
 findbugs = { group = "com.google.code.findbugs", name = "jsr305", version.ref = "findbugs" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
@@ -157,15 +161,15 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-build-config = { id = "com.github.gmazzo.buildconfig", version = "5.7.0" }
+build-config = { id = "com.github.gmazzo.buildconfig", version = "6.0.7" }
 
 androidx-safeargs = { id = "androidx.navigation.safeargs", version.ref = "androidx-safe-args" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
-firebase-appdistribution = { id = "com.google.firebase.appdistribution", version = "5.1.1" }
+firebase-appdistribution = { id = "com.google.firebase.appdistribution", version = "5.2.0" }
 firebase-crashlytics = { id = "com.google.firebase.crashlytics", version = "3.0.6" }
 google-services = { id = "com.google.gms.google-services", version = "4.4.4" }
-maven-publish = { id = "com.vanniktech.maven.publish", version = "0.34.0" }
+maven-publish = { id = "com.vanniktech.maven.publish", version = "0.35.0" }
 rootcoverage = { id = "nl.neotech.plugin.rootcoverage", version = "1.11.0" }
 semantic-version = { id = "com.dipien.semantic-version", version = "2.0.0" }
 kotlinx-binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.18.1" }

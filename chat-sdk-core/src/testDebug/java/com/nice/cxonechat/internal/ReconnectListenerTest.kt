@@ -344,6 +344,46 @@ internal class ReconnectListenerTest {
         assertTrue(cancellableAfterClosed == null)
     }
 
+    @Test
+    fun `should call onConnecting when onFailure occurs after a prior successful connection`() = runTest(dispatcher) {
+        val webSocket = mockk<WebSocket>(relaxed = true)
+        reconnectListener.onOpen(webSocket, mockk(relaxed = true))
+        reconnectListener.onFailure(webSocket, Throwable("Network lost"), null)
+        advanceUntilIdle()
+        verify { chatStateListener.onConnecting() }
+    }
+
+    @Test
+    fun `should call onConnecting when onClosing is triggered with abnormal code after prior successful connection`() = runTest(dispatcher) {
+        val webSocket = mockk<WebSocket>(relaxed = true)
+        reconnectListener.onOpen(webSocket, mockk(relaxed = true))
+        reconnectListener.onClosing(webSocket, 1001, "Abnormal closure")
+        advanceUntilIdle()
+        verify { chatStateListener.onConnecting() }
+    }
+
+    @Test
+    fun `should not call onConnecting on initial connection failure`() = runTest(dispatcher) {
+        val webSocket = mockk<WebSocket>(relaxed = true)
+        reconnectListener.onFailure(webSocket, Throwable("Initial connection failed"), null)
+        advanceUntilIdle()
+        verify(exactly = 0) { chatStateListener.onConnecting() }
+        verify { chatStateListener.onUnexpectedDisconnect() }
+    }
+
+    @Test
+    fun `should call onUnexpectedDisconnect when max reconnection attempts are exhausted`() = runTest(dispatcher) {
+        val webSocket = mockk<WebSocket>(relaxed = true)
+        reconnectListener.randomDelayProvider = { 1000L }
+        reconnectListener.onOpen(webSocket, mockk(relaxed = true))
+        repeat(ReconnectingListener.MAX_RECONNECT_ATTEMPTS + 1) {
+            reconnectListener.onFailure(webSocket, Throwable("Network fail $it"), null)
+            advanceUntilIdle()
+        }
+        verify { chatStateListener.onUnexpectedDisconnect() }
+        assertEquals(ReconnectingListener.MAX_RECONNECT_ATTEMPTS, reconnectListener.getReconnectAttempts())
+    }
+
     private companion object {
         fun ReconnectingListener.getReconnectAttempts() = ReconnectingListener::class.java
             .getDeclaredField("reconnectAttempts")

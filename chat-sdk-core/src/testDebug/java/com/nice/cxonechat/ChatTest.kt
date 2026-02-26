@@ -114,6 +114,7 @@ internal class ChatTest : AbstractChatTest() {
     @Test
     fun signOut_clearsStorage() {
         every { socket.close(any(), any()) } returns true
+        every { entrails.cookieJar.clearAllCookies() } returns Unit
 
         chat.signOut()
 
@@ -123,6 +124,7 @@ internal class ChatTest : AbstractChatTest() {
     @Test
     fun signOut_closesConnection() {
         every { socket.close(any(), any()) } returns true
+        every { entrails.cookieJar.clearAllCookies() } returns Unit
 
         chat.signOut()
 

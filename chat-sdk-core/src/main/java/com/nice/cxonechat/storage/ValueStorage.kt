@@ -15,6 +15,7 @@
 
 package com.nice.cxonechat.storage
 
+import com.nice.cxonechat.internal.model.TransactionTokenModel
 import com.nice.cxonechat.internal.serializer.DateAsNumber
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
@@ -47,6 +48,13 @@ internal interface ValueStorage {
      * Default value is null.
      */
     var authTokenExpDate: Date?
+
+    /**
+     * Stores the current transaction token model for secured session authentication.
+     * This model contains the access token, expiration, and related identity information.
+     * Default value is null. Used only when SecuredSessions feature is enabled.
+     */
+    var transactionTokenModel: TransactionTokenModel?
 
     /**
      * User application specific id.

@@ -199,4 +199,12 @@ internal enum class EventType(val value: String) {
     /** A meta event sent when the actual event should be retrieved from s3. */
     @SerialName("EventInS3")
     EventInS3("EventInS3"),
+
+    // Send Transcript
+
+    @SerialName("SendTranscript")
+    SendTranscript("SendTranscript"),
+
+    @SerialName("TranscriptSent")
+    TranscriptSent("TranscriptSent"),
 }

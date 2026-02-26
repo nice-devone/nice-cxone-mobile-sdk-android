@@ -20,9 +20,11 @@ package com.nice.cxonechat
 import android.annotation.SuppressLint
 import com.nice.cxonechat.exceptions.MissingThreadListFetchException
 import com.nice.cxonechat.exceptions.UnsupportedChannelConfigException
+import com.nice.cxonechat.internal.model.AvailabilityStatus
 import com.nice.cxonechat.internal.model.ChannelConfiguration
 import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.server.ServerResponse
+import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.tool.nextStringMap
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -32,10 +34,27 @@ internal class ChatThreadsHandlerSingleThreadTest : AbstractChatTest() {
     private lateinit var threads: ChatThreadsHandler
 
     override val config: ChannelConfiguration
-        get() {
-            val config = super.config.let(::requireNotNull)
-            return config.copy(settings = config.settings.copy(hasMultipleThreadsPerEndUser = false))
-        }
+        get() = ChannelConfiguration(
+            settings = ChannelConfiguration.Settings(
+                hasMultipleThreadsPerEndUser = false,
+                isProactiveChatEnabled = true,
+                fileRestrictions = ChannelConfiguration.FileRestrictions(
+                    10,
+                    listOf(),
+                    false,
+                ),
+                features = features,
+                securedSessions = false,
+                liveChatAllowTranscript = true
+            ),
+            isAuthorizationEnabled = true,
+            preContactForm = null,
+            isLiveChat = false,
+            availability = ChannelConfiguration.Availability(
+                status = AvailabilityStatus.Online
+            ),
+            isSecuredCookieEnabled = false
+        )
 
     override fun prepare() {
         super.prepare()
@@ -111,7 +130,7 @@ internal class ChatThreadsHandlerSingleThreadTest : AbstractChatTest() {
     @Test
     fun threads_notifies_whenNewThreadIsCreated_inSingleThreadMode() {
         var callCount = 0
-        val receivedThreadLists = mutableListOf<List<com.nice.cxonechat.thread.ChatThread>>()
+        val receivedThreadLists = mutableListOf<List<ChatThread>>()
 
         val cancellable = threads.threads { threadList ->
             callCount++

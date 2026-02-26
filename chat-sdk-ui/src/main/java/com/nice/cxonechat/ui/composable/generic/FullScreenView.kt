@@ -28,9 +28,9 @@ import androidx.compose.ui.platform.testTag
  */
 @Composable
 internal fun FullscreenView(
+    modifier: Modifier = Modifier,
     title: String? = null,
     onExitFullScreen: () -> Unit,
-    modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
     Surface(

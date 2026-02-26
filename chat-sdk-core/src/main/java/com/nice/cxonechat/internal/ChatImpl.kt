@@ -24,30 +24,37 @@ import com.nice.cxonechat.ChatMode.MultiThread
 import com.nice.cxonechat.ChatMode.SingleThread
 import com.nice.cxonechat.ChatStateListener
 import com.nice.cxonechat.ChatThreadsHandler
+import com.nice.cxonechat.enums.AuthenticationType
 import com.nice.cxonechat.event.PageViewEvent
 import com.nice.cxonechat.internal.copy.ConnectionCopyable.Companion.asCopyable
+import com.nice.cxonechat.internal.model.ChatImplDependencies
 import com.nice.cxonechat.internal.model.ConfigurationInternal
+import com.nice.cxonechat.internal.model.GrantType
+import com.nice.cxonechat.internal.model.ThirdPartyOAuthBody
+import com.nice.cxonechat.internal.model.TokenRequestBody
 import com.nice.cxonechat.internal.model.Visitor
+import com.nice.cxonechat.internal.model.asCustomerIdentity
 import com.nice.cxonechat.internal.socket.ProxyWebSocketListener
-import com.nice.cxonechat.internal.socket.SocketFactory
 import com.nice.cxonechat.internal.socket.SocketState
 import com.nice.cxonechat.internal.socket.WebSocketSpec
-import com.nice.cxonechat.internal.socket.WebsocketLogging
+import com.nice.cxonechat.state.Configuration.Feature
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.thread.CustomField
 import okhttp3.WebSocket
-import retrofit2.Callback
 import java.util.concurrent.atomic.AtomicReference
 
 @Suppress("TooManyFunctions")
 internal class ChatImpl(
     override var connection: Connection,
     override val entrails: ChatEntrails,
-    private val socketFactory: SocketFactory,
+    private val dependencies: ChatImplDependencies,
     override val configuration: ConfigurationInternal,
-    private val callback: Callback<Void>,
     override val chatStateListener: ChatStateListener?,
 ) : ChatWithParameters, AutoCloseable {
+
+    private val socketFactory get() = dependencies.socketFactory
+    private val callback get() = dependencies.callback
+    private val authorization get() = dependencies.authorization
 
     override val socketListener: ProxyWebSocketListener = socketFactory.createProxyListener()
 
@@ -115,6 +122,7 @@ internal class ChatImpl(
 
     override fun signOut() {
         storage.clearStorage()
+        cookieJar.clearAllCookies()
         close()
     }
 
@@ -126,16 +134,47 @@ internal class ChatImpl(
     override fun connect(): Cancellable {
         socketListener.reportState(SocketState.CONNECTING)
         chatStateListener?.onConnecting()
-        socketSession.set(
-            WebsocketLogging(
-                socket = socketFactory.create(socketListener, storage.visitorId.toString())
-                    .also {
-                        socketListener.reportState(SocketState.CONNECTED)
-                    },
-                logger = entrails.logger,
-            )
+        val authenticationType = configuration.authenticationType
+        val isSecuredSessionsEnabled = configuration.hasFeature(Feature.SecuredSessions)
+        val tokenRequestBody = if (isSecuredSessionsEnabled) createAuthRequestBody(authenticationType) else null
+        val connector = ChatSocketConnector(
+            chat = this,
+            socketFactory = socketFactory,
+            chatStateListener = chatStateListener
         )
+        val result = connector.connect(tokenRequestBody)
+        if (result.error != null) {
+            // Error already reported by connector
+            return Cancellable.noop
+        }
+        if (isSecuredSessionsEnabled) {
+            val customerId = result.transactionTokenModel?.customerIdentity?.idOnExternalPlatform
+            storage.authToken = result.transactionTokenModel?.thirdParty?.accessToken
+            storage.authTokenExpDate = result.transactionTokenModel?.thirdParty?.expiresAt
+            storage.transactionTokenModel = result.transactionTokenModel
+            connection = connection.asCopyable().copy(customerId = customerId)
+            storage.customerId = customerId
+        }
+        socketSession.set(result.webSocket)
         return Cancellable.noop
+    }
+
+    internal fun createAuthRequestBody(authenticationType: AuthenticationType): TokenRequestBody {
+        return when (authenticationType) {
+            AuthenticationType.SecuredCookie -> TokenRequestBody()
+            AuthenticationType.Anonymous -> TokenRequestBody(
+                type = authenticationType.name,
+                customerIdentity = connection.customerId?.let { connection.asCustomerIdentity() }
+            )
+
+            AuthenticationType.ThirdPartyOAuth -> TokenRequestBody(
+                thirdParty = ThirdPartyOAuthBody(
+                    grantType = GrantType.AUTHORIZATION_CODE,
+                    authorizationCode = authorization.code,
+                    codeVerifier = authorization.verifier
+                )
+            )
+        }
     }
 
     override fun setUserName(firstName: String, lastName: String) {

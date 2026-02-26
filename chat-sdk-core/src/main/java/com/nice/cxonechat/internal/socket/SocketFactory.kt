@@ -24,7 +24,11 @@ import okhttp3.WebSocketListener
 internal interface SocketFactory {
 
     @WorkerThread
-    fun create(listener: WebSocketListener, visitorId: String): WebSocket
+    fun create(
+        listener: WebSocketListener,
+        visitorId: String,
+        transactionToken: String? = null
+    ): WebSocket
 
     fun createProxyListener(): ProxyWebSocketListener
     fun getConfiguration(storage: ValueStorage): Connection

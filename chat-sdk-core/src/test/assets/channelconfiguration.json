@@ -4,6 +4,7 @@
     "availability": {
         "status": "online"
     },
+    "isSecuredCookieEnabled": false,
     "isLiveChat": false,
     "settings": {
         "features": {
@@ -24,7 +25,8 @@
             "translationKeyForContactCustomField": false,
             "disableAttachmentOnDfoChat": false,
             "featureCustomFieldsSupportForAutocompleteAttribute": false,
-            "chatRedesign": false
+            "chatRedesign": false,
+            "securedSessions": false
         },
         "pushNotifications": {
             "pinpointProjectId": "",
@@ -119,6 +121,7 @@
         "platformChannelIdToSendInvitationCode": "",
         "emailInvitationContent": "",
         "emailInvitationLink": "",
+        "securedSessions": false,
         "enableChatTypingPreview": false
     },
     "translations": {

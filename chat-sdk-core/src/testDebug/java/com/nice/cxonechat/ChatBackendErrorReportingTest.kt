@@ -21,7 +21,6 @@ import com.nice.cxonechat.enums.ErrorType.RecoveringThreadFailed
 import com.nice.cxonechat.enums.ErrorType.SendingMessageFailed
 import com.nice.cxonechat.enums.ErrorType.SendingOfflineMessageFailed
 import com.nice.cxonechat.enums.ErrorType.SendingOutboundFailed
-import com.nice.cxonechat.enums.ErrorType.SendingTranscriptFailed
 import com.nice.cxonechat.enums.ErrorType.UpdatingThreadFailed
 import com.nice.cxonechat.exceptions.RuntimeChatException
 import com.nice.cxonechat.server.ServerResponse
@@ -70,13 +69,6 @@ internal class ChatBackendErrorReportingTest : AbstractChatTest() {
         this serverResponds ServerResponse.ErrorResponse(ArchivingThreadFailed.value)
         val last = this.chatStateListener.onChatRuntimeExceptions.last()
         assertServerCommunicationError(ArchivingThreadFailed.value, last)
-    }
-
-    @Test
-    fun test_SendingTranscriptFailed_is_reported() {
-        this serverResponds ServerResponse.ErrorResponse(SendingTranscriptFailed.value)
-        val last = this.chatStateListener.onChatRuntimeExceptions.last()
-        assertServerCommunicationError(SendingTranscriptFailed.value, last)
     }
 
     @Test

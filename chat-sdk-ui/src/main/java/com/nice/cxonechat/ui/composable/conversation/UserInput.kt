@@ -63,7 +63,7 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.SemanticsPropertyKey
@@ -90,6 +90,7 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.SendButton
+import com.nice.cxonechat.ui.data.RequestResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -429,23 +430,25 @@ private fun UserInputSelector(
 
 @Composable
 private fun AudioRecorderButton(
-    onAudioRecordToggle: suspend () -> Boolean,
+    onAudioRecordToggle: suspend () -> RequestResult,
     onSelectorChange: (InputState) -> Unit,
     onError: (String) -> Unit,
     scope: CoroutineScope,
 ) {
-    val context = LocalContext.current
+    val resources = LocalResources.current
     ChatIconButton(
         icon = Icons.Default.Mic,
         description = stringResource(string.record_audio_start_content_description),
-        onClick = remember(context, scope) {
+        onClick = remember(resources, scope) {
             {
                 scope.launch {
                     val toggleChangeResult = onAudioRecordToggle()
-                    if (toggleChangeResult) {
+                    if (toggleChangeResult == RequestResult.SUCCESS) {
                         onSelectorChange(Audio)
                     } else {
-                        onError(context.getString(string.recording_audio_failed_to_start))
+                        if (toggleChangeResult == RequestResult.FAILURE) {
+                            onError(resources.getString(string.recording_audio_failed_to_start))
+                        }
                         onSelectorChange(None) // Failed to start audio recording
                     }
                 }

@@ -27,6 +27,7 @@ import com.nice.cxonechat.internal.model.ChatThreadMutable
 import com.nice.cxonechat.internal.model.ChatThreadMutable.Companion.asMutable
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState.Loaded
+import com.nice.cxonechat.thread.ChatThreadState.Pending
 import com.nice.cxonechat.thread.ChatThreadState.Ready
 import java.util.UUID
 
@@ -45,7 +46,7 @@ internal class ChatThreadsHandlerMulti(
     override fun threads(listener: OnThreadsUpdatedListener) = origin.threads { threads ->
         val mutableThreads = threads.map { it.asMutable() }
         for (thread in mutableThreads) {
-            if (!metadataRequested.contains(thread.id)) {
+            if (!metadataRequested.contains(thread.id) && thread.threadState != Pending) {
                 val threadHandler = thread(thread.snapshot())
                 registerForThreadUpdates(threadHandler, thread, listener, threads)
                 requestMetadataForThread(threadHandler, thread)

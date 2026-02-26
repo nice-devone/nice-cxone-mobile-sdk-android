@@ -27,17 +27,17 @@ import androidx.compose.ui.res.stringResource
  *
  * @param text The string resource to display in the menu item.
  * @param onClick The callback to invoke when the menu item is clicked.
+ * @param modifier The modifier to be applied to the menu item.
  * @param enabled Whether the menu item is enabled or not.
  * @param icon The composable function to display as the leading icon.
- * @param modifier The modifier to be applied to the menu item.
  */
 @Composable
 internal fun IconMenuItem(
     @StringRes text: Int,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
     enabled: Boolean = true,
     icon: @Composable () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     DropdownMenuItem(
         text = { Text(stringResource(text)) },

@@ -41,12 +41,26 @@ interface ChatThreadEventHandler {
      * was sent.
      * @param errorListener An optional listener if the client wants to know about errors encountered when handling
      * the event.
+     * @param responseListener An optional listener to be notified when a response is received from the socket after the event is sent.
      */
     fun trigger(
         event: ChatThreadEvent,
         listener: OnEventSentListener? = null,
         errorListener: OnEventErrorListener? = null,
+        responseListener: OnEventResponseListener? = null,
     )
+
+    /**
+     * Listener to be notified when a response is received from the socket after the event is sent.
+     */
+    @Public
+    fun interface OnEventResponseListener {
+        /**
+         * Notifies about the response received from the socket.
+         * @param response The response object received.
+         */
+        fun onResponse(response: EventResponse)
+    }
 
     /**
      * A listener to be notified when the triggered event is sent.

@@ -66,6 +66,21 @@ internal object ServerRequestAssertions {
         }
     }
 
+    fun String.verifySendTranscript() = apply {
+        verifyStructureOf(this) {
+            eventBaseline(action = ChatWindowEvent)
+            payload(type = "SendTranscript") {
+                prop("consumerContact") {
+                    prop("id")
+                }
+                prop("consumerRecipients") {
+                    prop("idOnExternalPlatform")
+                }
+            }
+        }
+    }
+
+
     fun String.verifyMarkThreadRead() = apply {
         verifyStructureOf(this) {
             eventBaseline(action = ChatWindowEvent)

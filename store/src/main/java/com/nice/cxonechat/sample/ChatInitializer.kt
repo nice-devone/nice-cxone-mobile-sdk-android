@@ -54,7 +54,7 @@ class ChatInitializer :
                 UISettingsRepository(context, coroutineScope).load()
             }
             val settings: ChatSettings? = runBlocking {
-                ChatSettingsRepository(context, coroutineScope).load()
+                ChatSettingsRepository(context = context, applicationScope = coroutineScope).load()
             }
             verbose("Settings loaded, starting ChatInstanceProvider creation: $settings")
             Firebase.crashlytics.setCustomKeys {
@@ -64,7 +64,7 @@ class ChatInitializer :
             }
             val provider = ChatInstanceProvider.create(
                 configuration = settings?.sdkConfiguration?.asSocketFactoryConfiguration,
-                authorization = null,
+                authorization = settings?.authorization,
                 userName = settings?.userName,
                 developmentMode = true,
                 deviceTokenProvider = { setToken ->

@@ -9,6 +9,7 @@ Here's a selection of simplified, but fully functional, use cases to get you sta
 - [Live Chat](chat-sdk-core/cs-live-chat.md)
 - [Single Thread Chat](chat-sdk-core/cs-single-thread.md)
 - [Multi Thread Chat](chat-sdk-core/cs-multi-thread.md)
+- [OAuth Third-Party Authentication](chat-sdk-core/cs-oauth-third-party.md)
 - [Push notifications](chat-sdk-core/cs-push-notifications.md)
 - [Rich Messages](chat-sdk-core/cs-rich-messages.md)
 - [Analytics](chat-sdk-core/cs-analytics.md)

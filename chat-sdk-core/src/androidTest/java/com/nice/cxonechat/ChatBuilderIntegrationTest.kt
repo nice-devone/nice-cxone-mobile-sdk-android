@@ -38,6 +38,7 @@ internal class ChatBuilderIntegrationTest {
             originHeader = "https://livechat-eu1-qa.brandembassy.com",
             chatUrl = "https://channels-eu1-qa.brandembassy.com/chat/",
             loggerUrl = "https://app-eu1-qa.brandembassy.com/logger-public",
+            authUrl = "https://digital-oauth-eu1-qa.brandembassy.com/",
         )
         val config = SocketFactoryConfiguration(environment, 6450, "chat_f62c9eaf-f030-4d0d-aa87-6e8a5aed3c55")
         val latch = CountDownLatch(1)

@@ -99,12 +99,17 @@ class ChatSettingsHandler(
      * A new connection will be established
      *
      * @param authorization new authorization to use.
+     * @param onPersisted Optional callback invoked after the authorization has been persisted.
      */
-    fun setAuthorization(authorization: Authorization) {
+    fun setAuthorization(
+        authorization: Authorization,
+        onPersisted: (() -> Unit)? = null,
+    ) {
         apply(
-            settings?.copy(
+            settings = settings?.copy(
                 authorization = authorization.toChatAuthorization,
-            )
+            ),
+            onPersisted = onPersisted
         )
     }
 
@@ -127,8 +132,9 @@ class ChatSettingsHandler(
      * Apply save a set of settings changes and apply them to the chatProvider.
      *
      * @param settings ChatSettings to apply.
+     * @param onPersisted Optional callback invoked after the settings have been persisted.
      */
-    private fun apply(settings: ChatSettings?) = scope("apply") {
+    private fun apply(settings: ChatSettings?, onPersisted: (() -> Unit)? = null) = scope("apply") {
         settings?.let(chatSettingsRepository::use) ?: chatSettingsRepository.clear()
 
         chatProvider.signOut()
@@ -139,6 +145,7 @@ class ChatSettingsHandler(
             authorization = settings?.authorization
             customerId = settings?.customerId
             deviceTokenProvider = FirebaseTokenProvider()
+            onPersisted?.invoke()
         }
     }
 

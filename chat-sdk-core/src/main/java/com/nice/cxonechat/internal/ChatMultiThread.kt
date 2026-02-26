@@ -15,6 +15,7 @@
 
 package com.nice.cxonechat.internal
 
+import com.nice.cxonechat.event.FetchThreadEvent
 import com.nice.cxonechat.internal.socket.SocketConnectionListener
 
 /**
@@ -36,6 +37,7 @@ internal class ChatMultiThread(
                 SocketConnectionListener {
                     listener.onConnected()
                     listener.onReady()
+                    origin.events().trigger(FetchThreadEvent) // fetch threadList once connection established
                 }
             )
         }

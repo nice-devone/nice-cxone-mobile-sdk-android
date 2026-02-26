@@ -62,15 +62,16 @@ import kotlinx.coroutines.runInterruptible
 @Composable
 internal fun FallbackThumbnail(
     uri: String,
+    contentDescription: String?,
     modifier: Modifier = Modifier,
     mimeType: String? = null,
     thumbnailSize: ThumbnailSize = ThumbnailSize.LARGE,
 ) {
     val extension by getFileExtension(mimeType, uri)
     when (thumbnailSize) {
-        ThumbnailSize.LARGE -> FallbackThumbnailLargeContent(extension, modifier)
-        ThumbnailSize.REGULAR -> FallbackThumbnailContent(extension, modifier)
-        ThumbnailSize.SMALL -> FallbackThumbnailSmallContent(extension, modifier)
+        ThumbnailSize.LARGE -> FallbackThumbnailLargeContent(extension, contentDescription, modifier)
+        ThumbnailSize.REGULAR -> FallbackThumbnailContent(extension, contentDescription, modifier)
+        ThumbnailSize.SMALL -> FallbackThumbnailSmallContent(extension, contentDescription, modifier)
     }
 }
 
@@ -104,6 +105,7 @@ internal enum class ThumbnailSize {
 @Composable
 private fun FallbackThumbnailLargeContent(
     extension: String,
+    contentDescription: String?,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -112,9 +114,8 @@ private fun FallbackThumbnailLargeContent(
     ) {
         Icon(
             imageVector = ChatIcons.DocumentLarge,
-            contentDescription = stringResource(string.content_description_document_preview, extension),
+            contentDescription = contentDescription,
             tint = colorScheme.contentColorFor(colorScheme.primary),
-            modifier = Modifier
         )
         Text(
             text = extension,
@@ -123,7 +124,6 @@ private fun FallbackThumbnailLargeContent(
                 .align(Alignment.Center)
                 .background(color = colorScheme.primary, shape = chatShapes.documentTypeLabelShape)
                 .padding(horizontal = 8.dp, vertical = 2.dp),
-            style = chatTypography.documentFallackText,
         )
     }
 }
@@ -131,6 +131,7 @@ private fun FallbackThumbnailLargeContent(
 @Composable
 private fun FallbackThumbnailContent(
     extension: String,
+    contentDescription: String?,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -139,7 +140,7 @@ private fun FallbackThumbnailContent(
     ) {
         Icon(
             imageVector = ChatIcons.Document,
-            contentDescription = stringResource(string.content_description_document_preview, extension),
+            contentDescription = contentDescription,
             tint = colorScheme.contentColorFor(colorScheme.primary),
             modifier = Modifier.padding(horizontal = 22.dp, vertical = 12.dp)
         )
@@ -162,13 +163,14 @@ private fun FallbackThumbnailContent(
 @Composable
 private fun FallbackThumbnailSmallContent(
     extension: String,
+    contentDescription: String?,
     modifier: Modifier = Modifier,
 ) {
     val iconMod = Modifier.size(space.attachmentPreviewFallbackSmallSize)
     if (extension.isEmpty()) {
         Icon(
             imageVector = ChatIcons.Document,
-            contentDescription = "Preview thumbnail for a file",
+            contentDescription = "HELP!",
             modifier = iconMod
         )
     } else {
@@ -178,7 +180,7 @@ private fun FallbackThumbnailSmallContent(
         ) {
             Icon(
                 imageVector = ChatIcons.Document,
-                contentDescription = stringResource(string.content_description_document_preview, extension),
+                contentDescription = contentDescription,
                 tint = chatColors.token.background.surface.variant,
                 modifier = iconMod
             )
@@ -213,7 +215,13 @@ private fun FallbackContentPreview() {
                     .wrapContentWidth()
                     .width(IntrinsicSize.Min)
             ) {
-                FallbackThumbnailContent("TORRRRRRENT")
+                FallbackThumbnailContent(
+                    extension = "TORRRRRRENT",
+                    contentDescription = stringResource(
+                        string.content_description_file_preview,
+                        "file.TORRRRRRENT"
+                    )
+                )
                 HorizontalDivider()
                 Box(
                     contentAlignment = Alignment.Center,
@@ -222,10 +230,22 @@ private fun FallbackContentPreview() {
                         .size(space.attachmentUploadPreviewSize)
                         .background(color = chatColors.token.background.default, shape = chatShapes.smallSelectionFrame)
                 ) {
-                    FallbackThumbnailSmallContent("TORRENT")
+                    FallbackThumbnailSmallContent(
+                        extension = "TORRENT",
+                        contentDescription = stringResource(
+                            string.content_description_file_preview,
+                            "file.TORRENT"
+                        )
+                    )
                 }
                 HorizontalDivider()
-                FallbackThumbnailLargeContent("TXT")
+                FallbackThumbnailLargeContent(
+                    extension = "TXT",
+                    contentDescription = stringResource(
+                        string.content_description_file_preview,
+                        "file.TXT"
+                    )
+                )
             }
         }
     }

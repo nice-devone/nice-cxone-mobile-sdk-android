@@ -44,8 +44,11 @@ import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
-import com.nice.cxonechat.ui.R
+import com.nice.cxonechat.ui.R.integer
+import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatShapes
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
@@ -58,43 +61,56 @@ import kotlinx.coroutines.delay
  * Composable function that displays a full-screen loading overlay with a close button after a delay.
  *
  * @param modifier Modifier to be applied to the overlay.
+ * @param closeButtonText Text to display on the close button.
  * @param onClose Action to perform when the close button is clicked.
  */
 @Composable
 internal fun LoadingOverlayFullScreen(
     modifier: Modifier = Modifier,
+    closeButtonText: String,
     onClose: () -> Unit = {},
 ) {
-    val loading = stringResource(R.string.loading)
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(overlayBackground)
-            .zIndex(1f)
-            .semantics {
-                testTag = "preparing_dialog"
-                contentDescription = loading
-            }
-            .clickable(
-                enabled = true,
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }
-            ) {},
-        contentAlignment = Alignment.Center,
+    Dialog(
+        onDismissRequest = {},
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false,
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false
+        )
     ) {
-        LoadingContent(onClose)
+        val loading = stringResource(string.loading)
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .background(overlayBackground)
+                .zIndex(1f)
+                .semantics {
+                    testTag = "preparing_dialog"
+                    contentDescription = loading
+                }
+                .clickable(
+                    enabled = true,
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }
+                ) {},
+            contentAlignment = Alignment.Center,
+        ) {
+            LoadingContent(closeButtonText = closeButtonText, onClose = onClose)
+        }
     }
 }
 
 /**
  * Composable function that displays a loading screen with a progress indicator and a close button.
  *
+ * @param closeButtonText Text to display on the close button.
  * @param onClose Action to perform when the close button is clicked.
  */
 @Composable
-internal fun LoadingContent(onClose: () -> Unit = {}) {
+internal fun LoadingContent(closeButtonText: String, onClose: () -> Unit = {}) {
     val showCloseButton = remember { mutableStateOf(false) }
-    val delayMs = integerResource(R.integer.loading_close_button_delay_ms).toLong()
+    val delayMs = integerResource(integer.loading_close_button_delay_ms).toLong()
 
     LaunchedEffect(Unit) {
         delay(delayMs) // 20 seconds wait to show close button
@@ -116,7 +132,8 @@ internal fun LoadingContent(onClose: () -> Unit = {}) {
 
         AnimatedVisibility(showCloseButton.value) {
             LoadingDelayView(
-                onClose = onClose
+                onClose = onClose,
+                closeButtonText = closeButtonText
             )
         }
     }
@@ -126,19 +143,20 @@ internal fun LoadingContent(onClose: () -> Unit = {}) {
  * Composable function that displays a message and a close button after a delay.
  *
  * @param onClose Action to perform when the close button is clicked.
+ * @param closeButtonText Text to display on the close button.
  */
 @Composable
 private fun LoadingDelayView(
     onClose: () -> Unit = {},
+    closeButtonText: String,
 ) {
-    val closeButtonText = stringResource(R.string.loading_close_button_text)
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Text(
             modifier = Modifier.padding(top = space.large, bottom = space.large, start = 50.dp, end = 50.dp),
-            text = stringResource(R.string.loading_delay_message),
+            text = stringResource(string.loading_delay_message),
             color = ChatTheme.chatColors.token.content.secondary,
             style = chatTypography.loadingScreenText,
             textAlign = TextAlign.Center
@@ -167,6 +185,7 @@ private fun LoadingOverlayFullPreview() {
         LoadingOverlayFullScreen(
             modifier = Modifier
                 .fillMaxSize(),
+            closeButtonText = stringResource(string.close_chat),
             onClose = { /* No action needed for preview */ }
         )
     }

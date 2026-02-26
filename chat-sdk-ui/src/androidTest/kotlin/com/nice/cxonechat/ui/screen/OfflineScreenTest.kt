@@ -15,18 +15,20 @@
 
 package com.nice.cxonechat.ui.screen
 
-import android.graphics.Rect
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.platform.WindowInfo
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
-import androidx.window.core.layout.WindowSizeClass
-import androidx.window.testing.layout.TestWindowMetrics
-import androidx.window.testing.layout.WindowMetricsCalculatorRule
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -41,12 +43,6 @@ import org.junit.runner.RunWith
 class OfflineScreenTest {
     @get:Rule
     val composeTestRule = createComposeRule()
-
-    /**
-     * Rule to set window size for testing different layouts.
-     */
-    @get:Rule
-    val windowMetricsCalculatorRule = WindowMetricsCalculatorRule()
 
     /**
      * Asserts that the OfflineScreen and its content are displayed.
@@ -101,19 +97,17 @@ class OfflineScreenTest {
      */
     @Test
     fun offlineScreen_offlineImage_isHidden_onSmallWindow() {
-        // The image should be hidden for anything smaller than 530dp in height
-        windowMetricsCalculatorRule.overrideCurrentWindowBounds(
-            TestWindowMetrics(
-                Rect(
-                    0,
-                    0,
-                    WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND,
-                    WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND
-                )
-            )
-        )
         composeTestRule.setContent {
-            OfflineScreen(onBackPress = {}, snackbarHostState = SnackbarHostState())
+            val size = (space.offlineImageMinimumScreenHeight - 0.1.dp).value.toInt()
+            CompositionLocalProvider(
+                // Simulate window smaller than required minimum
+                LocalWindowInfo provides object : WindowInfo {
+                    override val isWindowFocused: Boolean = false
+                    override val containerSize = IntSize(size, size)
+                },
+            ) {
+                OfflineScreen(onBackPress = {}, snackbarHostState = SnackbarHostState())
+            }
         }
         // Assert that offline_image is not displayed
         composeTestRule.onNodeWithTag("offline_image").assertDoesNotExist()

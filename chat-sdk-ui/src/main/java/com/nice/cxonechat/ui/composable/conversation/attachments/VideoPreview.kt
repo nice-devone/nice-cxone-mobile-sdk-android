@@ -84,6 +84,8 @@ import java.util.UUID
  * the default is [asyncImagePainters].
  * @param thumbnailSize The size of the video thumbnail (e.g., LARGE, REGULAR, or SMALL),
  * the default is [ThumbnailSize.REGULAR].
+ * @param contentDescription The content description for accessibility,
+ * defaults to the attachment's content description.
  */
 @Composable
 @OptIn(UnstableApi::class)
@@ -94,6 +96,7 @@ internal fun VideoPreview(
     modifier: Modifier = Modifier,
     painters: AsyncImagePainters = asyncImagePainters(),
     thumbnailSize: ThumbnailSize = ThumbnailSize.REGULAR,
+    contentDescription: String? = attachment.contentDescription,
 ) {
     // State to track whether the image has been successfully loaded
     var imageLoaded by remember { mutableStateOf(false) }
@@ -139,7 +142,7 @@ internal fun VideoPreview(
         AsyncImage(
             imageLoader = imageLoader,
             model = model,
-            contentDescription = attachment.contentDescription,
+            contentDescription = contentDescription,
             placeholder = placeholder,
             fallback = fallback,
             error = error,

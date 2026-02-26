@@ -58,6 +58,7 @@ internal object NoThreadHandler : ChatThreadHandler {
             event: ChatThreadEvent,
             listener: ChatThreadEventHandler.OnEventSentListener?,
             errorListener: ChatThreadEventHandler.OnEventErrorListener?,
+            responseListener: ChatThreadEventHandler.OnEventResponseListener?
         ) {
             // No operation, as there is no thread to trigger events for.
         }

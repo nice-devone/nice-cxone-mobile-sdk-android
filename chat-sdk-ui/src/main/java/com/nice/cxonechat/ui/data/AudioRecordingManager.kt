@@ -36,7 +36,7 @@ import org.koin.core.annotation.Scoped
 internal class AudioRecordingManager(
     private val valueStorage: ValueStorage,
     @InjectedParam internal val audioViewModel: AudioRecordingViewModel,
-    @InjectedParam internal val chatStateViewModel: ChatStateViewModel
+    @InjectedParam internal val chatStateViewModel: ChatStateViewModel,
 ) {
     private val requiredPermissions = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
         arrayOf(Manifest.permission.RECORD_AUDIO)
@@ -48,7 +48,7 @@ internal class AudioRecordingManager(
     suspend fun triggerRecording(
         activity: Activity,
         audioRequestPermissionLauncher: ActivityResultLauncher<Array<String>>,
-    ): Boolean {
+    ): RequestResult {
         val granted = activity.checkPermissions(
             valueStorage = valueStorage,
             permissions = requiredPermissions.toSet(),
@@ -57,14 +57,14 @@ internal class AudioRecordingManager(
         ).also(audioViewModel::setRecordingPermissionGranted)
 
         if (!granted) {
-            return false
+            return RequestResult.MISSING_PERMISSION
         }
         val result = if (audioViewModel.recordingFlow.value) {
             audioViewModel.stopRecording()
         } else {
             audioViewModel.startRecording().isSuccess
         }
-        return result
+        return if (result) RequestResult.SUCCESS else RequestResult.FAILURE
     }
 
     suspend fun dismissRecording(
@@ -84,4 +84,18 @@ internal class AudioRecordingManager(
             chatStateViewModel.showError(LOW, activity.getString(R.string.record_audio_failed_cleanup))
         }
     }
+}
+
+/**
+ * Enum representing the possible outcomes of an audio recording operation.
+ */
+internal enum class RequestResult {
+    /** Indicates that the required permissions are missing. */
+    MISSING_PERMISSION,
+
+    /** Indicates that the operation was successful. */
+    SUCCESS,
+
+    /** Indicates that the operation failed. */
+    FAILURE,
 }

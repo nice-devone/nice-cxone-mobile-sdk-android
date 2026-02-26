@@ -1,33 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="6" by="lint 8.1.2" type="baseline" client="gradle" dependencies="false" name="AGP (8.1.2)" variant="all" version="8.1.2">
+<issues format="6" by="lint 8.13.0" type="baseline" client="gradle" dependencies="false" name="AGP (8.13.0)" variant="all" version="8.13.0">
+
+    <issue
+        id="ConfigurationScreenWidthHeight"
+        message="Using Configuration.screenWidthDp instead of LocalWindowInfo.current.containerSize"
+        errorLine1="        modifier = modifier.widthIn(max = LocalConfiguration.current.screenWidthDp.dp * 0.776f),"
+        errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/nice/cxonechat/ui/composable/conversation/MessageFrame.kt"
+            line="183"
+            column="43"/>
+    </issue>
 
     <issue
         id="PluralsCandidate"
         message="Formatting %d followed by words (&quot;others&quot;): This should probably be a plural rather than a string"
-        errorLine1="    &lt;string name=&quot;share_attachment_others&quot;>Share attachment %1$s +%2$d others&lt;/string>"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="    &lt;string name=&quot;share_attachment_others&quot;>Share attachment &lt;xliff:g example=&quot;IMAG_0001.jpg&quot; id=&quot;file_name&quot;>%1$s&lt;/xliff:g> + &lt;xliff:g example=&quot;5&quot; id=&quot;item_count&quot;>%2$d&lt;/xliff:g> others&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="122"
+            line="157"
             column="5"/>
-    </issue>
-
-    <issue
-        id="ContentDescription"
-        message="Missing `contentDescription` attribute on image"
-        errorLine1="        &lt;ImageButton"
-        errorLine2="         ~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/custom_snack_bar.xml"
-            line="89"
-            column="10"/>
-    </issue>
-
-    <issue
-        id="RtlEnabled"
-        message="The project references RTL attributes, but does not explicitly enable or disable RTL support with `android:supportsRtl` in the manifest">
-        <location
-            file="src/main/AndroidManifest.xml"/>
     </issue>
 
 </issues>

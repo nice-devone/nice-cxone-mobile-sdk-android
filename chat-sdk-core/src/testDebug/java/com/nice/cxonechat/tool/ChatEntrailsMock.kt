@@ -15,11 +15,13 @@
 
 package com.nice.cxonechat.tool
 
+import com.nice.cxonechat.api.AuthService
 import com.nice.cxonechat.api.RemoteService
 import com.nice.cxonechat.internal.ChatEntrails
 import com.nice.cxonechat.internal.Threading
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.state.Environment
+import com.nice.cxonechat.storage.PersistentCookieJar
 import com.nice.cxonechat.storage.ValueStorage
 import okhttp3.OkHttpClient
 
@@ -27,8 +29,10 @@ internal class ChatEntrailsMock(
     override val sharedClient: OkHttpClient,
     override val storage: ValueStorage,
     override val service: RemoteService,
+    override val authService: AuthService,
     override val logger: Logger,
     override val environment: Environment,
+    override val cookieJar: PersistentCookieJar,
 ) : ChatEntrails {
 
     override val threading: Threading = Threading.Identity
