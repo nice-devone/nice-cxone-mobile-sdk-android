@@ -29,7 +29,10 @@ class LoadingOverlayFullScreenTest {
     @Test
     fun loadingIndicatorIsDisplayedInitially() {
         composeTestRule.setContent {
-            LoadingOverlayFullScreen(onClose = {})
+            LoadingOverlayFullScreen(
+                closeButtonText = "Close chat",
+                onClose = {}
+            )
         }
         composeTestRule
             .onNodeWithTag("preparing_dialog")
@@ -39,7 +42,10 @@ class LoadingOverlayFullScreenTest {
     @Test
     fun closeButtonAppearsAfterDelay() {
         composeTestRule.setContent {
-            LoadingOverlayFullScreen(onClose = {})
+            LoadingOverlayFullScreen(
+                closeButtonText = "Close chat",
+                onClose = {}
+            )
         }
 
         composeTestRule.mainClock.advanceTimeBy(20_000)

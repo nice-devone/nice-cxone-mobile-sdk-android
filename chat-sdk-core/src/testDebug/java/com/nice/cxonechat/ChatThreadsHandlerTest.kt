@@ -31,6 +31,8 @@ import com.nice.cxonechat.thread.ChatThreadState
 import com.nice.cxonechat.thread.ChatThreadState.Loaded
 import com.nice.cxonechat.thread.ChatThreadState.Received
 import org.junit.Test
+import java.util.UUID
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
@@ -102,7 +104,7 @@ internal class ChatThreadsHandlerTest : AbstractChatTest() {
 
     @Test
     fun threads_notifies_caseClosed() {
-        val initial = List(2) { i -> makeChatThread(threadState = Received, contactId = null) }
+        val initial = List(2) { makeChatThread(threadState = Received, contactId = null) }
         val expected = initial.toMutableList().also {
             it[0] = it[0].copy(
                 canAddMoreMessages = false,
@@ -260,6 +262,30 @@ internal class ChatThreadsHandlerTest : AbstractChatTest() {
         assertNotNull(handler)
         assertEquals(threadWithMessages.id, handler.get().id)
         assertEquals(1, handler.get().messages.size)
+    }
+
+    @Test
+    fun threads_loadsMetadata_forNonPendingThread_only() {
+        val nonPending = makeChatThread(id = UUID.fromString("de4080b9-4f24-46cf-b3a0-793ec3dfb2d5"), threadState = Received, contactId = null)
+        val initial = listOf(nonPending)
+        connect()
+        val pendingHandler = threads.create()
+        val pending = pendingHandler.get()
+        assertEquals(ChatThreadState.Pending, pending.threadState)
+        // Only non-pending thread should trigger metadata load
+        assertSendTexts(
+            ServerRequest.FetchThreadList(connection),
+            ServerRequest.LoadThreadMetadata(connection, nonPending),
+        ) {
+            testCallback(body = {
+                threads {
+                    assertContains(it, pending)
+                    assertContains(it, nonPending)
+                }
+            }) {
+                sendServerMessage(ServerResponse.ThreadListFetched(initial))
+            }
+        }
     }
 
     fun threads(listener: (List<ChatThread>) -> Unit): Cancellable =

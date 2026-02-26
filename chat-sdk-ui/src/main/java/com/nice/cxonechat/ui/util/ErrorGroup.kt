@@ -32,5 +32,8 @@ internal enum class ErrorGroup {
     LOW_SPECIFIC,
 
     /** Display an unbeatable error message in the UI. DISCONNECT the SDK. */
-    HIGH
+    HIGH,
+
+    /** No UI message, just silently exit the chat. DISCONNECT the SDK. */
+    SILENT_EXIT
 }

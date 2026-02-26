@@ -132,6 +132,7 @@ exceptions:
     active: true
   TooGenericExceptionCaught:
     active: true
+    excludes: [ '**/test/**', '**/androidTest/**', '**/*.Spec.kt' ]
   TooGenericExceptionThrown:
     active: true
     excludes: [ '**/test/**', '**/androidTest/**', '**/*.Spec.kt' ]

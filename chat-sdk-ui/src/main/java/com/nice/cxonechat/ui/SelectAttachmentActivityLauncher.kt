@@ -32,13 +32,14 @@ import androidx.lifecycle.LifecycleOwner
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerScope
 import com.nice.cxonechat.log.debug
-import com.nice.cxonechat.log.scope
 import com.nice.cxonechat.log.timedScope
+import com.nice.cxonechat.log.verbose
 import com.nice.cxonechat.log.warning
 import com.nice.cxonechat.ui.storage.TemporaryFileProvider
 import com.nice.cxonechat.ui.storage.TemporaryFileStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
+import kotlinx.coroutines.withContext
 
 /**
  * This class is responsible for launching a system activity which will report selected attachment(s)
@@ -52,7 +53,7 @@ internal class SelectAttachmentActivityLauncher(
     private val sendAttachments: (uris: List<Uri>) -> Unit,
     private val registry: ActivityResultRegistry,
     logger: Logger,
-) : DefaultLifecycleObserver, LoggerScope by LoggerScope<SelectAttachmentActivityLauncher>(logger) {
+) : DefaultLifecycleObserver, LoggerScope by LoggerScope("SelectAttachmentActivityLauncher", logger) {
     private var getContent: ActivityResultLauncher<String>? = null
     private var getDocument: ActivityResultLauncher<Array<String>>? = null
 
@@ -61,9 +62,6 @@ internal class SelectAttachmentActivityLauncher(
     private var captureVideo: ActivityResultLauncher<Uri>? = null
 
     private var getMediaPicker: ActivityResultLauncher<PickVisualMediaRequest>? = null
-
-    private var captureUri: Uri? = null
-    private val captureUriGuard = Any()
 
     override fun onCreate(owner: LifecycleOwner) {
         timedScope("onCreate") {
@@ -97,43 +95,48 @@ internal class SelectAttachmentActivityLauncher(
                 contract = ActivityResultContracts.PickMultipleVisualMedia(),
                 callback = sendAttachments
             )
-            Dispatchers.IO.asExecutor().execute(::restoreCaptureUri)
             debug("SelectAttachmentActivityLauncher initialized")
         }
     }
 
-    private fun restoreCaptureUri() = scope("restoreCaptureUri") {
+    private fun restoreCaptureUri(): Uri? = timedScope("restoreCaptureUri") {
+        verbose("Attempting to restore capture URI from shared preferences")
         val sharedPreferences = context.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
-        synchronized(captureUriGuard) {
-            captureUri = sharedPreferences.getString(CAPTURE_URI_KEY, null)?.let { uriString ->
-                sharedPreferences.edit { remove(CAPTURE_URI_KEY) }
-                runCatching {
-                    uriString.toUri()
-                }.onSuccess {
-                    debug("CaptureUri restored")
-                }.getOrNull()
-            }
+        return sharedPreferences.getString(CAPTURE_URI_KEY, null)?.let { uriString ->
+            sharedPreferences.edit { remove(CAPTURE_URI_KEY) }
+            runCatching {
+                uriString.toUri()
+            }.onSuccess {
+                debug("Capture Uri restored")
+            }.onFailure {
+                warning("Failed to restore Capture Uri")
+            }.getOrNull()
         }
     }
 
     private fun captureCallback(success: Boolean) = timedScope("captureCallback") {
         debug("Capture completed with success: $success")
-        val uri = synchronized(captureUriGuard) {
-            captureUri
-        }
-        when {
-            success && uri != null -> sendAttachments(listOf(uri))
-            else -> sendAttachments(emptyList())
+        Dispatchers.IO.asExecutor().execute {
+            val uri = restoreCaptureUri()
+            Dispatchers.Main.asExecutor().execute {
+                when {
+                    success && uri != null -> sendAttachments(listOf(uri))
+                    else -> sendAttachments(emptyList())
+                }
+            }
         }
     }
 
-    private fun createCaptureUri(prefix: String, suffix: String): Uri = scope("createCaptureUri") {
-        val newFile = temporaryFileStorage.createCaptureFile(prefix, suffix)
+    private suspend fun createCaptureUri(prefix: String, suffix: String): Uri = timedScope("createCaptureUri") {
+        verbose("Creating temporary file for capture with prefix: $prefix and suffix: $suffix")
+        val newFile = withContext(Dispatchers.IO) { temporaryFileStorage.createCaptureFile(prefix, suffix) }
         return if (newFile != null) {
             runCatching {
-                TemporaryFileProvider.getUriForFile(newFile, context)
+                withContext(Dispatchers.IO) { TemporaryFileProvider.getUriForFile(newFile, context) }
             }.onFailure {
-                warning("Failed to get uri from file provider")
+                warning("Failed to get Uri from file provider")
+            }.onSuccess {
+                verbose("Capture Uri created")
             }.getOrDefault(Uri.EMPTY)
         } else {
             warning("Failed to create temporary file for capture")
@@ -152,18 +155,15 @@ internal class SelectAttachmentActivityLauncher(
         captureVideo = null
         getMediaPicker?.unregister()
         getMediaPicker = null
-        synchronized(captureUriGuard) {
-            captureUri?.let { uri ->
-                Dispatchers.IO.asExecutor().execute { storeCaptureUri(uri) }
-                captureUri = null
-            }
-        }
     }
 
-    private fun storeCaptureUri(uri: Uri) = scope("storeCaptureUri") {
-        context.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE).edit {
-            putString(CAPTURE_URI_KEY, uri.toString())
+    private suspend fun storeCaptureUri(uri: Uri): Unit = timedScope("storeCaptureUri") {
+        withContext(Dispatchers.IO) {
+            context.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE).edit {
+                putString(CAPTURE_URI_KEY, uri.toString())
+            }
         }
+        verbose("Stored capture Uri")
     }
 
     /**
@@ -177,7 +177,7 @@ internal class SelectAttachmentActivityLauncher(
      * @param mimeTypes attachment types to find.
      *
      */
-    fun getDocument(mimeTypes: Array<String>) = scope("getDocument") {
+    fun getDocument(mimeTypes: Array<String>) = timedScope("getDocument") {
         if (mimeTypes.size == 1) {
             getContent?.launch(mimeTypes[0])
         } else {
@@ -191,7 +191,7 @@ internal class SelectAttachmentActivityLauncher(
      *
      * @param mediumType The type of media to be selected (image, video, or both).
      */
-    fun pickMedia(mediumType: AttachmentType.MediaPicker) = scope("pickMedia") {
+    fun pickMedia(mediumType: AttachmentType.MediaPicker) = timedScope("pickMedia") {
         when (mediumType) {
             AttachmentType.Image ->
                 getMediaPicker?.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -208,28 +208,16 @@ internal class SelectAttachmentActivityLauncher(
      *
      * @param attachmentType The type of attachment to be captured or selected.
      */
-    fun getAttachment(attachmentType: AttachmentType) = scope("getAttachment") {
+    suspend fun getAttachment(attachmentType: AttachmentType): Unit = timedScope("getAttachment") {
         when (attachmentType) {
-            AttachmentType.CameraPhoto -> synchronized(captureUriGuard) {
-                captureUri = null
-                Dispatchers.IO.asExecutor().execute {
-                    val uri = createCaptureUri("photo_", ".jpeg")
-                    synchronized(captureUriGuard) {
-                        captureUri = uri
-                    }
-                    takePhoto?.launch(uri)
-                }
+            AttachmentType.CameraPhoto -> {
+                val uri = createCaptureUri("photo_", ".jpeg").also { storeCaptureUri(it) }
+                takePhoto?.launch(uri)
             }
 
-            AttachmentType.CameraVideo -> synchronized(captureUriGuard) {
-                captureUri = null
-                Dispatchers.IO.asExecutor().execute {
-                    val uri = createCaptureUri("video_", ".mp4")
-                    synchronized(captureUriGuard) {
-                        captureUri = uri
-                    }
-                    captureVideo?.launch(uri)
-                }
+            AttachmentType.CameraVideo -> {
+                val uri = createCaptureUri("video_", ".mp4").also { storeCaptureUri(it) }
+                captureVideo?.launch(uri)
             }
 
             is AttachmentType.MediaPicker -> pickMedia(attachmentType)

@@ -73,13 +73,15 @@ internal fun ChatStateEffect(
     LaunchedEffect(state, lifecycleState) {
         when (state) {
             // These states not require any action, so we ignore them
-            null, Initial, Preparing, Connecting, Connected, SdkNotSupported -> Ignored
+            null, Initial, Preparing, Connected, SdkNotSupported -> Ignored
 
             /*
              * If the chat is (or becomes) prepared/disconnected, then start a connect attempt,
              * but this shouldn't happen when the ui is not visible.
+             * Connecting is also included here to show the loading overlay when the SDK is
+             * autonomously reconnecting after a network drop.
              */
-            Prepared, ConnectionLost -> if (lifecycleState.isAtLeast(State.RESUMED)) {
+            Prepared, ConnectionLost, Connecting -> if (lifecycleState.isAtLeast(State.RESUMED)) {
                 onConnectChatAction()
             }
 

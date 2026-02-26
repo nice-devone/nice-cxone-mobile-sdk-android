@@ -49,10 +49,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.koin.android.annotation.KoinViewModel
+import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 /**
  * ViewModel for the StoreActivity.
  */
+@OptIn(ExperimentalAtomicApi::class)
 @Stable
 @Suppress("LongParameterList")
 @KoinViewModel
@@ -99,6 +102,12 @@ class StoreViewModel(
     /** listener to chat instance changes. */
     private val listener = Listener().also(chatProvider::addListener)
 
+    /** True if the ViewModel has completed initial loading. */
+    private var isLoaded = AtomicBoolean(false)
+
+    /** True if we have a pending listener to be called onResume(). */
+    private var pendingListener = AtomicBoolean(false)
+
     init {
         viewModelScope.launch(Dispatchers.IO) {
             val chatSettings = chatSettingsRepository.load()
@@ -109,6 +118,13 @@ class StoreViewModel(
             }
             uiSettingsRepository.load()
             sdkConfigurationListRepository.load()
+            isLoaded.store(true)
+
+            // If onResume() was called during initialization, start chat now
+            if (pendingListener.load()) {
+                startChat()
+                pendingListener.store(false)
+            }
         }
     }
 
@@ -169,7 +185,7 @@ class StoreViewModel(
     private fun onConnected() = scope("onConnected") {
         val settings = chatSettingsRepository.settings.value
         val isAuthorizationEnabled = chatProvider.chat?.configuration?.isAuthorizationEnabled
-        val state = currentUiState(this, settings, isAuthorizationEnabled) ?: return@scope
+        val state = currentUiState(this, settings, false, isAuthorizationEnabled) ?: return@scope
         val currentState = uiState.value
         if (!(state == Prepared && (currentState is UiSettings || currentState is Configuration))) {
             setUiState(state)
@@ -179,6 +195,7 @@ class StoreViewModel(
     private fun currentUiState(
         loggerScope: LoggerScope,
         settings: ChatSettings?,
+        isForced: Boolean = false,
         isAuthorizationEnabled: Boolean?,
     ) = when (isAuthorizationEnabled) {
         null -> {
@@ -189,7 +206,7 @@ class StoreViewModel(
         true -> if (settings?.authorization != null) {
             Prepared
         } else {
-            OAuth
+            OAuth(isForced = isForced)
         }
 
         false -> if (settings?.userName != null) {
@@ -220,10 +237,14 @@ class StoreViewModel(
      * the application is resumed and to restart the chat sdk and enable analytics.
      */
     fun onResume() {
-        startChat()
+        if (isLoaded.load()) {
+            startChat()
+            return
+        }
+        pendingListener.store(true)
     }
 
-    private inner class Listener: ChatInstanceProvider.Listener {
+    private inner class Listener : ChatInstanceProvider.Listener {
         /**
          * Send a pending page view if chat is just now established.
          */
@@ -239,7 +260,16 @@ class StoreViewModel(
         }
 
         override fun onChatRuntimeException(exception: RuntimeChatException) = scope("onChatRuntimeException") {
-            error("Chat SDK reported exception.", exception)
+            if (exception is RuntimeChatException.ConnectionTokenFailed) {
+                val isAuthorizationEnabled = chatProvider.chat?.configuration?.isAuthorizationEnabled
+                val state = currentUiState(this, null, true, isAuthorizationEnabled) ?: return@scope
+                val currentState = uiState.value
+                if (!(state == Prepared && (currentState is UiSettings || currentState is Configuration))) {
+                    setUiState(state)
+                }
+            } else {
+                error("Chat SDK reported exception.", exception)
+            }
         }
     }
 

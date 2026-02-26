@@ -968,13 +968,13 @@ private fun ThemeColorsList() {
 private fun ColorPreviewItem(
     label: String,
     color: Color,
-    itemMod: Modifier,
+    modifier: Modifier,
     rowMod: Modifier,
     textMod: Modifier,
     shape: Shape,
 ) {
     Row(modifier = rowMod) {
         Text(text = label, modifier = textMod)
-        Spacer(modifier = itemMod.background(color = color, shape = shape))
+        Spacer(modifier = modifier.background(color = color, shape = shape))
     }
 }

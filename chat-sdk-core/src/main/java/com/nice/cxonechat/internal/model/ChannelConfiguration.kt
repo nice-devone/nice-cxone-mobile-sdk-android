@@ -15,6 +15,7 @@
 
 package com.nice.cxonechat.internal.model
 
+import com.nice.cxonechat.enums.AuthenticationType
 import com.nice.cxonechat.internal.model.AvailabilityStatus.Online
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -28,6 +29,9 @@ internal data class ChannelConfiguration(
 
     @SerialName("isAuthorizationEnabled")
     val isAuthorizationEnabled: Boolean,
+
+    @SerialName("isSecuredCookieEnabled")
+    val isSecuredCookieEnabled: Boolean,
 
     @SerialName("preContactForm")
     val preContactForm: PreContactFormModel?,
@@ -45,6 +49,12 @@ internal data class ChannelConfiguration(
 
         @SerialName("isProactiveChatEnabled")
         val isProactiveChatEnabled: Boolean,
+
+        @SerialName("liveChatAllowTranscript")
+        val liveChatAllowTranscript: Boolean,
+
+        @SerialName("securedSessions")
+        val securedSessions: Boolean,
 
         @SerialName("fileRestrictions")
         val fileRestrictions: FileRestrictions,
@@ -84,12 +94,40 @@ internal data class ChannelConfiguration(
         hasMultipleThreadsPerEndUser = settings.hasMultipleThreadsPerEndUser,
         isProactiveChatEnabled = settings.isProactiveChatEnabled,
         isAuthorizationEnabled = isAuthorizationEnabled,
+        isSecuredCookieEnabled = isSecuredCookieEnabled,
+        securedSessions = settings.securedSessions,
+        authenticationType = determineAuthenticationType(),
         preContactSurvey = preContactForm?.toPreContactSurvey(channelId),
         fileRestrictions = settings.fileRestrictions.toPublic(),
+        liveChatAllowTranscript = settings.liveChatAllowTranscript,
         isLiveChat = isLiveChat,
         isOnline = availability.status == Online,
         features = settings.features,
     )
+
+    /**
+     * Determines the authentication type based on channel configuration.
+     *
+     * **Authentication Type Priority Order:**
+     * 1. [AuthenticationType.SecuredCookie] - if [isSecuredCookieEnabled] is true
+     * 2. [AuthenticationType.ThirdPartyOAuth] - if [isAuthorizationEnabled] is true
+     * 3. [AuthenticationType.Anonymous] - default fallback
+     *
+     * **IMPORTANT**: If both [isSecuredCookieEnabled] and [isAuthorizationEnabled] are true,
+     * the backend configuration may be ambiguous. In this case, [AuthenticationType.SecuredCookie]
+     * takes precedence. This priority should be validated against backend configuration to ensure
+     * it matches the intended authentication behavior.
+     *
+     * This priority is by design to ensure secured cookie authentication (server-side sessions)
+     * takes precedence over OAuth when both are enabled, as it provides a fallback mechanism.
+     *
+     * @return The determined [AuthenticationType] for this channel
+     */
+    private fun determineAuthenticationType(): AuthenticationType = when {
+        isSecuredCookieEnabled -> AuthenticationType.SecuredCookie
+        isAuthorizationEnabled -> AuthenticationType.ThirdPartyOAuth
+        else -> AuthenticationType.Anonymous
+    }
 
     companion object {
         private fun FileRestrictions.toPublic() = object : PublicFileRestrictions {

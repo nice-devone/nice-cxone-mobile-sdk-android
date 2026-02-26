@@ -45,7 +45,7 @@ sealed class UiState(val isInDialog: Boolean) {
      */
     interface UiStateContext {
         /** Invoke to login with the amazon OAuth provider. */
-        fun loginWithAmazon()
+        fun loginWithAmazon(isForced: Boolean)
 
         /** Invoke to pick an image to be used as a logo in the chat windows. */
         fun pickImage(onPickImage: (String?) -> Unit)
@@ -98,11 +98,15 @@ sealed class UiState(val isInDialog: Boolean) {
         }
     }
 
-    /** Performing OAuth authentication with the user. */
-    data object OAuth : UiState(isInDialog = true) {
+    /**
+     * Performing OAuth authentication with the user.
+     *
+     * @param isForced true if the OAuth login should be forced, i.e., ignoring any existing credentials.
+     * */
+    data class OAuth(val isForced: Boolean) : UiState(isInDialog = true) {
         @Composable
         override fun Content(context: UiStateContext) {
-            context.loginWithAmazon()
+            context.loginWithAmazon(isForced)
         }
     }
 

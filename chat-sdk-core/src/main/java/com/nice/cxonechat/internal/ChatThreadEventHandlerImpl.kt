@@ -17,9 +17,16 @@ package com.nice.cxonechat.internal
 
 import com.nice.cxonechat.ChatThreadEventHandler
 import com.nice.cxonechat.ChatThreadEventHandler.OnEventErrorListener
+import com.nice.cxonechat.ChatThreadEventHandler.OnEventResponseListener
 import com.nice.cxonechat.ChatThreadEventHandler.OnEventSentListener
+import com.nice.cxonechat.EventResponse
+import com.nice.cxonechat.enums.ErrorType
 import com.nice.cxonechat.event.thread.ChatThreadEvent
+import com.nice.cxonechat.event.thread.SendTranscriptEvent
 import com.nice.cxonechat.exceptions.CXoneException
+import com.nice.cxonechat.exceptions.RuntimeChatException.ServerCommunicationError
+import com.nice.cxonechat.internal.model.network.EventTranscriptSent
+import com.nice.cxonechat.internal.socket.EventCallback.Companion.acceptResponse
 import com.nice.cxonechat.internal.socket.send
 import com.nice.cxonechat.thread.ChatThread
 
@@ -28,7 +35,12 @@ internal class ChatThreadEventHandlerImpl(
     private val thread: ChatThread,
 ) : ChatThreadEventHandler {
 
-    override fun trigger(event: ChatThreadEvent, listener: OnEventSentListener?, errorListener: OnEventErrorListener?) {
+    override fun trigger(
+        event: ChatThreadEvent,
+        listener: OnEventSentListener?,
+        errorListener: OnEventErrorListener?,
+        responseListener: OnEventResponseListener?,
+    ) {
         val socket = chat.socket ?: return
 
         try {
@@ -36,6 +48,22 @@ internal class ChatThreadEventHandlerImpl(
             when (listener) {
                 null -> socket.send(model)
                 else -> socket.send(model, listener::onSent)
+            }
+            if (responseListener != null) {
+                when (event) {
+                    is SendTranscriptEvent -> chat.socketListener.acceptResponse(
+                        sent = event,
+                        received = EventTranscriptSent,
+                        errorType = ErrorType.SendingTranscriptFailed,
+                        failure = { errorListener?.onError(ServerCommunicationError(ErrorType.SendingTranscriptFailed.value)) }
+                    ) {
+                        responseListener.onResponse(EventResponse.Success)
+                    }
+
+                    else -> {
+                        // Other events can be handled here as needed
+                    }
+                }
             }
         } catch (exc: CXoneException) {
             errorListener?.onError(exc)

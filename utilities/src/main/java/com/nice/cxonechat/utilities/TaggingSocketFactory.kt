@@ -28,7 +28,14 @@ import java.net.Socket
  */
 object TaggingSocketFactory : DelegatingSocketFactory() {
     override fun configure(socket: Socket) {
-        val socketTag = Thread.currentThread().id.toInt()
+        val socketTag = Thread.currentThread().let { thread ->
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+                thread.threadId()
+            } else {
+                @Suppress("DEPRECATION") // Using deprecated method for backward compatibility
+                thread.id
+            }
+        }.toInt()
         if (TrafficStats.getThreadStatsTag() != socketTag) {
             TrafficStats.setThreadStatsTag(socketTag)
         }

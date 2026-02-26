@@ -300,8 +300,8 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
             dialogShownFlow = chatViewModel.dialogShown,
             modifier = testMod,
             cancelAction = remember { { finish() } },
-            submitAction = remember { { chatViewModel.respondToSurvey(it) } },
-            retryAction = remember { { chatViewModel.refreshThreadState() } }
+            submitPreChatSurvey = remember { { chatViewModel.respondToSurvey(it) } },
+            retryAction = remember { { chatViewModel.refreshThreadState() } },
         )
         ChatStateEffect(
             chatStateFlow = chatStateViewModel.state,
@@ -389,7 +389,7 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
                 if (attachmentType is AttachmentType.CaptureMedia) {
                     withCameraPermission(
                         onGranted = {
-                            activityLauncher.getAttachment(attachmentType)
+                            lifecycleScope.launch { activityLauncher.getAttachment(attachmentType) }
                         },
                         onRequest = {
                             pendingAttachmentType = attachmentType
@@ -398,7 +398,7 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
                     )
                 } else {
                     // Non-camera attachment types don't need camera permission
-                    activityLauncher.getAttachment(attachmentType)
+                    lifecycleScope.launch { activityLauncher.getAttachment(attachmentType) }
                 }
             }
             ThreadContentView(
@@ -428,6 +428,11 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
                 onAttachmentTypeSelection = remember { { onAttachmentSelection(it) } },
                 snackBarHostState = snackbarHostState
             )
+            LaunchedEffect(chatThreadViewModel) {
+                chatThreadViewModel.errorEvents.collect { message ->
+                    chatStateViewModel.showError(LOW, message)
+                }
+            }
             val chatThreadsState by chatThreadsViewModel.state.collectAsState()
             if (chatThreadsState === ChatThreadsViewModel.State.ThreadSelected) {
                 chatThreadsViewModel.resetState()
@@ -570,7 +575,9 @@ private fun ChatActivity.getCameraRequestResult() =
                 valueStorage.removeFromStringSet(RequestedPermissionsKey, setOf(permission.CAMERA))
             }
             // Launch the camera activity immediately if pending
-            pendingAttachmentType?.let { activityLauncher.getAttachment(it) }
+            pendingAttachmentType?.let {
+                lifecycleScope.launch { activityLauncher.getAttachment(it) }
+            }
             pendingAttachmentType = null
         } else {
             pendingAttachmentType = null

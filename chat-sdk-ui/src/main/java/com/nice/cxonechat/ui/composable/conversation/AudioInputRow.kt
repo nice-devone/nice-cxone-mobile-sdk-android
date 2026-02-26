@@ -50,6 +50,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.TextOverflow
@@ -73,6 +74,7 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.SendButton
 import com.nice.cxonechat.ui.composable.theme.SmallSpacer
+import com.nice.cxonechat.ui.data.RequestResult
 import com.nice.cxonechat.ui.screen.ChatActivity
 import com.nice.cxonechat.ui.util.ErrorGroup.LOW
 import com.nice.cxonechat.ui.util.koinActivityViewModel
@@ -217,22 +219,24 @@ private fun DeleteButton(onClick: () -> Unit) {
 @Composable
 private fun StopRecordingButton(
     scope: CoroutineScope,
-    onAudioRecordToggle: suspend () -> Boolean,
+    onAudioRecordToggle: suspend () -> RequestResult,
     onSelectorChange: () -> Unit,
 ) {
-    val context = LocalContext.current
+    val resources = LocalResources.current
     val chatStateViewModel =
         if (!LocalInspectionMode.current && LocalActivity.current is ChatActivity) {
             koinActivityViewModel<ChatStateViewModel>()
         } else {
             null
         }
-    val stopRecording: () -> Unit = remember(scope, context) {
+    val stopRecording: () -> Unit = remember(scope, resources) {
         {
             scope.launch {
                 val toggleChangeResult = onAudioRecordToggle()
-                if (!toggleChangeResult) {
-                    chatStateViewModel?.showError(LOW, context.getString(R.string.recording_audio_failed))
+                if (toggleChangeResult != RequestResult.SUCCESS) {
+                    if (toggleChangeResult == RequestResult.FAILURE) {
+                        chatStateViewModel?.showError(LOW, resources.getString(R.string.recording_audio_failed))
+                    }
                     onSelectorChange()
                 }
             }
@@ -269,7 +273,7 @@ private fun PreviewButtons() {
                         .padding(horizontal = 10.dp)
                 ) {
                     Text("Stop")
-                    StopRecordingButton(rememberCoroutineScope(), { true }, {})
+                    StopRecordingButton(rememberCoroutineScope(), { RequestResult.SUCCESS }, {})
                 }
             }
         }

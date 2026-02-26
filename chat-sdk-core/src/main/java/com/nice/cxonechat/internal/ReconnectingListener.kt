@@ -89,7 +89,11 @@ internal class ReconnectingListener(
      * Stops after MAX_RECONNECT_ATTEMPTS.
      */
     private fun attemptReconnectWithBackoff(): Unit = loggerScope.scope("attemptReconnectWithBackoff") {
-        if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) return
+        if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+            info("Max reconnect attempts reached, notifying listener of unexpected disconnect")
+            chatStateListener?.onUnexpectedDisconnect()
+            return
+        }
         reconnectJob?.cancel()
         reconnectJob = coroutineScope.launch {
             // Calculate delay
@@ -160,6 +164,7 @@ internal class ReconnectingListener(
             } else {
                 // Reconnect with exponential backoff if allowed
                 debug("WebSocket connection failed, will attempt to reconnect")
+                chatStateListener?.onConnecting()
                 attemptReconnectWithBackoff()
             }
         }
@@ -177,6 +182,7 @@ internal class ReconnectingListener(
             cancellable = null
             if (code != WebSocketSpec.CLOSE_NORMAL_CODE && wasEverConnected.get()) {
                 debug("WebSocket is closing abnormally, will attempt to reconnect")
+                chatStateListener?.onConnecting()
                 // Abnormal closure after a successful connection, attempt to reconnect
                 attemptReconnectWithBackoff()
             }

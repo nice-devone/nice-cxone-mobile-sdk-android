@@ -15,6 +15,7 @@
 
 package com.nice.cxonechat.internal.model
 
+import com.nice.cxonechat.enums.AuthenticationType
 import com.nice.cxonechat.prechat.PreChatSurvey
 import com.nice.cxonechat.state.Configuration
 import com.nice.cxonechat.state.FileRestrictions
@@ -23,20 +24,28 @@ internal data class ConfigurationInternal(
     override val hasMultipleThreadsPerEndUser: Boolean,
     override val isProactiveChatEnabled: Boolean,
     override val isAuthorizationEnabled: Boolean,
+    override val isSecuredCookieEnabled: Boolean,
+    override val securedSessions: Boolean,
+    internal val authenticationType: AuthenticationType,
     internal val preContactSurvey: PreChatSurvey?,
     override val fileRestrictions: FileRestrictions,
     override val isLiveChat: Boolean,
     override val isOnline: Boolean,
+    override val liveChatAllowTranscript: Boolean,
     private val features: Map<String, Boolean>,
 ) : Configuration {
     override fun toString() = "Configuration(" +
             "hasMultipleThreadsPerEndUser=$hasMultipleThreadsPerEndUser, " +
             "isProactiveChatEnabled=$isProactiveChatEnabled, " +
             "isAuthorizationEnabled=$isAuthorizationEnabled, " +
+            "isSecuredCookieEnabled=$isSecuredCookieEnabled, " +
+            "securedSessions=$securedSessions, " +
+            "authenticationType=$authenticationType, " +
             "preContactSurvey=$preContactSurvey, " +
             "fileRestrictions=$fileRestrictions, " +
-            "isLiveChat=$isLiveChat " +
-            "isOnline=$isOnline" +
+            "liveChatAllowTranscript=$liveChatAllowTranscript, " +
+            "isLiveChat=$isLiveChat, " +
+            "isOnline=$isOnline, " +
             "features=$features" +
             ")"
 

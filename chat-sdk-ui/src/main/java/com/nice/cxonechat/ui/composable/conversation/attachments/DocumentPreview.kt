@@ -20,14 +20,22 @@ import androidx.compose.ui.Modifier
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.ui.composable.generic.PdfThumbnail
 import com.nice.cxonechat.ui.composable.generic.ThumbnailSize
+import com.nice.cxonechat.ui.util.contentDescription
 
 @Composable
 internal fun DocumentPreview(
     attachment: Attachment,
     modifier: Modifier,
     thumbnailSize: ThumbnailSize,
+    contentDescription: String? = attachment.contentDescription,
     showFrame: (Boolean) -> Unit,
 ) {
     // For now we only support PDF documents, so we can use the PDF thumbnail which has fallback
-    PdfThumbnail(attachment = attachment, modifier = modifier, fallbackSize = thumbnailSize, showFrame = showFrame)
+    PdfThumbnail(
+        attachment = attachment,
+        modifier = modifier,
+        fallbackSize = thumbnailSize,
+        showFrame = showFrame,
+        contentDescription = contentDescription,
+    )
 }

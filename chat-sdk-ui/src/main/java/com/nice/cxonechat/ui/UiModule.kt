@@ -117,7 +117,7 @@ class UiModule internal constructor() {
                     factory(named(LOGGER_NAME)) { logger }
                     single(named(CustomFieldProviderType.Customer)) { customerFieldsProvider }
                     single(named(CustomFieldProviderType.Contact)) { contactFieldsProvider }
-                    factory { runCatching { ChatInstanceProvider.get().chat?.configuration }.getOrNull() }
+                factory { runCatching { ChatInstanceProvider.get().chat?.configuration }.getOrNull() }
                 },
                 UiModule().module,
             )

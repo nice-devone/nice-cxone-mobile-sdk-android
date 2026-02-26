@@ -53,7 +53,7 @@ import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -151,8 +151,8 @@ private fun ActiveThreadToggle(
     showArchivedThreads: Boolean = false,
     onValueChanged: (Boolean) -> Unit = {},
 ) {
-    val context = LocalContext.current
-    val states = remember { context.resources.getStringArray(array.thread_state_names).toList() }
+    val resources = LocalResources.current
+    val states = remember(resources) { resources.getStringArray(array.thread_state_names).toList() }
 
     Row(
         modifier = Modifier
@@ -328,6 +328,7 @@ private fun ChatThreadWrapper(
             onDismiss = { value ->
                 if (value == EndToStart) {
                     onArchiveThread(currentThread)
+                    @Suppress("AssignedValueIsNeverRead") // False positive - used in AnimatedVisibility
                     visible = false // Hide the thread after archiving
                 }
                 if (value == StartToEnd) {

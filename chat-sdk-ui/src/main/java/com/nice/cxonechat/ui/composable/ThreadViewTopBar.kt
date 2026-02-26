@@ -26,6 +26,7 @@ import com.nice.cxonechat.ui.composable.conversation.model.ConversationTopBarSta
 import com.nice.cxonechat.ui.composable.theme.BackButton
 import com.nice.cxonechat.ui.util.koinActivityViewModel
 import com.nice.cxonechat.ui.viewmodel.ChatThreadViewModel
+import com.nice.cxonechat.ui.viewmodel.SendTranscriptDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,11 +43,13 @@ internal fun ThreadViewTopBar(isMultiThread: Boolean, isLiveChat: Boolean, scrol
             hasQuestions = hasQuestions,
             isArchived = chatThreadViewModel.isArchived,
             threadState = chatThreadViewModel.threadStateFlow,
+            liveChatAllowTranscript = chatThreadViewModel.liveChatAllowTranscript
         ),
         onEditThreadName = { chatThreadViewModel.editThreadName() },
         onEditThreadValues = chatThreadViewModel::startEditingCustomValues,
         onEndContact = chatThreadViewModel::endContact,
         displayEndConversation = chatThreadViewModel::showEndContactDialog,
+        onSendTranscript = { chatThreadViewModel.showSendTranscriptDialog(SendTranscriptDialog.SendTranscript) },
         navigationIcon = {
             val dispatcher = (LocalActivity.current as? ComponentActivity)?.onBackPressedDispatcher
             val onBack: () -> Unit = {

@@ -17,9 +17,11 @@ package com.nice.cxonechat.internal
 
 import com.nice.cxonechat.ChatThreadEventHandler
 import com.nice.cxonechat.ChatThreadEventHandler.OnEventErrorListener
+import com.nice.cxonechat.ChatThreadEventHandler.OnEventResponseListener
 import com.nice.cxonechat.ChatThreadEventHandler.OnEventSentListener
 import com.nice.cxonechat.event.RefreshToken
 import com.nice.cxonechat.event.thread.ChatThreadEvent
+import com.nice.cxonechat.state.Configuration
 import com.nice.cxonechat.util.expiresWithin
 import java.util.Date
 import kotlin.time.Duration.Companion.seconds
@@ -29,11 +31,20 @@ internal class ChatThreadEventHandlerTokenGuard(
     private val chat: ChatWithParameters,
 ) : ChatThreadEventHandler by origin {
 
-    override fun trigger(event: ChatThreadEvent, listener: OnEventSentListener?, errorListener: OnEventErrorListener?) {
+    override fun trigger(
+        event: ChatThreadEvent,
+        listener: OnEventSentListener?,
+        errorListener: OnEventErrorListener?,
+        responseListener: OnEventResponseListener?,
+    ) {
         val expiresAt = chat.storage.authTokenExpDate ?: Date(Long.MAX_VALUE)
         if (expiresAt.expiresWithin(10.seconds)) {
-            chat.events().trigger(RefreshToken)
+            if (chat.configuration.hasFeature(Configuration.Feature.SecuredSessions)) {
+                TokenRefreshHelper.refreshAccessToken(chat)
+            } else {
+                chat.events().trigger(RefreshToken)
+            }
         }
-        origin.trigger(event, listener, errorListener)
+        origin.trigger(event, listener, errorListener, responseListener)
     }
 }

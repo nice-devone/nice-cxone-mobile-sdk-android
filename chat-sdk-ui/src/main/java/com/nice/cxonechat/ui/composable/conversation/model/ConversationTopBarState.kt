@@ -26,6 +26,7 @@ internal data class ConversationTopBarState(
     val isMultiThreaded: Boolean,
     val hasQuestions: Boolean,
     val isLiveChat: Boolean,
+    val liveChatAllowTranscript: Boolean,
     val isArchived: StateFlow<Boolean>,
     val threadState: StateFlow<ChatThreadState>,
 )

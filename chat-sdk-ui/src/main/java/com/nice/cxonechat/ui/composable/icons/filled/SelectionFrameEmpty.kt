@@ -68,7 +68,7 @@ private var _selection_frame_empty: ImageVector? = null
 
 @Preview
 @Composable
-private fun Preview() {
+private fun PreviewSelectionFrameEmpty() {
     Box(modifier = Modifier.padding(12.dp)) {
         Image(imageVector = ChatIcons.SelectionFrameEmpty, contentDescription = "")
     }

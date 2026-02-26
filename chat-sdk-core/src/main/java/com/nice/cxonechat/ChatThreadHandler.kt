@@ -32,7 +32,7 @@ import com.nice.cxonechat.thread.ChatThreadState
  */
 @Public
 @Suppress(
-    "ComplexInterface"
+    "ComplexInterface",
 )
 interface ChatThreadHandler {
 

@@ -52,6 +52,8 @@ import com.nice.cxonechat.ui.composable.icons.outlined.Camera
 import com.nice.cxonechat.ui.composable.icons.outlined.FingerDownArrow
 import com.nice.cxonechat.ui.composable.icons.outlined.Folder
 import com.nice.cxonechat.ui.composable.icons.outlined.Image
+import com.nice.cxonechat.ui.composable.icons.outlined.Mail
+import com.nice.cxonechat.ui.composable.icons.outlined.MessageBubble
 import com.nice.cxonechat.ui.composable.icons.outlined.MessageChatCircle
 import com.nice.cxonechat.ui.composable.icons.outlined.MessageXCircle
 import com.nice.cxonechat.ui.composable.icons.outlined.PressFinger
@@ -92,6 +94,8 @@ internal object ChatIcons {
                 SelectionFrameEmpty,
                 VideoAdd,
                 PressFinger,
+                Mail,
+                MessageBubble,
             )
             return _AllIcons!!
         }

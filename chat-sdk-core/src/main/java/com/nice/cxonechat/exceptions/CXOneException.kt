@@ -186,4 +186,11 @@ sealed class RuntimeChatException(message: String, cause: Throwable? = null) : C
      */
     @Public
     class AuthorizationError internal constructor(message: String) : RuntimeChatException(message)
+
+    /**
+     * SDK failed to obtain connection token.
+     * Integrators should log in again to request a new connection token.
+     */
+    @Public
+    class ConnectionTokenFailed internal constructor(message: String) : RuntimeChatException(message)
 }

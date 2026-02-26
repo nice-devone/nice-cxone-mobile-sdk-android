@@ -16,9 +16,11 @@
 package com.nice.cxonechat
 
 import com.nice.cxonechat.ChatThreadEventHandler.OnEventErrorListener
+import com.nice.cxonechat.ChatThreadEventHandler.OnEventResponseListener
 import com.nice.cxonechat.ChatThreadEventHandler.OnEventSentListener
 import com.nice.cxonechat.event.thread.LoadThreadMetadataEvent
 import com.nice.cxonechat.event.thread.MarkThreadReadEvent
+import com.nice.cxonechat.event.thread.SendTranscriptEvent
 import com.nice.cxonechat.event.thread.TypingEndEvent
 import com.nice.cxonechat.event.thread.TypingStartEvent
 import com.nice.cxonechat.exceptions.InvalidParameterException
@@ -97,5 +99,25 @@ object ChatThreadEventHandlerActions {
             return
         }
         trigger(event, listener, errorListener)
+    }
+
+    /**
+     * Send the chat transcript to the specified email address.
+     *
+     * @param email The email address to which the transcript will be sent.
+     * @param listener An optional listener to be notified when the event is sent.
+     * @param errorListener An optional listener to be notified if an error occurs while sending.
+     * @param onEventResponseListener An optional listener to handle the server's response to the event.
+     * */
+    @JvmOverloads
+    @JvmStatic
+    fun ChatThreadEventHandler.sendTranscript(
+        email: String,
+        listener: OnEventSentListener? = null,
+        errorListener: OnEventErrorListener? = null,
+        onEventResponseListener: OnEventResponseListener? = null,
+    ) {
+        val event = SendTranscriptEvent(email = email)
+        trigger(event, listener, errorListener, onEventResponseListener)
     }
 }

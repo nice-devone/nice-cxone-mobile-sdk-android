@@ -76,14 +76,17 @@ internal class ChatThreadMessageHandlerAttachmentTest : AbstractChatTest() {
                 ),
                 true,
             ),
-            features = features
+            features = features,
+            liveChatAllowTranscript = true,
+            securedSessions = false
         ),
         isAuthorizationEnabled = true,
         preContactForm = null,
         isLiveChat = isLiveChat,
         availability = mockk {
             every { status } answers { chatAvailability }
-        }
+        },
+        isSecuredCookieEnabled = false
     )
 
     @Test

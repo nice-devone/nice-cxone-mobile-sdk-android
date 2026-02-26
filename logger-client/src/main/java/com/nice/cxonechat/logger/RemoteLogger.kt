@@ -15,10 +15,15 @@
 
 package com.nice.cxonechat.logger
 
-import android.net.Uri
+import androidx.annotation.VisibleForTesting
+import androidx.core.net.toUri
 import com.nice.cxonechat.log.Level
 import com.nice.cxonechat.log.Logger
+import com.nice.cxonechat.log.LoggerNoop
+import com.nice.cxonechat.log.LoggerScope
 import com.nice.cxonechat.log.error
+import com.nice.cxonechat.log.scope
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -28,7 +33,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
-import java.net.MalformedURLException
 
 /**
  * Remote logging mechanism that sends logs to a remote server.
@@ -38,11 +42,20 @@ import java.net.MalformedURLException
  *
  * @param version The version of the application, used in the log messages.
  * @param okHttpClient The OkHttpClient instance used for making HTTP requests.
+ * @param errorLogger A fallback logger for reporting internal RemoteLogger failures (e.g., network errors, HTTP
+ * failures). This prevents circular logging when remote logging itself fails. Defaults to [LoggerNoop] for backward
+ * compatibility.
+ * @param dispatcher The coroutine dispatcher to use for async logging operations. Defaults to [Dispatchers.IO].
+ * Primarily used for testing to inject a `kotlinx.coroutines.test.TestDispatcher`.
  */
-class RemoteLogger(
+class RemoteLogger internal constructor(
     private val version: String,
-    private val okHttpClient: OkHttpClient
+    private val okHttpClient: OkHttpClient,
+    errorLogger: Logger = LoggerNoop,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : Logger {
+
+    private val externalLogScope = LoggerScope("RemoteLogger", errorLogger)
 
     private val Level.priority
         get() = when {
@@ -61,6 +74,22 @@ class RemoteLogger(
 
     private var isEnabled = true
 
+    /**
+     * Public constructor for RemoteLogger.
+     *
+     * @param version The version of the application, used in the log messages.
+     * @param okHttpClient The OkHttpClient instance used for making HTTP requests.
+     * @param errorLogger A fallback logger for reporting internal RemoteLogger failures (e.g., network errors, HTTP
+     * failures). This prevents circular logging when remote logging itself fails. Defaults to [LoggerNoop] for backward
+     * compatibility.
+     */
+    @JvmOverloads
+    constructor(
+        version: String,
+        okHttpClient: OkHttpClient,
+        errorLogger: Logger = LoggerNoop,
+    ) : this(version, okHttpClient, errorLogger, Dispatchers.IO)
+
     private fun logError(
         level: Level,
         message: String,
@@ -69,7 +98,7 @@ class RemoteLogger(
     ) {
         if (level < Level.Warning || !isEnabled) return // Ignore debug and verbose logs
 
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(dispatcher).launch {
             post(level.priority, message, file, line)
         }
     }
@@ -79,7 +108,7 @@ class RemoteLogger(
         message: String,
         file: String?,
         line: Int?,
-    ) {
+    ): Unit = externalLogScope.scope("post") {
         val detailMap = LogDetail(
             file = file,
             line = line?.toString(),
@@ -143,7 +172,7 @@ class RemoteLogger(
         fun setData(brandId: Long, loggerUrl: String, chatUrl: String, deviceFingerprint: String?) {
             val baseLoggerUrl = loggerUrl.ifEmpty { evaluateLoggerUrl(chatUrl) }
             finalLoggerUrl = if (!baseLoggerUrl.isNullOrEmpty()) {
-                Uri.parse(baseLoggerUrl)
+                baseLoggerUrl.toUri()
                     .buildUpon()
                     .appendQueryParameter("brandId", brandId.toString())
                     .appendQueryParameter("program", PROGRAM)
@@ -155,12 +184,11 @@ class RemoteLogger(
             this.deviceFingerprint = deviceFingerprint
         }
 
-        private fun evaluateLoggerUrl(chatUrl: String): String? {
-            val url = try {
+        @VisibleForTesting
+        internal fun evaluateLoggerUrl(chatUrl: String): String? {
+            val url = runCatching {
                 java.net.URI(chatUrl).toURL()
-            } catch (e: MalformedURLException) {
-                return null
-            }
+            }.getOrNull()
 
             val baseUrl = url.toString().substringBeforeLast("/chat/")
             val replaced = baseUrl.replace("channels", "app")

@@ -15,93 +15,159 @@
 
 package com.nice.cxonechat.storage
 
-import android.content.SharedPreferences
-import android.content.SharedPreferences.Editor
-import com.nice.cxonechat.tool.getPublicProperties
-import com.nice.cxonechat.tool.nextString
-import io.mockk.confirmVerified
-import io.mockk.every
-import io.mockk.justRun
+import android.content.Context
+import com.nice.cxonechat.internal.model.TransactionTokenModel
+import com.nice.cxonechat.log.LoggerNoop
+import com.nice.cxonechat.storage.ValueStorage.VisitDetails
+import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
-import io.mockk.verify
+import kotlinx.coroutines.flow.flowOf
+import org.junit.Before
 import org.junit.Test
-import kotlin.reflect.KMutableProperty
-import kotlin.reflect.KProperty
-import kotlin.test.assertEquals
+import java.util.Date
+import java.util.UUID
 
-/**
- * This test objective is to ensure that the [SharedPreferences] are used correctly.
- * Namely, each stored property should use different key for storage and also that the values returned by the implementation are not
- * modified.
- *
- * For now only [String] properties access from [ValueStorage] is tested.
- */
 internal class PreferencesValueStorageTest {
+    private lateinit var mockDataStore: EncryptedDataStoreContract
+    private lateinit var storage: PreferencesValueStorage
 
-    private val editor = mockk<Editor>()
-    private val sharedPreferences = mockk<SharedPreferences> {
-        every { edit() } returns editor
+    @Before
+    fun setUp() {
+        mockDataStore = mockk(relaxed = true)
+        val mockContext: Context = mockk(relaxed = true)
+        storage = PreferencesValueStorage(
+            context = mockContext,
+            logger = LoggerNoop,
+            store = mockDataStore
+        )
     }
-    private val storage: ValueStorage = PreferencesValueStorage(sharedPreferences)
-    private val stringProperties
-        get() = storage::class
-            .members
-            .getPublicProperties()
-            .filter { it.returnType.classifier == String::class }
-            .map {
-                @Suppress("UNCHECKED_CAST")
-                it as KMutableProperty<String>
-            }
 
-    /**
-     * Test that all supported property types from [ValueStorage] interface a properly stored to [SharedPreferences] using unique key for
-     * each property.
-     */
     @Test
-    fun storageIsStoringValues() {
-        val keys = mutableListOf<String>()
+    fun authToken_callsDataStoreForGet() {
+        coEvery { mockDataStore.getString("share_sdk_auth_token") } returns flowOf("test-token")
 
-        every { editor.putString(capture(keys), any()) } returns editor
-        justRun { editor.apply() }
+        val result = storage.authToken
 
-        for (property in stringProperties) {
-            val value = nextString()
-
-            property.set(value)
-
-            verify {
-                editor.putString(any(), eq(value))
-                editor.apply()
-            }
-        }
-
-        confirmVerified(editor)
-
-        // Insure that there are no duplicated keys
-        assertEquals(keys, keys.toSet().toList(), "Duplicated key used in ValueStorage: $keys")
+        // Verify the result is correct
+        result shouldBe "test-token"
     }
 
-    /**
-     * Test that all supported property types from [ValueStorage] interface are retrieved from [SharedPreferences].
-     */
     @Test
-    fun storageIsRetrievingValues() {
-        val testStringValue = nextString()
+    fun authToken_callsDataStoreForSet() {
+        val token = "test-auth-token-12345"
 
-        every { sharedPreferences.getString(any(), any()) } returns testStringValue
+        storage.authToken = token
 
-        for (property in stringProperties) {
-            assertEquals(testStringValue, property.get())
-        }
-
-        verify(exactly = stringProperties.size) {
-            sharedPreferences.getString(any(), any())
-        }
-        confirmVerified(sharedPreferences)
-        confirmVerified(editor)
+        coVerify { mockDataStore.putString("share_sdk_auth_token", token) }
     }
 
-    private fun KProperty<*>.get() = getter.call(storage)
+    @Test
+    fun transactionTokenModel_callsDataStoreForSet() {
+        val tokenModel = TransactionTokenModel(
+            transactionToken = "token-123",
+            expiresIn = 3600,
+            customerIdentity = null,
+            thirdParty = null,
+            createdAt = Date()
+        )
 
-    private fun <T> KMutableProperty<T>.set(value: T) = setter.call(storage, value)
+        storage.transactionTokenModel = tokenModel
+
+        coVerify(atLeast = 1) { mockDataStore.putString(key = "share_sdk_refresh_token", value = any()) }
+    }
+
+    @Test
+    fun authTokenExpDate_callsDataStoreForSet() {
+        val expDate = Date(1000000)
+
+        storage.authTokenExpDate = expDate
+
+        coVerify { mockDataStore.putString("share_sdk_auth_token_exp_date", "1000000") }
+    }
+
+    @Test
+    fun authTokenExpDate_callsDataStoreRemoveWhenNull() {
+        storage.authTokenExpDate = null
+
+        coVerify { mockDataStore.remove("share_sdk_auth_token_exp_date") }
+    }
+
+    @Test
+    fun customerId_callsDataStoreForSet() {
+        val customerId = "customer-123-xyz"
+
+        storage.customerId = customerId
+
+        coVerify { mockDataStore.putString("share_customer_id", customerId) }
+    }
+
+    @Test
+    fun customerId_callsDataStoreRemoveWhenNull() {
+        storage.customerId = null
+
+        coVerify { mockDataStore.remove("share_customer_id") }
+    }
+
+    @Test
+    fun visitorId_callsDataStoreForSet() {
+        val visitorId = UUID.randomUUID()
+
+        storage.visitorId = visitorId
+
+        coVerify { mockDataStore.putString("share_visitor_id", visitorId.toString()) }
+    }
+
+    @Test
+    fun deviceToken_callsDataStoreForSet() {
+        val token = "device-token-firebase-123"
+
+        storage.deviceToken = token
+
+        coVerify { mockDataStore.putString("device_token", token) }
+    }
+
+    @Test
+    fun welcomeMessage_callsDataStoreForSet() {
+        val message = "Welcome to our chat service!"
+
+        storage.welcomeMessage = message
+
+        coVerify { mockDataStore.putString("share_welcome_message", message) }
+    }
+
+    @Test
+    fun clearStorage_callsDataStoreClear() {
+        storage.clearStorage()
+
+        coVerify { mockDataStore.clear() }
+    }
+
+    @Test
+    fun destinationId_returnsConsistentValue() {
+        val firstId = storage.destinationId
+        val secondId = storage.destinationId
+
+        firstId shouldBe secondId
+    }
+
+    @Test
+    fun visitDetails_callsDataStoreForSet() {
+        val visitDetails = VisitDetails(
+            visitId = UUID.randomUUID(),
+            validUntil = Date()
+        )
+
+        storage.visitDetails = visitDetails
+
+        coVerify(atLeast = 1) { mockDataStore.putString(key = "share_visit_details", value = any()) }
+    }
+
+    @Test
+    fun visitDetails_callsDataStoreRemoveWhenNull() {
+        storage.visitDetails = null
+
+        coVerify { mockDataStore.remove("share_visit_details") }
+    }
 }

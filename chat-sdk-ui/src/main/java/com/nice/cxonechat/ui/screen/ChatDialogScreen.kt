@@ -58,7 +58,7 @@ import java.util.UUID
  * @param dialogShownFlow Flow that emits the current dialog state.
  * @param modifier Modifier to be applied to the dialog.
  * @param cancelAction Action to perform when the dialog is cancelled.
- * @param submitAction Action to perform when a valid survey is submitted.
+ * @param submitPreChatSurvey Action to perform when a valid survey is submitted.
  * @param retryAction Action to perform when retrying after a failure.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,13 +67,17 @@ internal fun ChatDialogScreen(
     dialogShownFlow: StateFlow<DialogState>,
     modifier: Modifier = Modifier,
     cancelAction: () -> Unit,
-    submitAction: (Sequence<PreChatResponse>) -> Unit = {},
+    submitPreChatSurvey: (Sequence<PreChatResponse>) -> Unit = {},
     retryAction: () -> Unit,
 ) {
     when (val dialog = dialogShownFlow.collectAsState().value) {
         None -> {}
         Preparing -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            LoadingOverlayFullScreen(modifier = modifier, onClose = cancelAction)
+            LoadingOverlayFullScreen(
+                modifier = modifier,
+                closeButtonText = stringResource(string.close_chat),
+                onClose = cancelAction
+            )
         } else {
             // Workaround for DE-134115, where the UI is not properly updated
             PreparingDialog(
@@ -86,7 +90,7 @@ internal fun ChatDialogScreen(
             modifier = modifier,
             survey = dialog.survey,
             onCancel = cancelAction,
-            onValidSurveySubmission = submitAction,
+            onValidSurveySubmission = submitPreChatSurvey,
         )
 
         is ThreadCreationFailed -> ChatTheme.Alert(
@@ -127,7 +131,10 @@ private fun PreparingDialog(
                 },
             contentAlignment = Alignment.Center
         ) {
-            LoadingContent(cancelAction)
+            LoadingContent(
+                closeButtonText = stringResource(string.close_chat),
+                onClose = cancelAction
+            )
         }
     }
 }
@@ -151,7 +158,7 @@ private fun ChatDialogPreview() {
             ChatDialogScreen(
                 dialogShownFlow = dialogFlow,
                 cancelAction = { dialogFlow.value = None },
-                submitAction = { dialogFlow.value = None },
+                submitPreChatSurvey = { dialogFlow.value = None },
                 retryAction = { dialogFlow.value = None },
             )
         }

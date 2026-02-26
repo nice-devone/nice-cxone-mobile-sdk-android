@@ -41,14 +41,18 @@ internal class SocketFactoryDefault(
             .build()
     }
 
-    override fun create(listener: WebSocketListener, visitorId: String): WebSocket = okHttpClient.newWebSocket(
-        Request.Builder().url(socketUrl(visitorId)).build(),
+    override fun create(
+        listener: WebSocketListener,
+        visitorId: String,
+        transactionToken: String?,
+    ): WebSocket = okHttpClient.newWebSocket(
+        Request.Builder().url(socketUrl(visitorId, transactionToken)).build(),
         listener,
     )
 
     override fun createProxyListener(): ProxyWebSocketListener = ProxyWebSocketListener()
 
-    private fun socketUrl(visitorId: String) = buildString {
+    private fun socketUrl(visitorId: String, transactionToken: String?) = buildString {
         append(config.environment.socketUrl)
         append("?brandId=")
         append(config.brandId.toString())
@@ -56,9 +60,13 @@ internal class SocketFactoryDefault(
         append(config.channelId)
         append("&visitorId=")
         append(visitorId)
-        append("&sdkPlatform=android")
         append("&sdkVersion=")
         append(BuildConfig.VERSION_NAME)
+        append("&sdkPlatform=android")
+        if (transactionToken != null) {
+            append("&transactionToken=")
+            append(transactionToken)
+        }
     }
 
     override fun getConfiguration(storage: ValueStorage) = ConnectionInternal(

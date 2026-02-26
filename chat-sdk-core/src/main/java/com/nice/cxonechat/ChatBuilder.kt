@@ -29,6 +29,7 @@ import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerNoop
 import com.nice.cxonechat.log.ProxyLogger
 import com.nice.cxonechat.logger.RemoteLogger
+import com.nice.cxonechat.storage.CookieJarProvider
 import com.nice.cxonechat.utilities.TaggingSocketFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -180,10 +181,12 @@ interface ChatBuilder {
             config: SocketFactoryConfiguration,
             logger: Logger = LoggerNoop,
         ): ChatBuilder {
+            val cookieJar = CookieJarProvider.getInstance(context, logger = logger)
             val sharedClient =
                 runBlocking(Dispatchers.IO) {
                     OkHttpClient()
                         .newBuilder()
+                        .cookieJar(cookieJar)
                         .addInterceptor { chain ->
                             chain.proceed(
                                 chain.request()
@@ -199,10 +202,10 @@ interface ChatBuilder {
 
             val factory = SocketFactoryDefault(config, sharedClient)
             val updateLogger = ProxyLogger(
-                RemoteLogger(BuildConfig.VERSION_NAME, sharedClient),
+                RemoteLogger(BuildConfig.VERSION_NAME, sharedClient, logger),
                 logger
             )
-            val entrails = ChatEntrailsAndroid(context.applicationContext, factory, config, sharedClient, updateLogger)
+            val entrails = ChatEntrailsAndroid(context.applicationContext, factory, config, sharedClient, updateLogger, cookieJar)
             return invoke(
                 entrails = entrails,
                 factory = factory

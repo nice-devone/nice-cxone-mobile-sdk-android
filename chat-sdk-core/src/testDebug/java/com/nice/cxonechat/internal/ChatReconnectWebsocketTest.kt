@@ -15,7 +15,9 @@
 
 package com.nice.cxonechat.internal
 
+import com.nice.cxonechat.Authorization
 import com.nice.cxonechat.ChatStateListener
+import com.nice.cxonechat.internal.model.ChatImplDependencies
 import com.nice.cxonechat.internal.model.ConfigurationInternal
 import com.nice.cxonechat.internal.socket.ProxyWebSocketListener
 import com.nice.cxonechat.internal.socket.SocketFactory
@@ -50,6 +52,7 @@ internal class ChatReconnectWebsocketTest {
     private lateinit var chatStateListener: ChatStateListener
     private lateinit var dispatcher: TestDispatcher
     private lateinit var testScope: TestScope
+    private lateinit var authorization: Authorization
 
     @Before
     fun setUp() {
@@ -61,15 +64,19 @@ internal class ChatReconnectWebsocketTest {
         callback = mockk(relaxed = true)
         connection = mockk(relaxed = true)
         chatStateListener = mockk(relaxed = true)
+        authorization = Authorization("code", "verifier")
         every { socketFactory.createProxyListener() } returns ProxyWebSocketListener()
         chatReconnect = ChatReconnectWebsocket(
             ChatImpl(
                 connection = connection,
                 entrails = entrails,
-                socketFactory = socketFactory,
+                dependencies = ChatImplDependencies(
+                    socketFactory = socketFactory,
+                    callback = callback,
+                    authorization = authorization
+                ),
                 configuration = configuration,
-                callback = callback,
-                chatStateListener = chatStateListener,
+                chatStateListener = chatStateListener
             ),
             dispatcher = dispatcher
         )

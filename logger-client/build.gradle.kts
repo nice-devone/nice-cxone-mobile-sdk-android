@@ -38,8 +38,11 @@ mavenPublishing {
 
 dependencies {
     api(project(":logger"))
+    implementation(libs.androidx.ktx)
     implementation(libs.okhttp)
     implementation(libs.retrofit.kotlinx.serialization)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.core)
+    
+    testImplementation(libs.kotlinx.coroutines.test)
 }

@@ -19,6 +19,7 @@ package com.nice.cxonechat
 
 import com.nice.cxonechat.ChatThreadEventHandlerActions.loadMetadata
 import com.nice.cxonechat.ChatThreadEventHandlerActions.markThreadRead
+import com.nice.cxonechat.ChatThreadEventHandlerActions.sendTranscript
 import com.nice.cxonechat.ChatThreadEventHandlerActions.triggerAction
 import com.nice.cxonechat.ChatThreadEventHandlerActions.typingEnd
 import com.nice.cxonechat.ChatThreadEventHandlerActions.typingStart
@@ -90,6 +91,14 @@ internal class ChatThreadEventTest : AbstractChatTest() {
         val action = ActionInternal.ReplyButton(text = "test", postback = "test", null, null)
         assertSendText(ServerRequest.SendMessage(connection, thread, storage, message = action.text, postback = action.postback), id.toString()) {
             events.triggerAction(action)
+        }
+    }
+
+    @Test
+    fun trigger_SendTranscriptEvent_sendsExpectedMessage() {
+        val id = thread.id
+        assertSendText(ServerRequest.SendTranscript(connection, thread,"test@gmail.com"), id.toString()) {
+            events.sendTranscript(email = "test@gmail.com")
         }
     }
 }

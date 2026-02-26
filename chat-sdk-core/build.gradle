@@ -88,16 +88,11 @@ dependencies {
     api project(':logger')
     implementation project(':logger-android')
     implementation project(':logger-client')
+    implementation libs.androidx.datastore
+    implementation libs.tink.android
     testImplementation libs.kotest.assertions.core
     testImplementation libs.kotlin.reflect
     testImplementation libs.gson
     testImplementation libs.kotlinx.coroutines.test
-}
-
-// Required for documentation generation
-afterEvaluate {
-    tasks.findByName("sourceDebugJar").dependsOn(generateDebugNonAndroidBuildConfig)
-    tasks.findByName("sourceReleaseJar").dependsOn(generateReleaseNonAndroidBuildConfig)
-    tasks.findByName("dokkaGenerateModuleHtml").dependsOn(generateReleaseNonAndroidBuildConfig)
-    tasks.findByName("dokkaGeneratePublicationHtml").dependsOn(generateReleaseNonAndroidBuildConfig)
+    androidTestImplementation libs.kotlinx.coroutines.test
 }

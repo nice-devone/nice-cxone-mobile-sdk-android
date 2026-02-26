@@ -41,7 +41,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -93,14 +93,14 @@ object ProductScreen : Screen {
             var error by rememberSaveable { mutableStateOf<String?>(null) }
             val resetError = { error = null }
             val cart = viewModel.storeRepository.cart.collectAsState().value
-            val context = LocalContext.current
+            val resources = LocalResources.current
 
             viewModel.analyticsHandler.SendPageView("product?$productId", "/product/$productId")
 
             LaunchedEffect(productId, attempt) {
                 viewModel.storeRepository.getProduct(productId)
                     .onSuccess { product = it }
-                    .onFailure { error = it.localizedMessage ?: context.getString(string.unknown_error) }
+                    .onFailure { error = it.localizedMessage ?: resources.getString(string.unknown_error) }
             }
 
             Screen(
@@ -180,7 +180,7 @@ object ProductScreen : Screen {
     @Composable
     internal fun ProductView(
         product: Product,
-        addToCart: (Product) -> Unit
+        addToCart: (Product) -> Unit,
     ) {
         Column(
             modifier = TestModifier

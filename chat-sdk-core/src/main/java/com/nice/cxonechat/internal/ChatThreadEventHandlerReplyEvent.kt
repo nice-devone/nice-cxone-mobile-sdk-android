@@ -36,6 +36,7 @@ internal class ChatThreadEventHandlerReplyEvent(
         event: ChatThreadEvent,
         listener: ChatThreadEventHandler.OnEventSentListener?,
         errorListener: ChatThreadEventHandler.OnEventErrorListener?,
+        responseListener: ChatThreadEventHandler.OnEventResponseListener?,
     ) {
         if (event is ReplyButtonEvent) {
             thread.messages().send(
@@ -47,7 +48,7 @@ internal class ChatThreadEventHandlerReplyEvent(
                 }
             )
         } else {
-            handler.trigger(event, listener, errorListener)
+            handler.trigger(event, listener, errorListener, responseListener)
         }
     }
 }

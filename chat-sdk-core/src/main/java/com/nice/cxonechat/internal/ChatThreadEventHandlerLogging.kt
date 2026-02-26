@@ -39,6 +39,7 @@ internal class ChatThreadEventHandlerLogging(
         event: ChatThreadEvent,
         listener: OnEventSentListener?,
         errorListener: OnEventErrorListener?,
+        responseListener: ChatThreadEventHandler.OnEventResponseListener?,
     ) = scope("trigger") {
         verbose("Dispatching (event=$event)")
         duration {
@@ -48,13 +49,17 @@ internal class ChatThreadEventHandlerLogging(
                     scope("onSent") {
                         listener?.onSent()
                     }
+                },
+                errorListener = { exception ->
+                    scope("onError") {
+                        warning("Failed to dispatch (event=$event)", exception)
+                        errorListener?.onError(exception)
+                    }
+                },
+                responseListener = { response ->
+                    responseListener?.onResponse(response)
                 }
-            ) { exception ->
-                scope("onError") {
-                    warning("Failed to dispatch (event=$event)", exception)
-                    errorListener?.onError(exception)
-                }
-            }
+            )
         }
     }
 }

@@ -37,16 +37,15 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerNoop
 import com.nice.cxonechat.message.Attachment
-import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.UiModule.Companion.LOGGER_NAME
 import com.nice.cxonechat.ui.data.source.AttachmentDataSource
 import com.nice.cxonechat.ui.screen.ChatActivity
 import com.nice.cxonechat.ui.util.PdfRender
+import com.nice.cxonechat.ui.util.contentDescription
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
@@ -60,6 +59,7 @@ internal fun PdfThumbnail(
     fallbackModifier: Modifier = modifier,
     fallbackSize: ThumbnailSize = ThumbnailSize.LARGE,
     showFrame: (Boolean) -> Unit,
+    contentDescription: String? = attachment.contentDescription,
 ) {
     val attachmentDataSource: AttachmentDataSource? =
         if (!LocalInspectionMode.current && LocalActivity.current is ChatActivity) {
@@ -97,7 +97,8 @@ internal fun PdfThumbnail(
                     uri = uri,
                     modifier = fallbackModifier,
                     mimeType = attachment.mimeType,
-                    thumbnailSize = fallbackSize
+                    thumbnailSize = fallbackSize,
+                    contentDescription = contentDescription,
                 )
             }
 
@@ -108,7 +109,8 @@ internal fun PdfThumbnail(
                     uri = uri,
                     mimeType = attachment.mimeType,
                     render = render,
-                    fallbackModifier = fallbackModifier
+                    fallbackModifier = fallbackModifier,
+                    contentDescription = contentDescription,
                 )
             }
         }
@@ -122,6 +124,7 @@ private fun PdfThumbnailContent(
     render: PdfRender,
     fallbackModifier: Modifier,
     mimeType: String?,
+    contentDescription: String?,
 ) {
     Box(
         modifier = modifier.fillMaxSize()
@@ -147,7 +150,7 @@ private fun PdfThumbnailContent(
                 page.pageContent.collectAsState().value?.asImageBitmap()?.let {
                     Image(
                         bitmap = it,
-                        contentDescription = stringResource(R.string.content_description_document_preview, "pdf"),
+                        contentDescription = contentDescription,
                         modifier = Modifier.fillMaxWidth(),
                         contentScale = ContentScale.FillWidth
                     )
@@ -159,6 +162,7 @@ private fun PdfThumbnailContent(
                                 page.heightByWidth(constraints.maxWidth).dp
                             }
                         ),
+                    contentDescription = contentDescription,
                     mimeType = mimeType,
                 )
             }

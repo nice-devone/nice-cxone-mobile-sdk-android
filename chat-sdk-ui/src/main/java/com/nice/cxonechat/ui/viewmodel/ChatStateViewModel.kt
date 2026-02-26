@@ -64,6 +64,7 @@ internal class ChatStateViewModel(
         val errorGroup = when (exception) {
             is RuntimeChatException.AuthorizationError -> ErrorGroup.HIGH
             is RuntimeChatException.ServerCommunicationError -> ErrorGroup.LOW
+            is RuntimeChatException.ConnectionTokenFailed -> ErrorGroup.SILENT_EXIT
             else -> DO_NOTHING
         }
         setErrorState(ChatErrorState(errorGroup, exception.message))

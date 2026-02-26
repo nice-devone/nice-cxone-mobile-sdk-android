@@ -38,4 +38,6 @@ data class SdkEnvironment(
     override val chatUrl: String,
     @SerialName("loggerUrl")
     override val loggerUrl: String,
+    @SerialName("authUrl")
+    override val authUrl: String,
 ) : Environment

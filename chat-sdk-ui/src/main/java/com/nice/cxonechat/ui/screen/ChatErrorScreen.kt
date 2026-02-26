@@ -60,6 +60,8 @@ internal fun ChatErrorScreen(
     when (chatErrorState.errorGroup) {
         DO_NOTHING -> Ignored
 
+        ErrorGroup.SILENT_EXIT -> onTerminalError()
+
         ErrorGroup.HIGH ->
             ChatTheme.ErrorAlertDialog(
                 title = stringResource(R.string.error_dialog_title),

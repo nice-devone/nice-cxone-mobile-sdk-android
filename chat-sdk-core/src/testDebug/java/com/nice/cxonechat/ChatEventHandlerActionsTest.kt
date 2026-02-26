@@ -16,6 +16,7 @@
 package com.nice.cxonechat
 
 import com.google.gson.Strictness
+import com.nice.cxonechat.AbstractChatTestSubstrate.Companion.TestUUID
 import com.nice.cxonechat.ChatEventHandlerActions.conversion
 import com.nice.cxonechat.ChatEventHandlerActions.pageView
 import com.nice.cxonechat.ChatEventHandlerActions.proactiveActionClick
@@ -39,6 +40,7 @@ import com.nice.cxonechat.event.AnalyticsEvent.Destination
 import com.nice.cxonechat.internal.ChatEventHandlerImpl
 import com.nice.cxonechat.internal.ChatWithParameters
 import com.nice.cxonechat.internal.RemoteServiceBuilder
+import com.nice.cxonechat.internal.model.TransactionTokenModel
 import com.nice.cxonechat.internal.model.network.PageViewData
 import com.nice.cxonechat.internal.model.network.ProactiveActionInfo
 import com.nice.cxonechat.state.Connection
@@ -100,6 +102,7 @@ internal class ChatEventHandlerActionsTest {
             every { welcomeMessage } returns "welcome"
             every { authToken } returns "token"
             every { visitId } returns local.visitId
+            every { transactionTokenModel } returns TransactionTokenModel(TestUUID, 3600L)
         }
     }
     private val mockService by lazy {

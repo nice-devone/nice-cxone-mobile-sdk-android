@@ -21,9 +21,9 @@ plugins {
     id "koin-conventions"
     id "android-test-conventions"
     id "application-style-conventions"
-    alias (libs.plugins.google.services)
-    alias (libs.plugins.firebase.appdistribution)
-    alias (libs.plugins.firebase.crashlytics)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.appdistribution)
+    alias(libs.plugins.firebase.crashlytics)
     id "org.jetbrains.kotlin.plugin.serialization"
     id "com.github.gmazzo.buildconfig"
 }
@@ -82,7 +82,7 @@ android {
         }
     }
 
-    firebaseAppDistribution {
+    firebaseAppDistributionDefault {
         artifactType = "APK"
         releaseNotesFile = "docs/release/latest-release.md"
     }
@@ -124,6 +124,7 @@ dependencies {
     implementation libs.androidx.emoji.bundled
 
     // AsyncImage
+    implementation platform(libs.coil.bom)
     implementation libs.coil.compose
     implementation libs.coil.network
     implementation libs.okhttp.logging

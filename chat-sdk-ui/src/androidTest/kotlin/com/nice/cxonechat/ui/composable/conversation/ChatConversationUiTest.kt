@@ -77,6 +77,9 @@ class ChatConversationUiTest {
         override val hasMultipleThreadsPerEndUser: Boolean = true
         override val isProactiveChatEnabled: Boolean = false
         override val isAuthorizationEnabled: Boolean = false
+        override val liveChatAllowTranscript: Boolean = false
+        override val isSecuredCookieEnabled: Boolean = false
+        override val securedSessions: Boolean = false
         override val fileRestrictions: FileRestrictions = object : FileRestrictions {
             override val allowedFileSize: Int = 40
             override val allowedFileTypes: List<FileRestrictions.AllowedFileType> = emptyList()

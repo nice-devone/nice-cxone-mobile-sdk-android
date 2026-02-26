@@ -22,6 +22,7 @@ import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
 import android.os.StrictMode.VmPolicy
 import android.os.strictmode.DiskReadViolation
+import android.os.strictmode.DiskWriteViolation
 import android.os.strictmode.ExplicitGcViolation
 import android.os.strictmode.InstanceCountViolation
 import android.os.strictmode.LeakedClosableViolation
@@ -194,7 +195,15 @@ internal object StrictModePolicy {
         allow(
             allOf(
                 violation(DiskReadViolation::class),
-                classNamed("com.amazon.identity.auth.device.StoredPreferences", "setTokenObtainedFromSSO")
+                classNamed("com.amazon.identity.auth.device.StoredPreferences", "setTokenObtainedFromSSO"),
+                classNamed("android.app.SharedPreferencesImpl")
+            )
+        ),
+        allow(
+            allOf(
+                violation(DiskWriteViolation::class),
+                classNamed("com.amazon.identity.auth.device.StoredPreferences", "setTokenObtainedFromSSO"),
+                classNamed("android.app.SharedPreferencesImpl")
             )
         ),
         // Android 35 emulator - Debug - shouldShowRequestPermissionRationale
@@ -209,6 +218,19 @@ internal object StrictModePolicy {
         if (Build.MANUFACTURER.equals("Samsung", ignoreCase = true) &&
             Build.MODEL.equals("SM-N950", ignoreCase = true) &&
             Build.VERSION.SDK_INT == Build.VERSION_CODES.O
+        ) {
+            allow(
+                allOf(
+                    violation(InstanceCountViolation::class),
+                )
+            )
+        } else {
+            null
+        },
+        // Huawei P30 Lite - Android 9 - Reported via Crashlytics
+        if (Build.MANUFACTURER.equals("Huawei", ignoreCase = true) &&
+            Build.MODEL.equals("Huawei P30 Lite", ignoreCase = true) &&
+            Build.VERSION.SDK_INT == Build.VERSION_CODES.P
         ) {
             allow(
                 allOf(

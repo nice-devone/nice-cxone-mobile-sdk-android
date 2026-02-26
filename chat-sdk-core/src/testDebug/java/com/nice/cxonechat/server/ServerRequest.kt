@@ -41,6 +41,7 @@ import com.nice.cxonechat.internal.model.network.ActionReconnectCustomer
 import com.nice.cxonechat.internal.model.network.ActionRecoverLiveChat
 import com.nice.cxonechat.internal.model.network.ActionRecoverThread
 import com.nice.cxonechat.internal.model.network.ActionRefreshToken
+import com.nice.cxonechat.internal.model.network.ActionSendTranscript
 import com.nice.cxonechat.internal.model.network.ActionSetContactCustomFields
 import com.nice.cxonechat.internal.model.network.ActionSetCustomerCustomFields
 import com.nice.cxonechat.internal.model.network.ActionStoreVisitorEvent
@@ -64,6 +65,7 @@ import com.nice.cxonechat.server.ServerRequestAssertions.verifyRecoverThread
 import com.nice.cxonechat.server.ServerRequestAssertions.verifyRefreshToken
 import com.nice.cxonechat.server.ServerRequestAssertions.verifySendMessage
 import com.nice.cxonechat.server.ServerRequestAssertions.verifySendOutbound
+import com.nice.cxonechat.server.ServerRequestAssertions.verifySendTranscript
 import com.nice.cxonechat.server.ServerRequestAssertions.verifySenderTypingEnded
 import com.nice.cxonechat.server.ServerRequestAssertions.verifySenderTypingStarted
 import com.nice.cxonechat.server.ServerRequestAssertions.verifySetContactCustomFields
@@ -125,6 +127,14 @@ internal object ServerRequest {
     ).copy(eventId = TestUUIDValue)
         .serialize()
         .verifyArchiveThread()
+
+    fun SendTranscript(connection: Connection, thread: ChatThread, email: String): String = ActionSendTranscript(
+        connection = connection,
+        thread = thread,
+        emailId = email
+    ).copy(eventId = TestUUIDValue)
+        .serialize()
+        .verifySendTranscript()
 
     fun MarkThreadRead(connection: Connection, thread: ChatThread): String = ActionMessageSeenByCustomer(
         connection = connection,

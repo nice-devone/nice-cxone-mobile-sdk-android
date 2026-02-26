@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -43,10 +44,15 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.hideFromAccessibility
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.nice.cxonechat.message.Attachment
+import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.composable.conversation.attachments.AttachmentFramedSmallPreview
 import com.nice.cxonechat.ui.composable.icons.ChatIcons
 import com.nice.cxonechat.ui.composable.icons.filled.Cancel
@@ -121,7 +127,11 @@ private fun Item(onAttachmentClick: (Attachment) -> Unit, attachment: Attachment
             style = typography.bodySmall,
             overflow = TextOverflow.MiddleEllipsis,
             maxLines = 1,
-            modifier = Modifier.widthIn(max = space.attachmentUploadPreviewSize.width - space.xSmall)
+            modifier = Modifier
+                .widthIn(max = space.attachmentUploadPreviewSize.width - space.xSmall)
+                .semantics {
+                    hideFromAccessibility() // The title is already part of the preview item's content description
+                }
         )
     }
 }
@@ -135,10 +145,14 @@ private fun CancelIcon(onAttachmentRemoved: (Attachment) -> Unit, attachment: At
             .clickable(onClick = remember { { onAttachmentRemoved(attachment) } })
             .size(space.attachmentUploadRemoveClickableSize)
             .offset(x = 11.dp, y = (-11).dp)
+            .zIndex(2f)
     ) {
         Image(
             imageVector = if (isSystemInDarkTheme()) ChatIcons.CancelDark else ChatIcons.Cancel,
-            contentDescription = "Remove prepared attachment ${attachment.friendlyName}",
+            contentDescription = stringResource(
+                id = R.string.content_description_remove_prepared_attachment,
+                attachment.friendlyName
+            ),
         )
     }
 }
@@ -149,24 +163,40 @@ private fun AttachmentPreviewBarPreview() {
     var showAttachment: Boolean by remember { mutableStateOf(true) }
     val attachments = remember { PreviewAttachments.choices.toMutableStateList() }
     ChatTheme {
-        Surface(color = colorScheme.background) {
+        Surface(color = colorScheme.background, modifier = Modifier.systemBarsPadding()) {
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(space.medium),
-                    modifier = Modifier.padding(space.medium)
-                ) {
-                    Switch(showAttachment, onCheckedChange = {
-                        showAttachment = it
-                        if (it) {
-                            attachments.addAll(PreviewAttachments.choices)
-                        } else {
-                            attachments.clear()
+                    modifier = Modifier
+                        .padding(space.medium)
+                        .semantics(true) {
+                            hideFromAccessibility() // For preview purposes only
                         }
-                    })
-                    Text("Show attachment preview", style = typography.labelLarge)
+                ) {
+                    Switch(
+                        modifier = Modifier.semantics {
+                            hideFromAccessibility() // For preview purposes only
+                        },
+                        checked = showAttachment,
+                        onCheckedChange = {
+                            showAttachment = it
+                            if (it) {
+                                attachments.addAll(PreviewAttachments.choices)
+                            } else {
+                                attachments.clear()
+                            }
+                        }
+                    )
+                    Text(
+                        text = "Show attachment preview",
+                        style = typography.labelLarge,
+                        modifier = Modifier.semantics {
+                            hideFromAccessibility() // For preview purposes only
+                        }
+                    )
                 }
                 AttachmentPreviewBar(
                     attachments = attachments,

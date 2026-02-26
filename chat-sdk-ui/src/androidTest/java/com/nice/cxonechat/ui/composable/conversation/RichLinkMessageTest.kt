@@ -15,6 +15,9 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
+import android.app.Activity
+import android.app.Instrumentation
+import android.content.Intent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
@@ -23,13 +26,27 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.test.espresso.intent.Intents.intended
+import androidx.test.espresso.intent.Intents.intending
+import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
+import androidx.test.espresso.intent.matcher.IntentMatchers.hasData
+import androidx.test.espresso.intent.rule.IntentsRule
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.filters.LargeTest
 import com.nice.cxonechat.ui.composable.conversation.model.Message
 import com.nice.cxonechat.ui.composable.theme.ChatColors.ColorPair
 import com.nice.cxonechat.ui.util.preview.message.UiSdkRichLink
+import org.hamcrest.Matchers.allOf
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
+@LargeTest
 class RichLinkMessageTest {
+    @get:Rule
+    val intentsRule = IntentsRule()
+
     @get:Rule
     val composeTestRule = createComposeRule()
 
@@ -41,17 +58,34 @@ class RichLinkMessageTest {
             RichLinkMessage(message = richLink, textColor = testColorPair)
         }
         // Card is displayed
-        composeTestRule.onNodeWithTag("rich_link_message")
+        composeTestRule.onNodeWithTag("rich_link_message").assertIsDisplayed()
         // Title is displayed
         composeTestRule.onNodeWithText(richLink.title).assertIsDisplayed()
         // URL is displayed
         composeTestRule.onNodeWithText(richLink.url).assertIsDisplayed()
         // Link icon is displayed
         composeTestRule.onNodeWithTag("rich_link_icon", useUnmergedTree = true).assertIsDisplayed()
+
+        // Set up intent stubbing to intercept and prevent browser launch
+        intending(
+            allOf(
+                hasAction(Intent.ACTION_VIEW),
+                hasData(richLink.url)
+            )
+        ).respondWith(Instrumentation.ActivityResult(Activity.RESULT_OK, null))
+
         // Card is clickable
         composeTestRule.onNodeWithTag("rich_link_message")
             .assertHasClickAction()
             .assertIsEnabled()
             .performClick()
+
+        // Verify Intent was created with correct action and URL
+        intended(
+            allOf(
+                hasAction(Intent.ACTION_VIEW),
+                hasData(richLink.url)
+            )
+        )
     }
 }

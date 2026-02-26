@@ -15,11 +15,13 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
+import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.composable.conversation.model.Action.ReplyButton
 import com.nice.cxonechat.ui.composable.conversation.model.Message.ListPicker
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
@@ -30,7 +32,7 @@ import org.junit.Test
 class ListPickerBottomSheetTest {
 
     @get:Rule
-    val composeTestRule = createComposeRule()
+    val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
     fun listPickerBottomSheet_displaysTitleSubtitleAndActions_andHandlesButtonClicks() {
@@ -58,12 +60,12 @@ class ListPickerBottomSheetTest {
             }
         }
 
-        composeTestRule.onNodeWithText("Cancel").performClick()
+        composeTestRule.onNodeWithText(composeTestRule.activity.getString(R.string.cancel)).performClick()
         assert(dismissCalled)
 
         val firstReplyButton = listPicker.actions.first() as ReplyButton
         composeTestRule.onNodeWithText(firstReplyButton.text).performClick()
-        composeTestRule.onNodeWithText("Done").performClick()
+        composeTestRule.onNodeWithText(composeTestRule.activity.getString(R.string.submit)).performClick()
         assert(doneCalled)
     }
 
@@ -77,7 +79,10 @@ class ListPickerBottomSheetTest {
                 )
             }
         }
-        composeTestRule.onNodeWithText("Press to open", useUnmergedTree = true).assertIsDisplayed()
+        composeTestRule.onNodeWithText(
+            text = composeTestRule.activity.getString(R.string.list_picker_open_message),
+            useUnmergedTree = true,
+        ).assertIsDisplayed()
     }
 
     @Test
@@ -90,6 +95,9 @@ class ListPickerBottomSheetTest {
                 )
             }
         }
-        composeTestRule.onNodeWithText("Option selected", useUnmergedTree = true).assertIsDisplayed()
+        composeTestRule.onNodeWithText(
+            text = composeTestRule.activity.getString(R.string.option_selected),
+            useUnmergedTree = true
+        ).assertIsDisplayed()
     }
 }

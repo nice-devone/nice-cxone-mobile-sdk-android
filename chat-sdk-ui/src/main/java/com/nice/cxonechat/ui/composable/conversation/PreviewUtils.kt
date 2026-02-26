@@ -36,6 +36,7 @@ import com.nice.cxonechat.ui.composable.conversation.MessageStatusState.SELECTAB
 import com.nice.cxonechat.ui.composable.conversation.model.ConversationUiState
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
+import com.nice.cxonechat.ui.data.RequestResult
 import com.nice.cxonechat.ui.domain.model.Person
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
@@ -55,7 +56,7 @@ internal fun previewAudioState(): AudioRecordingUiState {
         onApprove = { },
         onAudioRecordToggle = {
             isRecordingFlow.value = !isRecordingFlow.value
-            isRecordingFlow.value
+            if (isRecordingFlow.value) RequestResult.SUCCESS else RequestResult.FAILURE
         },
         isRecordingFlow = isRecordingFlow,
         durationFlow = durationFlow,

@@ -60,4 +60,9 @@ interface Environment {
      */
     val loggerUrl: String
        get () = ""
+
+    /**
+     * OAuth Url used for authentication.
+     */
+    val authUrl: String
 }

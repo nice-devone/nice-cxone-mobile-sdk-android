@@ -33,8 +33,10 @@ import com.nice.cxonechat.thread.ChatThreadState
 import com.nice.cxonechat.ui.AttachmentType
 import com.nice.cxonechat.ui.composable.conversation.AudioRecordingUiState
 import com.nice.cxonechat.ui.composable.conversation.ChatConversation
+import com.nice.cxonechat.ui.composable.conversation.SendTranscriptDialogView
 import com.nice.cxonechat.ui.composable.conversation.ThreadDialogView
 import com.nice.cxonechat.ui.composable.conversation.model.ConversationUiState
+import com.nice.cxonechat.ui.data.RequestResult
 import com.nice.cxonechat.ui.util.repeatOnOwnerLifecycle
 import com.nice.cxonechat.ui.viewmodel.AudioRecordingViewModel
 import com.nice.cxonechat.ui.viewmodel.ChatThreadViewModel
@@ -52,7 +54,7 @@ internal fun ThreadContentView(
     onShare: (Collection<Attachment>) -> Unit,
     closeChat: () -> Unit,
     onDismissRecording: () -> Unit,
-    onTriggerRecording: suspend () -> Boolean,
+    onTriggerRecording: suspend () -> RequestResult,
     chatThreadViewModel: ChatThreadViewModel,
     chatViewModel: ChatViewModel,
     onError: (String) -> Unit,
@@ -95,6 +97,9 @@ internal fun ThreadContentView(
         closeChat = closeChat,
         threadViewModel = chatThreadViewModel,
         chatModel = chatViewModel,
+    )
+    SendTranscriptDialogView(
+        threadViewModel = chatThreadViewModel
     )
 }
 
@@ -144,7 +149,7 @@ private fun audioState(
     chatThreadViewModel: ChatThreadViewModel,
     audioViewModel: AudioRecordingViewModel,
     onDismiss: () -> Unit,
-    onTriggerRecording: suspend () -> Boolean,
+    onTriggerRecording: suspend () -> RequestResult,
 ) = AudioRecordingUiState(
     isRecordingAllowedFlow = audioViewModel.isRecordingAllowed,
     uriFlow = audioViewModel.recordedUriFlow,

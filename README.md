@@ -1,28 +1,43 @@
 # CXone Chat for Android
 
-## Repository overview
+## Repository Overview
 
-This repository consists out of three main modules and four tooling modules,
-which are described in chapters below.
+This is the CXone Chat SDK for Android, a comprehensive customer engagement solution by NiCE Ltd.
+The repository contains an Android SDK for chat functionality, UI components, and a sample store application.
 
 ### High-Level Repository Information
 
 - **Project Type**: Android SDK library with UI module
-- **Primary Languages**: Kotlin (99.7%)
-- **Target Runtime**: Android API 24-36 (Android 7.0 to Android 15+)
-- **Build System**: Gradle 8.14.3 with Android Gradle Plugin 8.13.0
+- **Primary Languages**: Kotlin (99.8%)
+- **Target Runtime**: Android API 35 (Android 15)
+- **Supported Runtime**: Android API 24-36 (Android 7.0 to Android 16)
+- **Build System**: Gradle 9.3.1 with Android Gradle Plugin 8.13.2
+- **Java Compatibility**: Source and target compatibility Java 11
 - **Architecture**: Multi-module Android library with Jetpack Compose UI
 
 ### Key Frameworks and Dependencies
 
 - **UI Framework**: Jetpack Compose with Material Design 3
-- **Networking**: Retrofit 3.0.0 with OkHttp 5.1.0
+- **Networking**: Retrofit 3.0.0 with OkHttp 5.3.2
 - **Serialization**: Kotlinx Serialization 1.9.0
 - **Dependency Injection**: Koin 4.1.1 with KSP annotations
 - **Push Notifications**: Firebase Cloud Messaging
-- **Image Loading**: Coil 3.1.0
+- **Image Loading**: Coil 3.3.0
 - **Media Playback**: AndroidX Media3 (ExoPlayer)
 - **Testing**: JUnit 4, Kotest, MockK, Robolectric
+
+## Prerequisites for project build
+
+**JDK 17** is required to run the Gradle 9.x daemon. The recommended distribution is [Eclipse Temurin 17](https://adoptium.net/) (used in
+CI). Avoid JDK 25 — it is currently incompatible with Detekt.
+
+**Android SDK & Build Tools**:
+Android SDK with API levels 24–36 and corresponding build tools must be installed.
+Specify SDK location in `local.properties` using `sdk.dir` property if you are having issues, e.g.:
+
+```properties
+sdk.dir=/path/to/Android/Sdk
+```
 
 ## Project Layout and Architecture
 
@@ -55,7 +70,7 @@ see [GitHub documentation on using published packages](https://docs.github.com/e
 In the section where you define repositories used in your project (in our case, it is `settings.gradle`), add this part:
 
 ```groovy
-    def localProperties = new Properties()
+def localProperties = new Properties()
 try {
     localProperties.load(file("local.properties").newReader())
 } catch (ignored) {
@@ -97,7 +112,8 @@ Visit [NICE documentation][NICE-docs] for more information about CXone Chat and 
 
 Current [API][API].
 
-You can also find a simplified example of possible SDK usage in [case studies](docs/case-studies.md)
+You can also find a simplified example of possible SDK usage
+in [SDK case studies](docs/case-studies.md)
 documentation.
 
 We offer a brief how-to guide for integration [here][implementation].
@@ -161,7 +177,8 @@ file to avoid backing up sensitive data, which are not transferable.
 Add the following exclusion to your backup rules:
 
 ```xml
-
+<exclude domain="file" path="datastore/secure_store.preferences_pb" />
+<exclude domain="sharedpref" path="cxonechat_tink_keyset.xml" />
 <exclude domain="sharedpref" path="com.nice.cxonechat.secure.xml" />
 ```
 
