@@ -25,5 +25,5 @@ internal data class MediaModel(
     @SerialName("url")
     val url: String,
     @SerialName("mimeType")
-    val mimeType: String
+    val mimeType: String,
 )

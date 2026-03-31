@@ -21,7 +21,7 @@ import com.nice.cxonechat.sample.data.models.Product
 /**
  * PreviewParameterProvider that provides a list of Product to display.
  */
-class ProductParameterProvider: PreviewParameterProvider<Product> {
+class ProductParameterProvider : PreviewParameterProvider<Product> {
     override val values: Sequence<Product>
         get() = ProductsParameterProvider().values.firstOrNull()?.asSequence() ?: sequenceOf()
 }

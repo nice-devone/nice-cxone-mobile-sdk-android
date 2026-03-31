@@ -33,7 +33,7 @@ import java.io.IOException
  * Implementation of the [ChatWithParameters] which handles EventInS3 events from the server.
  */
 internal class ChatS3Events(
-    private val origin: ChatWithParameters
+    private val origin: ChatWithParameters,
 ) : ChatWithParameters by origin,
     LoggerScope by LoggerScope<Chat>(origin.entrails.logger) {
 

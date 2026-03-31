@@ -27,7 +27,7 @@ import kotlin.reflect.KClass
  * @param type Class of asset to read.
  * @param fileName Name of preference file to use.  Defaults to "com.nice.cxonechat.storefront".
  */
-open class PreferencesRepository<Type: Any>(
+open class PreferencesRepository<Type : Any>(
     private val key: String,
     type: KClass<Type>,
     private val fileName: String = defaultFileName,

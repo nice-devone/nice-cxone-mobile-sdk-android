@@ -34,7 +34,7 @@ internal interface ValueStorage {
         @Contextual
         val visitId: UUID = UUID.randomUUID(),
         @SerialName("validUntil")
-        val validUntil: DateAsNumber = Date(Date().time + 30 * 60 * 1000)
+        val validUntil: DateAsNumber = Date(Date().time + 30 * 60 * 1000),
     )
 
     /**

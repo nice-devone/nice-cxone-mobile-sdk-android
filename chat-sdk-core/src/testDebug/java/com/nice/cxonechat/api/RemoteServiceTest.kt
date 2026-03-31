@@ -129,7 +129,7 @@ internal class RemoteServiceTest {
             kVisitId,
             Destination(kDestinationId),
             kNow,
-           Data.ProactiveActionData(ProactiveActionInfo(UUID.randomUUID(), "name", ActionType.WelcomeMessage.value))
+            Data.ProactiveActionData(ProactiveActionInfo(UUID.randomUUID(), "name", ActionType.WelcomeMessage.value))
         )
 
         client.postEvent(

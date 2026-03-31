@@ -33,6 +33,7 @@ internal abstract class EventCallback<Event>(
     private val eventType: Class<Event>,
 ) : WebSocketListener() {
     private val serializer = Default.serializer.serializersModule.serializer(eventType) as DeserializationStrategy<Event>
+
     interface ReceivedEvent<Type : Any> {
         val type: EventType
     }

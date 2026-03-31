@@ -128,7 +128,7 @@ interface OutboundMessage {
             override val message: String,
             override val attachments: Iterable<ContentDescriptor> = emptyList(),
             override val postback: String? = null,
-            ) : OutboundMessage {
+        ) : OutboundMessage {
             override fun toString(): String = "OutboundMessage(message='$message', attachments=$attachments, postback=$postback)"
         }
 

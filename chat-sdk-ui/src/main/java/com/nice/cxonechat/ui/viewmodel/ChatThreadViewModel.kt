@@ -63,6 +63,8 @@ import com.nice.cxonechat.ui.domain.model.NoThread
 import com.nice.cxonechat.ui.domain.model.Person
 import com.nice.cxonechat.ui.domain.model.asPerson
 import com.nice.cxonechat.ui.domain.model.extractStringValues
+import com.nice.cxonechat.ui.storage.ValueStorage
+import com.nice.cxonechat.ui.storage.ValueStorage.StringKey.EndContactShownForThreadKey
 import com.nice.cxonechat.ui.util.isEmpty
 import com.nice.cxonechat.ui.util.preview.message.SdkMessage
 import com.nice.cxonechat.ui.util.preview.message.SdkReplyButton
@@ -120,6 +122,7 @@ internal class ChatThreadViewModel(
     private val selectedThreadRepository: SelectedThreadRepository,
     private val chat: Chat,
     @Named(UiModule.LOGGER_NAME) internal val logger: Logger,
+    private val valueStorage: ValueStorage,
 ) : ViewModel(), LoggerScope by LoggerScope("ChatThreadViewModel", logger) {
     private val threads by lazy { chat.threads() }
 
@@ -143,6 +146,11 @@ internal class ChatThreadViewModel(
                 // Reset the cached flow if the thread ID has changed and reset pending attachments when the thread changes.
                 chatThreadCachedFlow.value = NoThread
                 mutablePendingAttachments.value = emptyList()
+                // Clear the EndContact dialog flag on genuine thread change (not initial setup).
+                // Only relevant for LiveChat mode where the EndContact dialog is used.
+                if (threadId != null && isLiveChat) {
+                    setEndContactShownForThread(null)
+                }
             }
             threadNameOverride.value = null
         }
@@ -247,9 +255,11 @@ internal class ChatThreadViewModel(
         .distinctUntilChanged()
         .onEach { isArchived ->
             if (isLiveChat) {
-                if (isArchived) {
+                val currentThreadId = threadId?.toString()
+                if (isArchived && getEndContactShownForThread() != currentThreadId) {
+                    setEndContactShownForThread(currentThreadId)
                     showEndContactDialog()
-                } else if (EndContact == dialogShown.value) {
+                } else if (!isArchived && EndContact == dialogShown.value) {
                     dismissDialog()
                 }
             }
@@ -292,6 +302,12 @@ internal class ChatThreadViewModel(
             }
         }
     }
+
+    private suspend fun getEndContactShownForThread(): String? =
+        valueStorage.getString(EndContactShownForThreadKey).firstOrNull()?.takeIf(String::isNotEmpty)
+
+    private suspend fun setEndContactShownForThread(shownForThreadId: String?) =
+        valueStorage.setString(EndContactShownForThreadKey, shownForThreadId.orEmpty())
 
     fun refresh() = timedScope("refresh") {
         viewModelScope.launch {

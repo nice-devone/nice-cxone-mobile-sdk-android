@@ -19,7 +19,7 @@ import com.nice.cxonechat.internal.model.network.ActionEndContact
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.thread.ChatThread
 
-internal data object EndContactEvent: ChatThreadEvent() {
+internal data object EndContactEvent : ChatThreadEvent() {
     override fun getModel(thread: ChatThread, connection: Connection) = ActionEndContact(
         connection,
         thread

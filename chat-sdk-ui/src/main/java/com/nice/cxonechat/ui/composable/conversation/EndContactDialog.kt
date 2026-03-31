@@ -40,6 +40,7 @@ internal fun EndContactDialog(
                 SHOW_TRANSCRIPT -> {
                     // no-op required
                 }
+
                 SEND_TRANSCRIPT -> chatViewModel.showSendTranscriptDialog(SendTranscriptDialog.SendTranscript)
                 NEW_CONVERSATION -> chatModel.refreshThreadState()
                 CLOSE_CHAT -> closeChat()

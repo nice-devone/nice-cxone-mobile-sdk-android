@@ -41,19 +41,19 @@ internal data class EventInS3(
         val s3Object: S3Object,
 
         @SerialName("originEvent")
-        val originEvent: OriginEvent
+        val originEvent: OriginEvent,
     )
 
     @Serializable
     internal data class S3Object(
         @SerialName("url")
-        val url: String
+        val url: String,
     )
 
     @Serializable
     internal data class OriginEvent(
         @SerialName("eventType")
-        val eventType: EventType
+        val eventType: EventType,
     )
 
     companion object : ReceivedEvent<EventInS3> {

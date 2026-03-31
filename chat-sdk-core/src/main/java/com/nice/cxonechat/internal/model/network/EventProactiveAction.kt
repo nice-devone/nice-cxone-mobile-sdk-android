@@ -43,13 +43,14 @@ internal data class EventProactiveAction(
     val headlineSecondaryText get() = data.proactiveAction.action.data.content.headlineSecondaryText
     val image get() = data.proactiveAction.action.data.content.image
     val mimeType get() = data.proactiveAction.action.data.content.mimeType
-    val variables get() = data.proactiveAction.action.data.content.variables.orEmpty().mapValues { entry ->
-        when(val element = entry.value) {
-            null -> null
-            is JsonPrimitive -> element.content
-            else -> Default.serializer.encodeToString(element)
+    val variables
+        get() = data.proactiveAction.action.data.content.variables.orEmpty().mapValues { entry ->
+            when (val element = entry.value) {
+                null -> null
+                is JsonPrimitive -> element.content
+                else -> Default.serializer.encodeToString(element)
+            }
         }
-    }
 
     @Serializable
     data class Data(

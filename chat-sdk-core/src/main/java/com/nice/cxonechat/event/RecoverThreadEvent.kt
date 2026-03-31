@@ -21,7 +21,7 @@ import com.nice.cxonechat.storage.ValueStorage
 import java.util.UUID
 
 internal data class RecoverThreadEvent(
-    val threadId: UUID?
+    val threadId: UUID?,
 ) : ChatEvent<ActionRecoverThread>() {
     override fun getModel(connection: Connection, storage: ValueStorage) = ActionRecoverThread(
         connection = connection,

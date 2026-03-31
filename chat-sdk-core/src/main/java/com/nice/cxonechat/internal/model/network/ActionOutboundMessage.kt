@@ -53,17 +53,17 @@ internal data class ActionOutboundMessage(
         token: String?,
     ) : this(
         payload = LegacyPayload(
-                eventType = SendOutbound,
-                connection = connection,
-                data = LegacyData(
-                    id = id,
-                    thread = thread,
-                    message = message,
-                    attachments = attachments,
-                    fields = fields,
-                    token = token
-                )
+            eventType = SendOutbound,
+            connection = connection,
+            data = LegacyData(
+                id = id,
+                thread = thread,
+                message = message,
+                attachments = attachments,
+                fields = fields,
+                token = token
             )
+        )
     )
 
     @OptIn(ExperimentalSerializationApi::class)

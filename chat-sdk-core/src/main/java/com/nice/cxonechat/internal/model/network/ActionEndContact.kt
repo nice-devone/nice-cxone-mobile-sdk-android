@@ -37,7 +37,7 @@ internal data class ActionEndContact(
 ) {
     constructor(
         connection: Connection,
-        thread: ChatThread
+        thread: ChatThread,
     ) : this(
         payload = LegacyPayload(
             eventType = EndContact,

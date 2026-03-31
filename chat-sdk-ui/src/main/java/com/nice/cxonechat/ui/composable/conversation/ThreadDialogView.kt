@@ -75,7 +75,7 @@ private fun ShowDialog(
     closeChat: () -> Unit,
     threadViewModel: ChatThreadViewModel,
     chatModel: ChatViewModel,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     when (dialog) {
         None -> Unit
@@ -93,7 +93,7 @@ private fun ShowDialog(
 @Composable
 private fun EditThreadNameDialogWrapper(
     threadViewModel: ChatThreadViewModel,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     EditThreadNameDialog(
         threadName = threadViewModel.selectedThreadName.orEmpty(),
@@ -107,7 +107,7 @@ private fun SelectAttachmentsDialog(
     dialog: SelectAttachments,
     onAttachmentClicked: (Attachment) -> Unit,
     onShare: (Collection<Attachment>) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     SelectAttachmentsView(
         attachments = dialog.attachments,
@@ -121,7 +121,7 @@ private fun SelectAttachmentsDialog(
 private fun ImageViewerDialogWrapper(
     dialog: ImageViewer,
     onDismiss: () -> Unit,
-    onShare: (Collection<Attachment>) -> Unit
+    onShare: (Collection<Attachment>) -> Unit,
 ) {
     ImageViewerDialogCard(
         image = dialog.image,
@@ -135,7 +135,7 @@ private fun ImageViewerDialogWrapper(
 private fun VideoPlayerDialogWrapper(
     dialog: VideoPlayer,
     onDismiss: () -> Unit,
-    onShare: (Collection<Attachment>) -> Unit
+    onShare: (Collection<Attachment>) -> Unit,
 ) {
     VideoView(
         uri = dialog.uri,
@@ -148,7 +148,7 @@ private fun VideoPlayerDialogWrapper(
 @Composable
 private fun InvalidAttachmentsDialog(
     dialog: InvalidAttachments,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     ErrorDialog(
         title = stringResource(id = string.attachment_upload_failure),

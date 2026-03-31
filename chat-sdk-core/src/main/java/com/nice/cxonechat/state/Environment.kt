@@ -59,7 +59,7 @@ interface Environment {
      * Url used for fetching logger configuration.
      */
     val loggerUrl: String
-       get () = ""
+        get() = ""
 
     /**
      * OAuth Url used for authentication.

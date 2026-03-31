@@ -57,7 +57,7 @@ internal fun ChatTheme.TextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     validate: Requirement = none,
     placeholder: String? = null,
-    onValueChange: (String) -> Unit = { }
+    onValueChange: (String) -> Unit = { },
 ) {
     var error by remember { mutableStateOf(null as String?) }
     var focused by remember { mutableStateOf(false) }

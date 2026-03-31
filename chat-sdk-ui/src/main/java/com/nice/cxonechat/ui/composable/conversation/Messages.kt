@@ -173,7 +173,7 @@ private fun getMessageStatusState(
     message: Message,
     isLastMessageInChat: Boolean,
     quickReplyState: Map<UUID, Boolean>,
-    listPickerState: Map<UUID, Boolean>
+    listPickerState: Map<UUID, Boolean>,
 ): MessageStatusState = when (message.contentType) {
     ContentType.QuickReply -> getQuickReplyState(isLastMessageInChat, quickReplyState[message.id] ?: true)
     ContentType.ListPicker -> getListPickerState(listPickerState[message.id] ?: true)

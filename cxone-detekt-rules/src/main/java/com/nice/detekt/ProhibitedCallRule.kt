@@ -27,7 +27,7 @@ import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 import org.jetbrains.kotlin.psi.psiUtil.getReceiverExpression
 
 internal class ProhibitedCallRule(
-    config: Config = Config.empty
+    config: Config = Config.empty,
 ) : Rule(config) {
     override val issue = Issue(
         "ProhibitedCall",
@@ -39,7 +39,7 @@ internal class ProhibitedCallRule(
     data class ProhibitedCall(
         val pack: Regex,
         val name: Regex,
-        val recommendation: String
+        val recommendation: String,
     ) {
         constructor(pack: String, name: String, recommendation: String)
                 : this(Regex(pack), Regex(name), recommendation)

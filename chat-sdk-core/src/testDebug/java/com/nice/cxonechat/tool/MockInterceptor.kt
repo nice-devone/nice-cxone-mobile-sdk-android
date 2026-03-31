@@ -28,7 +28,7 @@ internal class MockInterceptor : Interceptor {
     val responseIterator by lazy { responders.iterator() }
 
     val nextResponse: Builder.(Request) -> Builder
-        get() = if(responseIterator.hasNext()) {
+        get() = if (responseIterator.hasNext()) {
             responseIterator.next()
         } else {
             {

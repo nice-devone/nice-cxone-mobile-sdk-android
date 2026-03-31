@@ -28,7 +28,7 @@ import com.nice.cxonechat.internal.model.network.PageViewData as PageViewDataMod
 internal class PageViewEvent(
     internal val title: String,
     internal val uri: String,
-    internal val date: Date = Date()
+    internal val date: Date = Date(),
 ) : ChatEvent<AnalyticsEvent>() {
 
     override fun getModel(

@@ -21,5 +21,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal data class WrappedText(
     @SerialName("content")
-    val content: String
+    val content: String,
 )

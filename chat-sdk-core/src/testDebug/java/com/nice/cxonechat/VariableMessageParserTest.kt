@@ -253,13 +253,13 @@ internal class VariableMessageParserTest {
         val customer = nextStringPair()
         val contact = nextStringPair()
         val message = "Welcome {{customer.firstName}}, " +
-            "this is {{unknown|fallback}} personalized message " +
-            "with {{contact.customFields.${contact.first}}} " +
-            "and {{customer.customFields.${customer.first}}}"
+                "this is {{unknown|fallback}} personalized message " +
+                "with {{contact.customFields.${contact.first}}} " +
+                "and {{customer.customFields.${customer.first}}}"
         val expected = "Welcome $name, " +
-            "this is fallback personalized message " +
-            "with ${contact.second} " +
-            "and ${customer.second}"
+                "this is fallback personalized message " +
+                "with ${contact.second} " +
+                "and ${customer.second}"
         assertEquals(
             expected,
             VariableMessageParser.parse(

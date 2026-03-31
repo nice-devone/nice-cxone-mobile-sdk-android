@@ -48,7 +48,7 @@ interface FieldDefinition {
 
     /** Details of a text (or email) field. */
     @Public
-    interface Text: FieldDefinition {
+    interface Text : FieldDefinition {
         /**
          * Is the field intended to be an email address?
          *
@@ -67,7 +67,7 @@ interface FieldDefinition {
      * the [SelectorNode.nodeId] values from the list of [SelectorNode].
      */
     @Public
-    interface Selector: FieldDefinition {
+    interface Selector : FieldDefinition {
         /**
          * The list of possible values which the chosen [Selector] may hold.
          *
@@ -85,7 +85,7 @@ interface FieldDefinition {
      * corresponding [HierarchyNode.isLeaf] property is `true`.
      */
     @Public
-    interface Hierarchy: FieldDefinition {
+    interface Hierarchy : FieldDefinition {
         /** Top level options. */
         val values: Sequence<HierarchyNode<String>>
     }

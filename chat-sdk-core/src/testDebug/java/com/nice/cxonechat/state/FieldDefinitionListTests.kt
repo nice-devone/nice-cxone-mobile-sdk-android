@@ -125,7 +125,7 @@ internal class FieldDefinitionListTests {
                     selector to "",
                 )
             )
-        } catch(exc: MissingPreChatCustomFieldsException) {
+        } catch (exc: MissingPreChatCustomFieldsException) {
             /* list should include selector because it's blank, hierarchy because it's missing */
             assertEquals(listOf("Selector", "Hierarchy"), exc.missing)
             thrown = true

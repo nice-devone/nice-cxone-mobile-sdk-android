@@ -27,10 +27,11 @@ val Color.asHexString get() = String.format(Locale.ROOT, "#%08x", this.toArgb())
 /**
  * Convert the receiver into a hex color, parsing per android standards.
  */
-val String.asHexColor get() = runCatching {
-    if (this.startsWith("#")) {
-        this
-    } else {
-        "#$this"
-    }.run(android.graphics.Color::parseColor)
-}.getOrNull()?.let(::Color)
+val String.asHexColor
+    get() = runCatching {
+        if (this.startsWith("#")) {
+            this
+        } else {
+            "#$this"
+        }.run(android.graphics.Color::parseColor)
+    }.getOrNull()?.let(::Color)

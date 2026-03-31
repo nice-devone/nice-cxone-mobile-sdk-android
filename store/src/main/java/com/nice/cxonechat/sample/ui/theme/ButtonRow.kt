@@ -34,7 +34,7 @@ import androidx.compose.ui.Modifier
 @Composable
 fun AppTheme.ButtonRow(
     modifier: Modifier = Modifier,
-    content: @Composable RowScope.() -> Unit
+    content: @Composable RowScope.() -> Unit,
 ) {
     Row(
         modifier = modifier

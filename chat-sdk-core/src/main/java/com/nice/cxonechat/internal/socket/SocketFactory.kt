@@ -27,7 +27,7 @@ internal interface SocketFactory {
     fun create(
         listener: WebSocketListener,
         visitorId: String,
-        transactionToken: String? = null
+        transactionToken: String? = null,
     ): WebSocket
 
     fun createProxyListener(): ProxyWebSocketListener

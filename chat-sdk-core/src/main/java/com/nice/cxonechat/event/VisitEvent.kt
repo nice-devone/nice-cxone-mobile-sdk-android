@@ -27,7 +27,7 @@ import java.util.Date
  * performs any action.
  */
 internal class VisitEvent(
-    internal val date: Date = Date()
+    internal val date: Date = Date(),
 ) : ChatEvent<AnalyticsEvent>() {
 
     override fun getModel(

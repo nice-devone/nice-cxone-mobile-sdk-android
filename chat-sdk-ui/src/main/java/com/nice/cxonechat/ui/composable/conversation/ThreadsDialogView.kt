@@ -28,6 +28,7 @@ internal fun ThreadsDialogView(
         ChatThreadsViewModel.Dialog.None -> {
             // Do nothing
         }
+
         is ChatThreadsViewModel.Dialog.EditThreadName -> EditThreadNameDialog(
             threadName = dialog.thread.name.orDefaultThreadName(),
             onCancel = threadsViewModel::dismissDialog,

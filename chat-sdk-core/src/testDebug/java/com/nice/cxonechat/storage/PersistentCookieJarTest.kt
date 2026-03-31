@@ -14,6 +14,7 @@
  */
 
 package com.nice.cxonechat.storage
+
 import com.nice.cxonechat.log.LoggerNoop
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize

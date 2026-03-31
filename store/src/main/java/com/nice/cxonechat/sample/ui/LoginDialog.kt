@@ -115,7 +115,7 @@ private fun LoginDialogContent(
     onLastNameChange: (String) -> Unit,
     suppliedCustomerId: String?,
     onCustomerIdChange: (String) -> Unit,
-    login: () -> Unit
+    login: () -> Unit,
 ) {
     val focusManager = LocalFocusManager.current
     val loginTextFieldModifier = Modifier

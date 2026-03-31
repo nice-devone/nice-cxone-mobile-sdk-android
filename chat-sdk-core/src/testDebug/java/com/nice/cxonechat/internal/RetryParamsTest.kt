@@ -21,7 +21,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import okhttp3.ResponseBody.Companion.toResponseBody
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import retrofit2.Call
 import retrofit2.Callback

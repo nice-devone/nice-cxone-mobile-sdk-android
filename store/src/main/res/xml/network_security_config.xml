@@ -18,7 +18,7 @@
     <debug-overrides>
         <trust-anchors>
             <!-- Trust user added CAs while debuggable only -->
-            <certificates src="@raw/lets_encrypt"/>
+            <certificates src="@raw/lets_encrypt" />
             <certificates src="system" />
             <certificates src="user" />
         </trust-anchors>
@@ -26,8 +26,8 @@
     <base-config>
         <trust-anchors>
             <!-- CA for the dummyjson.com -->
-            <certificates src="@raw/lets_encrypt"/>
-            <certificates src="system"/>
+            <certificates src="@raw/lets_encrypt" />
+            <certificates src="system" />
         </trust-anchors>
     </base-config>
 </network-security-config>

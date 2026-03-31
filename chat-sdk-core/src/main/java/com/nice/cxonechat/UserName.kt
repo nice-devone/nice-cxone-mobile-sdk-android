@@ -32,7 +32,7 @@ interface UserName {
 
     /** true iff the name is valid, a valid name requires both first and last names be non-blank. */
     val valid: Boolean
-        get () = lastName.isNotBlank() && firstName.isNotBlank()
+        get() = lastName.isNotBlank() && firstName.isNotBlank()
 
     @Public
     @Suppress(

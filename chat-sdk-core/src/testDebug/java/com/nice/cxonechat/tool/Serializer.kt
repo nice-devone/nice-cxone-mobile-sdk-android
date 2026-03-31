@@ -115,6 +115,7 @@ private class KotlinxAdapter<T>(private val type: Class<in T>) : TypeAdapter<T>(
                 reader.nextNull()
                 null
             }
+
             else -> Default.serializer.decodeFromString(serializer, Streams.parse(reader).toString()) as T
         }
     }

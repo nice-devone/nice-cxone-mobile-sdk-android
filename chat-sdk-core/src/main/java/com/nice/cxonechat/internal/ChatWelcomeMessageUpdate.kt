@@ -37,7 +37,7 @@ internal class ChatWelcomeMessageUpdate(
                 fields = (customFields + fields).distinctBy { it.id }
             }
         }
-        }
+    }
 
     private fun cancelListener() = scope("cancelListener") {
         listener.cancel()

@@ -42,7 +42,7 @@ internal class ChatThreadHandlerCreateThreadTest : AbstractChatTest() {
             every { authToken } returns "token"
             every { authTokenExpDate } returns Date().plus(1.days.inWholeMilliseconds)
             every { deviceToken } returns null
-            every { transactionTokenModel } returns TransactionTokenModel(TestUUID,3600L)
+            every { transactionTokenModel } returns TransactionTokenModel(TestUUID, 3600L)
         }
         entrails = ChatEntrailsMock(
             sharedClient = httpClient,
