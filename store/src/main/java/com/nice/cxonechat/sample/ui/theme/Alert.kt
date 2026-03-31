@@ -56,7 +56,7 @@ private fun AlertPreview() {
             message = "Some Message",
             title = title,
             onDismiss = {
-                title = if(title != null) null else "Title"
+                title = if (title != null) null else "Title"
             },
             dismissLabel = "Ok",
         )

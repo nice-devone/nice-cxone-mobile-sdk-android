@@ -174,7 +174,7 @@ class RuleBasedPenalty private constructor(
              * one of [failures].
              */
             fun violation(
-                vararg failures: KClass<out Violation>
+                vararg failures: KClass<out Violation>,
             ) = Predicate { violation ->
                 failures.contains(violation::class)
             }

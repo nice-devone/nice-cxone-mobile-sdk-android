@@ -30,6 +30,6 @@ internal sealed class PolyAction {
         @SerialName("icon")
         val media: MediaModel?,
         @SerialName("description")
-        val description: String?
+        val description: String?,
     ) : PolyAction()
 }

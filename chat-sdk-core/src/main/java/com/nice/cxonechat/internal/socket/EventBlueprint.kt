@@ -24,7 +24,7 @@ internal data class EventBlueprint(
     @SerialName("eventType")
     val type: EventType?,
     @SerialName("postback")
-    val postback: Postback?
+    val postback: Postback?,
 ) {
 
     val anyType
@@ -33,6 +33,6 @@ internal data class EventBlueprint(
     @Serializable
     data class Postback(
         @SerialName("eventType")
-        val type: EventType?
+        val type: EventType?,
     )
 }

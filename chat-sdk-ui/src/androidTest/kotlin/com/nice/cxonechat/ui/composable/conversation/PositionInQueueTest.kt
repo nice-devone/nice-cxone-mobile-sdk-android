@@ -35,7 +35,7 @@ class PositionInQueueTest {
         }
         composeTestRule.onNodeWithTag("position_in_queue_content_view").assertIsDisplayed()
         composeTestRule.onNodeWithText("You are number $testPosition in line.").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("loading_animation_view",useUnmergedTree = true).assertIsDisplayed()
+        composeTestRule.onNodeWithTag("loading_animation_view", useUnmergedTree = true).assertIsDisplayed()
     }
 
     @Test

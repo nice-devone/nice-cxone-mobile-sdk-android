@@ -21,8 +21,8 @@ import com.nice.cxonechat.message.Media
 internal data class MediaInternal(
     override val fileName: String,
     override val url: String,
-    override val mimeType: String
+    override val mimeType: String,
 ) : Media {
     constructor(model: MediaModel)
-    : this(model.fileName, model.url, model.mimeType)
+            : this(model.fileName, model.url, model.mimeType)
 }

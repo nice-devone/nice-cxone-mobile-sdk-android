@@ -53,7 +53,7 @@ internal interface RemoteService {
         @Path("brandId")
         brandId: String,
         @Path("channelId")
-        channelId: String
+        channelId: String,
     ): Call<ChannelAvailability>
 
     @POST("/web-analytics/1.0/tenants/{brandId}/visitors/{visitorId}/events")

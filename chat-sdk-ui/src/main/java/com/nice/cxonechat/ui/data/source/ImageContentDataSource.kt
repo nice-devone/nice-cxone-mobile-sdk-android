@@ -64,7 +64,7 @@ internal class ImageContentDataSource(
                     fileName = "${UUID.randomUUID()}.jpg",
                     friendlyName = attachmentUri.lastPathSegment
                 )
-            } catch(_: IOException) {
+            } catch (_: IOException) {
                 null
             }
         }
@@ -99,7 +99,7 @@ internal class ImageContentDataSource(
      */
     @Throws(FileNotFoundException::class, IOException::class)
     private fun Context.bitmapForUri(uri: Uri): Bitmap? =
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
             @Suppress("Deprecation")
             MediaStore.Images.Media.getBitmap(contentResolver, uri)
         } else {

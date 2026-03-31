@@ -253,10 +253,10 @@ object ProductListScreen : Screen {
                             .testTag("product_card")
                             .then(modifier),
                         onClick = { onProductSelected(product) }
-                   )
+                    )
                 }
             }
-    )
+        )
     }
 
     @Composable

@@ -70,12 +70,14 @@ internal fun MessageAvatar(agent: Person?, modifier: Modifier = Modifier) {
                     contentDescription = null,
                     contentScale = ContentScale.Fit
                 )
+
             monogram != null ->
                 Text(
                     text = monogram,
                     color = foreground,
                     style = ChatTheme.chatTypography.messageAvatarText,
                 )
+
             else ->
                 Image(
                     painter = placeholder,

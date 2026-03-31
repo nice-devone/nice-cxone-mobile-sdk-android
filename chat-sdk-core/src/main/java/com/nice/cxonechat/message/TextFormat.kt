@@ -24,7 +24,7 @@ import com.nice.cxonechat.Public
  */
 @Public
 enum class TextFormat(
-    val mimeType: String
+    val mimeType: String,
 ) {
     /** Plain unformatted text. */
     Plain("text"),

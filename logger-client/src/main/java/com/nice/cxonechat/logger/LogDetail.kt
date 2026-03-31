@@ -21,5 +21,5 @@ import kotlinx.serialization.Serializable
 internal data class LogDetail(
     val file: String?,
     val line: String?,
-    val deviceFingerprint: String?
+    val deviceFingerprint: String?,
 )

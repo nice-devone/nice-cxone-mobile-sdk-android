@@ -44,8 +44,8 @@ internal suspend fun Call.await(): ResponseBody {
                         val method = call.request().method
                         val e = KotlinNullPointerException(
                             "Response from " +
-                                method +
-                                " was null but response body type was declared as non-null"
+                                    method +
+                                    " was null but response body type was declared as non-null"
                         )
                         continuation.resumeWithException(e)
                     } else {

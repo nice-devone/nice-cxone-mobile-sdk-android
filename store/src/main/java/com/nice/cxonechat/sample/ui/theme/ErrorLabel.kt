@@ -46,6 +46,7 @@ fun AppTheme.ErrorLabel(label: String?, error: String?) {
                 label?.let { stringResource(string.error_validation_label, it, error) } ?: error,
                 color = colorScheme.error
             )
+
         label != null ->
             Text(label)
     }

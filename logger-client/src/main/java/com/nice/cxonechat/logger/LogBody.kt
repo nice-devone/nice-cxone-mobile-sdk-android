@@ -22,5 +22,5 @@ internal data class LogBody(
     val level: String,
     val message: String,
     val appVersion: String,
-    val detail: LogDetail
+    val detail: LogDetail,
 )

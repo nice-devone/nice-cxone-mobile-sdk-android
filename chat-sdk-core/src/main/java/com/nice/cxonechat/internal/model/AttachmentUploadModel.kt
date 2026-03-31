@@ -60,7 +60,7 @@ internal class AttachmentUploadModel {
      * @throws IOException if the attachment cannot be read
      */
     @Throws(IOException::class)
-    constructor(upload: ContentDescriptor): this(
+    constructor(upload: ContentDescriptor) : this(
         content = upload.content.read().base64,
         mimeType = upload.mimeType,
         fileName = upload.friendlyName ?: upload.fileName
@@ -113,6 +113,7 @@ internal class AttachmentUploadModel {
                     .openInputStream(uri)
                     ?.use(InputStream::readBytes)
                     ?: throw FileNotFoundException(uri.toString())
+
             is DataSource.Bytes -> bytes
         }
     }

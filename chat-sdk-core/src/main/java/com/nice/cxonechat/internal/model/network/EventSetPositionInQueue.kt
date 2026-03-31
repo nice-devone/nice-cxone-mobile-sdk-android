@@ -21,7 +21,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal data class EventSetPositionInQueue(
     @SerialName("data")
-    val data: Data
+    val data: Data,
 ) {
     val consumerContact get() = data.consumerContact.id
     val routingQueue get() = data.routingQueue.id

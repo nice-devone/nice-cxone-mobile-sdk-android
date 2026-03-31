@@ -27,7 +27,7 @@ import java.util.Date
  */
 internal class ProactiveActionSuccessEvent(
     private val data: ProactiveActionInfo,
-    private val date: Date = Date()
+    private val date: Date = Date(),
 ) : ChatEvent<AnalyticsEvent>() {
 
     override fun getModel(

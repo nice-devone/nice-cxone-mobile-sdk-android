@@ -23,7 +23,7 @@ import java.util.Date
 internal class PageViewEndedEvent(
     internal val title: String,
     internal val uri: String,
-    internal val date: Date = Date()
+    internal val date: Date = Date(),
 ) : LocalEvent() {
     override fun toString() = "PageViewEndedEvent(title='$title', uri='$uri')"
 }

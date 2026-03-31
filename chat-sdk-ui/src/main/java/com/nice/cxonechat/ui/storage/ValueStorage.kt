@@ -113,6 +113,7 @@ internal class ValueStorage(
         private const val PREFERENCES_FILE_NAME = "com.nice.cxonechat.ui.settings"
         private const val PREF_REQUESTED_PERMISSIONS: String = "ui_requested_permissions"
         private const val PREF_DISMISSED_NOTIFICATIONS: String = "ui_dismissed_notifications"
+        private const val PREF_END_CONTACT_SHOWN_THREAD: String = "ui_end_contact_shown_for_thread"
         private const val STRING_SET_DELIMITER = ", "
         suspend fun ValueStorage.getStringSet(key: StringKey): Set<String> {
             return getString(key)
@@ -145,7 +146,8 @@ internal class ValueStorage(
      * @property value The [Preferences.Key] associated with the string value.
      */
     enum class StringKey(val value: Key<String>) {
-        RequestedPermissionsKey(stringPreferencesKey(PREF_REQUESTED_PERMISSIONS))
+        RequestedPermissionsKey(stringPreferencesKey(PREF_REQUESTED_PERMISSIONS)),
+        EndContactShownForThreadKey(stringPreferencesKey(PREF_END_CONTACT_SHOWN_THREAD)),
     }
 
     /**

@@ -24,7 +24,7 @@ internal fun makeCustomField(
     id: String = nextString(),
     value: String = nextString(),
     updatedAt: Date = Date(0),
-) : CustomField = CustomFieldInternal(
+): CustomField = CustomFieldInternal(
     id = id,
     value = value,
     updatedAt = updatedAt,

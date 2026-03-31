@@ -32,10 +32,10 @@ internal data class EventThreadUpdated(
     data class Data(
         @SerialName("id")
         @Contextual
-        val threadId: UUID
+        val threadId: UUID,
     )
 
-    companion object: ReceivedEvent<EventThreadUpdated> {
+    companion object : ReceivedEvent<EventThreadUpdated> {
         override val type = ThreadUpdated
 
         operator fun invoke(thread: ChatThread) = EventThreadUpdated(

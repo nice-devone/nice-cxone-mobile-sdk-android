@@ -31,7 +31,7 @@ import com.nice.cxonechat.internal.model.network.Conversion as ConversionModel
 internal class ConversionEvent(
     private val type: String,
     private val value: Number,
-    private val date: Date = Date()
+    private val date: Date = Date(),
 ) : ChatEvent<AnalyticsEvent>() {
     override fun getModel(
         connection: Connection,

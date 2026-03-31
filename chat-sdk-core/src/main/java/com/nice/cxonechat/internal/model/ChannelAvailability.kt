@@ -21,7 +21,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal data class ChannelAvailability(
     @SerialName("status")
-    val status: AvailabilityStatus
+    val status: AvailabilityStatus,
 ) {
     val isOnline: Boolean
         get() = status.isOnline

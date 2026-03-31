@@ -97,7 +97,7 @@ internal class ChatThreadEventTest : AbstractChatTest() {
     @Test
     fun trigger_SendTranscriptEvent_sendsExpectedMessage() {
         val id = thread.id
-        assertSendText(ServerRequest.SendTranscript(connection, thread,"test@gmail.com"), id.toString()) {
+        assertSendText(ServerRequest.SendTranscript(connection, thread, "test@gmail.com"), id.toString()) {
             events.sendTranscript(email = "test@gmail.com")
         }
     }

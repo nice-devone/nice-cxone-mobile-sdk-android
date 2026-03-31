@@ -41,7 +41,7 @@ data class ChatSettings(
 @Serializable
 data class ChatUserName(
     override val lastName: String,
-    override val firstName: String
+    override val firstName: String,
 ) : UserName
 
 /** Convert a UserName to a ChatUserName for storage in ChatSettings. */
@@ -58,7 +58,7 @@ val UserName.toChatUserName
 @Serializable
 data class ChatAuthorization(
     override val code: String,
-    override val verifier: String
+    override val verifier: String,
 ) : Authorization
 
 /** Convert an Authorization to a ChatAuthorization for storage in ChatSettings. */

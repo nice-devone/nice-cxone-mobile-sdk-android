@@ -41,7 +41,7 @@ internal class ChatThreadEventHandlerTest : AbstractChatTest() {
     fun trigger_sendsExpectedMessage() {
         val event = ChatThreadEvent.Custom { TestModel() }
         assertSendText(
-        """
+            """
             {
                 "field": 10
             }
@@ -56,7 +56,7 @@ internal class ChatThreadEventHandlerTest : AbstractChatTest() {
         every { storage.authTokenExpDate } returns Date()
         assertSendTexts(
             ServerRequest.RefreshToken(connection),
-        """
+            """
             {
                 "field": 10
             }

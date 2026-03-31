@@ -54,7 +54,7 @@ fun AppTheme.MultiToggleButton(
     currentSelection: String,
     toggleStates: List<String>,
     modifier: Modifier = Modifier,
-    onToggleChange: (String) -> Unit
+    onToggleChange: (String) -> Unit,
 ) {
     val selectedTint = colorScheme.primary
     val unselectedTint = Color.Unspecified
@@ -100,7 +100,7 @@ private fun ToggleButton(
     isSelected: Boolean,
     color: Color,
     backgroundColor: Color,
-    onToggleChange: (String) -> Unit
+    onToggleChange: (String) -> Unit,
 ) {
     Row(
         modifier = Modifier

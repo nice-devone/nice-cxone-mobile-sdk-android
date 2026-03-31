@@ -37,7 +37,7 @@ internal data class ActionRecoverLiveChat(
 
     constructor(
         connection: Connection,
-        threadId: UUID? = null
+        threadId: UUID? = null,
     ) : this(
         payload = Payload(
             eventType = RecoverLivechat,

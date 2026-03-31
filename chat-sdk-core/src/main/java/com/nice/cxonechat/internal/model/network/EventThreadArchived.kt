@@ -34,7 +34,7 @@ internal data class EventThreadArchived(
     @Serializable
     data class Postback(
         @SerialName("eventType")
-        val eventType: String
+        val eventType: String,
     )
 
     companion object : ReceivedEvent<EventThreadArchived> {

@@ -112,8 +112,8 @@ fun SdkConfigurationDialog(
                 builtConfiguration = builtConfiguration,
                 onConfigurationSelected = onConfigurationSelected,
                 onDismiss = onDismiss
-                )
-           }
+            )
+        }
     }
 }
 

@@ -24,7 +24,7 @@ import javax.annotation.concurrent.Immutable
  */
 @Immutable
 data class Cart(
-    val items: List<Item> = listOf()
+    val items: List<Item> = listOf(),
 ) {
     /**
      * An item in the shopping cart.

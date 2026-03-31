@@ -30,7 +30,7 @@ internal class TimeSpentOnPageEvent(
     private val title: String,
     private val uri: String,
     private val date: Date = Date(),
-    private val timeSpentOnPage: Long
+    private val timeSpentOnPage: Long,
 ) : ChatEvent<AnalyticsEvent>() {
     override fun getModel(
         connection: Connection,

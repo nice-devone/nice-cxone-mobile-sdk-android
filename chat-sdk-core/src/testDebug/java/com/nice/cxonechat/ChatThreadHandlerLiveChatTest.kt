@@ -82,12 +82,14 @@ internal class ChatThreadHandlerLiveChatTest : AbstractChatTest() {
         )
         assertNotEquals(chatThread, expected.asMutable())
         val actual = testCallback(::get) {
-            sendServerMessage(ServerResponse.LivechatRecovered(
-                thread = expected,
-                messages = messages.toTypedArray(),
-                scrollToken = scrollToken,
-                agent = agent
-            ))
+            sendServerMessage(
+                ServerResponse.LivechatRecovered(
+                    thread = expected,
+                    messages = messages.toTypedArray(),
+                    scrollToken = scrollToken,
+                    agent = agent
+                )
+            )
         }
         assertEquals(expected, actual)
     }

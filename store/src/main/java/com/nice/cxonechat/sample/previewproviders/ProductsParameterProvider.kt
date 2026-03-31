@@ -23,7 +23,7 @@ import kotlinx.serialization.json.Json
 /**
  * PreviewParameterProvider providing a list of products for the product list page.
  */
-class ProductsParameterProvider: PreviewParameterProvider<List<Product>> {
+class ProductsParameterProvider : PreviewParameterProvider<List<Product>> {
     override val values: Sequence<List<Product>>
         get() = sequenceOf(items)
 

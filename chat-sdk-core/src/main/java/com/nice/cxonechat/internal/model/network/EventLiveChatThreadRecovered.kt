@@ -48,19 +48,20 @@ internal data class EventLiveChatThreadRecovered(
         get() = data.thread
             ?.toChatThread()
             ?.copy(
-            fields = postback.data.contact?.customFields.orEmpty().map(CustomFieldModel::toCustomField),
-            contactId = data.contact?.id,
-        )
+                fields = postback.data.contact?.customFields.orEmpty().map(CustomFieldModel::toCustomField),
+                contactId = data.contact?.id,
+            )
     val scrollToken get() = data.messagesScrollToken
     val customerCustomFields get() = data.customer?.customFields.orEmpty().map(CustomFieldModel::toCustomField)
     val lastContactStatus get() = data.contact?.status
-    val threadState get() = if (lastContactStatus === ContactStatus.Closed) {
-        ChatThreadState.Closed
-    } else if (thread?.contactId != null) {
-        ChatThreadState.Ready
-    } else {
-        ChatThreadState.Loaded
-    }
+    val threadState
+        get() = if (lastContactStatus === ContactStatus.Closed) {
+            ChatThreadState.Closed
+        } else if (thread?.contactId != null) {
+            ChatThreadState.Ready
+        } else {
+            ChatThreadState.Loaded
+        }
 
     fun inThread(thread: ChatThread) = thread.id == this.thread?.id &&
             messages.all { it.threadId == thread.id }

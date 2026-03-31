@@ -39,8 +39,8 @@ class MultiThreadContentTest {
             }
         }
 
-        composeTestRule.onNodeWithTag("conversation_name",true).assertIsDisplayed()
-        composeTestRule.onNodeWithTag("last_message_time",true).assertIsDisplayed()
+        composeTestRule.onNodeWithTag("conversation_name", true).assertIsDisplayed()
+        composeTestRule.onNodeWithTag("last_message_time", true).assertIsDisplayed()
         composeTestRule.onNodeWithText("Thread 1").assertIsDisplayed()
         composeTestRule.onNodeWithContentDescription("open conversation details").assertIsDisplayed()
     }

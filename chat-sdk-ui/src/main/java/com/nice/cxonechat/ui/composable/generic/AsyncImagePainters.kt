@@ -57,7 +57,7 @@ internal fun PresetAsyncImage(
     cacheKey: String? = null,
     alignment: Alignment = Alignment.Center,
     contentScale: ContentScale = ContentScale.Fit,
-    painters: AsyncImagePainters = asyncImagePainters()
+    painters: AsyncImagePainters = asyncImagePainters(),
 ) {
     val tint = ColorFilter.tint(LocalContentColor.current)
     val placeholder = forwardingPainter(

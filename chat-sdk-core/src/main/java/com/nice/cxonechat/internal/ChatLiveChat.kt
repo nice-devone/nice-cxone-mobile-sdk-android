@@ -32,7 +32,7 @@ import com.nice.cxonechat.util.plus
 import java.util.Date
 
 internal class ChatLiveChat(
-    private val origin: ChatWithParameters
+    private val origin: ChatWithParameters,
 ) : ChatWithParameters by origin {
 
     private var availabilityExpiration = Date(0)

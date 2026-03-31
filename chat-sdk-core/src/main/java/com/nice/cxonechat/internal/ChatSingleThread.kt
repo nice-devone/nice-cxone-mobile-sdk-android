@@ -47,6 +47,7 @@ internal class ChatSingleThread(
     private var thread: ChatThread? = null
 
     override val chatStateListener: ChatStateListener? = origin.chatStateListener?.let { ChatStateListenerFiltered(it) }
+
     init {
         origin.socketListener.addListener(SocketConnectionListener(onConnected = ::recoverThread))
     }

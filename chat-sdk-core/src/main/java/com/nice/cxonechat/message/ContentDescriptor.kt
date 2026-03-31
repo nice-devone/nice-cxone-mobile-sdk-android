@@ -195,12 +195,13 @@ interface ContentDescriptor {
         internal fun ContentDescriptor.size(): Long? = when (val content = this.content) {
             is Bytes ->
                 content.bytes.size.toLong()
+
             is Uri ->
                 content
-                .context
-                .contentResolver
-                .openFileDescriptor(content.uri, "r")
-                ?.use { it.statSize }
+                    .context
+                    .contentResolver
+                    .openFileDescriptor(content.uri, "r")
+                    ?.use { it.statSize }
         }
     }
 }

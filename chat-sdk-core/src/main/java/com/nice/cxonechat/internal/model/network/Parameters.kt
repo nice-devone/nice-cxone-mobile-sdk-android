@@ -37,6 +37,7 @@ internal sealed class Parameters {
         val isInitialMessage: Boolean? = null,
         val isUnsupportedMessageTypeAnswer: Boolean? = null, // For unsupported messages
     ) : Parameters()
+
     data object Array : Parameters()
 }
 

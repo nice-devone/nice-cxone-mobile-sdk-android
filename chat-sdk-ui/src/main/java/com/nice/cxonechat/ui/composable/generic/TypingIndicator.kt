@@ -116,7 +116,7 @@ private fun TypingIndicatorDot(
     phase: Float,
     color: Color,
     waveHeight: Dp,
-    size: Dp
+    size: Dp,
 ) {
     val offset = ((1.0 - phase) * waveHeight.value * 2).roundToInt()
     val alpha0 = 0.40f

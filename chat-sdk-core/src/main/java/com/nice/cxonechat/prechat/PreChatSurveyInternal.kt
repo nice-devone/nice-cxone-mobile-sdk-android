@@ -23,7 +23,7 @@ internal data class PreChatSurveyInternal(
 ) : PreChatSurvey {
     override fun toString(): String =
         "PreChatSurvey(" +
-            "name='$name'" +
-            ", fields=${fields.joinToString()}" +
-            ")"
+                "name='$name'" +
+                ", fields=${fields.joinToString()}" +
+                ")"
 }

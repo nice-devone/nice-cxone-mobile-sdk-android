@@ -21,5 +21,5 @@ import java.util.Date
 
 @Serializable(with = IsoDateSerializer::class)
 internal data class IsoDate(
-    val date: Date
+    val date: Date,
 )

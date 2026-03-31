@@ -70,7 +70,7 @@ internal fun SpannableTextView(
 internal fun HtmlText(
     html: String,
     modifier: Modifier = Modifier,
-    textStyle: TextStyle = ChatTheme.typography.bodyLarge
+    textStyle: TextStyle = ChatTheme.typography.bodyLarge,
 ) {
     SpannableTextView(
         spannable = HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_COMPACT) as Spannable,

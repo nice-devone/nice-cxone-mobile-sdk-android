@@ -21,7 +21,7 @@ import java.util.UUID
 
 internal fun makeThread(
     idOnExternalPlatform: UUID = UUID.randomUUID(),
-    threadName: String? = nextString()
+    threadName: String? = nextString(),
 ) = Thread(
     idOnExternalPlatform = idOnExternalPlatform,
     threadName = threadName

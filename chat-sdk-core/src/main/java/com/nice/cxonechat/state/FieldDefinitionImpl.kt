@@ -21,7 +21,7 @@ import com.nice.cxonechat.internal.model.PreContactCustomFieldDefinitionModel
 import com.nice.cxonechat.state.HierarchyNodeInternal.Companion.toNodeIterable
 import java.util.regex.Pattern
 
-internal sealed class FieldDefinitionImpl: FieldDefinition {
+internal sealed class FieldDefinitionImpl : FieldDefinition {
     internal data class Text(
         override val fieldId: String,
         override val label: String,
@@ -43,7 +43,7 @@ internal sealed class FieldDefinitionImpl: FieldDefinition {
         )
 
         override fun validate(value: String) {
-            if(isEMail && !EMAIL_ADDRESS.matcher(value).matches()) {
+            if (isEMail && !EMAIL_ADDRESS.matcher(value).matches()) {
                 throw InvalidCustomFieldValue(label, "Invalid email address")
             }
         }
@@ -87,7 +87,7 @@ internal sealed class FieldDefinitionImpl: FieldDefinition {
         )
 
         override fun validate(value: String) {
-            if(values.lookup(value)?.isLeaf != true) {
+            if (values.lookup(value)?.isLeaf != true) {
                 throw InvalidCustomFieldValue(label, "Illegal hierarchy value")
             }
         }
@@ -106,7 +106,7 @@ internal sealed class FieldDefinitionImpl: FieldDefinition {
             )
         }
 
-        internal operator fun invoke(source: CustomFieldPolyType, isRequired: Boolean = false) = when(source) {
+        internal operator fun invoke(source: CustomFieldPolyType, isRequired: Boolean = false) = when (source) {
             is CustomFieldPolyType.Text -> Text(source, isEMail = false, isRequired = isRequired)
             is CustomFieldPolyType.Email -> Text(source, isEMail = true, isRequired = isRequired)
             is CustomFieldPolyType.Selector -> Selector(source, isRequired = isRequired)
