@@ -72,6 +72,7 @@ import com.nice.cxonechat.ui.domain.model.EndConversationChoice.SHOW_TRANSCRIPT
 @Composable
 internal fun EndConversationContent(
     agentState: Agent?,
+    liveChatAllowTranscript: Boolean,
     onUserSelection: (EndConversationChoice) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -99,7 +100,11 @@ internal fun EndConversationContent(
                 EndConversationIcon()
             }
         }
-        ActionList(onUserSelection, onDismiss)
+        ActionList(
+            liveChatAllowTranscript = liveChatAllowTranscript,
+            onUserSelection = onUserSelection,
+            onDismiss = onDismiss
+        )
     }
 }
 
@@ -117,7 +122,11 @@ internal fun EndConversationIcon() {
 }
 
 @Composable
-private fun ActionList(onUserSelection: (EndConversationChoice) -> Unit, onDismiss: () -> Unit) {
+private fun ActionList(
+    liveChatAllowTranscript: Boolean,
+    onUserSelection: (EndConversationChoice) -> Unit,
+    onDismiss: () -> Unit,
+) {
     val dividerColor = chatColors.token.border.default
     val iconMod = Modifier.fillMaxSize()
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -156,13 +165,15 @@ private fun ActionList(onUserSelection: (EndConversationChoice) -> Unit, onDismi
                 )
             }
         )
-        DividerItem(color = dividerColor)
-        SendTranscriptRow(
-            modifier = iconMod,
-            onClick = {
-                onUserSelection(SEND_TRANSCRIPT)
-            }
-        )
+        if (liveChatAllowTranscript) {
+            DividerItem(color = dividerColor)
+            SendTranscriptRow(
+                modifier = iconMod,
+                onClick = {
+                    onUserSelection(SEND_TRANSCRIPT)
+                }
+            )
+        }
         DividerItem(color = dividerColor)
         CloseChatRow(
             modifier = iconMod,
@@ -255,6 +266,7 @@ private fun PreviewContentNoAgent() {
         ) {
             EndConversationContent(
                 agentState = null,
+                liveChatAllowTranscript = true,
                 onUserSelection = {},
                 onDismiss = {},
             )
@@ -272,6 +284,7 @@ private fun PreviewContent() {
         ) {
             EndConversationContent(
                 agentState = PreviewAgent.nextAgent(),
+                liveChatAllowTranscript = true,
                 onUserSelection = {},
                 onDismiss = {},
             )

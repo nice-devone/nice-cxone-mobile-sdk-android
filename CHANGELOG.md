@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+<a name="3.2.2"></a>
+
+## [3.2.2] - 2026-04-23
+
+### Fixed
+
+- Respect the `liveChatAllowTranscript` channel configuration flag when showing the "Send Transcript" option in the End Conversation sheet
+
+<a name="3.2.1"></a>
+
+## [3.2.1] - 2026-03-31
+
+### Fixed
+
+- Prevent EndContact dialog from reappearing after dismissal in LiveChat mode
+
 <a name="3.2.0"></a>
 
 ## [3.2.0] - 2026-02-26
@@ -582,7 +598,11 @@
         - failure
     - typing start/end
 
-[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.2.0...HEAD
+[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.2.2...HEAD
+
+[3.2.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.2.1...3.2.2
+
+[3.2.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.2.0...3.2.1
 
 [3.2.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.1.2...3.2.0
 

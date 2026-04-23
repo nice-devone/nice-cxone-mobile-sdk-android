@@ -34,6 +34,7 @@ internal fun EndContactDialog(
     val agent = chatViewModel.assignedAgentFlow.collectAsState(initial = null)
     EndConversationBottomSheet(
         assignedAgent = agent,
+        liveChatAllowTranscript = chatViewModel.liveChatAllowTranscript,
         onDismiss = chatViewModel::dismissDialog,
         onUserSelection = {
             when (it) {

@@ -5,9 +5,6 @@ on:
     # on any tag created from git
     tags:
       - "*"
-  release:
-    # on any new release created from github
-    types: [created]
   workflow_dispatch:
   # show a button to manually trigger this workflow
 
@@ -17,7 +14,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set up JDK
         uses: actions/setup-java@v5
@@ -26,7 +23,7 @@ jobs:
           distribution: "temurin" # aka adopt
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
 
       - name: Append Version
         run: |

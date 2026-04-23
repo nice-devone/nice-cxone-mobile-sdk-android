@@ -36,6 +36,7 @@ class EndConversationTest {
         composeTestRule.setContent {
             EndConversationBottomSheet(
                 assignedAgent = remember { mutableStateOf(PreviewAgent.nextAgent()) },
+                liveChatAllowTranscript = true,
                 onUserSelection = {},
                 onDismiss = {},
             )
@@ -49,6 +50,7 @@ class EndConversationTest {
         composeTestRule.setContent {
             EndConversationBottomSheet(
                 assignedAgent = remember { mutableStateOf(null) },
+                liveChatAllowTranscript = true,
                 onUserSelection = {},
                 onDismiss = {},
             )
@@ -65,6 +67,7 @@ class EndConversationTest {
             val onDismiss = { dismissed = true }
             EndConversationBottomSheet(
                 assignedAgent = remember { mutableStateOf(PreviewAgent.nextAgent()) },
+                liveChatAllowTranscript = true,
                 onUserSelection = { selected = it },
                 onDismiss = onDismiss,
             )
@@ -80,5 +83,46 @@ class EndConversationTest {
         composeTestRule.onNodeWithTag("close_chat_button").performClick()
         Assert.assertEquals(EndConversationChoice.CLOSE_CHAT, selected)
         Assert.assertTrue(dismissed)
+    }
+
+    @Test
+    fun sendTranscriptButton_hidden_whenLiveChatAllowTranscriptFalse() {
+        composeTestRule.setContent {
+            EndConversationBottomSheet(
+                assignedAgent = remember { mutableStateOf(PreviewAgent.nextAgent()) },
+                liveChatAllowTranscript = false,
+                onUserSelection = {},
+                onDismiss = {},
+            )
+        }
+        composeTestRule.onNodeWithTag("send_transcript_button").assertDoesNotExist()
+    }
+
+    @Test
+    fun sendTranscriptButton_shown_whenLiveChatAllowTranscriptTrue() {
+        composeTestRule.setContent {
+            EndConversationBottomSheet(
+                assignedAgent = remember { mutableStateOf(PreviewAgent.nextAgent()) },
+                liveChatAllowTranscript = true,
+                onUserSelection = {},
+                onDismiss = {},
+            )
+        }
+        composeTestRule.onNodeWithTag("send_transcript_button").assertIsDisplayed()
+    }
+
+    @Test
+    fun sendTranscriptButton_triggersCallback_whenClicked() {
+        var selected: EndConversationChoice? = null
+        composeTestRule.setContent {
+            EndConversationBottomSheet(
+                assignedAgent = remember { mutableStateOf(PreviewAgent.nextAgent()) },
+                liveChatAllowTranscript = true,
+                onUserSelection = { selected = it },
+                onDismiss = {},
+            )
+        }
+        composeTestRule.onNodeWithTag("send_transcript_button").performClick()
+        Assert.assertEquals(EndConversationChoice.SEND_TRANSCRIPT, selected)
     }
 }
