@@ -38,6 +38,7 @@ import com.nice.cxonechat.ui.domain.model.EndConversationChoice
 @Composable
 internal fun EndConversationBottomSheet(
     assignedAgent: State<Agent?>,
+    liveChatAllowTranscript: Boolean,
     onDismiss: () -> Unit,
     onUserSelection: (EndConversationChoice) -> Unit,
     modifier: Modifier = Modifier,
@@ -55,9 +56,10 @@ internal fun EndConversationBottomSheet(
             .testTag("end_conversation_bottom_sheet")
     ) {
         EndConversationContent(
-            assignedAgent.value,
-            onUserSelection,
-            onDismiss
+            agentState = assignedAgent.value,
+            liveChatAllowTranscript = liveChatAllowTranscript,
+            onUserSelection = onUserSelection,
+            onDismiss = onDismiss
         )
     }
 }
@@ -68,6 +70,7 @@ private fun PreviewEndConversationDialog() {
     ChatTheme {
         EndConversationBottomSheet(
             assignedAgent = remember { mutableStateOf(PreviewAgent.nextAgent()) },
+            liveChatAllowTranscript = true,
             onDismiss = {},
             onUserSelection = {}
         )
