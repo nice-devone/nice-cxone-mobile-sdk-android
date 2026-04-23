@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set up JDK
         uses: actions/setup-java@v5
@@ -23,7 +23,7 @@ jobs:
           distribution: "temurin" # aka adopt
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
 
       - name: Run build
         run: ./gradlew dokkaGenerate -Pandroid.experimental.settings.executionProfile=ci
@@ -31,7 +31,7 @@ jobs:
           GPR_USERNAME: ${{ github.repository_owner }}
           GPR_TOKEN: ${{ github.token }}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: javadoc-html
           path: dist
@@ -42,7 +42,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Prepare Repository
         run: |
@@ -50,7 +50,7 @@ jobs:
           rm -rf .github .idea .gitignore .chglog
           git checkout --orphan static-feature/pages
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v7
         with:
           name: javadoc-html
 
