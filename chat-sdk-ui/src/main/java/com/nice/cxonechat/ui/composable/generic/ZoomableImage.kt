@@ -36,6 +36,8 @@ internal fun ZoomableImage(
     PresetAsyncImage(
         model = image,
         contentDescription = contentDescription,
+        isGroupAttachment = false,
+        showLoadingBorder = false, // Added to remove loading border for full screen image
         modifier = modifier.zoomable(rememberZoomState()),
     )
 }

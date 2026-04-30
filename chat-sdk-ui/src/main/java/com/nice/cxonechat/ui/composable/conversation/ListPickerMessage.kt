@@ -20,7 +20,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -156,7 +155,6 @@ internal fun ListPickerMessageStatus(messageStatusState: MessageStatusState, onC
     Row(
         horizontalArrangement = Arrangement.spacedBy(3.dp),
         modifier = Modifier
-            .fillMaxWidth()
             .padding(start = space.xl, bottom = space.semiLarge, end = space.xl)
             .testTag("list_picker_message_status")
             .clickable {
@@ -180,7 +178,7 @@ internal fun ListPickerMessageStatus(messageStatusState: MessageStatusState, onC
 }
 
 /**
- * Determine the current state of the quick reply options.
+ * Determine the current state of the List Picker message options.
  */
 internal fun getListPickerState(isNotAnswered: Boolean): MessageStatusState =
     if (isNotAnswered) SELECTABLE else SELECTED

@@ -15,7 +15,6 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -30,7 +29,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults.enterAlwaysScrollBehavior
@@ -51,6 +49,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nice.cxonechat.thread.ChatThreadState
@@ -58,6 +57,9 @@ import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.conversation.model.ConversationTopBarState
 import com.nice.cxonechat.ui.composable.theme.BackButton
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatShapes
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.MediumTopBar
 import com.nice.cxonechat.ui.composable.theme.Scaffold
 import com.nice.cxonechat.ui.composable.theme.TextField
@@ -106,118 +108,8 @@ private fun Actions(
     modifier: Modifier = Modifier,
 ) {
     val isArchived by conversationState.isArchived.collectAsState()
-    val singleItem = remember(conversationState, isArchived) {
-        listOf(
-            conversationState.hasQuestions && !isArchived,
-            conversationState.isMultiThreaded,
-            conversationState.isLiveChat,
-            conversationState.liveChatAllowTranscript,
-        ).count { it }.let { it <= 1 }
-    }
-    AnimatedContent(singleItem) { state ->
-        if (state) {
-            SingleAction(
-                conversationState = conversationState,
-                isArchived = isArchived,
-                onEditThreadName = onEditThreadName,
-                onEditThreadValues = onEditThreadValues,
-                onEndContact = onEndContact,
-                displayEndConversation = displayEndConversation,
-                onSendTranscript = onSendTranscript,
-                modifier = modifier
-            )
-        } else {
-            MultipleActions(
-                conversationState = conversationState,
-                isArchived = isArchived,
-                onEditThreadName = onEditThreadName,
-                onEditThreadValues = onEditThreadValues,
-                onEndContact = onEndContact,
-                onSendTranscript = onSendTranscript,
-                displayEndConversation = displayEndConversation,
-                modifier = modifier
-            )
-        }
-    }
-}
-
-@Composable
-private fun SingleAction(
-    conversationState: ConversationTopBarState,
-    isArchived: Boolean,
-    onEditThreadName: () -> Unit,
-    onEditThreadValues: () -> Unit,
-    onEndContact: () -> Unit,
-    displayEndConversation: () -> Unit,
-    onSendTranscript: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    if (conversationState.isMultiThreaded) {
-        IconButton(
-            modifier = Modifier
-                .testTag("edit_thread_name_button")
-                .then(modifier),
-            onClick = remember { onEditThreadName }
-        ) {
-            ChatIcon()
-        }
-    } else if (conversationState.hasQuestions && !isArchived) {
-        IconButton(
-            modifier = Modifier
-                .testTag("edit_thread_custom_values_button")
-                .then(modifier),
-            onClick = remember { onEditThreadValues }
-        ) {
-            EditIcon()
-        }
-    } else if (conversationState.isLiveChat) {
-        if (isArchived) {
-            IconButton(
-                modifier = Modifier
-                    .testTag("show_end_conversation_dialog_button")
-                    .then(modifier),
-                onClick = remember { displayEndConversation }
-            ) {
-                MenuIcon()
-            }
-        } else if (conversationState.liveChatAllowTranscript) {
-            IconButton(
-                modifier = Modifier
-                    .testTag("send_transcript_dialog_button")
-                    .then(modifier),
-                onClick = remember { onSendTranscript }
-            ) {
-                SendTranscriptIcon()
-            }
-        } else {
-            val threadState by conversationState.threadState.collectAsState()
-            IconButton(
-                modifier = Modifier
-                    .testTag("end_conversation_button")
-                    .then(modifier),
-                onClick = onEndContact,
-                enabled = threadState == ChatThreadState.Ready,
-                colors = IconButtonDefaults.iconButtonColors(contentColor = ChatTheme.colorScheme.error)
-            ) {
-                EndConversationIconForMenu()
-            }
-        }
-    }
-}
-
-@Composable
-private fun MultipleActions(
-    conversationState: ConversationTopBarState,
-    isArchived: Boolean,
-    onEditThreadName: () -> Unit,
-    onEditThreadValues: () -> Unit,
-    onEndContact: () -> Unit,
-    onSendTranscript: () -> Unit,
-    displayEndConversation: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
     var expanded by remember { mutableStateOf(false) }
-    val dismiss: () -> Unit = remember { { expanded = false } }
+    val dismiss: () -> Unit = { expanded = false }
     IconButton(
         modifier = Modifier
             .testTag("chat_thread_top_bar_menu_button")
@@ -228,8 +120,11 @@ private fun MultipleActions(
     }
     DropdownMenu(
         expanded = expanded,
+        containerColor = chatColors.token.background.surface.subtle,
         onDismissRequest = { expanded = false },
+        shape = chatShapes.menuActionsBoxShape,
         modifier = Modifier.testTag("chat_thread_top_bar_menu"),
+        offset = DpOffset(x = -space.xl, y = 0.dp) // shift left by 24dp
     ) {
         if (conversationState.isMultiThreaded) {
             ChangeThreadNameMenu {

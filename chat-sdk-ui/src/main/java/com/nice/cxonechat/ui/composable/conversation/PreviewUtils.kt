@@ -169,6 +169,7 @@ internal fun PreviewMessageItem(
         onQuickReplyOptionSelected = {},
         snackBarHostState = SnackbarHostState(),
         onListPickerSelected = {},
+        onTimePickerSelected = { _, _ -> },
     )
 }
 

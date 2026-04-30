@@ -25,9 +25,9 @@
     <!-- Button label for completing an action, e.g. form submission or chat transcript -->
     <string name="submit">Submit</string>
     <!-- Button to open custom fields editor in pre-chat or thread details -->
-    <string name="change_details_label">Change custom fields</string>
+    <string name="change_details_label">Edit Pre-chat Form</string>
     <!-- Action to set or edit the conversation/thread name -->
-    <string name="change_thread_name">Set conversation name</string>
+    <string name="change_thread_name">Rename Conversation</string>
     <!-- Button label for sending a chat message -->
     <string name="text_send">Send</string>
     <!-- Label indicating an option was selected (e.g. quick reply, list picker) -->
@@ -42,6 +42,8 @@
     <string name="select_none">None</string>
     <!-- Action to select items in a list -->
     <string name="select_items">Select items</string>
+    <!-- Title for alert dialog -->
+    <string name="attention">Attention</string>
 
     <!--
       Thread and conversation management
@@ -126,7 +128,7 @@
       Conversation end and livechat
     -->
     <!-- Button label for ending a conversation -->
-    <string name="action_end_conversation">End conversation</string>
+    <string name="action_end_conversation">End Conversation</string>
     <!-- Message shown when conversation is closed with agent name -->
     <string name="livechat_conversation_closed_message">You chatted with</string>
     <!-- Message shown when conversation is closed without agent -->
@@ -139,6 +141,8 @@
     <string name="livechat_close_chat">Close chat</string>
     <!-- Options menu for conversation -->
     <string name="livechat_conversation_options">Conversation options</string>
+    <!-- End contact confirmation dialog description -->
+    <string name="livechat_end_confirmation_text">Are you sure you want to end this conversation?</string>
 
     <!--
       Document and attachment support
@@ -390,8 +394,8 @@
     -->
     <!-- Quick Reply - The explanation for a state where reply options are disabled -->
     <string name="quick_reply_disable_message">These options are no longer visible because you\'ve already responded or the message is no longer the most recent.</string>
-    <!-- Quick Reply - The label for state when options from message are unavailable -->
-    <string name="quick_reply_options_unavailable">Options unavailable</string>
+    <!-- The label for state when options from message are unavailable -->
+    <string name="options_unavailable">Options unavailable</string>
     <!-- List picker open prompt -->
     <string name="list_picker_open_message">Press to open</string>
     <!-- Label indicating an option was selected (e.g. quick reply, list picker) -->
@@ -426,4 +430,18 @@
     <string name="close">Close</string>
     <!-- Generic error label -->
     <string name="error">Error</string>
+
+    <!--
+      Time Picker strings
+    -->
+    <!-- Sub-Title for time picker dialog -->
+    <string name="time_picker_dialogue_description">Please select a preferred time slot.</string>
+    <!-- Format: "March 30, 2026 at 5:00 AM, 30 min" — %1$s = date, %2$s = time, %3$s = duration -->
+    <string name="time_slot_localized_text">%1$s at %2$s, %3$s</string>
+    <!-- Format: "5:00 AM, 30 min" — %1$s = time, %2$s = duration -->
+    <string name="time_slot_accessibility_text">%1$s, %2$s</string>
+    <!-- Accessibility state when a time slot is currently selected -->
+    <string name="time_slot_state_selected">Selected</string>
+    <!-- Accessibility state when a time slot is not selected -->
+    <string name="time_slot_state_not_selected">Not selected</string>
 </resources>

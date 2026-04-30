@@ -96,6 +96,11 @@ internal sealed interface ConversationDialog {
     data object EndContact : ConversationDialog
 
     /**
+     * Represents a confirmation dialog for end of contact.
+     */
+    data object EndContactConfirmation : ConversationDialog
+
+    /**
      * Represents a popup dialog.
      *
      * @property popup The popup to be displayed.

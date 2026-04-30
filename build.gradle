@@ -18,17 +18,32 @@ import io.gitlab.arturbosch.detekt.DetektPlugin
 import io.gitlab.arturbosch.detekt.report.ReportMergeTask
 
 buildscript {
+    configurations.classpath {
+        resolutionStrategy.activateDependencyLocking()
+    }
     configurations.configureEach {
         resolutionStrategy {
             // Android gradle plugin & root coverage plugin are using vulnerable dependencies
             eachDependency { details ->
-                if (details.requested.group == 'io.netty' && details.requested.version < '4.1.125.Final') {
-                    details.useVersion '4.1.125.Final'
+                if (details.requested.group == 'io.netty' && details.requested.version < '4.1.129.Final') {
+                    details.useVersion '4.1.129.Final'
                 }
                 if (details.requested.group == 'org.apache.commons' && details.requested.name == 'commons-compress') {
                     if (details.requested.version >= '1.21' && details.requested.version < '1.26.0') {
                         details.useVersion '1.26.0'
                     }
+                }
+                // AGP bundletool is using a vulnerable jose4j version (CVE-2024-29371)
+                if (details.requested.group == 'org.bitbucket.b_c' && details.requested.name == 'jose4j' && details.requested.version < '0.9.6') {
+                    details.useVersion '0.9.6'
+                }
+                // AGP jetifier-processor is using a vulnerable jdom2 version (CVE-2021-33813)
+                if (details.requested.group == 'org.jdom' && details.requested.name == 'jdom2') {
+                    details.useVersion '2.0.6.1'
+                }
+                // AGP sdklib is using a vulnerable commons-lang3 version (CVE-2025-48924)
+                if (details.requested.group == 'org.apache.commons' && details.requested.name == 'commons-lang3') {
+                    details.useVersion '3.18.0'
                 }
             }
 
@@ -42,7 +57,6 @@ plugins {
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.dokka) apply true
-    alias(libs.plugins.maven.publish) apply false
     alias(libs.plugins.google.services) apply false
     alias(libs.plugins.androidx.safeargs) apply false
     alias(libs.plugins.detekt)
@@ -55,6 +69,10 @@ plugins {
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.build.config) apply false
     alias(libs.plugins.kotlinx.binary.compatibility.validator) apply true // Remove when Kotlin is upgraded to 2.2.0 or higher
+}
+
+dependencyLocking {
+    lockAllConfigurations()
 }
 
 subprojects {
@@ -70,8 +88,8 @@ subprojects {
                     details.useVersion '1.75.0'
                 }
                 // Android tests are using vulnerable dependency
-                if (details.requested.group == 'io.netty' && details.requested.version < '4.1.125.Final') {
-                    details.useVersion '4.1.125.Final'
+                if (details.requested.group == 'io.netty' && details.requested.version < '4.1.129.Final') {
+                    details.useVersion '4.1.129.Final'
                 }
                 // Android gradle plugin & root coverage plugin are using vulnerable dependency
                 if (details.requested.group == 'org.apache.commons' && details.requested.name == 'commons-compress') {
@@ -88,15 +106,15 @@ subprojects {
 configurations.configureEach {
     resolutionStrategy {
         eachDependency { details ->
-            if (details.requested.group == 'io.netty' && details.requested.name == 'netty-handler' && details.requested.version < '4.1.125.Final') {
-                details.useVersion '4.1.125.Final'
+            if (details.requested.group == 'io.netty' && details.requested.name == 'netty-handler' && details.requested.version < '4.1.129.Final') {
+                details.useVersion '4.1.129.Final'
             }
         }
     }
 }
 
 group = GROUP
-version = "3.2.2" // Fallback version
+version = "3.3.0" // Fallback version
 
 allprojects {
     group = rootProject.group

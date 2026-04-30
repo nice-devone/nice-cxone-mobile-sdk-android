@@ -108,6 +108,7 @@ internal class NotifyUpdateUseCase(
         is Message.ListPicker,
         is Message.QuickReplies,
         is Message.RichLink,
+        is Message.TimePicker,
             -> message.fallbackText.orEmpty()
 
         is Message.Text -> message.text.let { text ->

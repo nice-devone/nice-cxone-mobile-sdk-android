@@ -140,6 +140,7 @@ private fun ColumnScope.GridView(
                     selectionFrame = true,
                     selectionFrameColor = chatColors.token.border.default,
                     selectionCircle = selecting,
+                    isGroupAttachment = true, // Selection screen has same corners as group items
                     onClick = remember { viewModel::onClick },
                     onLongClick = remember { viewModel::onLongClick },
                 )

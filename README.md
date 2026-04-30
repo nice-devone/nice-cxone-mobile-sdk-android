@@ -8,10 +8,10 @@ The repository contains an Android SDK for chat functionality, UI components, an
 ### High-Level Repository Information
 
 - **Project Type**: Android SDK library with UI module
-- **Primary Languages**: Kotlin (99.8%)
+- **Primary Languages**: Kotlin
 - **Target Runtime**: Android API 35 (Android 15)
 - **Supported Runtime**: Android API 24-36 (Android 7.0 to Android 16)
-- **Build System**: Gradle 9.3.1 with Android Gradle Plugin 8.13.2
+- **Build System**: Gradle 9.3.1 with Android Gradle Plugin 8.13.2, JDK 17
 - **Java Compatibility**: Source and target compatibility Java 11
 - **Architecture**: Multi-module Android library with Jetpack Compose UI
 

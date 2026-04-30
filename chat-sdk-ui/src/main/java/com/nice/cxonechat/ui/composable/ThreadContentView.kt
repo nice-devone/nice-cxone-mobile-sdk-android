@@ -139,6 +139,12 @@ private fun uiState(
     onShare = onShare,
     isArchived = chatThreadViewModel.isArchived,
     onReplyButtonClicked = chatThreadViewModel::reportReplyButtonClicked,
+    onTimeSlotSelected = { timeSlot, timeSlotLocalizedText ->
+        chatThreadViewModel.reportTimeslotSelected(
+            timeSlotLocalizedText = timeSlotLocalizedText,
+            timeslot = timeSlot,
+        )
+    },
     isLiveChat = chatThreadViewModel.isLiveChat,
     pendingAttachments = chatThreadViewModel.pendingAttachments,
     onRemovePendingAttachment = chatThreadViewModel::removePendingAttachment,

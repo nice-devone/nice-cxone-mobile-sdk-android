@@ -26,6 +26,8 @@ import com.nice.cxonechat.event.thread.TypingStartEvent
 import com.nice.cxonechat.exceptions.InvalidParameterException
 import com.nice.cxonechat.internal.model.ActionKtx.toEvent
 import com.nice.cxonechat.message.Action
+import com.nice.cxonechat.message.TimeSlot
+import com.nice.cxonechat.internal.model.toEvent as timeSlotToEvent
 
 /**
  * Provides in-one-place interactions to trigger all available events.
@@ -119,5 +121,25 @@ object ChatThreadEventHandlerActions {
     ) {
         val event = SendTranscriptEvent(email = email)
         trigger(event, listener, errorListener, onEventResponseListener)
+    }
+
+    /**
+     * Sends a postback for the selected time slot (typically in response to a TimePicker [TimeSlot] message).
+     *
+     * @param timeSlotLocalizedText The text representing the selected time slot, as it was presented to the user.
+     * @param timeSlot The selected [TimeSlot] containing the id and other relevant information used to build the postback.
+     * @param listener An optional listener to be notified when the event is sent.
+     * @param errorListener An optional listener to be notified if an error occurs while sending.
+     */
+    @JvmOverloads
+    @JvmStatic
+    fun ChatThreadEventHandler.selectTimeSlot(
+        timeSlotLocalizedText: String,
+        timeSlot: TimeSlot,
+        listener: OnEventSentListener? = null,
+        errorListener: OnEventErrorListener? = null,
+    ) {
+        val event = timeSlot.timeSlotToEvent(timeSlotLocalizedText)
+        trigger(event, listener, errorListener)
     }
 }

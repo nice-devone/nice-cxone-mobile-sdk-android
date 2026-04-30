@@ -13,8 +13,6 @@
  * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
  */
 
-import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
-
 plugins {
     id("android-library-conventions")
     id("android-kotlin-conventions")
@@ -30,10 +28,13 @@ android {
     defaultConfig {
         consumerProguardFiles("consumer-rules.pro")
     }
-}
 
-mavenPublishing {
-    configure(AndroidSingleVariantLibrary("release", true, true))
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
 }
 
 dependencies {
@@ -45,4 +46,18 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
 
     testImplementation(libs.kotlinx.coroutines.test)
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            create<MavenPublication>("release") {
+                from(components["release"])
+
+                pom {
+                    project.extensions.extraProperties["configurePomMetadata"].let { it as groovy.lang.Closure<*> }.call(this)
+                }
+            }
+        }
+    }
 }

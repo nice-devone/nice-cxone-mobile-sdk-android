@@ -67,6 +67,7 @@ class MessagesUiTest {
                     onShare = {},
                     modifier = Modifier,
                     snackBarHostState = SnackbarHostState(),
+                    onTimePickerSelected = { _, _ -> },
                 )
             }
         }
@@ -92,6 +93,7 @@ class MessagesUiTest {
                     onShare = {},
                     modifier = Modifier,
                     snackBarHostState = SnackbarHostState(),
+                    onTimePickerSelected = { _, _ -> },
                 )
             }
         }
@@ -115,6 +117,7 @@ class MessagesUiTest {
                     onShare = {},
                     modifier = Modifier,
                     snackBarHostState = SnackbarHostState(),
+                    onTimePickerSelected = { _, _ -> },
                 )
             }
         }

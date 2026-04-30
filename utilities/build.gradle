@@ -13,8 +13,6 @@
  * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
  */
 
-import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
-
 plugins {
     id "android-library-conventions"
     id "android-kotlin-conventions"
@@ -49,8 +47,25 @@ android {
             }
         }
     }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
 }
 
-mavenPublishing {
-    configure(new AndroidSingleVariantLibrary("release", true, true))
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+
+                pom {
+                    configurePomMetadata(it)
+                }
+            }
+        }
+    }
 }

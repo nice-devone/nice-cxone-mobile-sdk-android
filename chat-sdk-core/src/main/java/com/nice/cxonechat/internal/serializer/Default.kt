@@ -72,6 +72,7 @@ internal object Default {
             subclass(MessagePolyContent.QuickReplies::class)
             subclass(MessagePolyContent.ListPicker::class)
             subclass(MessagePolyContent.RichLink::class)
+            subclass(MessagePolyContent.TimePicker::class)
             subclass(MessagePolyContent.Plugin::class)
             defaultDeserializer { DefaultMessagePolyContentSerializer }
         }

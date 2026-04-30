@@ -82,6 +82,11 @@ private fun ShowDialog(
         CustomValues -> CustomValuesDialog(threadViewModel)
         EditThreadName -> EditThreadNameDialogWrapper(threadViewModel, onDismiss)
         EndContact -> EndContactDialog(closeChat = closeChat, chatViewModel = threadViewModel, chatModel = chatModel)
+        ConversationDialog.EndContactConfirmation ->
+            EndContactConfirmationDialog(
+                onConfirm = { threadViewModel.endContact() },
+                onCancel = onDismiss
+            )
         is SelectAttachments -> SelectAttachmentsDialog(dialog, onAttachmentClicked, onShare, onDismiss)
         is ImageViewer -> ImageViewerDialogWrapper(dialog, onDismiss, onShare)
         is VideoPlayer -> VideoPlayerDialogWrapper(dialog, onDismiss, onShare)

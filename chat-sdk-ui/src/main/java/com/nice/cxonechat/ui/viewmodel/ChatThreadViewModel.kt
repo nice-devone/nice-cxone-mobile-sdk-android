@@ -21,6 +21,7 @@ import androidx.lifecycle.viewModelScope
 import com.nice.cxonechat.Chat
 import com.nice.cxonechat.ChatThreadActionHandler
 import com.nice.cxonechat.ChatThreadEventHandlerActions.markThreadRead
+import com.nice.cxonechat.ChatThreadEventHandlerActions.selectTimeSlot
 import com.nice.cxonechat.ChatThreadEventHandlerActions.sendTranscript
 import com.nice.cxonechat.ChatThreadEventHandlerActions.triggerAction
 import com.nice.cxonechat.ChatThreadEventHandlerActions.typingEnd
@@ -44,6 +45,7 @@ import com.nice.cxonechat.message.MessageMetadata
 import com.nice.cxonechat.message.MessageStatus
 import com.nice.cxonechat.message.MessageStatus.Sending
 import com.nice.cxonechat.message.OutboundMessage
+import com.nice.cxonechat.message.TimeSlot
 import com.nice.cxonechat.prechat.PreChatSurvey
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState
@@ -72,6 +74,7 @@ import com.nice.cxonechat.ui.util.preview.message.SdkText
 import com.nice.cxonechat.ui.viewmodel.ConversationDialog.CustomValues
 import com.nice.cxonechat.ui.viewmodel.ConversationDialog.EditThreadName
 import com.nice.cxonechat.ui.viewmodel.ConversationDialog.EndContact
+import com.nice.cxonechat.ui.viewmodel.ConversationDialog.EndContactConfirmation
 import com.nice.cxonechat.ui.viewmodel.ConversationDialog.None
 import com.nice.cxonechat.ui.viewmodel.ConversationDialog.SelectAttachments
 import com.nice.cxonechat.utilities.isEmpty
@@ -544,7 +547,12 @@ internal class ChatThreadViewModel(
         showDialog(ConversationDialog.VideoPlayer(url, title, attachment))
     }
 
+    internal fun showConfirmEndContactDialog() = scope("showConfirmEndContactDialog") {
+        showDialog(EndContactConfirmation)
+    }
+
     internal fun endContact() = scope("endContact") {
+        dismissDialog()
         viewModelScope.launch {
             chatThreadHandler.firstOrNull()?.endContact()
         }
@@ -588,6 +596,20 @@ internal class ChatThreadViewModel(
         viewModelScope.launch {
             eventHandler.first().triggerAction(replyButton)
             // If the reply button was clicked from a popup, dismiss the popup dialog.
+            if (dialogShown.value is ConversationDialog.Popup) dismissDialog()
+        }
+    }
+
+    internal fun reportTimeslotSelected(
+        timeSlotLocalizedText: String,
+        timeslot: TimeSlot,
+    ) = scope("reportTimeslotClicked") {
+        viewModelScope.launch {
+            eventHandler.first().selectTimeSlot(
+                timeSlotLocalizedText = timeSlotLocalizedText,
+                timeSlot = timeslot,
+            )
+            // If the timeslot was clicked from a popup, dismiss the popup dialog.
             if (dialogShown.value is ConversationDialog.Popup) dismissDialog()
         }
     }

@@ -58,8 +58,8 @@ import coil3.ImageLoader
 import coil3.compose.AsyncImage
 import com.nice.cxonechat.sample.R.string
 import com.nice.cxonechat.sample.data.models.UISettingsModel
+import com.nice.cxonechat.sample.data.repository.RepositoryError
 import com.nice.cxonechat.sample.data.repository.UISettings
-import com.nice.cxonechat.sample.data.repository.UISettingsState
 import com.nice.cxonechat.sample.ui.TestModifier
 import com.nice.cxonechat.sample.ui.theme.AppTheme
 import com.nice.cxonechat.sample.ui.theme.AppTheme.colorScheme
@@ -68,6 +68,7 @@ import com.nice.cxonechat.sample.ui.theme.LocalSpace
 import com.nice.cxonechat.sample.ui.theme.MultiToggleButton
 import com.nice.cxonechat.sample.ui.theme.Shapes
 import kotlinx.coroutines.Dispatchers
+import kotlinx.serialization.SerializationException
 
 /**
  * Edit the UI Settings currently in place.
@@ -138,15 +139,23 @@ private fun ColumnScope.UiSettingsContent(
         }
         Spacer(modifier = Modifier.weight(1f))
         HorizontalDivider()
-        SettingsBottomRow(onDismiss, onReset) {
-            UISettingsState.value = current
-            try {
-                onConfirm(current)
-            } catch (exc: java.lang.Exception) {
-                error = exc
+        SettingsBottomRow(
+            onDismiss = onDismiss,
+            onReset = {
+                onReset()
+                onDismiss()
+            },
+            onConfirm = {
+                try {
+                    onConfirm(current)
+                    onDismiss()
+                } catch (exc: RepositoryError) {
+                    error = exc
+                } catch (exc: SerializationException) {
+                    error = exc
+                }
             }
-            onDismiss()
-        }
+        )
     }
 }
 

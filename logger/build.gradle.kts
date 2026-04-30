@@ -13,9 +13,6 @@
  * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
  */
 
-import com.vanniktech.maven.publish.JavadocJar
-import com.vanniktech.maven.publish.KotlinJvm
-
 plugins {
     id("java-library-conventions")
     id("jvm-kotlin-conventions")
@@ -24,16 +21,6 @@ plugins {
     id("docs-conventions")
     id("publish-conventions")
     id("org.jetbrains.dokka-javadoc")
-}
-
-mavenPublishing {
-    configure(
-        KotlinJvm(
-            javadocJar = JavadocJar.Dokka(tasks.dokkaGeneratePublicationJavadoc.name),
-            // whether to publish a sources jar
-            sourcesJar = true,
-        )
-    )
 }
 
 kotlin {
@@ -45,5 +32,33 @@ kotlin {
                 "-Xtype-enhancement-improvements-strict-mode"
             )
         )
+    }
+}
+
+java {
+    withSourcesJar()
+}
+
+val javadocJar by tasks.registering(Jar::class) {
+    archiveClassifier.set("javadoc")
+    from(tasks.named("dokkaGeneratePublicationJavadoc"))
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            create<MavenPublication>("maven") {
+                from(components["java"])
+                groupId = rootProject.group.toString()
+                artifactId = project.findProperty("POM_ARTIFACT_ID")?.toString() ?: project.name
+                version = project.version.toString()
+
+                artifact(javadocJar)
+
+                pom {
+                    project.extensions.extraProperties["configurePomMetadata"].let { it as groovy.lang.Closure<*> }.call(this)
+                }
+            }
+        }
     }
 }

@@ -45,7 +45,8 @@ class UnsupportedMessageTest {
                     onAttachmentClicked = {},
                     onMoreClicked = {},
                     onShare = {},
-                    snackBarHostState = SnackbarHostState()
+                    snackBarHostState = SnackbarHostState(),
+                    onTimePickerSelected = { _, _ -> },
                 )
             }
         }

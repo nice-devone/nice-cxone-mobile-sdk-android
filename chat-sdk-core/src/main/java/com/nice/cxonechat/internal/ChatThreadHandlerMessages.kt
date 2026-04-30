@@ -27,6 +27,8 @@ import com.nice.cxonechat.internal.model.network.EventMessageCreated
 import com.nice.cxonechat.internal.model.network.EventMoreMessagesLoaded
 import com.nice.cxonechat.internal.model.network.Parameters
 import com.nice.cxonechat.internal.socket.EventCallback.Companion.addCallback
+import com.nice.cxonechat.message.Message
+import com.nice.cxonechat.message.MessageStatus
 import com.nice.cxonechat.message.OutboundMessage.Companion.UnsupportedMessageTypeAnswer
 import java.util.concurrent.ConcurrentSkipListSet
 
@@ -62,10 +64,11 @@ internal class ChatThreadHandlerMessages(
             ) {
                 return@addCallback
             }
+            val messageToAdd = resolveMessageToAdd(message, thread.messages)
             thread += thread.asCopyable().copy(
                 contactId = event.contactId,
                 threadState = event.threadState,
-                messages = thread.messages.updateWith(listOfNotNull(message))
+                messages = thread.messages.updateWith(listOfNotNull(messageToAdd))
             )
             if (message is MessageUnsupported) {
                 sendUnsupportedMessageType(message)
@@ -95,5 +98,42 @@ internal class ChatThreadHandlerMessages(
 
     companion object {
         private val answersForUnsupportedMessages = ConcurrentSkipListSet<String>()
+
+        /**
+         * Returns [message] unless [existingMessages] already contains a version of the same message
+         * at a higher advancement rank (e.g. [MessageStatus.Read] set by a prior
+         * [EventMessageReadByAgent]), in which case the existing message is returned to prevent a
+         * status downgrade. [MessageStatus.FailedToDeliver] is ranked lowest so that a successful
+         * retry can always advance past it.
+         *
+         * Both [EventMessageReadByAgent] and [EventMessageCreated] carry the full [MessageModel]
+         * from the server for the same message. The existing message (from a prior read event) has
+         * [MessageStatus.Read] with [MessageMetadata.readAt] set, while the incoming [message]
+         * (from [EventMessageCreated]) arrives before the read acknowledgement and has
+         * [MessageMetadata.readAt] null. Returning [existing] therefore keeps both the higher
+         * status and the correct [MessageMetadata.readAt] timestamp.
+         */
+        internal fun resolveMessageToAdd(message: Message?, existingMessages: List<Message>): Message? =
+            message?.let { msg ->
+                val existing = existingMessages.find { it.id == msg.id }
+                if (existing != null &&
+                    existing.metadata.status.advancementRank() > msg.metadata.status.advancementRank()
+                ) {
+                    existing
+                } else {
+                    msg
+                }
+            }
+
+        // Explicit rank map — do NOT reorder MessageStatus entries to match these ranks;
+        // the exhaustive when ensures the compiler catches any new enum value that needs a rank.
+        private fun MessageStatus.advancementRank(): Int = when (this) {
+            MessageStatus.FailedToDeliver -> -1
+            MessageStatus.Sending -> 0
+            MessageStatus.Sent -> 1
+            MessageStatus.Delivered -> 2
+            MessageStatus.Seen -> 3
+            MessageStatus.Read -> 4
+        }
     }
 }

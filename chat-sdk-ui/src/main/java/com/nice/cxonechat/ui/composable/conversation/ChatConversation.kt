@@ -225,6 +225,7 @@ internal fun MessageListView(
                 agentDetails = agentDetails,
                 onAttachmentClicked = conversation.onAttachmentClicked,
                 onMoreClicked = conversation.onMoreClicked,
+                onTimePickerSelected = conversation.onTimeSlotSelected,
                 onShare = conversation.onShare,
                 snackBarHostState = snackBarHostState,
             )

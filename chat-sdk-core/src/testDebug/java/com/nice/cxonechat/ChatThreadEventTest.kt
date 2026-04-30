@@ -19,6 +19,7 @@ package com.nice.cxonechat
 
 import com.nice.cxonechat.ChatThreadEventHandlerActions.loadMetadata
 import com.nice.cxonechat.ChatThreadEventHandlerActions.markThreadRead
+import com.nice.cxonechat.ChatThreadEventHandlerActions.selectTimeSlot
 import com.nice.cxonechat.ChatThreadEventHandlerActions.sendTranscript
 import com.nice.cxonechat.ChatThreadEventHandlerActions.triggerAction
 import com.nice.cxonechat.ChatThreadEventHandlerActions.typingEnd
@@ -26,10 +27,12 @@ import com.nice.cxonechat.ChatThreadEventHandlerActions.typingStart
 import com.nice.cxonechat.event.thread.PostbackEvent
 import com.nice.cxonechat.internal.model.ActionInternal
 import com.nice.cxonechat.internal.model.ActionKtx.toEvent
+import com.nice.cxonechat.internal.model.TimeSlotInternal
 import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.server.ServerRequest
 import com.nice.cxonechat.thread.ChatThread
 import org.junit.Test
+import java.util.Date
 
 internal class ChatThreadEventTest : AbstractChatTest() {
 
@@ -91,6 +94,16 @@ internal class ChatThreadEventTest : AbstractChatTest() {
         val action = ActionInternal.ReplyButton(text = "test", postback = "test", null, null)
         assertSendText(ServerRequest.SendMessage(connection, thread, storage, message = action.text, postback = action.postback), id.toString()) {
             events.triggerAction(action)
+        }
+    }
+
+    @Test
+    fun trigger_SelectTimeSlot_sendsExpectedMessage() {
+        val id = thread.id
+        val timeSlot = TimeSlotInternal(id = "unique-id", duration = 3600L, startTime = Date(0))
+        val localizedText = "Tuesday 4pm - 1 hour"
+        assertSendText(ServerRequest.SendMessage(connection, thread, storage, message = localizedText, postback = timeSlot.id), id.toString()) {
+            events.selectTimeSlot(localizedText, timeSlot)
         }
     }
 

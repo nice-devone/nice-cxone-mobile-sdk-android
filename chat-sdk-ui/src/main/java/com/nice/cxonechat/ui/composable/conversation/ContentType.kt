@@ -30,6 +30,7 @@ internal val Message.contentType: ContentType
         is Message.ListPicker -> ContentType.ListPicker
         is Message.RichLink -> ContentType.RichLink
         is Message.QuickReply -> ContentType.QuickReply
+        is Message.TimePicker -> ContentType.TimePicker
         is Message.Unsupported -> ContentType.Unsupported
     }
 
@@ -45,4 +46,5 @@ internal enum class ContentType {
     Loading,
     ListPicker,
     RichLink,
+    TimePicker,
 }

@@ -37,14 +37,9 @@ internal data class EventMessageReadByAgent(
     val message get() = data.message.toMessage()
 
     /**
-     * Returns `true` iff [threadId] matches the one of supplied [thread] and the [thread.messages] contain element
-     * with matching id.
+     * Returns `true` iff [threadId] matches the one of supplied [thread].
      */
-    fun inThread(thread: ChatThread): Boolean =
-        thread.id == threadId &&
-                thread.messages.any { threadMessage ->
-                    threadMessage.id == messageId
-                }
+    fun inThread(thread: ChatThread): Boolean = thread.id == threadId
 
     @Serializable
     data class Data(

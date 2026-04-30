@@ -292,6 +292,10 @@ public final class com/nice/cxonechat/ChatThreadEventHandlerActions {
 	public static final fun markThreadRead (Lcom/nice/cxonechat/ChatThreadEventHandler;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;)V
 	public static final fun markThreadRead (Lcom/nice/cxonechat/ChatThreadEventHandler;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventErrorListener;)V
 	public static synthetic fun markThreadRead$default (Lcom/nice/cxonechat/ChatThreadEventHandler;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventErrorListener;ILjava/lang/Object;)V
+	public static final fun selectTimeSlot (Lcom/nice/cxonechat/ChatThreadEventHandler;Ljava/lang/String;Lcom/nice/cxonechat/message/TimeSlot;)V
+	public static final fun selectTimeSlot (Lcom/nice/cxonechat/ChatThreadEventHandler;Ljava/lang/String;Lcom/nice/cxonechat/message/TimeSlot;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;)V
+	public static final fun selectTimeSlot (Lcom/nice/cxonechat/ChatThreadEventHandler;Ljava/lang/String;Lcom/nice/cxonechat/message/TimeSlot;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventErrorListener;)V
+	public static synthetic fun selectTimeSlot$default (Lcom/nice/cxonechat/ChatThreadEventHandler;Ljava/lang/String;Lcom/nice/cxonechat/message/TimeSlot;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventErrorListener;ILjava/lang/Object;)V
 	public static final fun sendTranscript (Lcom/nice/cxonechat/ChatThreadEventHandler;Ljava/lang/String;)V
 	public static final fun sendTranscript (Lcom/nice/cxonechat/ChatThreadEventHandler;Ljava/lang/String;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;)V
 	public static final fun sendTranscript (Lcom/nice/cxonechat/ChatThreadEventHandler;Ljava/lang/String;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventErrorListener;)V
@@ -595,6 +599,13 @@ public abstract class com/nice/cxonechat/message/Message$Text : com/nice/cxonech
 	public abstract fun getText ()Ljava/lang/String;
 }
 
+public abstract class com/nice/cxonechat/message/Message$TimePicker : com/nice/cxonechat/message/Message {
+	public fun <init> ()V
+	public abstract fun getPopupTitle ()Ljava/lang/String;
+	public abstract fun getTimeSlots ()Ljava/lang/Iterable;
+	public abstract fun getTitle ()Ljava/lang/String;
+}
+
 public abstract class com/nice/cxonechat/message/Message$Unsupported : com/nice/cxonechat/message/Message {
 	public fun <init> ()V
 	public abstract fun getFallbackText ()Ljava/lang/String;
@@ -684,6 +695,12 @@ public final class com/nice/cxonechat/message/TextFormat : java/lang/Enum {
 	public final fun isMarkdown ()Z
 	public static fun valueOf (Ljava/lang/String;)Lcom/nice/cxonechat/message/TextFormat;
 	public static fun values ()[Lcom/nice/cxonechat/message/TextFormat;
+}
+
+public abstract interface class com/nice/cxonechat/message/TimeSlot {
+	public abstract fun getDuration ()J
+	public abstract fun getId ()Ljava/lang/String;
+	public abstract fun getStartTime ()Ljava/util/Date;
 }
 
 public abstract interface class com/nice/cxonechat/prechat/PreChatSurvey {

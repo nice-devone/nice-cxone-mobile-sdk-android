@@ -103,6 +103,22 @@ internal class ChatThreadMessageHandlerPolyTest : AbstractChatTest() {
     }
 
     @Test
+    fun parses_typeTimePicker() {
+        val message = awaitMessage(ServerResponse.Message.TimePicker(thread.id))
+        assertIs<Message.TimePicker>(message)
+        assertNotNull(message.fallbackText)
+        assertEquals("Check our new gadget!", message.title)
+        with(message.timeSlots.toList()) {
+            assertEquals(1, size)
+            with(this[0]) {
+                assertEquals("unique-id", id)
+                assertEquals(3600L, duration)
+                assertNotNull(startTime)
+            }
+        }
+    }
+
+    @Test
     fun ignores_invalidContentType() {
         val result = testCallback(::thread) {
             val message = ServerResponse.Message.InvalidContent(thread.id)

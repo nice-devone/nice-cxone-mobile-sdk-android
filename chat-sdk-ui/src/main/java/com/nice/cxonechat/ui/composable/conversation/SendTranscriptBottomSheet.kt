@@ -291,12 +291,12 @@ private fun BoxScope.SendTranscriptBottomBar(
         ) {
             BottomSheetButtonText(
                 text = stringResource(string.cancel),
-                enable = true,
+                enabled = true,
                 onClick = onDismiss
             )
             BottomSheetButtonText(
                 text = stringResource(string.submit),
-                enable = error == null,
+                enabled = error == null,
                 onClick = onSubmit
             )
         }

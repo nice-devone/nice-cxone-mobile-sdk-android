@@ -47,7 +47,7 @@ internal fun ThreadViewTopBar(isMultiThread: Boolean, isLiveChat: Boolean, scrol
         ),
         onEditThreadName = { chatThreadViewModel.editThreadName() },
         onEditThreadValues = chatThreadViewModel::startEditingCustomValues,
-        onEndContact = chatThreadViewModel::endContact,
+        onEndContact = chatThreadViewModel::showConfirmEndContactDialog,
         displayEndConversation = chatThreadViewModel::showEndContactDialog,
         onSendTranscript = { chatThreadViewModel.showSendTranscriptDialog(SendTranscriptDialog.SendTranscript) },
         navigationIcon = {

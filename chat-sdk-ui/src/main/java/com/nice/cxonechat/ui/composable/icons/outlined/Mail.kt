@@ -38,44 +38,44 @@ internal val ChatIcons.Mail: ImageVector
             return mail!!
         }
         mail = Builder(
-            name = "Mail", defaultWidth = 32.0.dp, defaultHeight = 32.0.dp,
-            viewportWidth = 32.0f, viewportHeight = 32.0f
+            name = "Mail", defaultWidth = 24.0.dp, defaultHeight = 24.0.dp,
+            viewportWidth = 24.0f, viewportHeight = 24.0f
         ).apply {
             path(
-                fill = SolidColor(Color(0xFF254FE6)), stroke = null, strokeLineWidth = 0.0f,
+                fill = SolidColor(Color(0xFF666A76)), stroke = null, strokeLineWidth = 0.0f,
                 strokeLineCap = Butt, strokeLineJoin = Miter, strokeLineMiter = 4.0f,
                 pathFillType = NonZero
             ) {
-                moveTo(7.835f, 24.165f)
-                curveTo(7.274f, 24.165f, 6.793f, 23.965f, 6.393f, 23.565f)
-                curveTo(5.994f, 23.166f, 5.794f, 22.685f, 5.794f, 22.124f)
-                verticalLineTo(9.876f)
-                curveTo(5.794f, 9.315f, 5.994f, 8.834f, 6.393f, 8.435f)
-                curveTo(6.793f, 8.035f, 7.274f, 7.835f, 7.835f, 7.835f)
-                horizontalLineTo(24.165f)
-                curveTo(24.726f, 7.835f, 25.207f, 8.035f, 25.607f, 8.435f)
-                curveTo(26.006f, 8.834f, 26.206f, 9.315f, 26.206f, 9.876f)
-                verticalLineTo(22.124f)
-                curveTo(26.206f, 22.685f, 26.006f, 23.166f, 25.607f, 23.565f)
-                curveTo(25.207f, 23.965f, 24.726f, 24.165f, 24.165f, 24.165f)
-                horizontalLineTo(7.835f)
+                moveTo(4.0f, 20.0f)
+                curveTo(3.45f, 20.0f, 2.979f, 19.804f, 2.588f, 19.413f)
+                curveTo(2.196f, 19.021f, 2.0f, 18.55f, 2.0f, 18.0f)
+                verticalLineTo(6.0f)
+                curveTo(2.0f, 5.45f, 2.196f, 4.979f, 2.588f, 4.588f)
+                curveTo(2.979f, 4.196f, 3.45f, 4.0f, 4.0f, 4.0f)
+                horizontalLineTo(20.0f)
+                curveTo(20.55f, 4.0f, 21.021f, 4.196f, 21.413f, 4.588f)
+                curveTo(21.804f, 4.979f, 22.0f, 5.45f, 22.0f, 6.0f)
+                verticalLineTo(18.0f)
+                curveTo(22.0f, 18.55f, 21.804f, 19.021f, 21.413f, 19.413f)
+                curveTo(21.021f, 19.804f, 20.55f, 20.0f, 20.0f, 20.0f)
+                horizontalLineTo(4.0f)
                 close()
-                moveTo(16.0f, 17.021f)
-                lineTo(7.835f, 11.917f)
-                verticalLineTo(22.124f)
-                horizontalLineTo(24.165f)
-                verticalLineTo(11.917f)
-                lineTo(16.0f, 17.021f)
+                moveTo(12.0f, 13.0f)
+                lineTo(4.0f, 8.0f)
+                verticalLineTo(18.0f)
+                horizontalLineTo(20.0f)
+                verticalLineTo(8.0f)
+                lineTo(12.0f, 13.0f)
                 close()
-                moveTo(16.0f, 14.979f)
-                lineTo(24.165f, 9.876f)
-                horizontalLineTo(7.835f)
-                lineTo(16.0f, 14.979f)
+                moveTo(12.0f, 11.0f)
+                lineTo(20.0f, 6.0f)
+                horizontalLineTo(4.0f)
+                lineTo(12.0f, 11.0f)
                 close()
-                moveTo(7.835f, 11.917f)
-                verticalLineTo(9.876f)
-                verticalLineTo(22.124f)
-                verticalLineTo(11.917f)
+                moveTo(4.0f, 8.0f)
+                verticalLineTo(6.0f)
+                verticalLineTo(18.0f)
+                verticalLineTo(8.0f)
                 close()
             }
         }

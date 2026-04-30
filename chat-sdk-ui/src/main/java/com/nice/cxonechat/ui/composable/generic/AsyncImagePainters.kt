@@ -15,12 +15,16 @@
 
 package com.nice.cxonechat.ui.composable.generic
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons.Outlined
 import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.outlined.Downloading
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -28,23 +32,21 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 
 internal data class AsyncImagePainters(
-    val placeholder: Painter,
     val fallback: Painter,
     val error: Painter,
 )
 
 @Composable
 internal fun asyncImagePainters(
-    placeholder: Painter = rememberVectorPainter(image = Outlined.Downloading),
     fallback: Painter = rememberVectorPainter(image = Outlined.Description),
     error: Painter = rememberVectorPainter(image = Outlined.ErrorOutline),
 ) = AsyncImagePainters(
-    placeholder = placeholder,
     fallback = fallback,
     error = error
 )
@@ -55,40 +57,62 @@ internal fun PresetAsyncImage(
     modifier: Modifier = Modifier,
     contentDescription: String?,
     cacheKey: String? = null,
+    isGroupAttachment: Boolean,
+    showLoadingBorder: Boolean = true,
     alignment: Alignment = Alignment.Center,
     contentScale: ContentScale = ContentScale.Fit,
     painters: AsyncImagePainters = asyncImagePainters(),
 ) {
     val tint = ColorFilter.tint(LocalContentColor.current)
-    val placeholder = forwardingPainter(
-        painter = painters.placeholder,
-        colorFilter = tint
-    )
-    val fallback = forwardingPainter(
-        painter = painters.fallback,
-        colorFilter = tint
-    )
-    val error = forwardingPainter(
-        painter = painters.error,
-        colorFilter = tint
-    )
-    AsyncImage(
-        model = ImageRequest.Builder(LocalContext.current)
-            .data(model)
-            .crossfade(true)
-            .apply {
-                cacheKey?.let {
-                    diskCacheKey(it)
-                    memoryCacheKey(it)
+    var imageLoaded by remember(model) { mutableStateOf(false) }
+    val fallback = remember(tint, painters.fallback) {
+        forwardingPainter(
+            painter = painters.fallback,
+            colorFilter = tint
+        )
+    }
+    val error = remember(tint, painters.error) {
+        forwardingPainter(
+            painter = painters.error,
+            colorFilter = tint
+        )
+    }
+    Box(contentAlignment = Alignment.Center) {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(model)
+                .crossfade(true)
+                .apply {
+                    cacheKey?.let {
+                        diskCacheKey(it)
+                        memoryCacheKey(it)
+                    }
                 }
-            }
-            .build(),
-        contentDescription = contentDescription,
-        placeholder = placeholder,
-        fallback = fallback,
-        error = error,
-        modifier = modifier,
-        alignment = alignment,
-        contentScale = contentScale,
+                .build(),
+            contentDescription = contentDescription,
+            fallback = fallback,
+            error = error,
+            onSuccess = { imageLoaded = true },
+            modifier = modifier,
+            alignment = alignment,
+            contentScale = contentScale,
+        )
+        if (!imageLoaded) {
+            LoadingSpinner(
+                modifier = modifier,
+                isGroupAttachment = isGroupAttachment,
+                showLoadingBorder = showLoadingBorder
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun PresetAsyncImagePreview() {
+    PresetAsyncImage(
+        model = "https://www.nice.com/favicon.ico",
+        contentDescription = "Preset Async Image",
+        isGroupAttachment = false
     )
 }

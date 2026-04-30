@@ -66,6 +66,7 @@ internal data class ChatShapes(
     val popupShape: Shape = DefaultChatShapes.popupShape,
     val popupButtonShape: Shape = DefaultChatShapes.largeButtonShape,
     val headerBarShape: Shape = DefaultChatShapes.headerBarShape,
+    val menuActionsBoxShape: Shape = DefaultChatShapes.menuActionsBoxShape,
     val documentTypeLabelShape: Shape = DefaultChatShapes.documentTypeLabelShape,
 )
 
@@ -91,6 +92,7 @@ internal object DefaultChatShapes {
 
     val popupShape = RoundedCornerShape(32.dp)
     val largeButtonShape = RoundedCornerShape(9.dp)
+    val menuActionsBoxShape = RoundedCornerShape(16.dp)
 
     val headerBarShape = RoundedCornerShape(
         topStart = 0.dp,

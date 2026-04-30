@@ -25,6 +25,7 @@ import com.nice.cxonechat.internal.model.network.MessagePolyContent.Noop
 import com.nice.cxonechat.internal.model.network.MessagePolyContent.QuickReplies
 import com.nice.cxonechat.internal.model.network.MessagePolyContent.RichLink
 import com.nice.cxonechat.internal.model.network.MessagePolyContent.Text
+import com.nice.cxonechat.internal.model.network.MessagePolyContent.TimePicker
 import com.nice.cxonechat.internal.model.network.MessagePolyContent.Unsupported
 import com.nice.cxonechat.internal.model.network.UserStatistics
 import com.nice.cxonechat.message.Message
@@ -120,6 +121,7 @@ internal data class MessageModel(
         is QuickReplies -> MessageQuickReplies(this)
         is ListPicker -> MessageListPicker(this)
         is RichLink -> MessageRichLink(this)
+        is TimePicker -> MessageTimePicker(this)
         is MessagePolyContent.Plugin -> pluginToMessage(messageContent)
         is Unsupported -> MessageUnsupported(this, messageContent)
         is MessagePolyContent.Postback, Noop -> null

@@ -18,11 +18,18 @@ package com.nice.cxonechat.ui.domain.model
 import com.nice.cxonechat.thread.ChatThread
 
 /**
- * Extension function for `ChatThread` that retrieves the thread name or agent's full name.
+ * Extension function for `ChatThread` that retrieves the thread name or agent's name.
+ *
+ * Priority order:
+ * 1. Thread name (if multi-thread mode is enabled and name is not blank)
+ * 2. Agent's nickname (if available and not blank)
+ * 3. Agent's full name
  *
  * @param isMultiThreadEnabled A flag indicating whether multi-threading is enabled.
- * @return The thread name if multi-thread mode is enabled and the name is not empty;
- *         otherwise, the agent's full name, or `null` if neither is available.
+ * @return The thread name, agent's nickname, or agent's full name (in priority order),
+ *         or `null` if none is available.
  */
 internal fun ChatThread.threadOrAgentName(isMultiThreadEnabled: Boolean): String? =
-    threadName.takeIf { isMultiThreadEnabled }?.takeIf { it.isNotBlank() } ?: threadAgent?.fullName
+    threadName.takeIf { isMultiThreadEnabled }?.takeIf { it.isNotBlank() }
+        ?: threadAgent?.nickname?.takeIf { it.isNotBlank() }
+        ?: threadAgent?.fullName

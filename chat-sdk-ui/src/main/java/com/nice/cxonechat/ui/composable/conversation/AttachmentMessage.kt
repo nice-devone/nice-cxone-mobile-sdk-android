@@ -168,7 +168,8 @@ private fun AttachmentPreviewGroup(
             onAttachmentClicked = onAttachmentClicked,
             onMoreAttachments = onMoreAttachments,
             totalCount = totalCount,
-            maxAttachmentsPreview = maxAttachmentsPreview
+            maxAttachmentsPreview = maxAttachmentsPreview,
+            isGroupAttachment = true
         )
         if (chunks.size > 1 && chunks[1].isNotEmpty()) {
             GroupRow(
@@ -180,7 +181,8 @@ private fun AttachmentPreviewGroup(
                 onMoreAttachments = onMoreAttachments,
                 displayOverflowBlur = displayOverflowBlur,
                 totalCount = totalCount,
-                maxAttachmentsPreview = maxAttachmentsPreview
+                maxAttachmentsPreview = maxAttachmentsPreview,
+                isGroupAttachment = true
             )
         }
     }
@@ -195,6 +197,7 @@ private fun GroupRow(
     modifier: Modifier = Modifier,
     attachmentIdStart: Int = 0,
     displayOverflowBlur: Boolean = false,
+    isGroupAttachment: Boolean,
     onAttachmentClicked: (Attachment) -> Unit,
     onMoreAttachments: (Attachment) -> Unit,
 ) {
@@ -209,6 +212,7 @@ private fun GroupRow(
             thumbnailSize = ThumbnailSize.REGULAR,
             onClick = onAttachmentClicked,
             onLongClick = onMoreAttachments,
+            isGroupAttachment = isGroupAttachment
         )
         if (list.size > 1) {
             Box(contentAlignment = Alignment.Center) {
@@ -221,6 +225,7 @@ private fun GroupRow(
                     thumbnailSize = ThumbnailSize.REGULAR,
                     onClick = onClick,
                     onLongClick = onMoreAttachments,
+                    isGroupAttachment = isGroupAttachment
                 )
                 if (displayOverflowBlur) {
                     OverFlowText(totalCount, maxAttachmentsPreview)
@@ -271,6 +276,7 @@ private fun SingleAttachmentPreview(
         onClick = onAttachmentClicked,
         onLongClick = remember { { attachment -> onShare(listOf(attachment)) } },
         showFrame = onShowFrame,
+        isGroupAttachment = false
     )
 }
 

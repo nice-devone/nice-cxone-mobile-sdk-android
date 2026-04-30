@@ -46,6 +46,7 @@ import com.nice.cxonechat.message.MessageDirection.ToAgent
 import com.nice.cxonechat.ui.composable.conversation.ContentType.ListPicker
 import com.nice.cxonechat.ui.composable.conversation.ContentType.QuickReply
 import com.nice.cxonechat.ui.composable.conversation.ContentType.RichLink
+import com.nice.cxonechat.ui.composable.conversation.ContentType.TimePicker
 import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.FIRST
 import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.LAST
 import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.LAST_SQUASHED
@@ -84,7 +85,7 @@ internal fun MessageFrame(
     framedContent: @Composable () -> Unit,
 ) {
     val showAvatar = avatar != null && position in listOf(LAST, SOLO)
-    val avatarContentTypes by lazy { setOf(QuickReply, RichLink, ListPicker) }
+    val avatarContentTypes by lazy { setOf(QuickReply, RichLink, ListPicker, TimePicker) }
     val paddingBottom = when {
         !showAvatar && messageContentType in avatarContentTypes && position in listOf(LAST, SOLO) -> space.medium
         !showAvatar -> 0.dp

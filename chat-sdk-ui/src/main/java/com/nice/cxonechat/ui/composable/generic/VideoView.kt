@@ -16,6 +16,7 @@
 package com.nice.cxonechat.ui.composable.generic
 
 import android.net.Uri
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,6 +37,7 @@ import androidx.core.net.toUri
 import com.nice.cxonechat.ui.composable.conversation.PreviewAttachments
 import com.nice.cxonechat.ui.composable.theme.BackButton
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.ShareButton
 
@@ -80,7 +82,12 @@ internal fun VideoView(
         title = title,
         onExitFullScreen = onDismiss
     ) {
-        Column(horizontalAlignment = CenterHorizontally) {
+        Column(
+            horizontalAlignment = CenterHorizontally,
+            modifier = Modifier.background(
+                color = chatColors.token.background.default
+            )
+        ) {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
