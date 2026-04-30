@@ -13,8 +13,6 @@
  * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
  */
 
-import com.vanniktech.maven.publish.AndroidMultiVariantLibrary
-
 plugins {
     id "android-library-conventions"
     id "android-kotlin-conventions"
@@ -43,6 +41,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     libraryVariants.configureEach { variant ->
         buildConfig.sourceSets.named(variant.name) {
             className.set("BuildConfig")
@@ -51,11 +50,20 @@ android {
             buildConfigField(Boolean, "DEBUG", variant.buildType.isDebuggable())
         }
     }
+
     sourceSets {
         test {
             resources {
                 srcDirs "src/test/assets"
             }
+        }
+    }
+
+    publishing {
+        multipleVariants("Maven") {
+            allVariants()
+            withSourcesJar()
+            withJavadocJar()
         }
     }
 }
@@ -68,13 +76,6 @@ kotlin {
                 "-Xtype-enhancement-improvements-strict-mode",
         ]
     }
-}
-
-// Setup publishing of all library variants.
-// Dependant will get matching variant automatically (eg.: buildType:debug will get buildType:debug)
-// Alternatively they can provide transformation mapping.
-mavenPublishing {
-    configure(new AndroidMultiVariantLibrary(true, true))
 }
 
 dependencies {
@@ -95,4 +96,19 @@ dependencies {
     testImplementation libs.gson
     testImplementation libs.kotlinx.coroutines.test
     androidTestImplementation libs.kotlinx.coroutines.test
+}
+
+// Setup publishing configuration
+afterEvaluate {
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                from components.Maven
+
+                pom {
+                    configurePomMetadata(it)
+                }
+            }
+        }
+    }
 }

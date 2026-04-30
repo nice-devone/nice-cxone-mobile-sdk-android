@@ -16,6 +16,7 @@
 package com.nice.cxonechat.ui.domain.model
 
 import androidx.compose.runtime.Immutable
+import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.message.Message.ListPicker
 import com.nice.cxonechat.message.Message.QuickReplies
 import com.nice.cxonechat.message.Message.RichLink
@@ -64,6 +65,7 @@ internal data class Thread(
                     is QuickReplies -> fallbackText
                     is ListPicker -> fallbackText
                     is Unsupported -> text
+                    is Message.TimePicker -> fallbackText
                 }
             }
             .orEmpty()

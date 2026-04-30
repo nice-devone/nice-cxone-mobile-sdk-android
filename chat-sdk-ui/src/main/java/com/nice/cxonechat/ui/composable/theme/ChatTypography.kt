@@ -95,6 +95,7 @@ internal data class ChatTypography(
         fontSize = 15.sp,
     ),
     val listPickerText: TextStyle = Typography.bodyMedium,
+    val timePickerText: TextStyle = Typography.bodyLarge,
     val messageStatusText: TextStyle = Typography.labelMedium.copy(
         fontWeight = W400
     ),
@@ -238,6 +239,9 @@ internal data class ChatTypography(
         fontWeight = W500,
         letterSpacing = 0.1.sp,
     ),
+    val dialogSubText: TextStyle = Typography.bodyMedium.copy(
+        lineHeight = 20.sp,
+    ),
     val bottomSheetTitleText: TextStyle = Typography.headlineSmall.copy(
         fontSize = 20.sp,
         lineHeight = 20.sp,
@@ -276,6 +280,15 @@ internal data class ChatTypography(
         lineHeight = 24.sp,
         fontWeight = W400,
         letterSpacing = 0.5.sp,
+    ),
+    val timePickerDuration: TextStyle = TextStyle(
+        fontSize = 14.sp,
+        fontWeight = W400,
+    ),
+    val dateHeader: TextStyle = TextStyle(
+        fontSize = 16.sp,
+        lineHeight = 22.sp,
+        fontWeight = W700,
     ),
 )
 

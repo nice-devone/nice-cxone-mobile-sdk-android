@@ -2,6 +2,44 @@
 
 ## [Unreleased]
 
+<a name="3.3.0"></a>
+
+## [3.3.0] - 2026-04-30
+
+### Added
+
+- Prefer agent nickname in chat thread titles
+- Add `TimePicker` message type support with UI, enabling time slot selection in chat interactions
+- Add contextual loading indicators for attachments throughout the chat UI
+- Add option to reset chat theme to default colors in UI settings
+- Add End Conversation confirmation dialog requiring explicit user confirmation before closing the chat session
+
+### Changed
+
+- Update navigation bar menu icons and action labels
+- Bump `androidx.activity:activity-compose` from 1.12.3 to 1.12.4
+- Bump `androidx.compose:compose-bom` from 2026.01.01 to 2026.02.01
+- Bump `com.google.firebase:firebase-bom` from 34.8.0 to 34.10.0
+- Bump `org.jetbrains:annotations` from 26.0.2-1 to 26.1.0
+
+### Fixed
+
+- Fix crash in `RemoteLogger` when logging exceptions with fewer than 3 stack trace frames
+- Fix thread safety issue in `DownloadUtil` causing race conditions during concurrent media downloads
+- Fix `Send Transcript` action always visible in End Conversation dialog regardless of channel configuration
+- Fix video preview loading spinner being skipped when Compose composition slot is reused
+- Fix menu action box padding in navigation bar
+- Fix loading overlay not shown and chat not reconnecting after network restore mid-session (regression introduced after 3.2.0 by the WebSocket exponential reconnect feature)
+- Fix message read status dropped when `ReadChanged` event arrives before `MessageCreated` has populated the thread; read confirmation is now applied regardless of event ordering and cannot be downgraded by a subsequent `MessageCreated` event
+- Fix double-tick read indicator disappearing when an incoming agent message shifts the customer message's position in the chat list
+
+### Security
+
+- Enforce minimum `jose4j` 0.9.6 in buildscript resolutionStrategy to address CVE-2024-29371 (build-time only, no SDK artifact impact)
+- Enforce minimum `io.netty` 4.1.129.Final in buildscript resolutionStrategy to address CVE-2025-67735 (build-time only, no SDK artifact impact)
+- Enforce minimum `org.jdom:jdom2` 2.0.6.1 and `org.apache.commons:commons-lang3` 3.18.0 in buildscript resolutionStrategy to address build-time CVEs (build-time only, no SDK artifact impact)
+- Upgrade `org.jetbrains.dokka` from 2.0.0 to 2.2.0 to resolve CVE-2025-52999, CVE-2025-49128, and CVE-2022-40152 (build-time only, no SDK artifact impact)
+
 <a name="3.2.2"></a>
 
 ## [3.2.2] - 2026-04-23
@@ -93,41 +131,40 @@
 
 ### Added
 
-- `RemoteLogger` to report errors to the server
-- Inactivity Popup Support
-- `RemoteLogger` to public API for error reporting
+- `RemoteLogger` to report errors to the server and exposed in the public API ([US-SDK-001](docs/user-stories.md))
+- Inactivity Popup Support ([US-SDK-002](docs/user-stories.md))
 - `ChatThreadActionHandler` which can be obtained from `ChatThreadHandler`
 - `Popup` which is provided to `OnPopup` listeners registered in the `ChatThreadActionHandler`
-- `InactivityPopup`
+- `InactivityPopup` ([US-SDK-002](docs/user-stories.md))
 - Utility extension method `ChatThreadEventHandler.triggerAction` to allow easy triggering of `Action` events (for Quick Replies, List
   Picker, Popups)
-- Daily Perfecto build workflow for automated testing
-- Concurrency controls to PR workflows to cancel previous runs and save CI resources
+- Daily Perfecto build workflow for automated testing ([US-INFRA-001](docs/user-stories.md))
+- Concurrency controls to PR workflows to cancel previous runs and save CI resources ([US-INFRA-002](docs/user-stories.md))
 - UI tests support
-- ChatInstanceProvider unit test coverage
-- Presurvey field validation check dynamically
-- Video and Image caching to improve loading performance
-- Indicator for attachment preparing
-- WebSocket exponential reconnect with backoff strategy
+- ChatInstanceProvider unit test coverage ([US-INFRA-004](docs/user-stories.md))
+- Presurvey field validation check dynamically ([US-UI-011](docs/user-stories.md))
+- Video and Image caching to improve loading performance ([US-PERF-003](docs/user-stories.md))
+- Indicator for attachment preparing ([US-UI-012](docs/user-stories.md))
+- WebSocket exponential reconnect with backoff strategy ([US-SDK-005](docs/user-stories.md))
 - androidx.material3.adaptive dependency for adaptive UI layouts
 - androidx.window and androidx.window-testing dependencies for window size class support
 
 ### Changed
 
 - **BREAKING CHANGE**: Bump com.squareup.okhttp3:okhttp from 4.12.0 to 5.1.0
-- Updated the thread list cell design for unread state
-- Updated UI for List Picker
-- Updated UI for Quick Replies
-- Updated UI for voice messages
-- Updated UI for attachments
-- Updated UI for typing indicator
-- Updated UI for Position in Queue
-- Updated UI for offline mode
-- Updated UI for Rich-Link
-- Updated UI for Basic Conversation
-- Updated UI for Accessibility
-- QuickReply message interaction behavior - options only visible for last message
-- UI module error handling with grouped error types
+- Updated the thread list cell design for unread state ([US-UI-001](docs/user-stories.md))
+- Updated UI for List Picker ([US-UI-001](docs/user-stories.md))
+- Updated UI for Quick Replies ([US-UI-002](docs/user-stories.md))
+- Updated UI for voice messages ([US-UI-003](docs/user-stories.md))
+- Updated UI for attachments ([US-UI-004](docs/user-stories.md))
+- Updated UI for typing indicator ([US-UI-005](docs/user-stories.md))
+- Updated UI for Position in Queue ([US-UI-006](docs/user-stories.md))
+- Updated UI for offline mode ([US-UI-007](docs/user-stories.md))
+- Updated UI for Rich-Link ([US-UI-008](docs/user-stories.md))
+- Updated UI for Basic Conversation ([US-UI-009](docs/user-stories.md))
+- Updated UI for Accessibility ([US-UI-010](docs/user-stories.md))
+- QuickReply message interaction behavior - options only visible for last message ([US-UI-013](docs/user-stories.md))
+- UI module error handling with grouped error types ([US-UI-014](docs/user-stories.md))
 - Increased compileSdkVersion to 36
 - Update Android Gradle Plugin 8.11.1 -> 8.13.0
 - Bump androidx.compose:compose-bom from 2025.06.01 to 2025.10.00
@@ -142,15 +179,15 @@
 
 ### Fixed
 
-- Handle failure & added auto retry mechanism during visitor creation/update
-- Filter unsupported message answers
-- Presurvey invalid email and field validation
-- Server error reporting in single thread mode - ThreadRecoveryFailure errors now suppressed
-- Single attachment preview - fixed size and design according to new specifications
-- Deeplink handling - delay Chat access until it is ready or in terminal state
-- Custom Fields dropdown - menu now opens properly and expands on clear
-- Memory leak in TemporaryFileStorage - using Application context instead of Activity
-- ExplicitGcViolation for Android 16 compatibility
+- Handle failure & added auto retry mechanism during visitor creation/updation ([US-SDK-003](docs/user-stories.md))
+- Filter unsupported message answers ([US-SDK-004](docs/user-stories.md))
+- Presurvey invalid email and field validation ([US-UI-011](docs/user-stories.md))
+- Server error reporting in single thread mode - ThreadRecoveryFailure errors now suppressed ([US-SDK-006](docs/user-stories.md))
+- Single attachment preview - fixed size and design according to new specifications ([US-UI-015](docs/user-stories.md))
+- Deeplink handling - delay Chat access until it is ready or in terminal state ([US-UI-016](docs/user-stories.md))
+- Custom Fields dropdown - menu now opens properly and expands on clear ([US-UI-017](docs/user-stories.md))
+- Memory leak in TemporaryFileStorage - using Application context instead of Activity ([US-UI-018](docs/user-stories.md))
+- ExplicitGcViolation for Android 16 compatibility ([US-SDK-007](docs/user-stories.md))
 
 ### Security
 
@@ -598,42 +635,44 @@
         - failure
     - typing start/end
 
-[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.2.2...HEAD
+[Unreleased]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/3.3.0...HEAD
 
-[3.2.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.2.1...3.2.2
+[3.3.0]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/3.2.2...3.3.0
 
-[3.2.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.2.0...3.2.1
+[3.2.2]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/3.2.1...3.2.2
 
-[3.2.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.1.2...3.2.0
+[3.2.1]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/3.2.0...3.2.1
 
-[3.1.2]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.1.1...3.1.2
+[3.2.0]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/3.1.2...3.2.0
 
-[3.1.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.1.0...3.1.1
+[3.1.2]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/3.1.1...3.1.2
 
-[3.1.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.0.0...3.1.0
+[3.1.1]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/3.1.0...3.1.1
 
-[3.0.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.2.2...3.0.0
+[3.1.0]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/3.0.0...3.1.0
 
-[2.2.2]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.2.1...2.2.2
+[3.0.0]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/2.2.2...3.0.0
 
-[2.2.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.2.0...2.2.1
+[2.2.2]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/2.2.1...2.2.2
 
-[2.2.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.1.1...2.2.0
+[2.2.1]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/2.2.0...2.2.1
 
-[2.1.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.1.0...2.1.1
+[2.2.0]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/2.1.1...2.2.0
 
-[2.1.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.0.0...2.1.0
+[2.1.1]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/2.1.0...2.1.1
 
-[2.0.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.3.1...2.0.0
+[2.1.0]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/2.0.0...2.1.0
 
-[1.3.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.3.0...1.3.1
+[2.0.0]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/1.3.1...2.0.0
 
-[1.3.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.2.1...1.3.0
+[1.3.1]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/1.3.0...1.3.1
 
-[1.2.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.2.0...1.2.1
+[1.3.0]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/1.2.1...1.3.0
 
-[1.2.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.1.0...1.2.0
+[1.2.1]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/1.2.0...1.2.1
 
-[1.1.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.0.1...1.1.0
+[1.2.0]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/1.1.0...1.2.0
 
-[1.0.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.0.0...1.0.1
+[1.1.0]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/1.0.1...1.1.0
+
+[1.0.1]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/1.0.0...1.0.1

@@ -552,6 +552,42 @@ internal object ServerResponse {
             }
         )
 
+        fun TimePicker(threadId: UUID) = Message(
+            threadId = threadId,
+            content = object {
+                val type = "TIME_PICKER"
+                val fallbackText = "Text sent if rich message is not available on external platform"
+                val payload = object {
+                    val title = object {
+                        val content = "Check our new gadget!"
+                    }
+                    val event = object {
+                        val title = object {
+                            val content = "Check our new gadget!"
+                        }
+                        val timeSlots = listOf(
+                            object {
+                                val id = "unique-id"
+                                val duration = 3600L
+                                val startTime = "2017-05-26T08:27:55+00:00"
+                            }
+                        )
+
+                        // location field is present in the JSON spec but out of scope — included here
+                        // to verify the parser gracefully ignores unknown fields
+                        val location = object {
+                            val title = object {
+                                val content = "Check our new gadget!"
+                            }
+                            val latitude = 44.44
+                            val longitude = 55.55
+                            val radius = 33.3
+                        }
+                    }
+                }
+            }
+        )
+
         fun InvalidContent(threadId: UUID) = Message(
             threadId = threadId,
             content = object {

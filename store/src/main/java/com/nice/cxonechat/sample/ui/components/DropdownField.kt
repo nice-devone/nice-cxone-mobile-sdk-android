@@ -49,7 +49,7 @@ import com.nice.cxonechat.sample.R.string
 
 /**
  * Simplified dropdown field.
-    val label: String
+val label: String
  *
 }
 

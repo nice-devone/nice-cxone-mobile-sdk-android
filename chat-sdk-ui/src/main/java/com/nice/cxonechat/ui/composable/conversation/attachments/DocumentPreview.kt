@@ -19,14 +19,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.ui.composable.generic.PdfThumbnail
-import com.nice.cxonechat.ui.composable.generic.ThumbnailSize
 import com.nice.cxonechat.ui.util.contentDescription
 
 @Composable
 internal fun DocumentPreview(
     attachment: Attachment,
     modifier: Modifier,
-    thumbnailSize: ThumbnailSize,
+    isGroupAttachment: Boolean,
     contentDescription: String? = attachment.contentDescription,
     showFrame: (Boolean) -> Unit,
 ) {
@@ -34,8 +33,8 @@ internal fun DocumentPreview(
     PdfThumbnail(
         attachment = attachment,
         modifier = modifier,
-        fallbackSize = thumbnailSize,
         showFrame = showFrame,
         contentDescription = contentDescription,
+        isGroupAttachment = isGroupAttachment
     )
 }

@@ -13,8 +13,6 @@
  * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
  */
 
-import com.vanniktech.maven.publish.AndroidMultiVariantLibrary
-
 plugins {
     id "android-library-conventions"
     id "android-ui-conventions"
@@ -67,13 +65,14 @@ android {
             }
         }
     }
-}
 
-// Setup publishing of all library variants.
-// Dependent will get matching variant automatically (eg.: buildType:debug will get buildType:debug)
-// Alternatively they can provide transformation mapping.
-mavenPublishing {
-    configure(new AndroidMultiVariantLibrary(true, true))
+    publishing {
+        multipleVariants("Maven") {
+            allVariants()
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
 }
 
 dependencies {
@@ -143,6 +142,21 @@ dokka {
         perPackageOption {
             matchingRegex.set(".*\\.internal.*|.*\\.generated.*")
             suppress.set(true)
+        }
+    }
+}
+
+// Setup publishing configuration
+afterEvaluate {
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                from components.Maven
+
+                pom {
+                    configurePomMetadata(it)
+                }
+            }
         }
     }
 }

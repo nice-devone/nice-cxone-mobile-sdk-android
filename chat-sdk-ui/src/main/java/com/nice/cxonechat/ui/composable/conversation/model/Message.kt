@@ -20,6 +20,7 @@ import com.nice.cxonechat.message.Media
 import com.nice.cxonechat.message.Message.QuickReplies
 import com.nice.cxonechat.message.MessageDirection
 import com.nice.cxonechat.message.MessageStatus
+import com.nice.cxonechat.message.TimeSlot
 import com.nice.cxonechat.ui.domain.model.Person
 import com.nice.cxonechat.ui.domain.model.asPerson
 import com.nice.cxonechat.ui.util.preview.message.SdkAttachment
@@ -29,6 +30,7 @@ import com.nice.cxonechat.ui.util.preview.message.SdkMessageUnsupported
 import com.nice.cxonechat.ui.util.preview.message.SdkReplyButton
 import com.nice.cxonechat.ui.util.preview.message.SdkRichLink
 import com.nice.cxonechat.ui.util.preview.message.SdkText
+import com.nice.cxonechat.ui.util.preview.message.SdkTimePicker
 import com.nice.cxonechat.ui.util.toShortDateString
 import java.util.Date
 
@@ -125,6 +127,19 @@ internal sealed class Message(original: SdkMessage) {
         val actions: List<Action> = message.actions.mapNotNull { action ->
             action.toUiAction(sendMessage)
         }
+    }
+
+    data class TimePicker(
+        private val message: SdkTimePicker,
+    ) : Message(message) {
+        /** title message to display. */
+        val title: String = message.title
+
+        /** title to display on Time Picker popup. */
+        val popupTitle: String = message.popupTitle
+
+        /** List of time slots to be displayed to the user. */
+        val timeSlots: Iterable<TimeSlot> = message.timeSlots
     }
 
     /**

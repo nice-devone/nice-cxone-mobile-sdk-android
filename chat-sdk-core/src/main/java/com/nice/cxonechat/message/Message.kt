@@ -174,6 +174,25 @@ sealed class Message {
     }
 
     /**
+     * A TimePicker message to display.
+     *
+     * Each TimePicker message has a title and a list of time slots to display to the user.
+     * The user can select one of the time slots, and the associated id should be sent as postback value
+     * together with the text representing the selected time slot as a reply message (on behalf of the user).
+     */
+    @Public
+    abstract class TimePicker : Message() {
+        /** title message to display in conversation. */
+        abstract val title: String
+
+        /** title to be displayed after clicking on the picker list. */
+        abstract val popupTitle: String
+
+        /** list of time slots to display along with [title]. */
+        abstract val timeSlots: Iterable<TimeSlot>
+    }
+
+    /**
      * A generic fallback message type for messages that are not supported by the current version of the SDK, but
      * they still can be displayed using fallback text in order to inform the user about the fact that such message is
      * present in the conversation.

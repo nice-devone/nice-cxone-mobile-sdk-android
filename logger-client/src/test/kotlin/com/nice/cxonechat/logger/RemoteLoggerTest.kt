@@ -34,6 +34,7 @@ import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
+import okio.Buffer
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -626,6 +627,126 @@ internal class RemoteLoggerTest {
 
         // Assert
         assertNull(result, "Empty URL should return null")
+    }
+
+    @Test
+    fun `log with throwable having empty stack trace does not crash`() = runTest(testDispatcher) {
+        // Arrange
+        val mockResponse = Response.Builder()
+            .request(Request.Builder().url(TEST_BASE_LOGGER_URL).build())
+            .protocol(Protocol.HTTP_1_1)
+            .code(200)
+            .message("OK")
+            .body("".toResponseBody(TEXT_PLAIN_MEDIA_TYPE.toMediaType()))
+            .build()
+
+        every { mockCall.execute() } returns mockResponse
+
+        // Create a throwable and artificially clear its stack trace
+        val throwable = RuntimeException("no stack").also {
+            it.stackTrace = emptyArray()
+        }
+
+        // Act - Must not throw ArrayIndexOutOfBoundsException
+        remoteLogger.log(Level.Error, "empty stack trace", throwable)
+        advanceUntilIdle()
+
+        // Assert - no crash, no errors from the logger infrastructure
+        assertTrue(errorLogger.logged.isEmpty(), "Empty stack trace must not cause a crash")
+    }
+
+    @Test
+    fun `log with throwable having one stack frame does not crash`() = runTest(testDispatcher) {
+        // Arrange
+        val mockResponse = Response.Builder()
+            .request(Request.Builder().url(TEST_BASE_LOGGER_URL).build())
+            .protocol(Protocol.HTTP_1_1)
+            .code(200)
+            .message("OK")
+            .body("".toResponseBody(TEXT_PLAIN_MEDIA_TYPE.toMediaType()))
+            .build()
+
+        every { mockCall.execute() } returns mockResponse
+
+        val throwable = RuntimeException("one frame").also {
+            it.stackTrace = arrayOf(StackTraceElement("SomeClass", "someMethod", "SomeClass.kt", 10))
+        }
+
+        // Act
+        remoteLogger.log(Level.Error, "one stack frame", throwable)
+        advanceUntilIdle()
+
+        // Assert
+        assertTrue(errorLogger.logged.isEmpty(), "Single-frame stack trace must not cause a crash")
+    }
+
+    @Test
+    fun `log with throwable having two stack frames does not crash`() = runTest(testDispatcher) {
+        // Arrange
+        val mockResponse = Response.Builder()
+            .request(Request.Builder().url(TEST_BASE_LOGGER_URL).build())
+            .protocol(Protocol.HTTP_1_1)
+            .code(200)
+            .message("OK")
+            .body("".toResponseBody(TEXT_PLAIN_MEDIA_TYPE.toMediaType()))
+            .build()
+
+        every { mockCall.execute() } returns mockResponse
+
+        val throwable = RuntimeException("two frames").also {
+            it.stackTrace = arrayOf(
+                StackTraceElement("ClassA", "methodA", "ClassA.kt", 1),
+                StackTraceElement("ClassB", "methodB", "ClassB.kt", 2),
+            )
+        }
+
+        // Act
+        remoteLogger.log(Level.Error, "two stack frames", throwable)
+        advanceUntilIdle()
+
+        // Assert
+        assertTrue(errorLogger.logged.isEmpty(), "Two-frame stack trace must not cause a crash")
+    }
+
+    @Test
+    fun `log with throwable having three or more stack frames populates file and line`() = runTest(testDispatcher) {
+        // Arrange
+        val requestSlot = slot<Request>()
+        every { mockClient.newCall(capture(requestSlot)) } returns mockCall
+
+        val mockResponse = Response.Builder()
+            .request(Request.Builder().url(TEST_BASE_LOGGER_URL).build())
+            .protocol(Protocol.HTTP_1_1)
+            .code(200)
+            .message("OK")
+            .body("".toResponseBody(TEXT_PLAIN_MEDIA_TYPE.toMediaType()))
+            .build()
+
+        every { mockCall.execute() } returns mockResponse
+
+        val expectedFile = "Caller.kt"
+        val expectedLine = 42
+        val throwable = RuntimeException("three frames").also {
+            it.stackTrace = arrayOf(
+                StackTraceElement("Logger", "log", "RemoteLogger.kt", 147),
+                StackTraceElement("Wrapper", "wrap", "Wrapper.kt", 20),
+                StackTraceElement("Caller", "call", expectedFile, expectedLine),
+            )
+        }
+
+        // Act
+        remoteLogger.log(Level.Error, "three frames, file and line extracted", throwable)
+        advanceUntilIdle()
+
+        // Assert – the request was sent (no infrastructure error) and body contains the expected file info
+        assertTrue(errorLogger.logged.isEmpty(), "Three-frame stack trace should log successfully")
+        val body = requestSlot.captured.body
+        requireNotNull(body)
+        val buffer = Buffer()
+        body.writeTo(buffer)
+        val bodyString = buffer.readUtf8()
+        assertTrue(bodyString.contains(expectedFile), "Request body should contain the caller file name")
+        assertTrue(bodyString.contains(expectedLine.toString()), "Request body should contain the caller line number")
     }
 
     companion object {

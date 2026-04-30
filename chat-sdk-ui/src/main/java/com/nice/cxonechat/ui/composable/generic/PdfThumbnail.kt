@@ -57,7 +57,7 @@ internal fun PdfThumbnail(
     attachment: Attachment,
     modifier: Modifier = Modifier,
     fallbackModifier: Modifier = modifier,
-    fallbackSize: ThumbnailSize = ThumbnailSize.LARGE,
+    isGroupAttachment: Boolean,
     showFrame: (Boolean) -> Unit,
     contentDescription: String? = attachment.contentDescription,
 ) {
@@ -93,13 +93,7 @@ internal fun PdfThumbnail(
         when (render) {
             null -> {
                 showFrame(false)
-                FallbackThumbnail(
-                    uri = uri,
-                    modifier = fallbackModifier,
-                    mimeType = attachment.mimeType,
-                    thumbnailSize = fallbackSize,
-                    contentDescription = contentDescription,
-                )
+                LoadingSpinner(modifier = fallbackModifier, isGroupAttachment = isGroupAttachment)
             }
 
             else -> {

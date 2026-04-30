@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import com.nice.cxonechat.ui.composable.conversation.model.Message
 import com.nice.cxonechat.ui.composable.conversation.model.Message.ListPicker
 import com.nice.cxonechat.ui.composable.conversation.model.Message.QuickReply
+import com.nice.cxonechat.ui.composable.conversation.model.Message.TimePicker
 import com.nice.cxonechat.ui.composable.conversation.model.Message.Unsupported
 
 @Composable
@@ -41,6 +42,11 @@ internal fun MessageStatusContent(
 
         is ListPicker ->
             ListPickerMessageStatus(
+                messageStatusState = messageStatusState,
+                onClick = onClick
+            )
+        is TimePicker ->
+            TimePickerMessageStatus(
                 messageStatusState = messageStatusState,
                 onClick = onClick
             )

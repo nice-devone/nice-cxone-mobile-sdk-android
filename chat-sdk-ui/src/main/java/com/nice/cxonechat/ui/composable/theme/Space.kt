@@ -45,6 +45,7 @@ internal data class Space(
     val quickReplyMessagePadding: PaddingValues = PaddingValues(start = xl, end = xl, top = semiLarge, bottom = medium),
     val attachmentMessagePadding: PaddingValues = PaddingValues(horizontal = semiLarge, vertical = semiLarge),
     val richListPickerTextPadding: PaddingValues = PaddingValues(start = xl, end = xl, top = semiLarge, bottom = medium),
+    val richTimePickerTextPadding: PaddingValues = PaddingValues(start = xl, end = xl, top = semiLarge, bottom = medium),
 
     val clickableSize: Dp = 48.dp,
     val treeFieldIndent: Dp = large,
@@ -57,6 +58,7 @@ internal data class Space(
     val bottomSheetTitleIconSize: Dp = 40.dp,
     val bottomSheetActionItemSize: Dp = 32.dp,
     val listPickerItemImageSize: Dp = 32.dp,
+    val timeSlotSize: DpSize = DpSize(width = 116.dp, height = 58.dp),
 
     val chipMinSize: Dp = xxl,
     val chipSpace: Dp = medium,
@@ -148,6 +150,8 @@ internal data class Space(
     val swipeToDismissIconSize: Dp = 30.dp,
     /** Extra padding for the leading icon vector in the header bar. */
     val offlineLeadingIconPadding: Dp = 11.2.dp,
+    /** Minimum Size of the rich link thumbnail in the attachment preview. */
+    val minPreviewSize: Dp = 236.dp,
 )
 
 internal val LocalSpace = staticCompositionLocalOf {

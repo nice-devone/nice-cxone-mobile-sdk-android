@@ -165,12 +165,12 @@ internal fun ListPickerBottomSheetContent(
         ) {
             BottomSheetButtonText(
                 text = stringResource(string.cancel),
-                enable = true,
+                enabled = true,
                 onClick = { onDismiss() }
             )
             BottomSheetButtonText(
                 text = stringResource(string.submit),
-                enable = selectedAction != null,
+                enabled = selectedAction != null,
                 onClick = {
                     (selectedAction as? ReplyButton)?.onClick?.let { it() }
                     onDone()
@@ -183,13 +183,13 @@ internal fun ListPickerBottomSheetContent(
 @Composable
 internal fun BottomSheetButtonText(
     text: String,
-    enable: Boolean,
+    enabled: Boolean,
     onClick: () -> Unit,
 ) {
     TextButton(
         modifier = Modifier.padding(horizontal = space.large),
         onClick = onClick,
-        enabled = enable
+        enabled = enabled
     ) {
         Text(text)
     }

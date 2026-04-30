@@ -28,6 +28,7 @@ internal fun ImagePreview(
     attachment: Attachment,
     modifier: Modifier = Modifier,
     messageId: UUID? = null,
+    isGroupAttachment: Boolean,
     contentDescription: String?,
 ) {
     val cacheKey = rememberSaveable(messageId, attachment.friendlyName) {
@@ -38,6 +39,7 @@ internal fun ImagePreview(
         cacheKey = cacheKey,
         contentDescription = contentDescription,
         contentScale = ContentScale.Crop,
+        isGroupAttachment = isGroupAttachment,
         modifier = modifier,
     )
 }

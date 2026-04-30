@@ -121,6 +121,7 @@ private fun Item(onAttachmentClick: (Attachment) -> Unit, attachment: Attachment
                 .padding(bottom = space.xSmall)
                 .size(space.attachmentUploadPreviewSize),
             attachment = attachment,
+            isGroupAttachment = true
         )
         Text(
             text = friendlyName,

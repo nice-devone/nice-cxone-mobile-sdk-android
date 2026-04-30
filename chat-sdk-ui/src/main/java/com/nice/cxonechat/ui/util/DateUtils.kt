@@ -17,8 +17,15 @@ package com.nice.cxonechat.ui.util
 
 import android.content.Context
 import android.icu.text.DateFormat
+import android.text.format.DateFormat.getBestDateTimePattern
 import androidx.compose.runtime.Stable
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
+
+private val HEADER_INPUT_FORMAT = ThreadLocal.withInitial {
+    SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+}
 
 @Stable
 internal fun Context.toShortDateString(date: Date): String {
@@ -40,3 +47,23 @@ internal fun Context.toShortTimeString(date: Date): String {
     )
     return formatter.format(date).capitalizeFirstChar(locale)
 }
+
+internal fun formatHeader(context: Context, dateKey: String): String {
+    val locale = context.resources.configuration.locales[0]
+    val input = requireNotNull(HEADER_INPUT_FORMAT.get())
+    val parsedDate = input.parse(dateKey)
+        ?: throw IllegalArgumentException(
+            "Invalid dateKey '$dateKey'. Expected format: yyyy-MM-dd"
+        )
+    val pattern = getBestDateTimePattern(locale, "MMMMdy")
+    return SimpleDateFormat(pattern, locale).format(parsedDate)
+}
+
+internal fun formatTime(context: Context, date: Date): String {
+    val locale = context.resources.configuration.locales[0]
+    // "j" skeleton lets the system choose 12h vs 24h based on locale and user preference
+    val pattern = getBestDateTimePattern(locale, "jmm")
+    return SimpleDateFormat(pattern, locale).format(date)
+}
+
+internal fun formatDuration(seconds: Long) = "${seconds / 60} min" // value will be always in minutes, so we can skip seconds part

@@ -31,8 +31,7 @@ internal data class EventContactInboxAssigneeChanged(
     val data: Data,
 ) {
 
-    val agent get() = data.inboxAssignee?.toAgent()
-    val formerAgent get() = data.previousInboxAssignee?.toAgent()
+    val agent get() = data.inboxAssignee?.toAgent() ?: data.previousInboxAssignee?.toAgent()
     val case get() = data.case
 
     fun inThread(thread: ChatThread) = case.threadIdOnExternalPlatform == thread.id

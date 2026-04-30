@@ -80,10 +80,12 @@ internal fun RichLinkMessage(
                 model = message.media.url.ifBlank { null },
                 contentDescription = message.media.fileName,
                 contentScale = ContentScale.FillWidth,
+                isGroupAttachment = false,
+                showLoadingBorder = true,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
-                    .heightIn(max = maxHeight)
-                    .widthIn(min = 236.dp)
+                    .heightIn(min = space.minPreviewSize, max = maxHeight) // Added static min height to show Spinner loading
+                    .widthIn(min = space.minPreviewSize)
                     .fillMaxWidth()
             )
             Text(
@@ -92,29 +94,33 @@ internal fun RichLinkMessage(
                 color = textColor.foreground,
                 modifier = Modifier.padding(start = space.semiLarge, top = space.medium, end = space.semiLarge)
             )
-            Row(
-                verticalAlignment = Alignment.Top,
-                modifier = Modifier
-                    .padding(start = space.semiLarge, top = 3.dp, bottom = space.semiLarge, end = space.semiLarge)
-            ) {
-                val linkColor = colorScheme.primary
-                AutoLinkedText(
-                    text = message.url,
-                    style = chatTypography.chatCardLink,
-                    linkColor = linkColor,
-                    linkDecoration = TextDecoration.None,
-                )
-                Icon(
-                    painterResource(R.drawable.ic_link),
-                    contentDescription = stringResource(R.string.content_description_url_link),
-                    tint = linkColor,
-                    modifier = Modifier
-                        .testTag("rich_link_icon")
-                        .padding(start = 2.dp, bottom = 2.dp)
-                        .size(width = 12.dp, height = 11.dp)
-                )
-            }
+            RichLinkUrl(message.url)
         }
+    }
+}
+
+@Composable
+private fun RichLinkUrl(url: String) {
+    val linkColor = colorScheme.primary
+    Row(
+        verticalAlignment = Alignment.Top,
+        modifier = Modifier.padding(start = space.semiLarge, top = 3.dp, bottom = space.semiLarge, end = space.semiLarge)
+    ) {
+        AutoLinkedText(
+            text = url,
+            style = chatTypography.chatCardLink,
+            linkColor = linkColor,
+            linkDecoration = TextDecoration.None,
+        )
+        Icon(
+            painterResource(R.drawable.ic_link),
+            contentDescription = stringResource(R.string.content_description_url_link),
+            tint = linkColor,
+            modifier = Modifier
+                .testTag("rich_link_icon")
+                .padding(start = 2.dp, bottom = 2.dp)
+                .size(width = 12.dp, height = 11.dp)
+        )
     }
 }
 

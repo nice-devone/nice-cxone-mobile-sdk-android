@@ -25,6 +25,7 @@ import com.nice.cxonechat.ui.composable.conversation.model.ConversationTopBarSta
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -56,7 +57,8 @@ class ChatThreadTopBarTest {
                 )
             }
         }
-        composeTestRule.onNodeWithTag("edit_thread_custom_values_button").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("chat_thread_top_bar_menu_button").performClick()
+        composeTestRule.onNodeWithTag("edit_thread_custom_values_menu_item").assertIsDisplayed()
     }
 
     @Test
@@ -82,7 +84,8 @@ class ChatThreadTopBarTest {
                 )
             }
         }
-        composeTestRule.onNodeWithTag("edit_thread_custom_values_button").assertDoesNotExist()
+        composeTestRule.onNodeWithTag("chat_thread_top_bar_menu_button").performClick()
+        composeTestRule.onNodeWithTag("edit_thread_custom_values_menu_item").assertDoesNotExist()
     }
 
     @Test
@@ -137,5 +140,93 @@ class ChatThreadTopBarTest {
         }
         composeTestRule.onNodeWithTag("chat_thread_top_bar_menu_button").performClick()
         composeTestRule.onNodeWithTag("edit_thread_custom_values_menu_item").assertIsDisplayed()
+    }
+
+    @Test
+    fun endConversationMenuItem_isInteractable_whenLiveChatAndNotArchived() {
+        var endContactInvoked = false
+
+        composeTestRule.setContent {
+            ChatTheme {
+                ChatThreadTopBar(
+                    scrollBehavior = null,
+                    conversationState = ConversationTopBarState(
+                        threadName = flowOf("Test"),
+                        isMultiThreaded = false,
+                        hasQuestions = false,
+                        isLiveChat = true,
+                        liveChatAllowTranscript = false,
+                        isArchived = MutableStateFlow(false),
+                        threadState = MutableStateFlow(ChatThreadState.Ready),
+                    ),
+                    onEditThreadName = {},
+                    onEditThreadValues = {},
+                    onEndContact = { endContactInvoked = true },
+                    displayEndConversation = {},
+                    onSendTranscript = {},
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithTag("chat_thread_top_bar_menu_button").performClick()
+        composeTestRule.onNodeWithTag("end_conversation_menu_item").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("end_conversation_menu_item").performClick()
+        assertTrue("onEndContact callback should be invoked", endContactInvoked)
+    }
+
+    @Test
+    fun endConversationMenuItem_isNotDisplayed_whenMessagingMode() {
+        composeTestRule.setContent {
+            ChatTheme {
+                ChatThreadTopBar(
+                    scrollBehavior = null,
+                    conversationState = ConversationTopBarState(
+                        threadName = flowOf("Test"),
+                        isMultiThreaded = false,
+                        hasQuestions = false,
+                        isLiveChat = false,
+                        liveChatAllowTranscript = false,
+                        isArchived = MutableStateFlow(false),
+                        threadState = MutableStateFlow(ChatThreadState.Ready),
+                    ),
+                    onEditThreadName = {},
+                    onEditThreadValues = {},
+                    onEndContact = {},
+                    displayEndConversation = {},
+                    onSendTranscript = {},
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithTag("chat_thread_top_bar_menu_button").performClick()
+        composeTestRule.onNodeWithTag("end_conversation_menu_item").assertDoesNotExist()
+    }
+
+    @Test
+    fun endConversationMenuItem_isNotDisplayed_whenArchived() {
+        composeTestRule.setContent {
+            ChatTheme {
+                ChatThreadTopBar(
+                    scrollBehavior = null,
+                    conversationState = ConversationTopBarState(
+                        threadName = flowOf("Test"),
+                        isMultiThreaded = false,
+                        hasQuestions = false,
+                        isLiveChat = true,
+                        liveChatAllowTranscript = false,
+                        isArchived = MutableStateFlow(true),
+                        threadState = MutableStateFlow(ChatThreadState.Ready),
+                    ),
+                    onEditThreadName = {},
+                    onEditThreadValues = {},
+                    onEndContact = {},
+                    displayEndConversation = {},
+                    onSendTranscript = {},
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithTag("chat_thread_top_bar_menu_button").performClick()
+        composeTestRule.onNodeWithTag("end_conversation_menu_item").assertDoesNotExist()
     }
 }

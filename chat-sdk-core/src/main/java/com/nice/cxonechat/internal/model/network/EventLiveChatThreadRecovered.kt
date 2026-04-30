@@ -36,7 +36,7 @@ internal data class EventLiveChatThreadRecovered(
 ) {
 
     private val data get() = postback.data
-    val agent get() = data.inboxAssignee?.toAgent()
+    val agent get() = data.inboxAssignee?.toAgent() ?: data.previousInboxAssignee?.toAgent()
 
     /**
      * Popups are filtered out of regular messages, but if it is last message in the recovered thread,
@@ -82,6 +82,8 @@ internal data class EventLiveChatThreadRecovered(
         @SerialName("contact")
         @JsonNames("contact", "consumerContact")
         val contact: ContactFieldData? = null,
+        @SerialName("previousInboxAssignee")
+        val previousInboxAssignee: AgentModel? = null,
     )
 
     companion object : ReceivedEvent<EventLiveChatThreadRecovered> {

@@ -18,14 +18,62 @@ package com.nice.cxonechat
 import com.nice.cxonechat.ChatThreadEventHandler.OnEventErrorListener
 import com.nice.cxonechat.ChatThreadEventHandler.OnEventResponseListener
 import com.nice.cxonechat.ChatThreadEventHandler.OnEventSentListener
+import com.nice.cxonechat.ChatThreadEventHandlerActions.selectTimeSlot
 import com.nice.cxonechat.ChatThreadEventHandlerActions.sendTranscript
 import com.nice.cxonechat.exceptions.RuntimeChatException
+import com.nice.cxonechat.internal.model.TimeSlotInternal
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.junit.Test
+import java.util.Date
 
 class ChatThreadEventHandlerActionsTest {
+
+    @Test
+    fun `selectTimeSlot triggers event and notifies sent listener`() {
+        val handler = mockk<ChatThreadEventHandler>(relaxed = true)
+        val sentListener = mockk<OnEventSentListener>(relaxed = true)
+        val errorListener = mockk<OnEventErrorListener>(relaxed = true)
+        val timeSlot = TimeSlotInternal(id = "unique-id", duration = 3600L, startTime = Date(0))
+
+        every { handler.trigger(any(), sentListener, errorListener) } answers {
+            sentListener.onSent()
+        }
+
+        handler.selectTimeSlot(
+            timeSlotLocalizedText = "Tuesday 2pm - 1 hour",
+            timeSlot = timeSlot,
+            listener = sentListener,
+            errorListener = errorListener
+        )
+
+        verify { sentListener.onSent() }
+        verify(exactly = 0) { errorListener.onError(any()) }
+    }
+
+    @Test
+    fun `selectTimeSlot triggers event and notifies error listener`() {
+        val handler = mockk<ChatThreadEventHandler>(relaxed = true)
+        val sentListener = mockk<OnEventSentListener>(relaxed = true)
+        val errorListener = mockk<OnEventErrorListener>(relaxed = true)
+        val error = RuntimeChatException.ServerCommunicationError("Failed")
+        val timeSlot = TimeSlotInternal(id = "unique-id", duration = 3600L, startTime = Date(0))
+
+        every { handler.trigger(any(), sentListener, errorListener) } answers {
+            errorListener.onError(error)
+        }
+
+        handler.selectTimeSlot(
+            timeSlotLocalizedText = "Tuesday 3pm - 1 hour",
+            timeSlot = timeSlot,
+            listener = sentListener,
+            errorListener = errorListener
+        )
+
+        verify { errorListener.onError(error) }
+        verify(exactly = 0) { sentListener.onSent() }
+    }
 
     @Test
     fun `sendTranscript triggers success response`() {

@@ -92,7 +92,7 @@ internal fun QuickReplyMessageStatus(messageStatusState: MessageStatusState, onC
 
         DISABLED -> Triple(
             Icons.Default.ErrorOutline,
-            stringResource(R.string.quick_reply_options_unavailable),
+            stringResource(R.string.options_unavailable),
             chatColors.token.status.error
         )
 

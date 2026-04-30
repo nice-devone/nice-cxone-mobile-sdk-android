@@ -17,6 +17,8 @@ package com.nice.cxonechat.ui.composable.generic
 
 import androidx.annotation.StringRes
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.MenuItemColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -30,6 +32,7 @@ import androidx.compose.ui.res.stringResource
  * @param modifier The modifier to be applied to the menu item.
  * @param enabled Whether the menu item is enabled or not.
  * @param icon The composable function to display as the leading icon.
+ * @param colors The colors to be used for the menu item.
  */
 @Composable
 internal fun IconMenuItem(
@@ -38,6 +41,7 @@ internal fun IconMenuItem(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     icon: @Composable () -> Unit,
+    colors: MenuItemColors = MenuDefaults.itemColors(),
 ) {
     DropdownMenuItem(
         text = { Text(stringResource(text)) },
@@ -45,5 +49,6 @@ internal fun IconMenuItem(
         enabled = enabled,
         leadingIcon = icon,
         modifier = modifier,
+        colors = colors
     )
 }

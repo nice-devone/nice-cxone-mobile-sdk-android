@@ -126,6 +126,7 @@ internal class ChatThreadHandlerImpl(
         var handler: ChatThreadEventHandler
         handler = ChatThreadEventHandlerImpl(chat, thread)
         handler = ChatThreadEventHandlerReplyEvent(handler, this, chat)
+        handler = ChatThreadEventHandlerTimeSlotEvent(handler, this, chat)
         handler = ChatThreadEventHandlerTokenGuard(handler, chat)
         handler = ChatThreadEventHandlerThreading(handler, chat)
         return handler

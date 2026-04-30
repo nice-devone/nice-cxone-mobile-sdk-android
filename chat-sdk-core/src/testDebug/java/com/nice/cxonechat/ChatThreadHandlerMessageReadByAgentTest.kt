@@ -18,6 +18,7 @@ package com.nice.cxonechat
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.model.MessageModel
 import com.nice.cxonechat.internal.model.network.MessagePolyContent.Noop
+import com.nice.cxonechat.message.MessageStatus
 import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.model.makeMessage
 import com.nice.cxonechat.model.makeMessageModel
@@ -70,6 +71,21 @@ internal class ChatThreadHandlerMessageReadByAgentTest : AbstractChatTest() {
             sendServerMessage(ServerResponse.MessageReadChanged(makeMessageModel()))
         }
         assertNull(actual)
+    }
+
+    @Test
+    fun read_event_for_message_not_yet_in_thread_adds_message_with_read_status() {
+        val emptyThreadHandler = chat.threads().thread(
+            makeChatThread(messages = emptyList(), id = message.threadIdOnExternalPlatform)
+        )
+        val actual = testCallback({ listener: (ChatThread) -> Unit ->
+            emptyThreadHandler.get { listener(it) }
+        }) {
+            sendServerMessage(ServerResponse.MessageReadChanged(message))
+        }
+        val result = assertNotNull(actual)
+        assertEquals(1, result.messages.size)
+        assertEquals(MessageStatus.Read, result.messages.single().metadata.status)
     }
 
     @Test

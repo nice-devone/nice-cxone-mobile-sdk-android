@@ -39,6 +39,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.message.MessageDirection.ToAgent
+import com.nice.cxonechat.message.TimeSlot
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.FIRST
 import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.LAST
@@ -53,6 +54,7 @@ import com.nice.cxonechat.ui.composable.conversation.model.Message.ListPicker
 import com.nice.cxonechat.ui.composable.conversation.model.Message.QuickReply
 import com.nice.cxonechat.ui.composable.conversation.model.Message.RichLink
 import com.nice.cxonechat.ui.composable.conversation.model.Message.Text
+import com.nice.cxonechat.ui.composable.conversation.model.Message.TimePicker
 import com.nice.cxonechat.ui.composable.conversation.model.Message.Unsupported
 import com.nice.cxonechat.ui.composable.conversation.model.Message.WithAttachments
 import com.nice.cxonechat.ui.composable.theme.ChatColors.ColorPair
@@ -72,6 +74,7 @@ internal fun MessageItem(
     messageStatusState: MessageStatusState,
     onQuickReplyOptionSelected: (Boolean) -> Unit,
     onListPickerSelected: (Boolean) -> Unit,
+    onTimePickerSelected: (TimeSlot, String) -> Unit,
     modifier: Modifier = Modifier,
     itemGroupState: MessageItemGroupState = SOLO,
     onAttachmentClicked: (Attachment) -> Unit,
@@ -96,6 +99,7 @@ internal fun MessageItem(
                     messageStatusState = messageStatusState,
                     onQuickReplyOptionSelected = onQuickReplyOptionSelected,
                     onListPickerSelected = onListPickerSelected,
+                    onTimePickerSelected = onTimePickerSelected,
                     onAttachmentClicked = onAttachmentClicked,
                     onMoreClicked = onMoreClicked,
                     onShare = onShare,
@@ -156,6 +160,7 @@ private fun MessageContent(
     messageStatusState: MessageStatusState,
     onQuickReplyOptionSelected: (Boolean) -> Unit,
     onListPickerSelected: (Boolean) -> Unit,
+    onTimePickerSelected: (TimeSlot, String) -> Unit,
     onAttachmentClicked: (Attachment) -> Unit,
     onMoreClicked: (List<Attachment>) -> Unit,
     onShare: (Collection<Attachment>) -> Unit,
@@ -172,6 +177,7 @@ private fun MessageContent(
     val avatar = remember { if (!toAgent && position in listOf(LAST, SOLO)) message.sender?.asPerson else null }
     var showFrame by rememberSaveable { mutableStateOf(true) }
     var showListPickerDialog by rememberSaveable { mutableStateOf(false) }
+    var showTimePickerDialog by rememberSaveable { mutableStateOf(false) }
 
     MessageFrameContent(
         message = message,
@@ -184,12 +190,15 @@ private fun MessageContent(
         messageStatusState = messageStatusState,
         onQuickReplyOptionSelected = onQuickReplyOptionSelected,
         onListPickerSelected = onListPickerSelected,
+        onTimePickerSelected = onTimePickerSelected,
         onAttachmentClicked = onAttachmentClicked,
         onMoreClicked = onMoreClicked,
         onShare = onShare,
         snackBarHostState = snackBarHostState,
         showListPickerDialog = showListPickerDialog,
+        showTimePickerDialog = showTimePickerDialog,
         setShowListPickerDialog = { showListPickerDialog = it },
+        setShowTimePickerDialog = { showTimePickerDialog = it }
     )
 }
 
@@ -202,6 +211,7 @@ private fun MessageContentBody(
     onMoreClicked: (List<Attachment>) -> Unit,
     onShare: (Collection<Attachment>) -> Unit,
     onListPickerSelected: (Boolean) -> Unit,
+    setShowTimePickerDialog: (Boolean) -> Unit,
     messageStatusState: MessageStatusState,
     setShowFrame: (Boolean) -> Unit,
 ) {
@@ -218,12 +228,14 @@ private fun MessageContentBody(
             onShare = onShare,
             onShowFrame = setShowFrame
         )
-
         is ListPicker -> ListPickerMessage(
-            message,
+            message = message,
             onMessageClick = { if (messageStatusState == SELECTABLE) onListPickerSelected(true) }
         )
-
+        is TimePicker -> TimePickerMessage(
+            message = message,
+            onMessageClick = { if (messageStatusState == SELECTABLE) setShowTimePickerDialog(true) }
+        )
         is RichLink -> RichLinkMessage(message, chatColor)
         is QuickReply -> QuickReplyMessage(message, Modifier.padding(space.quickReplyMessagePadding))
     }
@@ -241,12 +253,15 @@ private fun MessageFrameContent(
     messageStatusState: MessageStatusState,
     onQuickReplyOptionSelected: (Boolean) -> Unit,
     onListPickerSelected: (Boolean) -> Unit,
+    onTimePickerSelected: (TimeSlot, String) -> Unit,
     onAttachmentClicked: (Attachment) -> Unit,
     onMoreClicked: (List<Attachment>) -> Unit,
     onShare: (Collection<Attachment>) -> Unit,
     snackBarHostState: SnackbarHostState,
     showListPickerDialog: Boolean,
+    showTimePickerDialog: Boolean,
     setShowListPickerDialog: (Boolean) -> Unit,
+    setShowTimePickerDialog: (Boolean) -> Unit,
 ) {
     MessageFrame(
         position = position,
@@ -269,7 +284,8 @@ private fun MessageFrameContent(
                 message = message,
                 messageStatusState = messageStatusState,
                 snackBarHostState = snackBarHostState,
-                setShowListPickerDialog = setShowListPickerDialog
+                setShowListPickerDialog = setShowListPickerDialog,
+                setShowTimePickerDialog = setShowTimePickerDialog
             )
         },
         leadingContent = { LeadingContent(message, onShare) }
@@ -282,11 +298,35 @@ private fun MessageFrameContent(
             onMoreClicked = onMoreClicked,
             onShare = onShare,
             onListPickerSelected = setShowListPickerDialog,
+            setShowTimePickerDialog = setShowTimePickerDialog,
             messageStatusState = messageStatusState,
             setShowFrame = setShowFrame
         )
     }
 
+    PickerBottomSheets(
+        message = message,
+        messageStatusState = messageStatusState,
+        showListPickerDialog = showListPickerDialog,
+        showTimePickerDialog = showTimePickerDialog,
+        setShowListPickerDialog = setShowListPickerDialog,
+        setShowTimePickerDialog = setShowTimePickerDialog,
+        onListPickerSelected = onListPickerSelected,
+        onTimePickerSelected = onTimePickerSelected,
+    )
+}
+
+@Composable
+private fun PickerBottomSheets(
+    message: Message,
+    messageStatusState: MessageStatusState,
+    showListPickerDialog: Boolean,
+    showTimePickerDialog: Boolean,
+    setShowListPickerDialog: (Boolean) -> Unit,
+    setShowTimePickerDialog: (Boolean) -> Unit,
+    onListPickerSelected: (Boolean) -> Unit,
+    onTimePickerSelected: (TimeSlot, String) -> Unit,
+) {
     if (showListPickerDialog && messageStatusState == SELECTABLE) {
         ListPickerBottomSheet(
             message = message as ListPicker,
@@ -294,6 +334,17 @@ private fun MessageFrameContent(
             onDone = {
                 onListPickerSelected(false)
                 setShowListPickerDialog(false)
+            },
+        )
+    }
+
+    if (showTimePickerDialog && messageStatusState == SELECTABLE) {
+        TimePickerBottomSheet(
+            message = message as TimePicker,
+            onDismiss = { setShowTimePickerDialog(false) },
+            onDone = { timeSlot, timeSlotLocalizedText ->
+                onTimePickerSelected(timeSlot, timeSlotLocalizedText)
+                setShowTimePickerDialog(false)
             },
         )
     }

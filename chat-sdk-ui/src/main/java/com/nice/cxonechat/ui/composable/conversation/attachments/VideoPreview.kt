@@ -60,6 +60,7 @@ import com.nice.cxonechat.ui.composable.conversation.PreviewAttachments
 import com.nice.cxonechat.ui.composable.conversation.attachments.PlayIndicator.HIDDEN
 import com.nice.cxonechat.ui.composable.conversation.attachments.PlayIndicator.STANDARD
 import com.nice.cxonechat.ui.composable.generic.AsyncImagePainters
+import com.nice.cxonechat.ui.composable.generic.LoadingSpinner
 import com.nice.cxonechat.ui.composable.generic.ThumbnailSize
 import com.nice.cxonechat.ui.composable.generic.asyncImagePainters
 import com.nice.cxonechat.ui.composable.generic.forwardingPainter
@@ -80,6 +81,7 @@ import java.util.UUID
  * @param messageId The ID of the message the attachment belongs to, used for caching purposes.
  * @param playIndicator The type of play icon to display (e.g., SMALL, STANDARD, or HIDDEN).
  * @param modifier Modifier to apply to the composable.
+ * @param isGroupAttachment Whether the attachment belongs to a group or not, used for styling decisions.
  * @param painters A set of painters for placeholder, fallback, and error states,
  * the default is [asyncImagePainters].
  * @param thumbnailSize The size of the video thumbnail (e.g., LARGE, REGULAR, or SMALL),
@@ -94,35 +96,39 @@ internal fun VideoPreview(
     messageId: UUID?,
     playIndicator: PlayIndicator,
     modifier: Modifier = Modifier,
+    isGroupAttachment: Boolean,
     painters: AsyncImagePainters = asyncImagePainters(),
     thumbnailSize: ThumbnailSize = ThumbnailSize.REGULAR,
     contentDescription: String? = attachment.contentDescription,
 ) {
-    // State to track whether the image has been successfully loaded
-    var imageLoaded by remember { mutableStateOf(false) }
+    val cacheKey = rememberSaveable(messageId, attachment.friendlyName, attachment.url) {
+        "${messageId?.let { "${it}_" }}${attachment.friendlyName}_${attachment.url}"
+    }
+    // State to track whether the video thumbnail has been successfully loaded, keyed to the same
+    // identity used by the Coil request so it resets when the cache key changes.
+    var imageLoaded by remember(cacheKey) { mutableStateOf(false) }
     val tint = ColorFilter.tint(LocalContentColor.current)
     // Configure the image loader with video frame decoding and crossfade support
-    val imageLoader = ImageLoader.Builder(LocalContext.current)
-        .components {
-            add(VideoFrameDecoder.Factory())
-        }
-        .crossfade(true)
-        .build()
-    // Create forwarding (tinting) painters for placeholder, fallback, and error states
-    val placeholder = forwardingPainter(
-        painter = painters.placeholder,
-        colorFilter = tint
-    )
-    val fallback = forwardingPainter(
-        painter = painters.fallback,
-        colorFilter = tint
-    )
-    val error = forwardingPainter(
-        painter = painters.error,
-        colorFilter = tint
-    )
-    val cacheKey = rememberSaveable(messageId, attachment.friendlyName) {
-        "${messageId?.let { "${it}_" }}${attachment.friendlyName}"
+    val context = LocalContext.current
+    val imageLoader = remember(context) {
+        ImageLoader.Builder(context)
+            .components {
+                add(VideoFrameDecoder.Factory())
+            }
+            .crossfade(true)
+            .build()
+    }
+    val fallback = remember(tint, painters.fallback) {
+        forwardingPainter(
+            painter = painters.fallback,
+            colorFilter = tint
+        )
+    }
+    val error = remember(tint, painters.error) {
+        forwardingPainter(
+            painter = painters.error,
+            colorFilter = tint
+        )
     }
 
     // Display the video thumbnail and centered play icon
@@ -143,7 +149,6 @@ internal fun VideoPreview(
             imageLoader = imageLoader,
             model = model,
             contentDescription = contentDescription,
-            placeholder = placeholder,
             fallback = fallback,
             error = error,
             onSuccess = { imageLoaded = true },
@@ -157,6 +162,9 @@ internal fun VideoPreview(
             enter = fadeIn(),
         ) {
             PlayIcon(playIndicator = playIndicator)
+        }
+        if (!imageLoaded) {
+            LoadingSpinner(modifier = modifier, isGroupAttachment = isGroupAttachment)
         }
     }
 }
@@ -228,6 +236,7 @@ private fun PreviewVideoPreview() {
                         playIndicator = STANDARD,
                         thumbnailSize = ThumbnailSize.LARGE,
                         messageId = UUID.randomUUID(),
+                        isGroupAttachment = false
                     )
                 }
             }

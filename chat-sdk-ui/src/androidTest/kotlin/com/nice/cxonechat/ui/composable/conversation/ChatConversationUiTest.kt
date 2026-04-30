@@ -28,8 +28,7 @@ import com.nice.cxonechat.state.Configuration
 import com.nice.cxonechat.state.FileRestrictions
 import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider
 import com.nice.cxonechat.ui.util.KoinTestRule
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.asExecutor
+import java.util.concurrent.Executor
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -52,7 +51,7 @@ class ChatConversationUiTest {
     @Before
     fun init() {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        EmojiCompat.init(BundledEmojiCompatConfig(context, Dispatchers.IO.asExecutor()))
+        EmojiCompat.init(BundledEmojiCompatConfig(context, Executor { it.run() }))
     }
 
     @Test

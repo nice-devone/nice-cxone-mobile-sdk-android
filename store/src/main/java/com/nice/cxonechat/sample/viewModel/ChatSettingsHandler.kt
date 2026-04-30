@@ -129,22 +129,25 @@ class ChatSettingsHandler(
     }
 
     /**
-     * Apply save a set of settings changes and apply them to the chatProvider.
+     * Save the settings changes and apply them to the chatProvider.
      *
-     * @param settings ChatSettings to apply.
-     * @param onPersisted Optional callback invoked after the settings have been persisted.
+     * @param settings ChatSettings to apply, if null is supplied the settings will be cleared and chatProvider will be signed out.
+     * @param onPersisted Optional callback invoked after the settings have been persisted,
+     * after the chatProvider has been updated with the new settings. Invoked only if settings is not null.
      */
     private fun apply(settings: ChatSettings?, onPersisted: (() -> Unit)? = null) = scope("apply") {
-        settings?.let(chatSettingsRepository::use) ?: chatSettingsRepository.clear()
-
-        chatProvider.signOut()
-
-        chatProvider.configure(context) {
-            configuration = settings?.sdkConfiguration?.asSocketFactoryConfiguration
-            userName = settings?.userName
-            authorization = settings?.authorization
-            customerId = settings?.customerId
-            deviceTokenProvider = FirebaseTokenProvider()
+        if (settings == null) {
+            chatSettingsRepository.clear()
+            chatProvider.signOut()
+        } else {
+            chatSettingsRepository.use(settings)
+            chatProvider.configure(context) {
+                configuration = settings.sdkConfiguration?.asSocketFactoryConfiguration
+                userName = settings.userName
+                authorization = settings.authorization
+                customerId = settings.customerId
+                deviceTokenProvider = FirebaseTokenProvider()
+            }
             onPersisted?.invoke()
         }
     }

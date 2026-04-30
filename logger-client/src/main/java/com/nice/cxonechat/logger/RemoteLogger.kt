@@ -148,8 +148,8 @@ class RemoteLogger internal constructor(
         logError(
             level = level,
             message = message,
-            file = throwable?.stackTrace?.get(2)?.fileName, // getting index 2 to skip the logger's own stack trace
-            line = throwable?.stackTrace?.get(2)?.lineNumber
+            file = throwable?.stackTrace?.getOrNull(2)?.fileName, // getting index 2 to skip the logger's own stack trace
+            line = throwable?.stackTrace?.getOrNull(2)?.lineNumber
         )
     }
 

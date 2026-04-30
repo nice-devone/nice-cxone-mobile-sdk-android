@@ -14,7 +14,7 @@
  */
 
 plugins {
-    id "com.vanniktech.maven.publish.base" // Using base which allows to setup multivariant publishing
+    id "maven-publish"
 }
 
 publishing {
@@ -27,6 +27,37 @@ publishing {
                 password = project.findProperty("github.key") ?: System.getenv("GPR_TOKEN")
             }
         }
+    }
+}
+
+// Helper method to configure POM metadata for all publications
+// This can be called from both Groovy and Kotlin build scripts
+ext.configurePomMetadata = { pom ->
+    pom.name.set(project.findProperty("POM_NAME") ?: rootProject.findProperty("POM_NAME") ?: "CXone Chat")
+    pom.description.set(project.findProperty("POM_DESCRIPTION") ?: rootProject.findProperty("POM_DESCRIPTION") ?: "Android SDK implementation for CXone Chat")
+    pom.inceptionYear.set(project.findProperty("POM_INCEPTION_YEAR") ?: rootProject.findProperty("POM_INCEPTION_YEAR") ?: "2021")
+    pom.url.set(project.findProperty("POM_URL") ?: rootProject.findProperty("POM_URL") ?: "https://github.com/nice-devone/nice-cxone-mobile-sdk-android/")
+
+    pom.licenses {
+        license {
+            name.set(project.findProperty("POM_LICENSE_NAME") ?: rootProject.findProperty("POM_LICENSE_NAME") ?: "NICE LICENSE")
+            url.set(project.findProperty("POM_LICENSE_URL") ?: rootProject.findProperty("POM_LICENSE_URL") ?: "https://www.nice.com/company/legal")
+            distribution.set(project.findProperty("POM_LICENSE_DIST") ?: rootProject.findProperty("POM_LICENSE_DIST") ?: "repo")
+        }
+    }
+
+    pom.developers {
+        developer {
+            id.set(project.findProperty("POM_DEVELOPER_ID") ?: rootProject.findProperty("POM_DEVELOPER_ID") ?: "nice-devone")
+            name.set(project.findProperty("POM_DEVELOPER_NAME") ?: rootProject.findProperty("POM_DEVELOPER_NAME") ?: "NICE")
+            url.set(project.findProperty("POM_DEVELOPER_URL") ?: rootProject.findProperty("POM_DEVELOPER_URL") ?: "https://github.com/nice-devone/")
+        }
+    }
+
+    pom.scm {
+        url.set(project.findProperty("POM_SCM_URL") ?: rootProject.findProperty("POM_SCM_URL") ?: "https://github.com/nice-devone/nice-cxone-mobile-sdk-android/")
+        connection.set(project.findProperty("POM_SCM_CONNECTION") ?: rootProject.findProperty("POM_SCM_CONNECTION") ?: "scm:git:git://github.com/nice-devone/nice-cxone-mobile-sdk-android/.git")
+        developerConnection.set(project.findProperty("POM_SCM_DEV_CONNECTION") ?: rootProject.findProperty("POM_SCM_DEV_CONNECTION") ?: "scm:git:ssh://git@github.com/nice-devone/nice-cxone-mobile-sdk-android/.git")
     }
 }
 

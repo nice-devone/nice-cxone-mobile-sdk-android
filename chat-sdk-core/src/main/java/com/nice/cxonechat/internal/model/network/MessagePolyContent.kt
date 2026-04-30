@@ -100,6 +100,36 @@ internal sealed class MessagePolyContent {
     }
 
     @Serializable
+    @SerialName(TimePicker.TYPE)
+    data class TimePicker(
+        @SerialName("fallbackText")
+        val fallbackText: String,
+        @SerialName("payload")
+        val payload: Payload,
+    ) : MessagePolyContent() {
+
+        companion object {
+            const val TYPE = "TIME_PICKER"
+        }
+
+        @Serializable
+        data class Payload(
+            @SerialName("title")
+            val title: WrappedText,
+            @SerialName("event")
+            val event: Event,
+        ) {
+            @Serializable
+            data class Event(
+                @SerialName("title")
+                val title: WrappedText,
+                @SerialName("timeSlots")
+                val timeSlots: List<TimeSlotModel>,
+            )
+        }
+    }
+
+    @Serializable
     @SerialName(Plugin.TYPE)
     data class Plugin(
         @SerialName("fallbackText")

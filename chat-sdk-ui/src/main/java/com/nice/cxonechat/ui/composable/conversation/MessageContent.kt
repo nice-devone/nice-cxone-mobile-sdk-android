@@ -28,6 +28,7 @@ import androidx.compose.ui.res.stringResource
 import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.composable.conversation.MessageStatusState.DISABLED
 import com.nice.cxonechat.ui.composable.conversation.MessageStatusState.SELECTABLE
+import com.nice.cxonechat.ui.composable.conversation.MessageStatusState.SELECTED
 import com.nice.cxonechat.ui.composable.conversation.model.Message
 import com.nice.cxonechat.ui.composable.conversation.model.Message.EmojiText
 import com.nice.cxonechat.ui.composable.conversation.model.Message.Text
@@ -43,6 +44,7 @@ internal fun MessageStatusContentHandler(
     messageStatusState: MessageStatusState,
     snackBarHostState: SnackbarHostState,
     setShowListPickerDialog: (Boolean) -> Unit,
+    setShowTimePickerDialog: (Boolean) -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val quickReplyDisableMessage = stringResource(R.string.quick_reply_disable_message)
@@ -78,6 +80,21 @@ internal fun MessageStatusContentHandler(
                             duration = Short,
                             withDismissAction = true
                         )
+                    }
+
+                ContentType.TimePicker ->
+                    when (messageStatusState) {
+                        DISABLED ->
+                            coroutineScope.launch {
+                                snackBarHostState.showSnackbar(
+                                    message = quickReplyDisableMessage,
+                                    duration = Short,
+                                    withDismissAction = true
+                                )
+                            }
+
+                        SELECTABLE -> setShowTimePickerDialog(true)
+                        SELECTED -> {} // do nothing when the time picker is already selected, as per the intended behavior.
                     }
 
                 else -> {}

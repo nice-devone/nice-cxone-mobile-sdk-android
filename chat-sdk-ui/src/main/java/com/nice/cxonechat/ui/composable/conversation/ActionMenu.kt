@@ -15,6 +15,7 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
@@ -23,6 +24,7 @@ import androidx.compose.ui.platform.testTag
 import com.nice.cxonechat.thread.ChatThreadState
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.generic.IconMenuItem
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
 
 @Composable
 internal fun ShowArchivedThreadMenu(displayEndConversation: () -> Unit) {
@@ -83,7 +85,8 @@ internal fun EndConversationMenu(
         modifier = Modifier.testTag("end_conversation_menu_item"),
         enabled = threadState.value == ChatThreadState.Ready,
         icon = {
-            EndConversationIconForMenu()
+            EndConversationIconForMenu(tint = colorScheme.error)
         },
+        colors = MenuDefaults.itemColors(textColor = colorScheme.error)
     )
 }

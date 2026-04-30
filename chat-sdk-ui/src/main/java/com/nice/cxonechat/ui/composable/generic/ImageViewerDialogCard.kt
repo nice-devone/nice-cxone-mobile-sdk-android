@@ -16,6 +16,7 @@
 package com.nice.cxonechat.ui.composable.generic
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,12 +30,13 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import com.nice.cxonechat.ui.composable.theme.BackButton
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.ShareButton
 
 /**
  * A FullscreenView which will display a [ZoomableImage] with option to share image via button.
- * The dialog is dismissed if the user click outside the view or taps the back button or clicks the back button icon.
+ * The dialog is dismissed if the user clicks outside the view or taps the back button or clicks the back button icon.
  *
  * @param image The model for [ZoomableImage].
  * @param title An optional title for the Activity while the composable is displayed.
@@ -53,7 +55,11 @@ internal fun ImageViewerDialogCard(
         title = title,
         onExitFullScreen = onDismiss
     ) {
-        Column {
+        Column(
+            modifier = Modifier.background(
+                color = chatColors.token.background.default
+            )
+        ) {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier

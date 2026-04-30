@@ -15,11 +15,8 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
-import androidx.compose.material.icons.Icons.AutoMirrored
 import androidx.compose.material.icons.Icons.Default
-import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material.icons.filled.Cancel
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -29,12 +26,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.icons.ChatIcons
+import com.nice.cxonechat.ui.composable.icons.outlined.EditForm
 import com.nice.cxonechat.ui.composable.icons.outlined.Mail
+import com.nice.cxonechat.ui.composable.icons.outlined.Rename
 
 @Composable
 internal fun EndConversationIconForMenu(tint: Color = LocalContentColor.current) {
     Icon(
-        imageVector = Default.Cancel,
+        imageVector = Default.Close,
         contentDescription = stringResource(string.action_end_conversation),
         tint = tint,
     )
@@ -43,13 +42,13 @@ internal fun EndConversationIconForMenu(tint: Color = LocalContentColor.current)
 @Composable
 @NonRestartableComposable
 internal fun ChatIcon() {
-    Icon(AutoMirrored.Filled.Chat, stringResource(string.change_thread_name))
+    Icon(ChatIcons.Rename, stringResource(string.change_thread_name))
 }
 
 @Composable
 @NonRestartableComposable
 internal fun EditIcon() {
-    Icon(Default.Edit, stringResource(string.change_details_label))
+    Icon(ChatIcons.EditForm, stringResource(string.change_details_label))
 }
 
 @Composable

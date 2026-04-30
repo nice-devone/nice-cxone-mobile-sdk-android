@@ -29,11 +29,14 @@ import com.nice.cxonechat.log.LoggerScope
 import com.nice.cxonechat.log.warning
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.message.OutboundMessage
+import com.nice.cxonechat.message.TimeSlot
 import com.nice.cxonechat.ui.composable.conversation.model.Message.AudioAttachment
+import com.nice.cxonechat.ui.composable.conversation.model.Message.EmojiText
 import com.nice.cxonechat.ui.composable.conversation.model.Message.ListPicker
 import com.nice.cxonechat.ui.composable.conversation.model.Message.QuickReply
 import com.nice.cxonechat.ui.composable.conversation.model.Message.RichLink
 import com.nice.cxonechat.ui.composable.conversation.model.Message.Text
+import com.nice.cxonechat.ui.composable.conversation.model.Message.TimePicker
 import com.nice.cxonechat.ui.composable.conversation.model.Message.Unsupported
 import com.nice.cxonechat.ui.composable.conversation.model.Message.WithAttachments
 import com.nice.cxonechat.ui.domain.model.Person
@@ -45,6 +48,7 @@ import com.nice.cxonechat.ui.util.preview.message.SdkQuickReply
 import com.nice.cxonechat.ui.util.preview.message.SdkReplyButton
 import com.nice.cxonechat.ui.util.preview.message.SdkRichLink
 import com.nice.cxonechat.ui.util.preview.message.SdkText
+import com.nice.cxonechat.ui.util.preview.message.SdkTimePicker
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -75,6 +79,7 @@ import kotlinx.coroutines.flow.map
  * @property isLiveChat true iff the channel is configured as live chat.
  * @property onRemovePendingAttachment An action to remove a pending attachment.
  * @property onReplyButtonClicked An action to take when a reply button is clicked.
+ * @property onTimeSlotSelected An action to take when a time slot is selected in a time picker.
  * @param backgroundDispatcher Optional dispatcher used for mapping of incoming messages off the main thread,
  * intended for testing.
  * @param logger Logger instance for logging errors and warnings. Defaults to LoggerNoop for preview/test scenarios.
@@ -101,6 +106,7 @@ internal data class ConversationUiState(
     internal val isLiveChat: Boolean,
     internal val onRemovePendingAttachment: (Attachment) -> Unit,
     internal val onReplyButtonClicked: (SdkReplyButton) -> Unit = {},
+    internal val onTimeSlotSelected: (TimeSlot, String) -> Unit = { _, _ -> },
     private val backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val logger: Logger = LoggerNoop,
 ) : LoggerScope by LoggerScope("ConversationUiState", logger) {
@@ -132,11 +138,12 @@ internal data class ConversationUiState(
         is SdkRichLink -> listOf(RichLink(this))
         is SdkListPicker -> listOf(ListPicker(this, onReplyButtonClicked))
         is SdkQuickReply -> listOf(QuickReply(this, onReplyButtonClicked))
+        is SdkTimePicker -> listOf(TimePicker(this))
         else -> listOf(Unsupported(this))
     }
 
     private fun SdkText.uiTextMessage(): List<Message> = if (attachments.firstOrNull() == null) {
-        listOf(if (isEmojiMessage(this)) Message.EmojiText(this) else Text(this))
+        listOf(if (isEmojiMessage(this)) EmojiText(this) else Text(this))
     } else {
         val attachmentGroups = this.attachments.groupBy {
             it.mimeType.orEmpty().startsWith("audio/")
@@ -197,12 +204,12 @@ internal data class ConversationUiState(
  * @throws Exception if download initialization fails (network issues, storage constraints, invalid URL)
  */
 @OptIn(UnstableApi::class)
-private fun startDownload(context: Context, url: String) {
+private suspend fun startDownload(context: Context, url: String) {
     val uri = url.toUri()
     val mediaItem = MediaItem.fromUri(uri)
     val localUri = mediaItem.localConfiguration?.uri ?: uri
     val downloadRequest = DownloadRequest.Builder(
-        mediaItem.mediaId ?: localUri.toString(),
+        mediaItem.mediaId,
         localUri
     )
         .build()

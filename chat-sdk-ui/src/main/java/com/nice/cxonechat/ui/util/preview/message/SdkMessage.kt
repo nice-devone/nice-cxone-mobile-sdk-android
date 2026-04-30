@@ -24,6 +24,7 @@ import com.nice.cxonechat.message.MessageDirection.ToClient
 import com.nice.cxonechat.message.MessageMetadata
 import com.nice.cxonechat.message.MessageStatus
 import com.nice.cxonechat.message.MessageStatus.Sent
+import com.nice.cxonechat.message.TimeSlot
 import com.nice.cxonechat.ui.composable.conversation.model.Message
 import com.nice.cxonechat.ui.util.DateProvider
 import java.util.Date
@@ -86,8 +87,41 @@ internal data class ListPicker(
     override val fallbackText: String? = null,
 ) : SdkListPicker()
 
+internal data class TimePicker(
+    override val title: String = "Time Picker",
+    override val popupTitle: String = "Select Time Slot",
+    override val timeSlots: Iterable<TimeSlot> = listOf(
+        TimePickerSlot(
+            startTime = Date(DateProvider.now().time - 24 * 60 * 60 * 1000L)
+        ),
+        TimePickerSlot(
+            startTime = Date(DateProvider.now().time - 25 * 60 * 60 * 1000L)
+        ),
+        TimePickerSlot(),
+        TimePickerSlot(
+            startTime = DateProvider.now().apply { time += 30 * 60 * 1000L },
+        ),
+        TimePickerSlot(
+            startTime = DateProvider.now().apply { time += 60 * 60 * 1000L },
+        ),
+        TimePickerSlot(
+            startTime = DateProvider.now().apply { time += 90 * 60 * 1000L },
+        )
+    ),
+    override val id: UUID = UUID.randomUUID(),
+    override val threadId: UUID = UUID.randomUUID(),
+    override val createdAt: Date = DateProvider.now(),
+    override val direction: MessageDirection = ToClient,
+    override val author: SdkAuthor? = ToClient.toPerson(),
+    override val metadata: SdkMetadata = Metadata(),
+    override val attachments: Iterable<Attachment> = listOf(),
+    override val fallbackText: String? = null,
+) : SdkTimePicker()
+
 internal typealias SdkListPicker = com.nice.cxonechat.message.Message.ListPicker
+internal typealias SdkTimePicker = com.nice.cxonechat.message.Message.TimePicker
 internal typealias UiSdkListPicker = ListPicker
+internal typealias UiSdkTimePicker = TimePicker
 
 @Stable
 internal data class QuickReply(
@@ -148,7 +182,11 @@ internal data class Media(
 ) : SdkMedia
 
 internal typealias SdkMedia = com.nice.cxonechat.message.Media
-
+internal data class TimePickerSlot(
+    override val id: String = UUID.randomUUID().toString(),
+    override val duration: Long = 30 * 60L, // 30 minutes
+    override val startTime: Date = DateProvider.now(),
+) : TimeSlot
 internal data class ReplyButton(
     override val text: String,
     override val media: Media? = null,

@@ -58,6 +58,7 @@ import java.util.UUID
  * @param selectionCircle Should the selection indicator be visible, by default it is turned on with [selectionFrame].
  * @param selectionFrameColor Color of the selection frame.
  * @param selected Is the preview selected.
+ * @param isGroupAttachment Whether the attachment belongs to a group or not, used for styling decisions.
  * Selected state is only visible iff [selectionCircle] is true.
  * @param thumbnailSize Size of the thumbnail in case of fallback.
  * @param onClick Click action.
@@ -73,6 +74,7 @@ internal fun AttachmentFramedPreview(
     selectionCircle: Boolean = selectionFrame,
     selectionFrameColor: Color = chatColors.token.border.default,
     selected: Boolean = false,
+    isGroupAttachment: Boolean,
     thumbnailSize: ThumbnailSize = ThumbnailSize.LARGE,
     onClick: (Attachment) -> Unit,
     onLongClick: (Attachment) -> Unit,
@@ -103,6 +105,7 @@ internal fun AttachmentFramedPreview(
                 if (blurred) blur(4.dp, edgeTreatment = BlurredEdgeTreatment(chatShapes.selectionFrame)) else this
             },
             playIndicator = if (blurred) HIDDEN else STANDARD,
+            isGroupAttachment = isGroupAttachment,
             thumbnailSize = thumbnailSize,
         )
     }
@@ -111,6 +114,7 @@ internal fun AttachmentFramedPreview(
 @Composable
 internal fun AttachmentFramedSmallPreview(
     attachment: Attachment,
+    isGroupAttachment: Boolean,
     modifier: Modifier = Modifier,
 ) {
     ChatTheme.ShapedFrame(
@@ -118,7 +122,7 @@ internal fun AttachmentFramedSmallPreview(
         framed = true,
         shape = chatShapes.smallSelectionFrame,
         content = {
-            AttachmentPreview(attachment = attachment, thumbnailSize = ThumbnailSize.SMALL)
+            AttachmentPreview(attachment = attachment, thumbnailSize = ThumbnailSize.SMALL, isGroupAttachment = isGroupAttachment)
         },
     )
 }
@@ -128,6 +132,7 @@ internal fun AttachmentPreview(
     attachment: Attachment,
     modifier: Modifier = Modifier,
     messageId: UUID? = null,
+    isGroupAttachment: Boolean,
     playIndicator: PlayIndicator = STANDARD,
     thumbnailSize: ThumbnailSize = ThumbnailSize.REGULAR,
     showFrame: (Boolean) -> Unit = {},
@@ -149,6 +154,7 @@ internal fun AttachmentPreview(
             modifier = modifier,
             messageId = messageId,
             contentDescription = contentDescriptionText,
+            isGroupAttachment = isGroupAttachment
         )
 
         PreviewType.VIDEO -> VideoPreview(
@@ -157,6 +163,7 @@ internal fun AttachmentPreview(
             playIndicator = playIndicator,
             modifier = modifier,
             thumbnailSize = thumbnailSize,
+            isGroupAttachment = isGroupAttachment,
             contentDescription = contentDescriptionText,
         )
 
@@ -168,14 +175,20 @@ internal fun AttachmentPreview(
         PreviewType.PDF -> DocumentPreview(
             attachment = attachment,
             modifier = modifier,
-            thumbnailSize = thumbnailSize,
+            isGroupAttachment = isGroupAttachment,
             contentDescription = contentDescriptionText,
             showFrame = showFrame,
         )
 
         PreviewType.FILE -> {
             showFrame(true)
-            FallbackThumbnail(attachment.url, contentDescriptionText, modifier, attachment.mimeType, thumbnailSize)
+            FallbackThumbnail(
+                uri = attachment.url,
+                contentDescription = contentDescriptionText,
+                modifier = modifier,
+                mimeType = attachment.mimeType,
+                thumbnailSize = thumbnailSize,
+            )
         }
     }
 }
@@ -215,6 +228,7 @@ private enum class PreviewType {
  * @param attachment Attachment to preview.
  * @param messageId Message ID the attachment belongs to, needed for cache key.
  * @param modifier Modifier.
+ * @param isGroupAttachment Whether the attachment belongs to a group or not, used for styling decisions.
  * @param onClick Click action.
  * @param onLongClick Long click action.
  * @param showFrame Should the preview be framed/clipped.
@@ -224,6 +238,7 @@ internal fun AttachmentPreview(
     attachment: Attachment,
     messageId: UUID,
     modifier: Modifier = Modifier,
+    isGroupAttachment: Boolean,
     onClick: (Attachment) -> Unit,
     onLongClick: (Attachment) -> Unit,
     showFrame: (Boolean) -> Unit,
@@ -239,7 +254,13 @@ internal fun AttachmentPreview(
     } else {
         modifier
     }
-    AttachmentPreview(attachment = attachment, messageId = messageId, modifier = singleAttachmentMod, showFrame = showFrame)
+    AttachmentPreview(
+        attachment = attachment,
+        messageId = messageId,
+        modifier = singleAttachmentMod,
+        showFrame = showFrame,
+        isGroupAttachment = isGroupAttachment
+    )
 }
 
 @PreviewLightDark
@@ -255,7 +276,8 @@ private fun PreviewAttachmentIcon(
                 modifier = Modifier.size(125.dp),
                 thumbnailSize = ThumbnailSize.REGULAR,
                 onClick = {},
-                onLongClick = {}
+                onLongClick = {},
+                isGroupAttachment = false
             )
         }
     }
@@ -271,6 +293,7 @@ private fun PreviewAttachmentActionIcon(
             AttachmentFramedSmallPreview(
                 attachment = attachment,
                 modifier = Modifier.size(125.dp),
+                isGroupAttachment = false
             )
         }
     }

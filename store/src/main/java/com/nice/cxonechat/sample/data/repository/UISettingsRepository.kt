@@ -19,11 +19,9 @@ import android.content.Context
 import com.nice.cxonechat.sample.data.models.UISettingsModel
 import com.nice.cxonechat.ui.composable.theme.ChatThemeDetails
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import org.koin.core.annotation.Single
 
 /** Current UI Settings as a mutable flow for compose theming. */
@@ -73,10 +71,10 @@ class UISettingsRepository(
      * Clear any saved ui settings and restore default settings to the theme.
      */
     fun clear() {
-        CoroutineScope(Dispatchers.IO).launch {
-            super.clear(context)
-            UISettingsState.value = UISettingsModel()
-        }
+        val defaults = UISettingsModel()
+        UISettingsState.value = defaults
+        defaults.applyToChatSdk()
+        super.clear(context)
     }
 
     private fun UISettingsModel.applyToChatSdk() {

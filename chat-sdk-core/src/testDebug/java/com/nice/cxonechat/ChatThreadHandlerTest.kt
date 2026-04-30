@@ -34,6 +34,7 @@ import com.nice.cxonechat.internal.model.MessageModel
 import com.nice.cxonechat.internal.model.network.Parameters
 import com.nice.cxonechat.internal.serializer.Default
 import com.nice.cxonechat.message.Message
+import com.nice.cxonechat.message.MessageStatus
 import com.nice.cxonechat.model.makeAgent
 import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.model.makeMessage
@@ -257,6 +258,21 @@ internal class ChatThreadHandlerTest : AbstractChatTest() {
             sendServerMessage(ServerResponse.MessageCreated(makeChatThread(), makeMessageModel()))
         }
         assertNull(actual)
+    }
+
+    @Test
+    fun get_messageCreated_does_not_downgrade_read_status() {
+        val id = chatThread.id
+        val messageModel = makeMessageModel(threadIdOnExternalPlatform = id)
+        val readVersion = messageModel.copy(userStatistics = makeUserStatistics(readAt = Date(0)))
+        // Pre-populate thread with Read status (simulates MessageReadChanged arriving before MessageCreated)
+        updateChatThread(chatThread.asCopyable().copy(messages = listOfNotNull(readVersion.toMessage())))
+        // MessageCreated arrives for the same message but with lower Delivered status
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.MessageCreated(chatThread, messageModel))
+        }
+        assertNotNull(actual)
+        assertEquals(MessageStatus.Read, actual.messages.single().metadata.status)
     }
 
     @Test

@@ -42,6 +42,7 @@ import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.message.MessageDirection
 import com.nice.cxonechat.message.MessageDirection.ToAgent
 import com.nice.cxonechat.message.MessageStatus
+import com.nice.cxonechat.message.TimeSlot
 import com.nice.cxonechat.ui.composable.conversation.ContentType.DateHeader
 import com.nice.cxonechat.ui.composable.conversation.ContentType.Loading
 import com.nice.cxonechat.ui.composable.conversation.ContentType.Typing
@@ -70,6 +71,7 @@ internal fun ColumnScope.Messages(
     onAttachmentClicked: (Attachment) -> Unit,
     onMoreClicked: (List<Attachment>) -> Unit,
     onShare: (Collection<Attachment>) -> Unit,
+    onTimePickerSelected: (TimeSlot, String) -> Unit,
     snackBarHostState: SnackbarHostState,
 ) {
     LaunchedEffect(agentIsTyping) {
@@ -79,7 +81,11 @@ internal fun ColumnScope.Messages(
     }
     val messageQuickReplyState = rememberMessageQuickReplyState(groupedMessages)
     val messageListPickerState = rememberMessageListPickerState(groupedMessages)
-    val lastDisplayedStatuses: MutableMap<MessageStatus, Position> = remember { mutableMapOf() }
+    val messageTimePickerState = rememberMessageTimePickerState(groupedMessages)
+    // groupedMessages is the key so the map resets when the list changes; without it, stale
+    // entries from a previous layout (e.g. an agent message prepending and shifting customer
+    // message positions) cause isLastMessage to evaluate false and suppress the status indicator.
+    val lastDisplayedStatuses: MutableMap<MessageStatus, Position> = remember(groupedMessages) { mutableMapOf() }
     LazyColumn(
         reverseLayout = true,
         state = scrollState,
@@ -123,7 +129,8 @@ internal fun ColumnScope.Messages(
                     message,
                     isLastMessageInChat,
                     messageQuickReplyState,
-                    messageListPickerState
+                    messageListPickerState,
+                    messageTimePickerState,
                 )
                 val showStatus: DisplayStatus = remember(message.status, groupState, isLastMessage, position) {
                     message.showStatus(groupState, isLastMessage)
@@ -145,6 +152,10 @@ internal fun ColumnScope.Messages(
                     },
                     onListPickerSelected = { newValue ->
                         messageListPickerState[message.id] = newValue
+                    },
+                    onTimePickerSelected = { timeSlot, timeSlotLocalizedText ->
+                        messageTimePickerState[message.id] = false
+                        onTimePickerSelected(timeSlot, timeSlotLocalizedText)
                     },
                     modifier = Modifier
                         .testTag("message_item_$position")
@@ -174,9 +185,11 @@ private fun getMessageStatusState(
     isLastMessageInChat: Boolean,
     quickReplyState: Map<UUID, Boolean>,
     listPickerState: Map<UUID, Boolean>,
+    timePickerState: Map<UUID, Boolean>,
 ): MessageStatusState = when (message.contentType) {
     ContentType.QuickReply -> getQuickReplyState(isLastMessageInChat, quickReplyState[message.id] ?: true)
     ContentType.ListPicker -> getListPickerState(listPickerState[message.id] ?: true)
+    ContentType.TimePicker -> getTimePickerState(isLastMessageInChat, timePickerState[message.id] ?: true)
     else -> MessageStatusState.DISABLED
 }
 
@@ -216,6 +229,25 @@ private fun rememberMessageListPickerState(groupedMessages: List<Section>): Muta
         }
     }
     return listPickerState
+}
+
+@Composable
+private fun rememberMessageTimePickerState(groupedMessages: List<Section>): MutableMap<UUID, Boolean> {
+    val timePickerStateSaver = listSaver<MutableMap<UUID, Boolean>, Pair<UUID, Boolean>>(
+        save = { it.entries.map { entry -> entry.toPair() } },
+        restore = { pairs -> mutableStateMapOf<UUID, Boolean>().apply { pairs.forEach { put(it.first, it.second) } } }
+    )
+    val timePickerState = rememberSaveable(saver = timePickerStateSaver) { mutableStateMapOf() }
+    LaunchedEffect(groupedMessages) {
+        groupedMessages.forEach { section ->
+            section.messages.filter { it.contentType == ContentType.TimePicker }.forEach { message ->
+                if (timePickerState[message.id] == null) {
+                    timePickerState[message.id] = true
+                }
+            }
+        }
+    }
+    return timePickerState
 }
 
 @Immutable
@@ -265,6 +297,7 @@ private fun MessagesPreview() {
                 onMoreClicked = { _ -> },
                 onShare = {},
                 snackBarHostState = SnackbarHostState(),
+                onTimePickerSelected = { _, _ -> },
             )
         }
     }
