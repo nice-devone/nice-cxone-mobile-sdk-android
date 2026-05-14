@@ -42,23 +42,66 @@ internal class ChatThreadHandlerLiveChatTest : AbstractChatTest() {
     }
 
     @Test
-    fun testPositionInQueueUpdates() {
-        val expected = chatThread.asCopyable().copy(positionInQueue = 10, hasOnlineAgent = true, contactId = TestContactId)
+    fun `position in queue is updated - simple scenario`() {
+        val expected = chatThread.asCopyable().copy(
+            positionInQueue = 10,
+            hasOnlineAgent = true,
+            contactId = TestContactId
+        )
 
         val actual = testCallback(::get) {
-            sendServerMessage(ServerResponse.SetPositionInQueue(position = 10, isAgentAvailable = true, threadId = chatThread.id))
+            sendServerMessage(
+                ServerResponse.SetPositionInQueue(
+                    position = 10,
+                    isAgentAvailable = true,
+                    threadId = chatThread.id
+                )
+            )
         }
 
         assertEquals(expected, actual.asCopyable().copy())
     }
 
     @Test
-    fun testPositionInQueueUpdateIsSkipped() {
+    fun `position in queue update is not skipped if agent was assigned - handover scenario`() {
         val agent = makeAgent()
-        val expected = chatThread.asCopyable().copy(positionInQueue = null, hasOnlineAgent = true, contactId = TestContactId, threadAgent = agent.toAgent())
+        val expectedPosition = 1
+        val expected = chatThread.asCopyable().copy(
+            positionInQueue = expectedPosition,
+            hasOnlineAgent = true,
+            contactId = TestContactId,
+            threadAgent = agent.toAgent()
+        )
         val actual = testCallback(::get) {
             sendServerMessage(ServerResponse.CaseInboxAssigneeChanged(chatThread, agent, connection))
-            sendServerMessage(ServerResponse.SetPositionInQueue(position = 1, isAgentAvailable = true, threadId = chatThread.id))
+            sendServerMessage(
+                ServerResponse.SetPositionInQueue(
+                    position = expectedPosition,
+                    isAgentAvailable = true,
+                    threadId = chatThread.id
+                )
+            )
+        }
+
+        assertEquals(expected, actual.asCopyable().copy())
+    }
+
+    @Test
+    fun `position in queue is stored as zero when event reports zero`() {
+        val expected = chatThread.asCopyable().copy(
+            positionInQueue = 0,
+            hasOnlineAgent = false,
+            contactId = TestContactId
+        )
+
+        val actual = testCallback(::get) {
+            sendServerMessage(
+                ServerResponse.SetPositionInQueue(
+                    position = 0,
+                    isAgentAvailable = false,
+                    threadId = chatThread.id
+                )
+            )
         }
 
         assertEquals(expected, actual.asCopyable().copy())
