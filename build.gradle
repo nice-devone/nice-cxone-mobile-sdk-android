@@ -96,7 +96,7 @@ configurations.configureEach {
 }
 
 group = GROUP
-version = "3.2.2" // Fallback version
+version = "3.2.3" // Fallback version
 
 allprojects {
     group = rootProject.group

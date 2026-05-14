@@ -85,7 +85,7 @@ internal class ChatThreadHandlerLiveChat(
             .addCallback<EventSetPositionInQueue>(SetPositionInQueue) { event ->
                 thread += thread.asCopyable().copy(
                     contactId = event.consumerContact,
-                    positionInQueue = if (thread.threadAgent == null) event.positionInQueue else null,
+                    positionInQueue = event.positionInQueue,
                     hasOnlineAgent = event.hasOnlineAgent,
                 )
                 filteringListener.onUpdated(thread)

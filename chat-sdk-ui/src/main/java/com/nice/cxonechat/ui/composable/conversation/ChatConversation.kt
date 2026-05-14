@@ -135,7 +135,7 @@ private fun UserInputView(
     onError: (String) -> Unit,
     showMessageProcessing: Boolean,
 ) {
-    if (!conversationState.isArchived.collectAsState().value) {
+    if (!conversationState.isArchived.collectAsStateWithLifecycle().value) {
         UserInput(
             conversationUiState = conversationState,
             audioRecordingUiState = audioRecordingState,
@@ -194,19 +194,18 @@ internal fun MessageListView(
     modifier: Modifier = Modifier,
     snackBarHostState: SnackbarHostState,
 ) {
-    val canLoadMore = conversation.canLoadMore.collectAsState().value
-    val agentDetails = conversation.agentTyping.collectAsState(null).value
-    val agentIsTyping = conversation.isAgentTyping.collectAsState().value
-    val positionInQueue by conversation.positionInQueue.collectAsState(initial = null)
+    val canLoadMore = conversation.canLoadMore.collectAsStateWithLifecycle().value
+    val agentDetails = conversation.agentTyping.collectAsStateWithLifecycle(null).value
+    val agentIsTyping = conversation.isAgentTyping.collectAsStateWithLifecycle().value
+    val positionInQueue by conversation.positionInQueue.collectAsStateWithLifecycle(initialValue = null)
     val showPositionInQueue by remember {
         derivedStateOf {
-            positionInQueue != null && agentDetails == null
+            val position = positionInQueue
+            position != null && position > 0
         }
     }
     Box(
-        modifier = Modifier
-            .testTag("message_list_view_box")
-            .then(modifier)
+        modifier = modifier.testTag("message_list_view_box")
     ) {
         Column(
             modifier = Modifier.testTag("message_list_column")

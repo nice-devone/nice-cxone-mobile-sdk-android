@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+<a name="3.2.3"></a>
+
+## [3.2.3] - 2026-05-06
+
+### Fixed
+
+- Fix queue position indicator not updating during agent handover; visibility now relies solely on the reported position value
+
 <a name="3.2.2"></a>
 
 ## [3.2.2] - 2026-04-23
@@ -598,11 +606,15 @@
         - failure
     - typing start/end
 
-[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.2.2...HEAD
+[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.3.0...HEAD
 
-[3.2.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.2.1...3.2.2
+[3.3.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.2.2...3.3.0
 
-[3.2.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.2.0...3.2.1
+[3.2.3]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.2.2...3.2.3
+
+[3.2.2]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.2.1...3.2.2
+
+[3.2.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.2.0...3.2.1
 
 [3.2.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.1.2...3.2.0
 

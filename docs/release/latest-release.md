@@ -1,6 +1,6 @@
 # Version
 
-**3.2.1**
+**3.2.3**
 
 ## Status:
 
@@ -8,6 +8,6 @@
 
 ## Release Notes:
 
-### Fixed
+### 🐛 Fixed
 
-- Prevent EndContact dialog from reappearing after dismissal in LiveChat mode
+- Fix queue position indicator not updating during agent handover; visibility now relies solely on the reported position value
