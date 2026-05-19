@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+<a name="3.3.1"></a>
+
+## [3.3.1] - 2026-05-06
+
+### Fixed
+
+- Fix queue position indicator not updating during agent handover; visibility now relies solely on the reported position value
+
 <a name="3.3.0"></a>
 
 ## [3.3.0] - 2026-04-30
@@ -635,7 +643,9 @@
         - failure
     - typing start/end
 
-[Unreleased]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/3.3.0...HEAD
+[Unreleased]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/3.3.1...HEAD
+
+[3.3.1]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/3.3.0...3.3.1
 
 [3.3.0]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/3.2.2...3.3.0
 
