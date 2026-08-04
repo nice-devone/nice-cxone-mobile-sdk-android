@@ -65,16 +65,13 @@ internal class PushListenerService : com.google.firebase.messaging.FirebaseMessa
             .setSound(defaultSoundUri) // This option is up to the application, it is included for completeness
             .setPriority(2)  // This option is up to the application, it is included for completeness
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // Since android Oreo notification channel is needed.
-            val channel = NotificationChannel(
-                channelId,
-                getString(R.string.notification_channel_title),  // Application should provide title serving as a description for chat notification channel
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
-            notificationManager.createNotificationChannel(channel)
-        }
+        // Since Android Oreo notification channel is needed.
+        val channel = NotificationChannel(
+            channelId,
+            getString(R.string.notification_channel_title),  // Application should provide title serving as a description for chat notification channel
+            NotificationManager.IMPORTANCE_DEFAULT
+        )
+        notificationManager.createNotificationChannel(channel)
         val notification = notificationBuilder.build()
         notificationManager.notify(CHAT_NOTIFICATION_ID, notification)
     }
@@ -90,20 +87,16 @@ Integrating application **has to** provide Chat SDK with the current value of th
 messaging token, after SDK is initialized in order for proper push message support.
 
 ```kotlin
-    // context and config are left out for briefness
-    val builder = ChatBuilder(context = context, config = socketFactoryConfiguration)
-    builder.build { chat ->
-        val firebaseToken = Firebase.messaging.token
-        firabaseToken.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                chat.setDeviceToken(task.result)
-            } else {
-                chat.setDeviceToken(null)
-            }
+    // context and config are left out for briefness.
+    // build() is a suspend function — call it from a coroutine.
+    scope.launch {
+        val builder = ChatBuilder(context = context, config = socketFactoryConfiguration)
+        val chat = builder.build()
+        Firebase.messaging.token.addOnCompleteListener { task ->
+            chat.setDeviceToken(if (task.isSuccessful) task.result else null)
         }
-        // TODO return chat, resume coroutine or set chat instance to class property
+        // TODO set chat instance to class property
     }
-
 ```
 
 ## Notes:

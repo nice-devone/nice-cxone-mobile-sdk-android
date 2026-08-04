@@ -16,6 +16,7 @@
 package com.nice.cxonechat.ui.composable.conversation
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.Modifier
@@ -23,29 +24,32 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.SemanticsNodeInteractionCollection
+import androidx.compose.ui.test.assertContentDescriptionContains
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.ComposeTestRule
-import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.unit.dp
 import androidx.test.platform.app.InstrumentationRegistry
+import com.nice.cxonechat.message.MessageAuthor
+import com.nice.cxonechat.message.MessageDirection.ToAgent
+import com.nice.cxonechat.message.MessageDirection.ToClient
+import com.nice.cxonechat.ui.AbstractComponentActivityUiTest
+import com.nice.cxonechat.ui.R
+import com.nice.cxonechat.ui.composable.conversation.model.Message
 import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider
 import com.nice.cxonechat.ui.composable.conversation.model.Section
+import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.domain.model.Person
-import org.junit.Rule
+import com.nice.cxonechat.ui.util.preview.message.UiSdkText
 import org.junit.Test
 
-class MessagesUiTest {
-
-    @get:Rule
-    val composeTestRule = createComposeRule()
-
+class MessagesUiTest : AbstractComponentActivityUiTest() {
     private fun mockSections(): List<Section> {
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val resources = InstrumentationRegistry.getInstrumentation().targetContext.resources
         return PreviewMessageProvider()
             .values
             .take(3)
-            .groupBy { it.createdAtDate(context) }
+            .groupBy { it.createdAtDate(resources) }
             .entries
             .map(::Section)
     }
@@ -97,7 +101,7 @@ class MessagesUiTest {
                 )
             }
         }
-        composeTestRule.onNodeWithContentDescription("Agent is typing…").assertExists()
+        composeTestRule.onNodeWithTag("TypingIndicator", useUnmergedTree = true).assertIsDisplayed()
     }
 
     @Test
@@ -121,11 +125,141 @@ class MessagesUiTest {
                 )
             }
         }
-        composeTestRule.onNodeWithTag("Load_More").assertExists()
+        composeTestRule.onNodeWithTag("Load_More", useUnmergedTree = true).assertExists()
+    }
+
+    @Test
+    fun textMessage_fromUser_hasAccessibilityDescription() {
+        val testMessage = "Hello, this is a test message"
+        val message = Message.Text(
+            UiSdkText(
+                text = testMessage,
+                direction = ToAgent
+            )
+        )
+
+        composeTestRule.setContent {
+            ChatTheme {
+                TextMessage(message = message, modifier = Modifier)
+            }
+        }
+
+        val node = composeTestRule.onNodeWithTag("text_message")
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val expectedPrefix = context.getString(R.string.accessibility_message_you).substringBefore($$"%1$s")
+        node.assertExists()
+        node.assertContentDescriptionContains(value = expectedPrefix, substring = true)
+        node.assertContentDescriptionContains(value = testMessage, substring = true)
+    }
+
+    @Test
+    fun textMessage_fromAgent_hasAccessibilityDescription() {
+        val testMessage = "Hello from agent"
+        val agentName = "Agent Smith"
+        val message = Message.Text(
+            UiSdkText(
+                text = testMessage,
+                direction = ToClient,
+                author = object : MessageAuthor() {
+                    override val id = "agent1"
+                    override val firstName = "Agent"
+                    override val lastName = "Smith"
+                    override val imageUrl: String? = null
+                }
+            )
+        )
+
+        composeTestRule.setContent {
+            ChatTheme {
+                TextMessage(message = message, modifier = Modifier)
+            }
+        }
+
+        val node = composeTestRule.onNodeWithTag("text_message")
+        node.assertExists()
+        node.assertContentDescriptionContains(value = testMessage, substring = true)
+        node.assertContentDescriptionContains(value = agentName, substring = true)
+    }
+
+    @Test
+    fun emojiMessage_fromUser_hasAccessibilityDescription() {
+        val testEmoji = "😎📱🇨🇿"
+        val message = Message.EmojiText(
+            UiSdkText(
+                text = testEmoji,
+                direction = ToAgent
+            )
+        )
+
+        composeTestRule.setContent {
+            ChatTheme {
+                EmojiMessage(message = message, paddingValues = PaddingValues(8.dp))
+            }
+        }
+
+        val node = composeTestRule.onNodeWithTag("emoji_message")
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val expectedPrefix = context.getString(R.string.accessibility_message_you).substringBefore($$"%1$s")
+        node.assertExists()
+        node.assertContentDescriptionContains(value = expectedPrefix, substring = true)
+        node.assertContentDescriptionContains(value = testEmoji, substring = true)
+    }
+
+    @Test
+    fun emojiMessage_fromAgent_hasAccessibilityDescription() {
+        val testEmoji = "👍😊"
+        val agentName = "Support Agent"
+        val message = Message.EmojiText(
+            UiSdkText(
+                text = testEmoji,
+                direction = ToClient,
+                author = object : MessageAuthor() {
+                    override val id = "agent2"
+                    override val firstName = "Support"
+                    override val lastName = "Agent"
+                    override val imageUrl: String? = null
+                }
+            )
+        )
+
+        composeTestRule.setContent {
+            ChatTheme {
+                EmojiMessage(message = message, paddingValues = PaddingValues(8.dp))
+            }
+        }
+
+        val node = composeTestRule.onNodeWithTag("emoji_message")
+        node.assertExists()
+        node.assertContentDescriptionContains(value = testEmoji, substring = true)
+        node.assertContentDescriptionContains(value = agentName, substring = true)
+    }
+
+    @Test
+    fun textMessage_hasTimestamp_inAccessibilityDescription() {
+        val testMessage = "Check the time"
+        val message = Message.Text(
+            UiSdkText(
+                text = testMessage,
+                direction = ToAgent
+            )
+        )
+
+        composeTestRule.setContent {
+            ChatTheme {
+                TextMessage(message = message, modifier = Modifier)
+            }
+        }
+
+        val node = composeTestRule.onNodeWithTag("text_message")
+        val resources = InstrumentationRegistry.getInstrumentation().targetContext.resources
+        val expectedTimestamp = message.createdAtDate(resources)
+
+        node.assertContentDescriptionContains(value = testMessage, substring = true)
+        node.assertContentDescriptionContains(value = expectedTimestamp, substring = true)
     }
 
     private fun ComposeTestRule.onAllNodesWithTagPrefix(prefix: String): SemanticsNodeInteractionCollection {
-        return onAllNodes(hasTestTagStartingWith(prefix))
+        return onAllNodes(hasTestTagStartingWith(prefix), useUnmergedTree = true)
     }
 
     private fun hasTestTagStartingWith(prefix: String): SemanticsMatcher =

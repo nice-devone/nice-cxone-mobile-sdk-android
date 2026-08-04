@@ -53,42 +53,42 @@
         <activity
             android:name=".StoreActivity"
             android:exported="true"
+            android:intentMatchingFlags="enforceIntentFilter"
             android:label="@string/title_activity_store_front"
-            android:theme="@style/StoreFrontTheme">
+            android:theme="@style/StoreFrontTheme"
+            tools:targetApi="36">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <activity
-            android:name="com.amazon.identity.auth.device.workflow.WorkflowActivity"
-            android:allowTaskReparenting="true"
-            android:exported="true"
-            android:launchMode="singleTask"
-            android:theme="@android:style/Theme.NoDisplay">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <!-- android:host must use the full package name found in Manifest General Attributes -->
-                <data
-                    android:host="com.nice.cxonechat.sample"
-                    android:scheme="amzn" />
-            </intent-filter>
-        </activity>
-
         <!-- This setup is required only to register correct intent filter for the push notifications. -->
         <activity
             android:name="com.nice.cxonechat.ui.screen.ChatActivity"
-            android:exported="true">
+            android:exported="true"
+            android:intentMatchingFlags="enforceIntentFilter"
+            tools:targetApi="36">
             <!-- The intent filter is required by the deeplinks in the push notifications. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <!-- The intent filter data scheme has to match the scheme set in the channel settings. -->
                 <data android:scheme="com.nice.cxonechat.sample" />
+            </intent-filter>
+        </activity>
+
+        <!-- AppAuth redirect activity for OAuth authorization code flow.
+             Scheme must be the reverse of the Android client ID — required by Google for custom URI schemes. -->
+        <activity
+            android:name="net.openid.appauth.RedirectUriReceiverActivity"
+            android:exported="true"
+            tools:node="replace">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="com.googleusercontent.apps.380097439409-5jigbr2e8beu7qkpah2u2ja1vtjmunu5" />
             </intent-filter>
         </activity>
 

@@ -20,7 +20,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.WindowInfo
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.IntSize
@@ -28,9 +27,9 @@ import androidx.compose.ui.unit.dp
 import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+import com.nice.cxonechat.ui.AbstractComponentActivityUiTest
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import org.junit.Assert
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -40,9 +39,7 @@ import org.junit.runner.RunWith
  */
 @RunWith(AndroidJUnit4::class)
 @LargeTest
-class OfflineScreenTest {
-    @get:Rule
-    val composeTestRule = createComposeRule()
+class OfflineScreenTest : AbstractComponentActivityUiTest() {
 
     /**
      * Asserts that the OfflineScreen and its content are displayed.

@@ -11,7 +11,7 @@ follows "Google Suggested" practices.
 The usage of `ChatInstanceProvider` consists of following steps:
     1. Creating instance of `ChatInstanceProvider` & binding the `ChatInstanceProvider` creation to the application lifecycle.
     2. Obtaining the chat instance & binding the chat instance to the activity lifecycle.
-    3. Implementing the `ChatStateListener` interface to handle chat state changes.
+    3. Implementing the `ChatInstanceProvider.Listener` interface to handle chat state changes.
     4. Using chat instance.
 
 ## Libraries
@@ -72,8 +72,14 @@ directly bound to a network socket that listens to messages. Failure to dispose 
 leaving the activity, leaks the connection.
 
 The connection can also be lost because of other reasons, like dropped network connection. Because of
-this, you should implement ChatStateListener and provide its instance to the Chat, so your application will
-be notified when network socket connection needs to be reestablished.
+this, you should register a `ChatInstanceProvider.Listener`, so your application will
+be notified when the network socket connection needs to be reestablished.
+
+> [!NOTE]
+> `ChatInstanceProvider.Listener` reports the provider's 8-state `ChatState` (the recommended way to
+> manage the chat lifecycle across process transitions). If you work with a `Chat` instance directly
+> — without the provider — observe its coroutine-native `Chat.stateFlow: SharedFlow<ChatStateEvent>`
+> instead. See the [Coroutine API migration guide](../migration/MIGRATION_COROUTINE_API.md).
 
 > Note that initialization may take about 2 seconds to fetch and resolve the instance. It's not
 > immediately available after resume!
@@ -102,13 +108,13 @@ class ChatActivity : AppCompatActivity(R.layout.activity_chat) {
     override fun onPause() {
         super.onPause()
 
-        chatInstanceProvider.stop()
+        chatInstanceProvider?.stop()
     }
 }
 ```
 
-## Implementing `ChatStateListener`
-We can now expand our previous implementation of `ChatActivity` to include the `ChatStateListener` interface.
+## Implementing `ChatInstanceProvider.Listener`
+We can now expand our previous implementation of `ChatActivity` to include the `ChatInstanceProvider.Listener` interface.
 
 ```kotlin
 class ChatActivity : AppCompatActivity(R.layout.activity_chat), ChatInstanceProvider.Listener {
@@ -123,32 +129,33 @@ class ChatActivity : AppCompatActivity(R.layout.activity_chat), ChatInstanceProv
     override fun onResume() {
         super.onResume()
 
-        chatInstanceProvider.addListener(this)
-        val chatState = chatInstanceProvider.chatState
+        val provider = chatInstanceProvider ?: return
+        provider.addListener(this)
+        val chatState = provider.chatState
         if (chatState === Prepared || chatState === ConnectionLost) {
-            chatInstanceProvider.connect()
+            provider.connect()
         }
     }
 
     override fun onPause() {
         super.onPause()
 
-        chatInstanceProvider.stop()
-        chatInstanceProvider.removeListener(this)
+        chatInstanceProvider?.stop()
+        chatInstanceProvider?.removeListener(this)
     }
 
     override fun onChatStateChanged(chatState: ChatState) {
-        when (state) {
+        when (chatState) {
             Initial -> {
                 // ChatInstanceProvider wasn't initialized yet
-                chatInstanceProvider.prepare(this@ChatActivity)
+                chatInstanceProvider?.prepare(this@ChatActivity)
             }
             Preparing -> {
                 // ChatInstanceProvider is being configured
                 // Show loading spinner or similar UI
             }
             Prepared -> {
-                chatInstanceProvider.connect()
+                chatInstanceProvider?.connect()
             }
             Connecting -> {
                 // ChatInstanceProvider is connecting
@@ -172,7 +179,7 @@ class ChatActivity : AppCompatActivity(R.layout.activity_chat), ChatInstanceProv
                 "Chat SDK connection lost",
                 Snackbar.LENGTH_INDEFINITE
             ).setAction("Reconnect") {
-                chatInstanceProvider.connect()
+                chatInstanceProvider?.connect()
             }.apply(Snackbar::show)
         }
     }
@@ -190,7 +197,7 @@ class ChatActivity : AppCompatActivity(R.layout.activity_chat), ChatInstanceProv
 ## Next Steps
 After obtaining your chat instance, you should perform the following steps:
     1. Preparing and Connecting
-        - This is already outlined in the [Implementing `ChatStateListener`](#implementing-chatstatelistener) section.
+        - This is already outlined in the [Implementing `ChatInstanceProvider.Listener`](#implementing-chatinstanceproviderlistener) section.
         - **Prepare** - This method should be called early, when the app is started. It allows the SDK to fetch configuration and allows usage of the SDK Analytics.
         - **Connect** - This method should be called when the user is ready to start chatting.  It establishes an active connection to the chat server.
         - Waiting for **Ready** state - It is recommended to wait for the Ready state before starting to interact with the chat instance.  This allows the SDK to perform necessary calls to the server and prepare the chat instance for the interaction.

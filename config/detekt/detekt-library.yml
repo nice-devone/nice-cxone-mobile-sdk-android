@@ -8,6 +8,10 @@ style:
     excludes: [ '**/*Copyable.kt' ]
     ignoreAnnotated: [ com.nice.cxonechat.Public ]
 
+exceptions:
+  TooGenericExceptionCaught:
+    allowedExceptionNameRegex: '_|(ignore|expected|logged).*'
+
 cxone-rules:
   active: true
   ProhibitedCall:
@@ -18,5 +22,8 @@ libraries:
     active: true
   LibraryCodeMustSpecifyReturnType:
     active: true
+    excludes: [ '**/test/**', '**/**Test**.kt', '**/androidTest/**', '**/*.Spec.kt' ]
+    ignoreAnnotated:
+      - "org.junit.Test"
   LibraryEntitiesShouldNotBePublic:
     active: false   # We are using minification to prevent usage from applications.

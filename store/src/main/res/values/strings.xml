@@ -130,4 +130,14 @@
     <!-- SDK not supported Dialog string -->
     <string name="sdk_not_supported_title">SDK not supported</string>
     <string name="sdk_not_supported_message">Your version of SDK is not supported anymore, please do upgrade.</string>
+
+    <!-- Explicit OAuth Unavailable Dialog strings -->
+    <string name="explicit_oauth_unavailable_title">Explicit OAuth Not Available</string>
+    <string name="explicit_oauth_unavailable_message">The explicit OAuth flow is not available on the current server version. Please use the Implicit JWT flow instead.</string>
+
+    <!-- Google Sign-In Bottom Sheet -->
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="sign_in_with_google_subtitle">Select the Google Sign-In flow to use for authentication</string>
+    <string name="oauth_method_implicit">Implicit JWT</string>
+    <string name="oauth_method_explicit">Explicit PKCE</string>
 </resources>

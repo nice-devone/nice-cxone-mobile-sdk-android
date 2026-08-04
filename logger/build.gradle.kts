@@ -13,14 +13,16 @@
  * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
  */
 
+import com.nice.cxonechat.configurePomMetadata
+
 plugins {
-    id("java-library-conventions")
-    id("jvm-kotlin-conventions")
-    id("library-style-conventions")
-    id("test-conventions")
-    id("docs-conventions")
-    id("publish-conventions")
-    id("org.jetbrains.dokka-javadoc")
+    alias(libs.plugins.cxone.chat.java.library)
+    alias(libs.plugins.cxone.chat.jvm.kotlin)
+    alias(libs.plugins.cxone.chat.library.style)
+    alias(libs.plugins.cxone.chat.test)
+    alias(libs.plugins.cxone.chat.docs)
+    alias(libs.plugins.cxone.chat.publish)
+    alias(libs.plugins.dokka.javadoc)
 }
 
 kotlin {
@@ -29,7 +31,6 @@ kotlin {
             listOf(
                 "-Xjvm-default=all-compatibility",
                 "-Xjspecify-annotations=strict",
-                "-Xtype-enhancement-improvements-strict-mode"
             )
         )
     }
@@ -37,11 +38,6 @@ kotlin {
 
 java {
     withSourcesJar()
-}
-
-val javadocJar by tasks.registering(Jar::class) {
-    archiveClassifier.set("javadoc")
-    from(tasks.named("dokkaGeneratePublicationJavadoc"))
 }
 
 afterEvaluate {
@@ -53,11 +49,9 @@ afterEvaluate {
                 artifactId = project.findProperty("POM_ARTIFACT_ID")?.toString() ?: project.name
                 version = project.version.toString()
 
-                artifact(javadocJar)
+                artifact(tasks.named("javadocJar"))
 
-                pom {
-                    project.extensions.extraProperties["configurePomMetadata"].let { it as groovy.lang.Closure<*> }.call(this)
-                }
+                pom { project.configurePomMetadata(this) }
             }
         }
     }

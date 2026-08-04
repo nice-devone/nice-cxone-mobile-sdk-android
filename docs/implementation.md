@@ -57,38 +57,51 @@ Once you got all of these data, you may proceed.
 Logging events from the CXone Chat SDK and the Chat UI module are normally passed to the `Logger` instance, which
 by default is a no-op logger.
 To include logging to console (or any other destination/s), you need to provide an instance of `Logger` to the SDK.
-For more information about logging, see the [Logging case study](cs-logging.md).
+For more information about logging, see the [Logging case study](../chat-sdk-core/cs-logging.md).
 
 ## Startup
 
-First you need to obtain a `Chat` instance. You can achieve that through our `ChatBuilder` or you can use `ChatInstanceProvider` which is covered [here](cs-instance-holder.md).
+First you need to obtain a `Chat` instance. You can achieve that through our `ChatBuilder` or you can use `ChatInstanceProvider` which is covered [here](../chat-sdk-core/cs-instance-holder.md).
 We recommend the use of `ChatInstanceProvider` since it provides state tracking for the chat instance, but to cover both cases we will show you how to use the `ChatBuilder` in the following example.
+
+> [!WARNING]
+> In the latest SDK version, **explicit OAuth flow (`setAuthorization`) is currently not supported by the backend**.
+> Prefer implicit OAuth via `setTokenDelegateListener(...)`, or stay on your current SDK version until explicit flow is supported.
+
+> [!NOTE]
+> As of version 4.0 the SDK is **coroutine-first**: `ChatBuilder.build()` and `Chat.connect()` are
+> `suspend` functions, and chat state is observed through `Chat.stateFlow` rather than a listener.
+> Java consumers should add the `com.nice.cxone:chat-sdk-core-java` dependency and use the
+> `ChatBuilderJavaInterop` / `ChatJavaInterop` helpers — see the
+> [Coroutine API migration guide](migration/MIGRATION_COROUTINE_API.md).
 
 ```kotlin
   val config = SocketFactoryConfiguration(
-  CXoneEnvironment.YourRegion,
+    CXoneEnvironment.YourRegion,
     yourBrandId,
     yourChannelId
   )
-  val myChatStateListener = object : ChatStateListener() {
-    override fun onReady() {
-      // TODO - Chat instance is ready for usage by the consumer, use Chat instance for chat
-    }
+
+  // ChatBuilder(...) is a suspend factory and build() is a suspend function — call them from a coroutine.
+  scope.launch {
+    val chat = ChatBuilder(context, config)
+      .setDevelopmentMode(BuildConfig.DEBUG) // Development mode shouldn't be enabled in production
+      .setTokenDelegateListener(yourTokenDelegate) // (1) Implicit OAuth flow
+    // .setAuthorization(yourAuthorization) // (1) Explicit OAuth flow
+      .setUserName("firstName", "lastName") // (2)
+      .build()
+    // TODO save chat instance
   }
-  val cancellable = ChatBuilder(context, config)
-    .setDevelopmentMode(BuildConfig.DEBUG) // Development mode shouldn't be enabled in production 
-    .setAuthorization(yourAuthorization) // (1)
-    .setUserName("firstName", "lastName") // (2)
-    .setChatStateListener(myChatStateListener)
-    .build { chat ->
-      // TODO save chat instance
-    }
 ```
 
 - (1) Authorization
-  - Depending on whether you use OAuth, you might be required to use Authorization.
-  - If you don't use OAuth, then don't call `.setAuthorization` method.
-  - For third-party OAuth authentication (e.g., Amazon Login), see the [OAuth Third-Party Authentication case study](chat-sdk-core/cs-oauth-third-party.md) for detailed integration instructions, including handling token expiration and re-authentication.
+  - For third-party OAuth you can choose:
+    - **Explicit flow**: call `.setAuthorization(Authorization(code, verifier))`
+    - **Implicit flow**: call `.setTokenDelegateListener(tokenDelegate)`
+  - If both are set, the SDK uses the **explicit** flow.
+  - In the latest SDK version, explicit flow is currently not supported by the backend; use implicit flow instead.
+  - If you don't use OAuth, don't call either OAuth API.
+  - For full setup guidance, see the [OAuth Third-Party Authentication case study](../chat-sdk-core/cs-oauth-third-party.md).
 - (2) Username
   - Usage depends on the fact if you are using OAuth.
     The OAuth users typically won't need to set username,
@@ -97,18 +110,15 @@ We recommend the use of `ChatInstanceProvider` since it provides state tracking 
     (if it can change in your application).
 
 > [!NOTE]
-> The `build` method asynchronously creates an instance of Chat which is ready for analytics usage, for chat use-case it
-> needs to be connected.
-> Chat will start the asynchronous connection attempt once the `Chat.connect()` method is called.
->
-> In case of connection error, the application will be notified, and it will have to schedule a connection retry attempt.
-> Application can cancel both the build and connection process according to its requirements via `Cancellable` instance
-> returned from the `build` and `connect` method calls.
+> The `build` method creates an instance of Chat which is ready for analytics usage; for the chat
+> use-case it needs to be connected.
+> Cancelling the coroutine that calls `build()` (or `connect()`) cancels the operation, replacing the
+> `Cancellable` returned by the old callback API.
 
 > [!IMPORTANT]
-> In case the startup was not successful for you and `build` method did not return the `Chat`
-> instance, be sure to check your configuration as server might have rejected the request. Read the
-> documentation for `build` method for more clarity on the subject.
+> If the startup was not successful and `build` threw, be sure to check your configuration as the
+> server might have rejected the request. Read the documentation for the `build` method for more
+> clarity on the subject.
 
 ---
 
@@ -116,17 +126,31 @@ Now you can use the CXone Chat SDK for sending of analytics events (which are us
 If you also need to activate the chat, you will need to connect it to backend and let Chat perform basic preparation of
 the instance.
 
-1. First you need to inform `Chat` instance that it should connect to backend by calling `chat.connect`.
-2. Once it is connected the `Chat` instance will call the supplied `ChatStateListener.onConnected` callback.
-At this moment the `Chat` has established socket connection with backend, and it will start final background
-tasks to fully prepare instance for usage (retrieval of the thread in single-thread mode or thread list in the
-multi-thread mode). 
-3. `Chat` will inform that is fully ready by calling the `ChatStateListener.onReady` callback.
+1. Call the `suspend fun chat.connect()` from a coroutine to connect to the backend.
+2. Observe `chat.stateFlow` to learn when the connection is established and ready. After
+   `ChatStateEvent.Connected`, the `Chat` performs final background tasks to fully prepare the
+   instance (retrieval of the thread in single-thread mode or thread list in the multi-thread mode).
+3. `Chat` reports it is fully ready by emitting `ChatStateEvent.Ready` on `stateFlow`.
+
+```kotlin
+  scope.launch {
+    chat.stateFlow.collect { event ->
+      when (event) {
+        ChatStateEvent.Connecting -> Unit
+        ChatStateEvent.Connected -> Unit
+        ChatStateEvent.Ready -> { /* chat is ready for interaction */ }
+        ChatStateEvent.UnexpectedDisconnect -> { /* offer reconnect */ }
+        is ChatStateEvent.RuntimeException -> handle(event.exception)
+      }
+    }
+  }
+  scope.launch { chat.connect() } // suspend
+```
 
 Great! Now you're ready to use the CXone Chat SDK.
 
 > [!IMPORTANT]
-> It is recommended to wait for the `ChatStateListener.onReady` callback before using the chat instance.
+> It is recommended to wait for the `ChatStateEvent.Ready` event before using the chat instance.
 
 > [!IMPORTANT]
 > Chat instance maintains open socket connection to backend, until `chat.close()` is called, or the
@@ -137,62 +161,109 @@ Great! Now you're ready to use the CXone Chat SDK.
 
 ## Runtime Exceptions
 
-The SDK communicates critical errors through the `ChatStateListener.onChatRuntimeException()` callback. Your application should implement this callback to handle various error conditions appropriately.
+The SDK communicates critical errors as `ChatStateEvent.RuntimeException` events on `Chat.stateFlow`. Your application should collect this flow and handle the various error conditions appropriately. (Java consumers use `ChatJavaInterop.observeState(...)` — see the [Coroutine API migration guide](migration/MIGRATION_COROUTINE_API.md).)
 
 ### Exception Types
 
-#### RuntimeChatException.ConnectionTokenFailed
+#### RuntimeChatException.FeatureUnavailableException
 
-This exception is raised when the transaction token used for authentication has expired or become invalid. This is particularly important for **third-party OAuth authentication** (e.g., Amazon Login).
+This exception is raised in the **explicit OAuth flow** when the backend returns an error during the
+transaction token exchange. It signals that the explicit OAuth flow (`setAuthorization(...)`) is not
+functioning on the current backend version.
 
-**When this occurs:**
-- The chat session cannot continue with the current credentials
-- User re-authentication is required
+**Common Causes:**
+- The explicit OAuth flow is disabled or broken on the current backend version
+- The backend does not support the authorization-code grant for this channel
 
 **Required Actions:**
+1. Switch to the implicit OAuth flow via `ChatBuilder.setTokenDelegateListener(...)`, or
+2. Stay on a previous SDK version until the explicit flow is restored
+
+> [!NOTE]
+> If you are using `ChatActivity` from `chat-sdk-ui`, the SDK handles this exception with a
+> **silent exit** — `ChatActivity` closes automatically with no error dialog shown inside the chat screen.
+> Your `ChatInstanceProvider.Listener` registered at the app/activity level (outside `ChatActivity`)
+> is responsible for catching this exception and showing appropriate recovery UI to the user
+> (e.g. an error dialog prompting them to switch to the implicit flow).
+
+```kotlin
+override fun onChatRuntimeException(exception: RuntimeChatException) {
+    when (exception) {
+        is RuntimeChatException.FeatureUnavailableException -> {
+            // Explicit OAuth flow is not available on the backend.
+            // ChatActivity (chat-sdk-ui) has already exited silently — show recovery UI here.
+            showExplicitFlowUnavailableError()
+        }
+        else -> { /* handle other exceptions */ }
+    }
+}
+```
+
+#### RuntimeChatException.ConnectionTokenFailed
+
+This exception is raised in the **explicit OAuth flow** when SDK recovery of an expired transaction token
+cannot proceed (for example, missing `refresh_token`).
+
+> [!WARNING]
+> **Known issue for this release:** explicit flow is currently not supported by the backend in the latest SDK version.
+> For this release, prefer implicit flow for updated integrations, or stay on your previous SDK version.
+
+**Explicit flow behavior:**
+- On token expiry, SDK first attempts background refresh using `refresh_token`
+- If refresh succeeds, user is not prompted
+- `ConnectionTokenFailed` is reported only when refresh cannot proceed and re-authentication is required
+
+**Required Actions (explicit flow):**
 1. Update UI state to show the OAuth/login dialog to the user
 2. Initiate OAuth re-authentication with your OAuth provider
 3. Obtain new authorization credentials (authorization code and code verifier)
-4. Set the new authorization using `ChatSettingsHandler.setAuthorization()`
+4. Set the new authorization again using `setAuthorization(...)` (via `ChatBuilder` or `ChatInstanceProvider.configure { authorization = ... }`)
 5. Open ChatActivity again so chat will automatically reconnect with the new credentials
 
 **Example Implementation:**
 
 ```kotlin
-val myChatStateListener = object : ChatStateListener {
-    override fun onChatRuntimeException(exception: RuntimeChatException) {
-        when (exception) {
-            is RuntimeChatException.ConnectionTokenFailed -> {
-                // Transaction token expired - re-authentication required
-                handleTokenExpiration()
+scope.launch {
+    chat.stateFlow.collect { event ->
+        if (event is ChatStateEvent.RuntimeException) {
+            when (val exception = event.exception) {
+                is RuntimeChatException.FeatureUnavailableException -> {
+                // Explicit OAuth flow is not available on this backend version.
+                // Switch to implicit flow or stay on a previous SDK version.
+                showExplicitFlowUnavailableError()
             }
-            else -> {
-                // Handle other exceptions
-                Log.e("Chat", "Runtime exception: ${exception.message}")
+            is RuntimeChatException.ConnectionTokenFailed -> {
+                    // SDK could not refresh via refresh_token - re-authentication required
+                    handleTokenExpiration()
+                }
+                else -> {
+                    // Handle other exceptions
+                    logger.error("Runtime exception: ${exception.message}")
+                }
             }
         }
     }
+}
 
     private fun handleTokenExpiration() {
-        // Transaction token has expired
-        Log.w("Chat", "Transaction token expired - re-authentication required")
+        // SDK could not refresh with refresh_token
+        Log.w("Chat", "OAuth fallback re-authentication required")
 
         // Update UI state to show OAuth/login dialog
         // This triggers the UI to show the login dialog to the user
         // The user then completes OAuth re-authentication
-        // Once new authorization is obtained and set via ChatSettingsHandler.setAuthorization(),
+        // Once new authorization is obtained and set via setAuthorization(...),
         // the chat will automatically reconnect with the new credentials
 
-        // TODO: Implement app-specific UI state update (e.g., navigate to login screen or show login dialog)
-    }
-}
+    // TODO: Implement app-specific UI state update (e.g., navigate to login screen or show login dialog)
+   }
 ```
 
 > [!IMPORTANT]
-> For third-party OAuth authentication, you **must** handle `ConnectionTokenFailed` by re-initiating the OAuth flow.
+> For explicit OAuth authentication, you **must** handle `ConnectionTokenFailed` by re-initiating the OAuth flow as a fallback path.
 > The SDK cannot automatically recover from this error because it does not have direct access to OAuth provider credentials.
 
-For detailed guidance on implementing OAuth authentication and handling token expiration, see the [OAuth Third-Party Authentication case study](chat-sdk-core/cs-oauth-third-party.md).
+For detailed guidance on implementing OAuth authentication and handling token expiration, see the [OAuth Third-Party Authentication case study](../chat-sdk-core/cs-oauth-third-party.md).
 
 #### RuntimeChatException.AuthorizationError
 
@@ -210,6 +281,22 @@ This exception indicates that user authorization has failed. This can occur duri
 3. Verify the authorization credentials are current and valid
 4. Create a new chat instance with correct credentials
 
+#### RuntimeChatException.TokenDelegationFailedException
+
+This exception is reported in the **implicit OAuth flow** when `TokenDelegateListener.onNewTokenRequested(...)` fails (for example, user cancelled sign-in or token fetch failed).
+
+**Recommended Actions:**
+1. Show re-login UI or a retry action
+2. Re-run your OAuth flow and return a valid `OAuthToken` from the delegate
+
+#### RuntimeChatException.InvalidAccessTokenException
+
+This exception is reported in the **implicit OAuth flow** when the backend rejects the delegated JWT and automatic recovery also fails.
+
+**Recommended Actions:**
+1. Prompt the user to sign in again
+2. Reconnect with a fresh token delivered by your `TokenDelegateListener`
+
 #### RuntimeChatException.ServerCommunicationError
 
 This exception indicates a problem communicating with the CXone backend.
@@ -226,7 +313,7 @@ This exception indicates a problem communicating with the CXone backend.
 
 ### Best Practices
 
-1. **Always Implement Exception Handling**: Every integration should handle `onChatRuntimeException()`
+1. **Always Implement Exception Handling**: Every integration should handle `ChatStateEvent.RuntimeException` from `Chat.stateFlow`
 2. **Provide User Feedback**: Inform users when action is required (e.g., re-login)
 3. **Log for Debugging**: Log exception details to help diagnose integration issues
 4. **Test Error Scenarios**: Verify your error handling works correctly, especially token expiration
@@ -296,7 +383,7 @@ For the push notifications to work, you need to add the Firebase Cloud Messaging
 See the [Firebase Cloud Messaging documentation](https://firebase.google.com/docs/cloud-messaging/android/client) for more instructions
 on how to set up FCM in your project.
 
-For more focused information about this topic see the [cs-push-notifications.md](cs-push-notifications.md).
+For more focused information about this topic see the [cs-push-notifications.md](../chat-sdk-core/cs-push-notifications.md).
 
 #### Provide required resources
 
@@ -400,13 +487,13 @@ configuration.
   - User has left a page in the host application and time spent on the page.  Automatically
     generated by `ChatEventHandlerActions.pageViewEnded`.
 - **ProactiveActionClickEvent**
-  - Action regards to `ChatActionHandler::onPopup`. Generated by `ChatEventHandlerActions.proactiveActionClick`.
+  - Action regards to `ChatActionHandler.popupFlow`. Generated by `ChatEventHandlerActions.proactiveActionClick`.
 - **ProactiveActionDisplayEvent**
-  - Action regards to `ChatActionHandler::onPopup`. Generated by `ChatEventHandlerActions.proactiveActionDisplay`.
+  - Action regards to `ChatActionHandler.popupFlow`. Generated by `ChatEventHandlerActions.proactiveActionDisplay`.
 - **ProactiveActionFailureEvent**
-  - Action regards to `ChatActionHandler::onPopup`. Generated by `ChatEventHandlerActions.proactiveActionFailure`.
+  - Action regards to `ChatActionHandler.popupFlow`. Generated by `ChatEventHandlerActions.proactiveActionFailure`.
 - **ProactiveActionSuccessEvent**
-  - Action regards to `ChatActionHandler::onPopup`. Generated by `ChatEventHandlerActions.proactiveActionSuccess`.
+  - Action regards to `ChatActionHandler.popupFlow`. Generated by `ChatEventHandlerActions.proactiveActionSuccess`.
 - **TriggerEvent**
   - Trigger an automation event by ID
 
@@ -431,7 +518,7 @@ What is a "page" is defined by the application, it can be a activity, a fragment
   - Reports time spent on the last page in seconds.
   - Automatically generated by `ChatEventHandlerActions.pageViewEnded`.
 
-See analytics case study for information how to implement analytics events [here](cs-analytics.md)
+See analytics case study for information how to implement analytics events [here](../chat-sdk-core/cs-analytics.md)
 
 ### Authorization events
 

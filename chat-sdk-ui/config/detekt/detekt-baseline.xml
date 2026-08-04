@@ -1,5 +1,12 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <SmellBaseline>
   <ManuallySuppressedIssues/>
-  <CurrentIssues />
+  <CurrentIssues>
+    <ID>MaxLineLength:MessageAvatarTest.kt$MessageAvatarTest$val person = Person(imageUrl = "https://brand-embassy-avatars-qa.s3.eu-west-1.amazonaws.com/324bcba7-f317-4a99-b833-06a1952c41c6.jpg")</ID>
+    <ID>NewLineAtEndOfFile:KoinTestRule.kt$com.nice.cxonechat.ui.util.KoinTestRule.kt</ID>
+    <ID>NoBlankLineBeforeRbrace:TreeFieldTest.kt$TreeFieldTest$ </ID>
+    <ID>NoConsecutiveBlankLines:QuickReplyMessageStatusTest.kt$QuickReplyMessageStatusTest$ </ID>
+    <ID>NoConsecutiveBlankLines:TypingIndicatorTest.kt$ </ID>
+    <ID>NoEmptyFirstLineInMethodBlock:KoinTestRule.kt$KoinTestRule$ </ID>
+  </CurrentIssues>
 </SmellBaseline>

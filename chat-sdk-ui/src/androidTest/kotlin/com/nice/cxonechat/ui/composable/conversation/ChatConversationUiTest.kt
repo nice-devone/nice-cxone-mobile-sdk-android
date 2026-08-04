@@ -19,16 +19,15 @@ import android.content.Context
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.emoji2.bundled.BundledEmojiCompatConfig
 import androidx.emoji2.text.EmojiCompat
 import androidx.test.core.app.ApplicationProvider
 import com.nice.cxonechat.state.Configuration
-import com.nice.cxonechat.state.FileRestrictions
 import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider
 import com.nice.cxonechat.ui.util.KoinTestRule
-import java.util.concurrent.Executor
+import com.nice.cxonechat.ui.util.fakeConfiguration
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -43,7 +42,7 @@ class ChatConversationUiTest {
     val koinTestRule = KoinTestRule(
         modules = listOf(
             module {
-                single<Configuration?> { _ -> configuration() }
+                single<Configuration?> { _ -> fakeConfiguration() }
             }
         )
     )
@@ -51,7 +50,7 @@ class ChatConversationUiTest {
     @Before
     fun init() {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        EmojiCompat.init(BundledEmojiCompatConfig(context, Executor { it.run() }))
+        EmojiCompat.init(BundledEmojiCompatConfig(context, Runnable::run))
     }
 
     @Test
@@ -68,25 +67,8 @@ class ChatConversationUiTest {
                 snackBarHostState = SnackbarHostState()
             )
         }
-        composeTestRule.onNodeWithTag("chat_conversation_column").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("user_input").assertIsDisplayed()
-    }
-
-    private fun configuration(): Configuration = object : Configuration {
-        override val hasMultipleThreadsPerEndUser: Boolean = true
-        override val isProactiveChatEnabled: Boolean = false
-        override val isAuthorizationEnabled: Boolean = false
-        override val liveChatAllowTranscript: Boolean = false
-        override val isSecuredCookieEnabled: Boolean = false
-        override val securedSessions: Boolean = false
-        override val fileRestrictions: FileRestrictions = object : FileRestrictions {
-            override val allowedFileSize: Int = 40
-            override val allowedFileTypes: List<FileRestrictions.AllowedFileType> = emptyList()
-            override val isAttachmentsEnabled: Boolean = false
-        }
-        override val isLiveChat: Boolean = false
-        override val isOnline: Boolean = false
-        override fun hasFeature(feature: String): Boolean = false
+        composeTestRule.onNodeWithTag("chat_conversation_column", useUnmergedTree = true).assertIsDisplayed()
+        composeTestRule.onNodeWithTag("user_input", useUnmergedTree = true).assertIsDisplayed()
     }
 
     @Test
@@ -102,8 +84,56 @@ class ChatConversationUiTest {
                 snackBarHostState = SnackbarHostState()
             )
         }
-        composeTestRule.onNodeWithTag("archived_info_box").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("archive_icon").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("archived_info_row").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("archived_info_box", useUnmergedTree = true).assertIsDisplayed()
+        composeTestRule.onNodeWithTag("archive_icon", useUnmergedTree = true).assertIsDisplayed()
+        composeTestRule.onNodeWithTag("archived_info_row", useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun chatConversation_showsPositionInQueueBanner_whenPositionIsPositive() {
+        composeTestRule.setContent {
+            ChatConversation(
+                conversationState = previewUiState(positionInQueue = 3),
+                audioRecordingState = previewAudioState(),
+                onAttachmentTypeSelection = {},
+                showMessageProcessing = false,
+                onError = {},
+                modifier = Modifier,
+                snackBarHostState = SnackbarHostState()
+            )
+        }
+        composeTestRule.onNodeWithTag("position_in_queue_content_view").assertIsDisplayed()
+    }
+
+    @Test
+    fun chatConversation_hidesPositionInQueueBanner_whenPositionIsZero() {
+        composeTestRule.setContent {
+            ChatConversation(
+                conversationState = previewUiState(positionInQueue = 0),
+                audioRecordingState = previewAudioState(),
+                onAttachmentTypeSelection = {},
+                showMessageProcessing = false,
+                onError = {},
+                modifier = Modifier,
+                snackBarHostState = SnackbarHostState()
+            )
+        }
+        composeTestRule.onNodeWithTag("position_in_queue_content_view").assertDoesNotExist()
+    }
+
+    @Test
+    fun chatConversation_hidesPositionInQueueBanner_whenPositionIsNull() {
+        composeTestRule.setContent {
+            ChatConversation(
+                conversationState = previewUiState(positionInQueue = null),
+                audioRecordingState = previewAudioState(),
+                onAttachmentTypeSelection = {},
+                showMessageProcessing = false,
+                onError = {},
+                modifier = Modifier,
+                snackBarHostState = SnackbarHostState()
+            )
+        }
+        composeTestRule.onNodeWithTag("position_in_queue_content_view").assertDoesNotExist()
     }
 }

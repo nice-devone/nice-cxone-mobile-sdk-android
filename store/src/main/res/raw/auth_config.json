@@ -1,0 +1,9 @@
+{
+  "android_client_id": "380097439409-5jigbr2e8beu7qkpah2u2ja1vtjmunu5.apps.googleusercontent.com",
+  "web_client_id": "380097439409-89tdl02kqnqrmlsij9got9m66hb4ou9f.apps.googleusercontent.com",
+  "redirect_uri": "com.googleusercontent.apps.380097439409-5jigbr2e8beu7qkpah2u2ja1vtjmunu5:/oauth2redirect",
+  "authorization_endpoint_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_endpoint_uri": "https://oauth2.googleapis.com/token",
+  "authorization_scope": "openid email profile",
+  "https_required": true
+}

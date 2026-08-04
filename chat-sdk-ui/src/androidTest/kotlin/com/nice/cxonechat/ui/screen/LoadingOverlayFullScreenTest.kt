@@ -16,15 +16,12 @@
 package com.nice.cxonechat.ui.screen
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
-import org.junit.Rule
+import androidx.compose.ui.test.tryPerformAccessibilityChecks
+import com.nice.cxonechat.ui.AbstractComponentActivityUiTest
 import org.junit.Test
 
-class LoadingOverlayFullScreenTest {
-
-    @get:Rule
-    val composeTestRule = createComposeRule()
+class LoadingOverlayFullScreenTest : AbstractComponentActivityUiTest() {
 
     @Test
     fun loadingIndicatorIsDisplayedInitially() {
@@ -37,6 +34,7 @@ class LoadingOverlayFullScreenTest {
         composeTestRule
             .onNodeWithTag("preparing_dialog")
             .assertIsDisplayed()
+            .tryPerformAccessibilityChecks()
     }
 
     @Test
@@ -52,5 +50,6 @@ class LoadingOverlayFullScreenTest {
         composeTestRule
             .onNodeWithTag("close_button")
             .assertIsDisplayed()
+            .tryPerformAccessibilityChecks()
     }
 }

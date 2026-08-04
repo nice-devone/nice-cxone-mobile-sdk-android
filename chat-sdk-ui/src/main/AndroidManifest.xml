@@ -85,7 +85,9 @@
             android:exported="true"
             android:launchMode="singleTop"
             android:permission="${applicationId}.permission.CHAT_VIEW"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar">
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
+            android:intentMatchingFlags="enforceIntentFilter"
+            tools:targetApi="36">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />

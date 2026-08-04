@@ -16,64 +16,149 @@
 package com.nice.cxonechat.ui.composable.conversation
 
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.test.assertContentDescriptionContains
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.nice.cxonechat.message.MessageAuthor
+import com.nice.cxonechat.message.MessageDirection.ToAgent
+import com.nice.cxonechat.message.MessageDirection.ToClient
+import com.nice.cxonechat.ui.AbstractComponentActivityUiTest
+import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.composable.conversation.model.Message
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.util.preview.message.UiSdkUnsupportedMessage
-import org.junit.Rule
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
 import org.junit.Test
 
-class UnsupportedMessageTest {
-
-    @get:Rule
-    val composeTestRule = createComposeRule()
+class UnsupportedMessageTest : AbstractComponentActivityUiTest() {
 
     @Test
     fun unsupportedMessage_displaysFallbackTextAndStatus() {
         composeTestRule.setContent {
-            ChatTheme {
-                MessageItem(
-                    message = Message.Unsupported(UiSdkUnsupportedMessage()),
+            PreviewMessageItemBase {
+                PreviewMessageItem(
+                    message = Message.Unsupported(UiSdkUnsupportedMessage(direction = ToAgent)),
                     showStatus = DisplayStatus.DISPLAY,
                     messageStatusState = MessageStatusState.DISABLED,
-                    onQuickReplyOptionSelected = {},
-                    onListPickerSelected = {},
                     onAttachmentClicked = {},
                     onMoreClicked = {},
                     onShare = {},
                     snackBarHostState = SnackbarHostState(),
-                    onTimePickerSelected = { _, _ -> },
                 )
             }
         }
 
-        // Check fallback text is displayed
-        composeTestRule.onNodeWithText("Message cannot be displayed").assertIsDisplayed()
+        // Check fallback text node is displayed
+        composeTestRule.onNodeWithTag(TAG_TEXT, useUnmergedTree = true).assertIsDisplayed()
+
+        // Check status text is displayed
+        composeTestRule.onNodeWithText(
+            composeTestRule.activity.getString(R.string.unsupported_message_status)
+        ).assertIsDisplayed()
 
         // Check status indicator is displayed
-        composeTestRule.onNodeWithTag("message_status_indicator", true).assertIsDisplayed()
+        composeTestRule.onNodeWithTag("message_status_indicator", true)
+            .assertIsDisplayed()
     }
 
     @Test
     fun unsupportedMessageStatus_displaysIconAndText_andHandlesClick() {
-        var clicked = false
+        val snackBarHostState = mockk<SnackbarHostState> {
+            coEvery { showSnackbar(any(), any(), any(), any()) } returns mockk()
+        }
 
         composeTestRule.setContent {
-            ChatTheme {
-                UnsupportedMessageStatus(onClick = { clicked = true })
+            Surface {
+                PreviewMessageItem(
+                    message = Message.Unsupported(UiSdkUnsupportedMessage()),
+                    snackBarHostState = snackBarHostState
+                )
             }
         }
 
         // Check icon and text are displayed
-        composeTestRule.onNodeWithTag("unsupported_message_status").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Message cannot be displayed").assertIsDisplayed()
+        val messageBody = composeTestRule
+            .onNodeWithTag(TAG_BODY)
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(
+            composeTestRule.activity.getString(R.string.unsupported_message_status)
+        ).assertIsDisplayed()
 
         // Check click works
-        composeTestRule.onNodeWithTag("unsupported_message_status").performClick()
-        assert(clicked)
+        messageBody.performClick()
+        coVerify { snackBarHostState.showSnackbar(any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun fallbackText_fromUser_hasAccessibilityDescription() {
+        val testText = "Test unsupported content"
+        val message = Message.Unsupported(
+            UiSdkUnsupportedMessage(
+                direction = ToAgent,
+                author = null,
+                text = testText,
+            )
+        )
+
+        composeTestRule.setContent {
+            ChatTheme {
+                UnsupportedMessage(message = message, modifier = Modifier)
+            }
+        }
+
+        val expectedDescription = getString(
+            R.string.accessibility_message_you,
+            testText,
+            message.createdAtDate(composeTestRule.activity.resources),
+        )
+        val node = composeTestRule.onNodeWithTag(TAG_BODY)
+        node.assertExists()
+        node.assertContentDescriptionContains(value = expectedDescription)
+    }
+
+    @Test
+    fun fallbackText_fromAgent_hasAccessibilityDescription() {
+        val testText = "Test unsupported agent content"
+        val agentFirstName = "Agent"
+        val agentLastName = "Smith"
+        val message = Message.Unsupported(
+            UiSdkUnsupportedMessage(
+                direction = ToClient,
+                text = testText,
+                author = object : MessageAuthor() {
+                    override val id = "agent1"
+                    override val firstName = agentFirstName
+                    override val lastName = agentLastName
+                    override val imageUrl: String? = null
+                }
+            )
+        )
+
+        composeTestRule.setContent {
+            ChatTheme {
+                UnsupportedMessage(message = message, modifier = Modifier)
+            }
+        }
+
+        val expectedDescription = getString(
+            R.string.accessibility_message_from_agent,
+            "$agentFirstName $agentLastName",
+            testText,
+            message.createdAtDate(composeTestRule.activity.resources),
+        )
+        val node = composeTestRule.onNodeWithTag(TAG_BODY)
+        node.assertExists()
+        node.assertContentDescriptionContains(value = expectedDescription)
+    }
+
+    companion object {
+        private const val TAG_TEXT = "fallback_text"
+        private const val TAG_BODY = "unsupported_message"
     }
 }

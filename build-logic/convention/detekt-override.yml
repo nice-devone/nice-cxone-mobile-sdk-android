@@ -1,0 +1,4 @@
+complexity:
+  StringLiteralDuplication:
+    # Dependency blocks are using repeating terms like "implementation"
+    active: false

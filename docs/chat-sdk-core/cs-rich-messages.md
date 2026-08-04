@@ -87,7 +87,9 @@ class ChatAllConversationViewModel(
   // ...
 
   fun send(text: String, postback: String) {
-    handlerMessage.send(OutboundMessage(text, postback), sentListener)
+    viewModelScope.launch {
+      handlerMessage.send(OutboundMessage(text, postback))
+    }
   }
 }
 ```

@@ -1,0 +1,682 @@
+/*
+ * Copyright (c) 2021-2026. NICE Ltd. All rights reserved.
+ *
+ * Licensed under the NICE License;
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
+ *
+ * TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
+ * AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
+ * OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+ */
+
+@file:Suppress(
+    "FunctionMaxLength",
+    "LargeClass"
+)
+
+package com.nice.cxonechat
+
+import com.nice.cxonechat.enums.ErrorType
+import com.nice.cxonechat.exceptions.InvalidStateException
+import com.nice.cxonechat.exceptions.RuntimeChatException.ServerCommunicationError
+import com.nice.cxonechat.internal.ChatWithParameters
+import com.nice.cxonechat.internal.copy.AgentCopyable.Companion.asCopyable
+import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
+import com.nice.cxonechat.internal.model.ChannelConfiguration
+import com.nice.cxonechat.internal.model.ChatThreadMutable
+import com.nice.cxonechat.internal.model.ChatThreadMutable.Companion.asMutable
+import com.nice.cxonechat.internal.model.CustomFieldInternal
+import com.nice.cxonechat.internal.model.MessageModel
+import com.nice.cxonechat.internal.model.network.Parameters
+import com.nice.cxonechat.internal.serializer.Default
+import com.nice.cxonechat.message.Message
+import com.nice.cxonechat.message.MessageStatus
+import com.nice.cxonechat.model.makeAgent
+import com.nice.cxonechat.model.makeChatThread
+import com.nice.cxonechat.model.makeMessage
+import com.nice.cxonechat.model.makeMessageModel
+import com.nice.cxonechat.model.makeUserStatistics
+import com.nice.cxonechat.server.ServerRequest
+import com.nice.cxonechat.server.ServerResponse
+import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.thread.ChatThreadState
+import com.nice.cxonechat.thread.ChatThreadState.Loaded
+import com.nice.cxonechat.thread.ChatThreadState.Pending
+import com.nice.cxonechat.thread.ChatThreadState.Received
+import com.nice.cxonechat.thread.CustomField
+import com.nice.cxonechat.tool.nextString
+import com.nice.cxonechat.tool.serialize
+import com.nice.cxonechat.util.UUIDProvider
+import io.kotest.matchers.shouldBe
+import io.mockk.every
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import org.junit.After
+import org.junit.Test
+import java.util.UUID
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.time.Instant
+
+internal class ChatThreadHandlerTest : AbstractMultiThreadChatTest() {
+
+    private lateinit var chatThread: ChatThreadMutable
+    private lateinit var thread: ChatThreadHandler
+
+    private val customerCustomFields = listOf<CustomField>(
+        CustomFieldInternal("1", nextString(), Instant.fromEpochMilliseconds(0)),
+        CustomFieldInternal("2", nextString(), Instant.fromEpochMilliseconds(0))
+    )
+    private val contactCustomFields = listOf<CustomField>(
+        CustomFieldInternal("1", nextString(), Instant.fromEpochMilliseconds(0)),
+        CustomFieldInternal("2", nextString(), Instant.fromEpochMilliseconds(0))
+    )
+
+    override val config: ChannelConfiguration
+        get() = requireNotNull(super.config)
+
+    override fun prepare() {
+        super.prepare()
+        updateChatThread(makeChatThread())
+    }
+
+    @After
+    fun restoreUUIDProvider() {
+        UUIDProvider.next = { UUID.randomUUID() }
+    }
+
+    // ---
+
+    @Test
+    fun setName_sendsExpectedMessage() {
+        val id = chatThread.id
+        val name = "newName!"
+        assertSendText(ServerRequest.UpdateThread(connection, chatThread.asCopyable().copy(threadName = name)), id.toString()) {
+            thread.setName(name)
+        }
+    }
+
+    @Test
+    fun setName_forPendingThread_updatesThreadInstance() {
+        updateChatThread(chatThread.asCopyable().copy(threadState = Pending))
+        val name = "newName!"
+        val updatedThread = testCallback(::get) {
+            assertSendsNothing {
+                thread.setName(name)
+            }
+        }
+        assertEquals(name, updatedThread.threadName)
+    }
+
+    @Test(expected = InvalidStateException::class)
+    fun endContactThrows() {
+        assertSendsNothing {
+            thread.endContact()
+        }
+    }
+
+    @Test
+    fun get_observes_moreMessagesLoaded() {
+        val id = chatThread.id
+        val messages = arrayOf(
+            makeMessageModel(threadIdOnExternalPlatform = id),
+            makeMessageModel(threadIdOnExternalPlatform = id)
+        )
+        val scrollToken = nextString()
+        val expected = chatThread.asCopyable().copy(
+            scrollToken = scrollToken,
+            messages = messages.mapNotNull(MessageModel::toMessage).toList() + chatThread.messages
+        )
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.MoreMessagesLoaded(scrollToken, messages = messages))
+        }
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun get_ignores_otherThanSelfThread_moreMessagesLoaded() {
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.MoreMessagesLoaded(nextString(), makeMessageModel()))
+        }
+        assertNull(actual)
+    }
+
+    @Test
+    fun get_updates_existing_messages_moreMassagesLoaded() {
+        val id = chatThread.id
+        val existingMessage = makeMessage(makeMessageModel(threadIdOnExternalPlatform = id))
+        chatThread = chatThread.asCopyable().copy(messages = listOf(existingMessage)).asMutable()
+        val messages = arrayOf(
+            makeMessageModel(threadIdOnExternalPlatform = id),
+            makeMessageModel(threadIdOnExternalPlatform = id, idOnExternalPlatform = existingMessage.id)
+        )
+        val scrollToken = nextString()
+        val expected = chatThread.asCopyable().copy(
+            scrollToken = scrollToken,
+            messages = messages.mapNotNull(MessageModel::toMessage).toList()
+        )
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.MoreMessagesLoaded(scrollToken, messages = messages))
+        }
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun get_observes_threadMetadataLoaded() {
+        updateChatThread(makeChatThread(threadState = Received))
+        val id = chatThread.id
+        val agent = makeAgent()
+        val message = makeMessageModel(threadIdOnExternalPlatform = id)
+        val expected = chatThread.asCopyable().copy(
+            messages = listOfNotNull(message.toMessage()),
+            threadAgent = agent.toAgent(),
+            threadState = Loaded,
+        )
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.ThreadMetadataLoaded(agent, message))
+        }
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun get_ignores_otherThanSelfThread_threadMetadataLoaded() {
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.ThreadMetadataLoaded())
+        }
+        assertNull(actual)
+    }
+
+    @Test
+    fun get_observes_messageCreated() {
+        val id = chatThread.id
+        val messageModel = makeMessageModel(
+            threadIdOnExternalPlatform = id
+        )
+        val expected = chatThread.asCopyable().copy(
+            contactId = TestContactId,
+            messages = listOfNotNull(messageModel.toMessage())
+        )
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.MessageCreated(chatThread, messageModel))
+        }
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun get_ignores_duplicit_messageCreated() {
+        val id = chatThread.id
+        val messageModel = makeMessageModel(
+            threadIdOnExternalPlatform = id
+        )
+        val message = messageModel.toMessage()
+        assertNotNull(message)
+        updateChatThread(chatThread.asCopyable().copy(messages = listOf(message), contactId = TestContactId))
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.MessageCreated(chatThread, messageModel))
+        }
+        assertNull(actual)
+    }
+
+    @Test
+    fun get_observes_updated_messageCreated() {
+        val id = chatThread.id
+        val messageModel = makeMessageModel(
+            threadIdOnExternalPlatform = id
+        )
+        val message = messageModel.toMessage()
+        assertNotNull(message)
+        updateChatThread(chatThread.asCopyable().copy(messages = listOf(message)))
+        val updatedMessage = messageModel.copy(
+            userStatistics = makeUserStatistics(seenAt = Instant.fromEpochMilliseconds(0))
+        )
+        val expected = chatThread.asCopyable().copy(
+            contactId = TestContactId,
+            messages = listOfNotNull(updatedMessage.toMessage())
+        )
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.MessageCreated(chatThread, updatedMessage))
+        }
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun get_ignores_otherThanSelfThread_messageCreated() {
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.MessageCreated(makeChatThread(), makeMessageModel()))
+        }
+        assertNull(actual)
+    }
+
+    @Test
+    fun get_messageCreated_does_not_downgrade_read_status() {
+        val id = chatThread.id
+        val messageModel = makeMessageModel(threadIdOnExternalPlatform = id)
+        val readVersion = messageModel.copy(userStatistics = makeUserStatistics(readAt = Instant.fromEpochMilliseconds(0)))
+        // Pre-populate thread with Read status (simulates MessageReadChanged arriving before MessageCreated)
+        updateChatThread(chatThread.asCopyable().copy(messages = listOfNotNull(readVersion.toMessage())))
+        // MessageCreated arrives for the same message but with lower Delivered status
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.MessageCreated(chatThread, messageModel))
+        }
+        assertNotNull(actual)
+        assertEquals(MessageStatus.Read, actual.messages.single().metadata.status)
+    }
+
+    @Test
+    fun get_observes_threadRecovered() {
+        val id = chatThread.id
+        val initialMessage = makeMessageModel(threadIdOnExternalPlatform = id)
+        updateChatThread(
+            chatThread.asCopyable().copy(messages = chatThread.messages.plus(makeMessage(initialMessage)))
+        )
+        val messages = arrayOf(
+            makeMessageModel(threadIdOnExternalPlatform = id),
+            makeMessageModel(threadIdOnExternalPlatform = id)
+        )
+        val agent = makeAgent()
+        val scrollToken = "scrollToken"
+        val expected = chatThread.asCopyable().copy(
+            scrollToken = scrollToken,
+            messages = messages.mapNotNull(MessageModel::toMessage)
+                .plus(chatThread.messages)
+                .sortedBy(Message::createdAt),
+            threadAgent = agent.toAgent(),
+            fields = contactCustomFields,
+        )
+        val actual = testCallback(::get) {
+            sendServerMessage(
+                ServerResponse.ThreadRecovered(
+                    scrollToken = scrollToken,
+                    thread = expected,
+                    agent = agent,
+                    customerCustomFields = customerCustomFields,
+                    messages = messages
+                )
+            )
+        }
+        assertEquals<ChatThread>(expected, actual)
+        assertEquals(customerCustomFields, chat.fields)
+    }
+
+    @Test
+    fun recoverThreadBlockedInPending() {
+        for (state in ChatThreadState.entries) {
+            updateChatThread(chatThread.asCopyable().copy(threadState = state))
+            if (state !== Pending) {
+                assertSendText(ServerRequest.RecoverThread(connection, chatThread)) {
+                    thread.refresh()
+                }
+            } else {
+                assertSendsNothing { thread.refresh() }
+            }
+        }
+    }
+
+    @Test
+    fun get_ignores_otherThanSelfThread_threadRecovered() {
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.ThreadRecovered())
+        }
+        assertNull(actual)
+    }
+
+    @Test
+    fun get_updatesOlderCustomFieldsOnly_threadRecovered() {
+        val agent = makeAgent()
+        val scrollToken = "scrollToken"
+
+        val customerCustomFieldsInitial = listOf<CustomField>(
+            CustomFieldInternal(customerCustomFields[0].id, nextString(), Instant.fromEpochMilliseconds(0)),
+            CustomFieldInternal(customerCustomFields[1].id, nextString(), Instant.fromEpochMilliseconds(2)),
+        )
+        val customerCustomFieldsUpdate = listOf<CustomField>(
+            CustomFieldInternal(customerCustomFields[0].id, nextString(), Instant.fromEpochMilliseconds(1)),
+            CustomFieldInternal(customerCustomFields[1].id, nextString(), Instant.fromEpochMilliseconds(1)),
+        )
+        val expectedCustomerCustomFields = listOf(
+            customerCustomFieldsUpdate[0],
+            customerCustomFieldsInitial[1],
+        )
+
+        val contactCustomFieldsInitial = listOf<CustomField>(
+            CustomFieldInternal(contactCustomFields[0].id, nextString(), Instant.fromEpochMilliseconds(0)),
+            CustomFieldInternal(contactCustomFields[1].id, nextString(), Instant.fromEpochMilliseconds(2)),
+        )
+        val contactCustomFieldsUpdate = listOf<CustomField>(
+            CustomFieldInternal(contactCustomFields[0].id, nextString(), Instant.fromEpochMilliseconds(1)),
+            CustomFieldInternal(contactCustomFields[1].id, nextString(), Instant.fromEpochMilliseconds(1)),
+        )
+        val expectedContactCustomFields = listOf(
+            contactCustomFieldsUpdate[0],
+            contactCustomFieldsInitial[1],
+        )
+
+        // set up initial custom fields for customer and contact
+        (chat as ChatWithParameters).fields = customerCustomFieldsInitial
+        updateChatThread(
+            makeChatThread(
+                fields = contactCustomFieldsInitial
+            )
+        )
+        val id = chatThread.id
+        val messages = arrayOf(
+            makeMessageModel(threadIdOnExternalPlatform = id),
+            makeMessageModel(threadIdOnExternalPlatform = id)
+        )
+        val expected = chatThread.asCopyable().copy(
+            scrollToken = scrollToken,
+            messages = messages.mapNotNull(MessageModel::toMessage) + chatThread.messages,
+            threadAgent = agent.toAgent(),
+            fields = expectedContactCustomFields,
+        )
+        val actual = testCallback(::get) {
+            sendServerMessage(
+                ServerResponse.ThreadRecovered(
+                    scrollToken,
+                    expected,
+                    agent = agent,
+                    messages = messages,
+                    customerCustomFields = customerCustomFieldsUpdate
+                )
+            )
+        }
+        assertEquals(expected, actual)
+        assertEquals(expectedCustomerCustomFields, chat.fields)
+    }
+
+    @Test
+    fun refresh_sendsExpectedMessage() {
+        val id = chatThread.id
+        assertSendText(ServerRequest.RecoverThread(connection, chatThread), id.toString()) {
+            thread.refresh()
+        }
+    }
+
+    @Test
+    fun get_observes_agentTypingStarted() {
+        val agent = makeAgent()
+        val threadAgent1 = agent.toAgent()
+        assertFalse(threadAgent1.isTyping, "Agent isTyping should be false")
+        updateChatThread(chatThread.asCopyable().copy(threadAgent = threadAgent1))
+        val thread = chatThread
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.TypingStarted(thread))
+        }
+        assertNull(actual)
+    }
+
+    @Test
+    fun get_observes_agentTypingStarted_withAgentInEvent() {
+        val agent = makeAgent()
+        val thread = chatThread
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.TypingStarted(thread, agent))
+        }
+        val expected = thread.asCopyable().copy(threadAgent = agent.toAgent().asCopyable().copy(isTyping = true))
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun get_observes_agentTypingEnded() {
+        // prime the returned thread and ensure the test doesn't return false positive
+        get_observes_agentTypingStarted()
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.TypingEnded(chatThread))
+        }
+        assertNull(actual)
+    }
+
+    @Test
+    fun get_observes_agentTypingEnded_withAgentInEvent() {
+        // prime the returned thread and ensure the test doesn't return false positive
+        get_observes_agentTypingStarted_withAgentInEvent()
+        val agent = makeAgent()
+        val threadAgent = agent.toAgent()
+        assertFalse(threadAgent.isTyping, "Agent isTyping should be false")
+        val expected = chatThread.asCopyable().copy(threadAgent = threadAgent)
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.TypingEnded(expected, agent))
+        }
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun archiveHappyPath() {
+        val uuid = UUID.randomUUID()
+
+        UUIDProvider.next = { uuid }
+
+        chatThread.canAddMoreMessages shouldBe true
+
+        val result = CompletableDeferred<Boolean>()
+        launchAndAssertSendText(ServerRequest.ArchiveThread(connection, chatThread)) {
+            result.complete(thread.archive())
+        }
+
+        result.isCompleted shouldBe false
+        chatThread.canAddMoreMessages shouldBe false
+
+        socketServer.sendServerMessage(ServerResponse.ThreadArchived(uuid.toString()))
+
+        result.isCompleted shouldBe true
+        runBlocking { result.await() } shouldBe true
+        chatThread.canAddMoreMessages shouldBe false
+    }
+
+    @Test
+    fun archiveFailure() {
+        val uuid = UUID.randomUUID()
+
+        UUIDProvider.next = { uuid }
+
+        chatThread.canAddMoreMessages shouldBe true
+
+        val result = CompletableDeferred<Boolean>()
+        launchAndAssertSendText(ServerRequest.ArchiveThread(connection, chatThread)) {
+            result.complete(thread.archive())
+        }
+
+        result.isCompleted shouldBe false
+        chatThread.canAddMoreMessages shouldBe false
+
+        socketServer.sendServerMessage(ServerResponse.ErrorResponse(ErrorType.ArchivingThreadFailed.value))
+
+        result.isCompleted shouldBe true
+        runBlocking { result.await() } shouldBe false
+        chatThread.canAddMoreMessages shouldBe true
+    }
+
+    @Test
+    fun archiveException() {
+        val uuid = UUID.randomUUID()
+
+        UUIDProvider.next = { uuid }
+
+        chatThread.canAddMoreMessages shouldBe true
+
+        every { socket.send(any<String>()) } throws ServerCommunicationError("Archive failed")
+
+        runBlocking {
+            thread.archive() shouldBe false
+        }
+        chatThread.canAddMoreMessages shouldBe true
+    }
+
+    @Test
+    fun unsupported_message_created_triggers_answer() {
+        val id = chatThread.id
+        val messageObject = ServerResponse.Message.PluginMenu(id)
+        val messageModel = Default.serializer.decodeFromString<MessageModel>(messageObject.serialize())
+        val message = messageModel.toMessage() as Message.Unsupported
+        val expected = chatThread.asCopyable().copy(
+            contactId = TestContactId,
+            messages = listOfNotNull(message)
+        )
+        val actual = testCallback(::get) {
+            assertSendTexts(
+                ServerRequest.SendMessage(
+                    connection = connection,
+                    thread = chatThread,
+                    storage = storage,
+                    message = "Last agent's message is not supported in the mobile SDK.\nFallback text is:${message.text}",
+                    parameters = Parameters.Object(
+                        isUnsupportedMessageTypeAnswer = true
+                    )
+                ),
+                replaceDate = true
+            ) {
+                sendServerMessage(ServerResponse.MessageCreated(chatThread, messageObject))
+            }
+        }
+        assertEquals(expected, actual)
+    }
+
+    // --- threadFlow tests ---
+
+    @Test
+    fun threadFlow_observes_messageCreated() {
+        val id = chatThread.id
+        val messageModel = makeMessageModel(threadIdOnExternalPlatform = id)
+        val expected = chatThread.asCopyable().copy(
+            contactId = TestContactId,
+            messages = listOfNotNull(messageModel.toMessage())
+        )
+        var actual: ChatThread? = null
+        val job = testScope.launch {
+            actual = thread.threadFlow.drop(1).first()
+        }
+        socketServer.sendServerMessage(ServerResponse.MessageCreated(chatThread, messageModel))
+        job.cancel()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun threadFlow_ignores_otherThread_messageCreated() {
+        var actual: ChatThread? = null
+        val job = testScope.launch {
+            actual = thread.threadFlow.drop(1).first()
+        }
+        socketServer.sendServerMessage(ServerResponse.MessageCreated(makeChatThread(), makeMessageModel()))
+        job.cancel()
+        assertNull(actual)
+    }
+
+    @Test
+    fun `threadFlow delivers messageCreated to multiple concurrent collectors of the same handler`() {
+        // Simulates the list screen's background subscription and the conversation screen's own
+        // subscription both collecting the same ChatThreadHandler.threadFlow at once.
+        val id = chatThread.id
+        val messageModel = makeMessageModel(threadIdOnExternalPlatform = id)
+        val expected = chatThread.asCopyable().copy(
+            contactId = TestContactId,
+            messages = listOfNotNull(messageModel.toMessage())
+        )
+        var firstCollectorResult: ChatThread? = null
+        var secondCollectorResult: ChatThread? = null
+        val firstJob = testScope.launch { firstCollectorResult = thread.threadFlow.drop(1).first() }
+        val secondJob = testScope.launch { secondCollectorResult = thread.threadFlow.drop(1).first() }
+        socketServer.sendServerMessage(ServerResponse.MessageCreated(chatThread, messageModel))
+        firstJob.cancel()
+        secondJob.cancel()
+        assertEquals(expected, firstCollectorResult, "First concurrent collector must observe the new message")
+        assertEquals(expected, secondCollectorResult, "Second concurrent collector must observe the new message")
+    }
+
+    @Test
+    fun threadFlow_observes_threadRecovered() {
+        val id = chatThread.id
+        val initialMessage = makeMessageModel(threadIdOnExternalPlatform = id)
+        updateChatThread(
+            chatThread.asCopyable().copy(messages = chatThread.messages.plus(makeMessage(initialMessage)))
+        )
+        val messages = arrayOf(
+            makeMessageModel(threadIdOnExternalPlatform = id),
+            makeMessageModel(threadIdOnExternalPlatform = id)
+        )
+        val agent = makeAgent()
+        val scrollToken = "scrollToken"
+        val expected = chatThread.asCopyable().copy(
+            scrollToken = scrollToken,
+            messages = messages.mapNotNull(MessageModel::toMessage)
+                .plus(chatThread.messages)
+                .sortedBy(Message::createdAt),
+            threadAgent = agent.toAgent(),
+            fields = contactCustomFields,
+        )
+        var actual: ChatThread? = null
+        val job = testScope.launch {
+            actual = thread.threadFlow.drop(1).first()
+        }
+        socketServer.sendServerMessage(
+            ServerResponse.ThreadRecovered(
+                scrollToken = scrollToken,
+                thread = expected,
+                agent = agent,
+                customerCustomFields = customerCustomFields,
+                messages = messages
+            )
+        )
+        job.cancel()
+        assertEquals<ChatThread?>(expected, actual)
+        assertEquals(customerCustomFields, chat.fields)
+    }
+
+    @Test
+    fun threadFlow_emits_initial_state() {
+        var initial: ChatThread? = null
+        val job = testScope.launch {
+            initial = thread.threadFlow.first()
+        }
+        job.cancel()
+        assertNotNull(initial)
+        assertEquals(chatThread.id, initial?.id)
+    }
+
+    @Test
+    fun threadFlow_observes_threadUpdated() {
+        var actual: ChatThread? = null
+        val job = testScope.launch {
+            actual = thread.threadFlow.drop(1).first()
+        }
+        socketServer.sendServerMessage("""{"postback":{"eventType":"ThreadUpdated","data":{"id":"${chatThread.id}"}}}""")
+        job.cancel()
+        assertNotNull(actual)
+    }
+
+    @Test
+    fun threadFlow_ignores_otherThread_threadUpdated() {
+        var actual: ChatThread? = null
+        val job = testScope.launch {
+            actual = thread.threadFlow.drop(1).first()
+        }
+        socketServer.sendServerMessage("""{"postback":{"eventType":"ThreadUpdated","data":{"id":"${UUID.randomUUID()}"}}}""")
+        job.cancel()
+        assertNull(actual)
+    }
+
+    // ---
+
+    private fun get(listener: (ChatThread) -> Unit): Cancellable {
+        val job = testScope.launch { thread.threadFlow.drop(1).collect { listener(it) } }
+        return Cancellable { job.cancel() }
+    }
+
+    private fun updateChatThread(updatedThread: ChatThread) {
+        val threadMutable = updatedThread.asMutable() // Handlers are memoized, therefore mutating the thread is required
+        if (::chatThread.isInitialized) {
+            chatThread.update(threadMutable)
+        } else {
+            chatThread = threadMutable
+        }
+        thread = chat.threads().thread(threadMutable)
+    }
+}

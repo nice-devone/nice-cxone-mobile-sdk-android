@@ -15,17 +15,16 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
+import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
-import org.junit.Rule
+import androidx.compose.ui.test.tryPerformAccessibilityChecks
+import com.nice.cxonechat.ui.AbstractComponentActivityUiTest
+import com.nice.cxonechat.ui.R
 import org.junit.Test
 
-class PositionInQueueTest {
-
-    @get:Rule
-    val composeTestRule = createComposeRule()
+class PositionInQueueTest : AbstractComponentActivityUiTest() {
 
     @Test
     fun positionInQueue_displaysCorrectTitleForPosition() {
@@ -33,8 +32,12 @@ class PositionInQueueTest {
         composeTestRule.setContent {
             PositionInQueue(position = testPosition)
         }
-        composeTestRule.onNodeWithTag("position_in_queue_content_view").assertIsDisplayed()
-        composeTestRule.onNodeWithText("You are number $testPosition in line.").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("position_in_queue_content_view")
+            .assertIsDisplayed()
+            .tryPerformAccessibilityChecks()
+        composeTestRule.onNodeWithText("You are number $testPosition in line.")
+            .assertContentDescriptionEquals("You are number $testPosition in line.")
+            .assertIsDisplayed()
         composeTestRule.onNodeWithTag("loading_animation_view", useUnmergedTree = true).assertIsDisplayed()
     }
 
@@ -44,6 +47,8 @@ class PositionInQueueTest {
             PositionInQueue(position = 1)
         }
         // Replace with the actual string from resources if needed
-        composeTestRule.onNodeWithText("You are next in line.").assertIsDisplayed()
+        composeTestRule.onNodeWithText(getString(R.string.position_in_queue_next))
+            .assertIsDisplayed()
+            .tryPerformAccessibilityChecks()
     }
 }

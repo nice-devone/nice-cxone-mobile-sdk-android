@@ -44,42 +44,45 @@ class ChatConversationViewModel : ViewModel() {
     private val chat = ChatInstanceProvider.get().chat.let(::requireNotNull)
     private val handlerThreads = chat.threads()
     private lateinit var handlerThread: ChatThreadHandler
-    private lateinit var cancellableThreads: Cancellable
-    private var cancellableThread: Cancellable? = null
     var thread: ChatThread? = null
         private set
 
     init {
-        cancellableThreads = handlerThreads.threads { // (1)
-            cancellableThreads.cancel() // (2)
-            handlerThread = when (val thread = it.firstOrNull()) { // (3)
-                null -> handlerThreads.create()
-                else -> handlerThreads.thread(thread)
-            }
-            cancellableThread = handlerThread.get { // (4)
-                thread = it
-                // notify ui
-            }
-        }
-    }
+        viewModelScope.launch {
+            // (1) Fetch the current threads list (first emission) and pick or create a thread
+            val existingThread = handlerThreads.threadsFlow
+                .first()
+                .firstOrNull()
 
-    override fun onCleared() {
-        cancellableThreads.cancel()
-        cancellableThread?.cancel()
+            handlerThread = when (existingThread) { // (2)
+                null -> handlerThreads.create()
+                else -> handlerThreads.thread(existingThread)
+            }
+
+            // (3) Observe the thread for updates
+            handlerThread.threadFlow
+                .onStart { handlerThread.refresh() }
+                .collect { updated ->
+                    thread = updated
+                    // notify ui
+                }
+        }
     }
 
 }
 ```
 
-- (1) Fetch a current Threads list
-  - Note the `refresh` call after setting a listener
-- (2) Cancel the Threads listener
-  - We need to dispose of the Threads listener to prevent further calls
-  - In this case all we care about is the first list
-- (3) Create or select a Thread
+- (1) `threadsFlow` triggers `refresh()` automatically on first collection and emits the current
+  list; `first()` awaits that initial emission and then cancels collection — equivalent to the
+  one-shot callback cancel pattern
+- (2) Create or select a Thread
   - When Thread exists, then pick a thread otherwise create a new one.
   - Since the Chat automatically creates thread if there is no pre-chat survey,
     we can assume that survey is required if thread is not present.
+- (3) `.onStart { handlerThread.refresh() }` fires once collection is active, asking the server
+  for the latest thread state; subsequent emissions arrive via `threadFlow` whenever the server
+  sends an update for this thread. Without the `onStart` hook, `refresh()` would run before a
+  collector is registered and would be a no-op per `ChatThreadHandler.refresh()`'s contract.
 
 [cs-instance-holder]: cs-instance-holder.md
 

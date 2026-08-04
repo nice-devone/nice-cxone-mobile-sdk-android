@@ -1,4 +1,7 @@
 # Add project specific ProGuard rules here.
+
+# AppAuth
+-keep class net.openid.appauth.** { *; }
 # You can control the set of applied configuration files using the
 # proguardFiles setting in build.gradle.
 #
@@ -19,13 +22,3 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
-
-
-# Amazon SSO SDK - Preserve package and methods from minification/optimization
-# to ensure StrictMode rules can properly match the call stack
--keep class com.amazon.identity.auth.device.StoredPreferences {
-    public *** setTokenObtainedFromSSO(...);
-}
--keepclassmembers class com.amazon.identity.auth.device.StoredPreferences {
-    *** setTokenObtainedFromSSO(...);
-}

@@ -13,26 +13,25 @@
  * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
  */
 
+import com.nice.cxonechat.configurePomMetadata
+
 plugins {
-    id("android-library-conventions")
-    id("android-kotlin-conventions")
-    id("android-docs-conventions")
-    id("android-test-conventions")
-    id("android-library-style-conventions")
-    id("publish-conventions")
+    alias(libs.plugins.cxone.chat.android.library)
+    alias(libs.plugins.cxone.chat.android.kotlin)
+    alias(libs.plugins.cxone.chat.android.docs)
+    alias(libs.plugins.cxone.chat.android.test)
+    alias(libs.plugins.cxone.chat.android.library.style)
+    alias(libs.plugins.cxone.chat.publish)
     alias(libs.plugins.kotlin.serialization) apply true
+    alias(libs.plugins.dokka.javadoc)
 }
 
 android {
     namespace = "com.nice.cxonechat.log.client"
-    defaultConfig {
-        consumerProguardFiles("consumer-rules.pro")
-    }
 
     publishing {
         singleVariant("release") {
             withSourcesJar()
-            withJavadocJar()
         }
     }
 }
@@ -53,10 +52,9 @@ afterEvaluate {
         publications {
             create<MavenPublication>("release") {
                 from(components["release"])
+                artifact(tasks.named("javadocJar"))
 
-                pom {
-                    project.extensions.extraProperties["configurePomMetadata"].let { it as groovy.lang.Closure<*> }.call(this)
-                }
+                pom { project.configurePomMetadata(this) }
             }
         }
     }

@@ -5,7 +5,14 @@ on:
     branches:
       - "main"
     paths:
-      - "**/src/main/**.kt"
+      - '**/src/main/**.kt'
+      - '**/README.md'
+      - 'build.gradle.kts'
+      - 'build-logic/**'
+      - '**/*.gradle.kts'
+      - 'gradle/libs.versions.toml'
+      - 'settings.gradle.kts'
+      - '.github/workflows/deploy-javadoc.yml'
   workflow_dispatch:
 
 jobs:
@@ -14,7 +21,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up JDK
         uses: actions/setup-java@v5
@@ -23,7 +30,7 @@ jobs:
           distribution: "temurin" # aka adopt
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
+        uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
 
       - name: Run build
         run: ./gradlew dokkaGenerate -Pandroid.experimental.settings.executionProfile=ci
@@ -31,7 +38,7 @@ jobs:
           GPR_USERNAME: ${{ github.repository_owner }}
           GPR_TOKEN: ${{ github.token }}
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: javadoc-html
           path: dist
@@ -42,7 +49,7 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Prepare Repository
         run: |
@@ -50,12 +57,12 @@ jobs:
           rm -rf .github .idea .gitignore .chglog
           git checkout --orphan static-feature/pages
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: javadoc-html
 
       - name: Add & Commit
-        uses: EndBug/add-and-commit@v9.1.4
+        uses: EndBug/add-and-commit@290ea2c423ad77ca9c62ae0f5b224379612c0321 # v10.0.0
         with:
           push: origin static-feature/pages --force
           message: 'Documentation'

@@ -30,38 +30,38 @@ class ChatAllConversationsViewModel(
     private val navigator: MyNavigator,
 ) : ViewModel() {
 
-    var threads = emptyList<ChatThread>()
-
     private val chat = ChatInstanceProvider.get().chat.let(::requireNotNull)
     private val handlerThreads = chat.threads()
-    private val cancellable = handlerThreads.threads {
-        threads = it
-        // notify ui
-    }.also { handlerThreads.refresh() }
+
+    val threads = handlerThreads.threadsFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
     fun onClickThread(thread: ChatThread) {
         navigator.toDetail(thread)
     }
 
-    override fun onCleared() {
-        cancellable.cancel()
-    }
-
 }
 ```
 
-### `ChatAllConversationViewModel.kt`
+### `ChatConversationDetailViewModel.kt`
 
-This ViewModel also demonstrates how to detect which messages are sent. Note that you might want to
-use WeakReferences to your ViewModel to avoid immediate memory leaks.
+This ViewModel also demonstrates how to send messages. The sample uses `Flow`/coroutines rather
+than listener callbacks, so lifecycle is tied to `viewModelScope` — there is no manual listener
+bookkeeping to do.
 
-> All listeners are cleared after calling `Chat::close`, thereafter are ViewModels withheld from GC
-> cleared. This only regards the cases where you'd accidentally use hard references on dead objects.
+> Keep long-lived handlers on the ViewModel and avoid recreating them unnecessarily. Collect
+> `Flow`s with `viewModelScope` so collection is cancelled automatically when the ViewModel is
+> cleared, and close any handler that implements `AutoCloseable` from `onCleared()` (shown below
+> with `handlerAction.close()`).
+
+Extending `AndroidViewModel` gives us a safe `Application` context for building
+`ContentDescriptor`s without leaking an `Activity`/`Fragment`.
 
 ```kotlin
-class ChatAllConversationViewModel(
+class ChatConversationDetailViewModel(
     thread: ChatThread,
-) : ViewModel() {
+    application: Application,
+) : AndroidViewModel(application) {
 
     private val chat = ChatInstanceProvider.get().chat.let(::requireNotNull)
     private val handlerThreads = chat.threads()
@@ -69,26 +69,26 @@ class ChatAllConversationViewModel(
     private val handlerMessage = handlerThread.messages()
     private val handlerAction = handlerThread.actions()
     private val handlerEvents = handlerThread.events()
-    private val cancellable = handlerThread.get {
-        if (isInForeground) handlerEvents.markThreadRead()
-        // notify ui that ::thread has changed
-    }.also { handlerThread.refresh() }
-    private val sentListener = MessageListener(WeakReference(this))
 
+    val thread: StateFlow<ChatThread> = handlerThread.threadFlow
+        .onEach { if (isInForeground) handlerEvents.markThreadRead() }
+        .onStart { handlerThread.refresh() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), handlerThread.get())
+
+    val popups: SharedFlow<Popup> = handlerAction.popupFlow
+        .shareIn(viewModelScope, SharingStarted.WhileSubscribed(), replay = 1)
+
+    val messagesSent = mutableSetOf<String>()
     var isInForeground = true
-    val thread get() = handlerThread.get()
-    val messagesSent = mutableSetOf<UUID>()
 
     fun setName(name: String) {
         handlerThread.setName(name)
     }
 
-    fun setOnPopupListener(listener: ChatActionHandler.OnPopupActionListener) {
-        handlerAction.onPopup(listener)
-    }
-
     fun onClickArchive() {
-        handlerThread.archive()
+        viewModelScope.launch {
+            handlerThread.archive()
+        }
     }
 
     fun onEndReached() {
@@ -96,30 +96,34 @@ class ChatAllConversationViewModel(
     }
 
     fun send(text: String) {
-        handlerMessage.send(OutboundMessage(text), sentListener)
+        viewModelScope.launch {
+            val id = handlerMessage.send(OutboundMessage(text))
+            messagesSent.add(id)
+        }
     }
-    
+
     fun send(text: String, postback: String) {
-        handlerMessage.send(OutboundMessage(text, postback), sentListener)
+        viewModelScope.launch {
+            val id = handlerMessage.send(OutboundMessage(text, postback))
+            messagesSent.add(id)
+        }
     }
 
     fun send(file: File) {
-        val descriptor =
-            ContentDescriptor(uri = Uri.fromFile(file), context = appli, mimeType = "application/pdf", fileName = file.name)
-        handlerMessage.send(OutboundMessage(listOf(descriptor)), listener = sentListener)
+        viewModelScope.launch {
+            val descriptor = ContentDescriptor(
+                content = Uri.fromFile(file),
+                context = getApplication(),
+                mimeType = "application/pdf",
+                fileName = file.name,
+            )
+            val id = handlerMessage.send(OutboundMessage(listOf(descriptor)))
+            messagesSent.add(id)
+        }
     }
 
     override fun onCleared() {
-        cancellable.cancel()
         handlerAction.close()
-    }
-
-    private class MessageListener(
-        private val reference: WeakReference<ChatAllConversationViewModel>,
-    ) : OnMessageTransferListener {
-        override fun onSent(id: UUID) {
-            reference.get()?.messagesSent?.add(id)
-        }
     }
 
 }
