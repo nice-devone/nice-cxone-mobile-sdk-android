@@ -22,129 +22,71 @@ public final class com/nice/cxonechat/Cancellable$Companion {
 public abstract interface class com/nice/cxonechat/Chat : java/lang/AutoCloseable {
 	public abstract fun actions ()Lcom/nice/cxonechat/ChatActionHandler;
 	public abstract fun close ()V
-	public abstract fun connect ()Lcom/nice/cxonechat/Cancellable;
+	public abstract fun closeSuspending (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun connect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun customFields ()Lcom/nice/cxonechat/ChatFieldHandler;
 	public abstract fun events ()Lcom/nice/cxonechat/ChatEventHandler;
-	public abstract fun getChannelAvailability (Lkotlin/jvm/functions/Function1;)Lcom/nice/cxonechat/Cancellable;
+	public abstract fun getChannelAvailability (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getChatMode ()Lcom/nice/cxonechat/ChatMode;
 	public abstract fun getConfiguration ()Lcom/nice/cxonechat/state/Configuration;
 	public abstract fun getEnvironment ()Lcom/nice/cxonechat/state/Environment;
 	public abstract fun getFields ()Ljava/util/Collection;
+	public abstract fun getStateFlow ()Lkotlinx/coroutines/flow/SharedFlow;
 	public abstract fun isChatAvailable ()Z
 	public abstract fun setDeviceToken (Ljava/lang/String;)V
 	public abstract fun setUserName (Ljava/lang/String;Ljava/lang/String;)V
-	public abstract fun signOut ()V
+	public abstract fun signOut (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun threads ()Lcom/nice/cxonechat/ChatThreadsHandler;
 }
 
 public abstract interface class com/nice/cxonechat/ChatActionHandler : java/lang/AutoCloseable {
 	public abstract fun close ()V
-	public abstract fun onPopup (Lcom/nice/cxonechat/ChatActionHandler$OnPopupActionListener;)V
-}
-
-public abstract interface class com/nice/cxonechat/ChatActionHandler$OnPopupActionListener {
-	public abstract fun onShowPopup (Ljava/util/Map;Lcom/nice/cxonechat/analytics/ActionMetadata;)V
+	public abstract fun getPopupFlow ()Lkotlinx/coroutines/flow/Flow;
 }
 
 public abstract interface class com/nice/cxonechat/ChatBuilder {
 	public static final field Companion Lcom/nice/cxonechat/ChatBuilder$Companion;
-	public abstract fun build (Lcom/nice/cxonechat/ChatBuilder$OnChatBuiltResultCallback;)Lcom/nice/cxonechat/Cancellable;
-	public static fun getDefault (Landroid/content/Context;Lcom/nice/cxonechat/SocketFactoryConfiguration;)Lcom/nice/cxonechat/ChatBuilder;
-	public static fun getDefault (Landroid/content/Context;Lcom/nice/cxonechat/SocketFactoryConfiguration;Lcom/nice/cxonechat/log/Logger;)Lcom/nice/cxonechat/ChatBuilder;
-	public static fun invoke (Landroid/content/Context;Lcom/nice/cxonechat/SocketFactoryConfiguration;)Lcom/nice/cxonechat/ChatBuilder;
-	public static fun invoke (Landroid/content/Context;Lcom/nice/cxonechat/SocketFactoryConfiguration;Lcom/nice/cxonechat/log/Logger;)Lcom/nice/cxonechat/ChatBuilder;
+	public abstract fun build (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun setAuthorization (Lcom/nice/cxonechat/Authorization;)Lcom/nice/cxonechat/ChatBuilder;
 	public abstract fun setChatStateListener (Lcom/nice/cxonechat/ChatStateListener;)Lcom/nice/cxonechat/ChatBuilder;
 	public abstract fun setCustomerId (Ljava/lang/String;)Lcom/nice/cxonechat/ChatBuilder;
 	public abstract fun setDevelopmentMode (Z)Lcom/nice/cxonechat/ChatBuilder;
 	public abstract fun setDeviceToken (Ljava/lang/String;)Lcom/nice/cxonechat/ChatBuilder;
+	public abstract fun setTokenDelegateListener (Lcom/nice/cxonechat/TokenDelegateListener;)Lcom/nice/cxonechat/ChatBuilder;
 	public abstract fun setUserName (Ljava/lang/String;Ljava/lang/String;)Lcom/nice/cxonechat/ChatBuilder;
 }
 
 public final class com/nice/cxonechat/ChatBuilder$Companion {
-	public final fun getDefault (Landroid/content/Context;Lcom/nice/cxonechat/SocketFactoryConfiguration;)Lcom/nice/cxonechat/ChatBuilder;
-	public final fun getDefault (Landroid/content/Context;Lcom/nice/cxonechat/SocketFactoryConfiguration;Lcom/nice/cxonechat/log/Logger;)Lcom/nice/cxonechat/ChatBuilder;
-	public static synthetic fun getDefault$default (Lcom/nice/cxonechat/ChatBuilder$Companion;Landroid/content/Context;Lcom/nice/cxonechat/SocketFactoryConfiguration;Lcom/nice/cxonechat/log/Logger;ILjava/lang/Object;)Lcom/nice/cxonechat/ChatBuilder;
-	public final fun invoke (Landroid/content/Context;Lcom/nice/cxonechat/SocketFactoryConfiguration;)Lcom/nice/cxonechat/ChatBuilder;
-	public final fun invoke (Landroid/content/Context;Lcom/nice/cxonechat/SocketFactoryConfiguration;Lcom/nice/cxonechat/log/Logger;)Lcom/nice/cxonechat/ChatBuilder;
-	public static synthetic fun invoke$default (Lcom/nice/cxonechat/ChatBuilder$Companion;Landroid/content/Context;Lcom/nice/cxonechat/SocketFactoryConfiguration;Lcom/nice/cxonechat/log/Logger;ILjava/lang/Object;)Lcom/nice/cxonechat/ChatBuilder;
-}
-
-public abstract interface class com/nice/cxonechat/ChatBuilder$OnChatBuiltCallback {
-	public abstract fun onChatBuilt (Lcom/nice/cxonechat/Chat;)V
-}
-
-public abstract interface class com/nice/cxonechat/ChatBuilder$OnChatBuiltResultCallback {
-	public abstract fun onChatBuiltResult (Ljava/lang/Object;)V
+	public final synthetic fun getDefault (Landroid/content/Context;Lcom/nice/cxonechat/SocketFactoryConfiguration;Lcom/nice/cxonechat/log/Logger;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun getDefault$default (Lcom/nice/cxonechat/ChatBuilder$Companion;Landroid/content/Context;Lcom/nice/cxonechat/SocketFactoryConfiguration;Lcom/nice/cxonechat/log/Logger;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final synthetic fun invoke (Landroid/content/Context;Lcom/nice/cxonechat/SocketFactoryConfiguration;Lcom/nice/cxonechat/log/Logger;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun invoke$default (Lcom/nice/cxonechat/ChatBuilder$Companion;Landroid/content/Context;Lcom/nice/cxonechat/SocketFactoryConfiguration;Lcom/nice/cxonechat/log/Logger;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public abstract interface class com/nice/cxonechat/ChatEventHandler {
-	public abstract fun trigger (Lcom/nice/cxonechat/event/ChatEvent;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatEventHandler$OnEventErrorListener;)V
-	public static synthetic fun trigger$default (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/event/ChatEvent;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatEventHandler$OnEventErrorListener;ILjava/lang/Object;)V
-}
-
-public abstract interface class com/nice/cxonechat/ChatEventHandler$OnEventErrorListener {
-	public abstract fun onError (Lcom/nice/cxonechat/exceptions/CXoneException;)V
-}
-
-public abstract interface class com/nice/cxonechat/ChatEventHandler$OnEventSentListener {
-	public abstract fun onSent ()V
+	public abstract fun trigger (Lcom/nice/cxonechat/event/ChatEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class com/nice/cxonechat/ChatEventHandlerActions {
 	public static final field INSTANCE Lcom/nice/cxonechat/ChatEventHandlerActions;
-	public static final fun chatWindowOpen (Lcom/nice/cxonechat/ChatEventHandler;)V
-	public static final fun chatWindowOpen (Lcom/nice/cxonechat/ChatEventHandler;Ljava/util/Date;)V
-	public static final fun chatWindowOpen (Lcom/nice/cxonechat/ChatEventHandler;Ljava/util/Date;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;)V
-	public static final fun chatWindowOpen (Lcom/nice/cxonechat/ChatEventHandler;Ljava/util/Date;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatEventHandler$OnEventErrorListener;)V
-	public static synthetic fun chatWindowOpen$default (Lcom/nice/cxonechat/ChatEventHandler;Ljava/util/Date;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatEventHandler$OnEventErrorListener;ILjava/lang/Object;)V
-	public static final fun conversion (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/String;Ljava/lang/Number;)V
-	public static final fun conversion (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/String;Ljava/lang/Number;Ljava/util/Date;)V
-	public static final fun conversion (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/String;Ljava/lang/Number;Ljava/util/Date;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;)V
-	public static final fun conversion (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/String;Ljava/lang/Number;Ljava/util/Date;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatEventHandler$OnEventErrorListener;)V
-	public static synthetic fun conversion$default (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/String;Ljava/lang/Number;Ljava/util/Date;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatEventHandler$OnEventErrorListener;ILjava/lang/Object;)V
-	public static final fun customVisitor (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/Object;)V
-	public static final fun customVisitor (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/Object;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;)V
-	public static final fun customVisitor (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/Object;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatEventHandler$OnEventErrorListener;)V
-	public static synthetic fun customVisitor$default (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/Object;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatEventHandler$OnEventErrorListener;ILjava/lang/Object;)V
-	public static final fun event (Lcom/nice/cxonechat/ChatEventHandler;Ljava/util/UUID;)V
-	public static final fun event (Lcom/nice/cxonechat/ChatEventHandler;Ljava/util/UUID;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;)V
-	public static final fun event (Lcom/nice/cxonechat/ChatEventHandler;Ljava/util/UUID;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatEventHandler$OnEventErrorListener;)V
-	public static synthetic fun event$default (Lcom/nice/cxonechat/ChatEventHandler;Ljava/util/UUID;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatEventHandler$OnEventErrorListener;ILjava/lang/Object;)V
-	public static final fun pageView (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/String;Ljava/lang/String;)V
-	public static final fun pageView (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/String;Ljava/lang/String;Ljava/util/Date;)V
-	public static final fun pageView (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/String;Ljava/lang/String;Ljava/util/Date;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;)V
-	public static final fun pageView (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/String;Ljava/lang/String;Ljava/util/Date;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatEventHandler$OnEventErrorListener;)V
-	public static synthetic fun pageView$default (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/String;Ljava/lang/String;Ljava/util/Date;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatEventHandler$OnEventErrorListener;ILjava/lang/Object;)V
-	public static final fun pageViewEnded (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/String;Ljava/lang/String;)V
-	public static final fun pageViewEnded (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/String;Ljava/lang/String;Ljava/util/Date;)V
-	public static final fun pageViewEnded (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/String;Ljava/lang/String;Ljava/util/Date;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;)V
-	public static final fun pageViewEnded (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/String;Ljava/lang/String;Ljava/util/Date;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatEventHandler$OnEventErrorListener;)V
-	public static synthetic fun pageViewEnded$default (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/String;Ljava/lang/String;Ljava/util/Date;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatEventHandler$OnEventErrorListener;ILjava/lang/Object;)V
-	public static final fun proactiveActionClick (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;)V
-	public static final fun proactiveActionClick (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;Ljava/util/Date;)V
-	public static final fun proactiveActionClick (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;Ljava/util/Date;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;)V
-	public static final fun proactiveActionClick (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;Ljava/util/Date;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatEventHandler$OnEventErrorListener;)V
-	public static synthetic fun proactiveActionClick$default (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;Ljava/util/Date;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatEventHandler$OnEventErrorListener;ILjava/lang/Object;)V
-	public static final fun proactiveActionDisplay (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;)V
-	public static final fun proactiveActionDisplay (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;Ljava/util/Date;)V
-	public static final fun proactiveActionDisplay (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;Ljava/util/Date;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;)V
-	public static final fun proactiveActionDisplay (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;Ljava/util/Date;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatEventHandler$OnEventErrorListener;)V
-	public static synthetic fun proactiveActionDisplay$default (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;Ljava/util/Date;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatEventHandler$OnEventErrorListener;ILjava/lang/Object;)V
-	public static final fun proactiveActionFailure (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;)V
-	public static final fun proactiveActionFailure (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;Ljava/util/Date;)V
-	public static final fun proactiveActionFailure (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;Ljava/util/Date;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;)V
-	public static final fun proactiveActionFailure (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;Ljava/util/Date;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatEventHandler$OnEventErrorListener;)V
-	public static synthetic fun proactiveActionFailure$default (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;Ljava/util/Date;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatEventHandler$OnEventErrorListener;ILjava/lang/Object;)V
-	public static final fun proactiveActionSuccess (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;)V
-	public static final fun proactiveActionSuccess (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;Ljava/util/Date;)V
-	public static final fun proactiveActionSuccess (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;Ljava/util/Date;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;)V
-	public static final fun proactiveActionSuccess (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;Ljava/util/Date;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatEventHandler$OnEventErrorListener;)V
-	public static synthetic fun proactiveActionSuccess$default (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;Ljava/util/Date;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatEventHandler$OnEventErrorListener;ILjava/lang/Object;)V
-	public static final fun refresh (Lcom/nice/cxonechat/ChatEventHandler;)V
-	public static final fun refresh (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;)V
-	public static final fun refresh (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatEventHandler$OnEventErrorListener;)V
-	public static synthetic fun refresh$default (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/ChatEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatEventHandler$OnEventErrorListener;ILjava/lang/Object;)V
+	public static final fun chatWindowOpen (Lcom/nice/cxonechat/ChatEventHandler;Lkotlin/time/Instant;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun chatWindowOpen$default (Lcom/nice/cxonechat/ChatEventHandler;Lkotlin/time/Instant;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun conversion (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/String;Ljava/lang/Number;Lkotlin/time/Instant;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun conversion$default (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/String;Ljava/lang/Number;Lkotlin/time/Instant;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun customVisitor (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun event (Lcom/nice/cxonechat/ChatEventHandler;Ljava/util/UUID;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun pageView (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun pageView$default (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun pageViewEnded (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun pageViewEnded$default (Lcom/nice/cxonechat/ChatEventHandler;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun proactiveActionClick (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;Lkotlin/time/Instant;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun proactiveActionClick$default (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;Lkotlin/time/Instant;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun proactiveActionDisplay (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;Lkotlin/time/Instant;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun proactiveActionDisplay$default (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;Lkotlin/time/Instant;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun proactiveActionFailure (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;Lkotlin/time/Instant;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun proactiveActionFailure$default (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;Lkotlin/time/Instant;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun proactiveActionSuccess (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;Lkotlin/time/Instant;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun proactiveActionSuccess$default (Lcom/nice/cxonechat/ChatEventHandler;Lcom/nice/cxonechat/analytics/ActionMetadata;Lkotlin/time/Instant;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public abstract interface class com/nice/cxonechat/ChatFieldHandler {
@@ -153,11 +95,11 @@ public abstract interface class com/nice/cxonechat/ChatFieldHandler {
 
 public final class com/nice/cxonechat/ChatInstanceProvider : com/nice/cxonechat/ChatStateListener, com/nice/cxonechat/log/LoggerScope {
 	public static final field Companion Lcom/nice/cxonechat/ChatInstanceProvider$Companion;
-	public synthetic fun <init> (Lcom/nice/cxonechat/SocketFactoryConfiguration;Lcom/nice/cxonechat/Authorization;Lcom/nice/cxonechat/UserName;ZLcom/nice/cxonechat/ChatInstanceProvider$DeviceTokenProvider;Lcom/nice/cxonechat/log/Logger;Ljava/lang/String;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun addListener (Lcom/nice/cxonechat/ChatInstanceProvider$Listener;)V
 	public final fun cancel ()V
 	public final fun close ()V
-	public final fun configure (Landroid/content/Context;Lkotlin/jvm/functions/Function1;)V
+	public final fun closeSuspending (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun configure (Landroid/content/Context;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun connect ()V
 	public final fun getAuthorization ()Lcom/nice/cxonechat/Authorization;
 	public final fun getChat ()Lcom/nice/cxonechat/Chat;
@@ -169,6 +111,7 @@ public final class com/nice/cxonechat/ChatInstanceProvider : com/nice/cxonechat/
 	public fun getIdentity ()Lcom/nice/cxonechat/log/Logger;
 	public final fun getLogger ()Lcom/nice/cxonechat/log/Logger;
 	public fun getScope ()Ljava/lang/String;
+	public final fun getTokenDelegateListener ()Lcom/nice/cxonechat/TokenDelegateListener;
 	public final fun getUserName ()Lcom/nice/cxonechat/UserName;
 	public fun log (Lcom/nice/cxonechat/log/Level;Ljava/lang/String;Ljava/lang/Throwable;)V
 	public fun onChatRuntimeException (Lcom/nice/cxonechat/exceptions/RuntimeChatException;)V
@@ -181,8 +124,21 @@ public final class com/nice/cxonechat/ChatInstanceProvider : com/nice/cxonechat/
 	public static synthetic fun prepare$default (Lcom/nice/cxonechat/ChatInstanceProvider;Landroid/content/Context;Lcom/nice/cxonechat/SocketFactoryConfiguration;ILjava/lang/Object;)V
 	public final fun removeListener (Lcom/nice/cxonechat/ChatInstanceProvider$Listener;)V
 	public final fun setCustomerValues (Ljava/util/Map;)Lcom/nice/cxonechat/ChatInstanceProvider;
+	public final fun setTokenDelegateListener (Lcom/nice/cxonechat/TokenDelegateListener;)V
 	public final fun setUserName (Lcom/nice/cxonechat/UserName;)V
-	public final fun signOut ()V
+	public final fun signOut (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class com/nice/cxonechat/ChatInstanceProvider$AuthenticationScope {
+	public abstract fun getAuthenticationRequired ()Z
+	public abstract fun getAuthorization ()Lcom/nice/cxonechat/Authorization;
+	public abstract fun getCustomerId ()Ljava/lang/String;
+	public abstract fun getTokenDelegateListener ()Lcom/nice/cxonechat/TokenDelegateListener;
+	public abstract fun getUserName ()Lcom/nice/cxonechat/UserName;
+	public abstract fun setAuthorization (Lcom/nice/cxonechat/Authorization;)V
+	public abstract fun setCustomerId (Ljava/lang/String;)V
+	public abstract fun setTokenDelegateListener (Lcom/nice/cxonechat/TokenDelegateListener;)V
+	public abstract fun setUserName (Lcom/nice/cxonechat/UserName;)V
 }
 
 public final class com/nice/cxonechat/ChatInstanceProvider$Companion {
@@ -197,22 +153,15 @@ public final class com/nice/cxonechat/ChatInstanceProvider$Companion {
 	public final fun get ()Lcom/nice/cxonechat/ChatInstanceProvider;
 }
 
-public abstract interface class com/nice/cxonechat/ChatInstanceProvider$ConfigurationScope {
-	public abstract fun getAuthenticationRequired ()Z
-	public abstract fun getAuthorization ()Lcom/nice/cxonechat/Authorization;
+public abstract interface class com/nice/cxonechat/ChatInstanceProvider$ConfigurationScope : com/nice/cxonechat/ChatInstanceProvider$AuthenticationScope {
 	public abstract fun getConfiguration ()Lcom/nice/cxonechat/SocketFactoryConfiguration;
-	public abstract fun getCustomerId ()Ljava/lang/String;
 	public abstract fun getDevelopmentMode ()Z
 	public abstract fun getDeviceTokenProvider ()Lcom/nice/cxonechat/ChatInstanceProvider$DeviceTokenProvider;
 	public abstract fun getLogger ()Lcom/nice/cxonechat/log/Logger;
-	public abstract fun getUserName ()Lcom/nice/cxonechat/UserName;
-	public abstract fun setAuthorization (Lcom/nice/cxonechat/Authorization;)V
 	public abstract fun setConfiguration (Lcom/nice/cxonechat/SocketFactoryConfiguration;)V
-	public abstract fun setCustomerId (Ljava/lang/String;)V
 	public abstract fun setDevelopmentMode (Z)V
 	public abstract fun setDeviceTokenProvider (Lcom/nice/cxonechat/ChatInstanceProvider$DeviceTokenProvider;)V
 	public abstract fun setLogger (Lcom/nice/cxonechat/log/Logger;)V
-	public abstract fun setUserName (Lcom/nice/cxonechat/UserName;)V
 }
 
 public abstract interface class com/nice/cxonechat/ChatInstanceProvider$DeviceTokenProvider {
@@ -249,6 +198,41 @@ public final class com/nice/cxonechat/ChatState : java/lang/Enum {
 	public static fun values ()[Lcom/nice/cxonechat/ChatState;
 }
 
+public abstract interface class com/nice/cxonechat/ChatStateEvent {
+}
+
+public final class com/nice/cxonechat/ChatStateEvent$Connected : com/nice/cxonechat/ChatStateEvent {
+	public static final field INSTANCE Lcom/nice/cxonechat/ChatStateEvent$Connected;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/nice/cxonechat/ChatStateEvent$Connecting : com/nice/cxonechat/ChatStateEvent {
+	public static final field INSTANCE Lcom/nice/cxonechat/ChatStateEvent$Connecting;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/nice/cxonechat/ChatStateEvent$Ready : com/nice/cxonechat/ChatStateEvent {
+	public static final field INSTANCE Lcom/nice/cxonechat/ChatStateEvent$Ready;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/nice/cxonechat/ChatStateEvent$RuntimeException : com/nice/cxonechat/ChatStateEvent {
+	public abstract fun getException ()Lcom/nice/cxonechat/exceptions/RuntimeChatException;
+}
+
+public final class com/nice/cxonechat/ChatStateEvent$UnexpectedDisconnect : com/nice/cxonechat/ChatStateEvent {
+	public static final field INSTANCE Lcom/nice/cxonechat/ChatStateEvent$UnexpectedDisconnect;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public abstract interface class com/nice/cxonechat/ChatStateListener {
 	public abstract fun onChatRuntimeException (Lcom/nice/cxonechat/exceptions/RuntimeChatException;)V
 	public abstract fun onConnected ()V
@@ -257,110 +241,45 @@ public abstract interface class com/nice/cxonechat/ChatStateListener {
 	public abstract fun onUnexpectedDisconnect ()V
 }
 
-public abstract interface class com/nice/cxonechat/ChatThreadActionHandler : java/lang/AutoCloseable {
-	public abstract fun onPopup (Lcom/nice/cxonechat/ChatThreadActionHandler$OnPopup;)V
-}
-
-public abstract interface class com/nice/cxonechat/ChatThreadActionHandler$OnPopup {
-	public abstract fun onShowPopup (Lcom/nice/cxonechat/Popup;)V
+public abstract interface class com/nice/cxonechat/ChatThreadActionHandler {
+	public abstract fun getPopupFlow ()Lkotlinx/coroutines/flow/Flow;
 }
 
 public abstract interface class com/nice/cxonechat/ChatThreadEventHandler {
-	public abstract fun trigger (Lcom/nice/cxonechat/event/thread/ChatThreadEvent;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventErrorListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventResponseListener;)V
-	public static synthetic fun trigger$default (Lcom/nice/cxonechat/ChatThreadEventHandler;Lcom/nice/cxonechat/event/thread/ChatThreadEvent;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventErrorListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventResponseListener;ILjava/lang/Object;)V
-}
-
-public abstract interface class com/nice/cxonechat/ChatThreadEventHandler$OnEventErrorListener {
-	public abstract fun onError (Lcom/nice/cxonechat/exceptions/CXoneException;)V
-}
-
-public abstract interface class com/nice/cxonechat/ChatThreadEventHandler$OnEventResponseListener {
-	public abstract fun onResponse (Lcom/nice/cxonechat/EventResponse;)V
-}
-
-public abstract interface class com/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener {
-	public abstract fun onSent ()V
+	public abstract fun trigger (Lcom/nice/cxonechat/event/thread/ChatThreadEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class com/nice/cxonechat/ChatThreadEventHandlerActions {
 	public static final field INSTANCE Lcom/nice/cxonechat/ChatThreadEventHandlerActions;
-	public static final fun loadMetadata (Lcom/nice/cxonechat/ChatThreadEventHandler;)V
-	public static final fun loadMetadata (Lcom/nice/cxonechat/ChatThreadEventHandler;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;)V
-	public static final fun loadMetadata (Lcom/nice/cxonechat/ChatThreadEventHandler;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventErrorListener;)V
-	public static synthetic fun loadMetadata$default (Lcom/nice/cxonechat/ChatThreadEventHandler;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventErrorListener;ILjava/lang/Object;)V
-	public static final fun markThreadRead (Lcom/nice/cxonechat/ChatThreadEventHandler;)V
-	public static final fun markThreadRead (Lcom/nice/cxonechat/ChatThreadEventHandler;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;)V
-	public static final fun markThreadRead (Lcom/nice/cxonechat/ChatThreadEventHandler;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventErrorListener;)V
-	public static synthetic fun markThreadRead$default (Lcom/nice/cxonechat/ChatThreadEventHandler;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventErrorListener;ILjava/lang/Object;)V
-	public static final fun selectTimeSlot (Lcom/nice/cxonechat/ChatThreadEventHandler;Ljava/lang/String;Lcom/nice/cxonechat/message/TimeSlot;)V
-	public static final fun selectTimeSlot (Lcom/nice/cxonechat/ChatThreadEventHandler;Ljava/lang/String;Lcom/nice/cxonechat/message/TimeSlot;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;)V
-	public static final fun selectTimeSlot (Lcom/nice/cxonechat/ChatThreadEventHandler;Ljava/lang/String;Lcom/nice/cxonechat/message/TimeSlot;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventErrorListener;)V
-	public static synthetic fun selectTimeSlot$default (Lcom/nice/cxonechat/ChatThreadEventHandler;Ljava/lang/String;Lcom/nice/cxonechat/message/TimeSlot;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventErrorListener;ILjava/lang/Object;)V
-	public static final fun sendTranscript (Lcom/nice/cxonechat/ChatThreadEventHandler;Ljava/lang/String;)V
-	public static final fun sendTranscript (Lcom/nice/cxonechat/ChatThreadEventHandler;Ljava/lang/String;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;)V
-	public static final fun sendTranscript (Lcom/nice/cxonechat/ChatThreadEventHandler;Ljava/lang/String;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventErrorListener;)V
-	public static final fun sendTranscript (Lcom/nice/cxonechat/ChatThreadEventHandler;Ljava/lang/String;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventErrorListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventResponseListener;)V
-	public static synthetic fun sendTranscript$default (Lcom/nice/cxonechat/ChatThreadEventHandler;Ljava/lang/String;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventErrorListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventResponseListener;ILjava/lang/Object;)V
-	public static final fun triggerAction (Lcom/nice/cxonechat/ChatThreadEventHandler;Lcom/nice/cxonechat/message/Action;)V
-	public static final fun triggerAction (Lcom/nice/cxonechat/ChatThreadEventHandler;Lcom/nice/cxonechat/message/Action;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;)V
-	public static final fun triggerAction (Lcom/nice/cxonechat/ChatThreadEventHandler;Lcom/nice/cxonechat/message/Action;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventErrorListener;)V
-	public static synthetic fun triggerAction$default (Lcom/nice/cxonechat/ChatThreadEventHandler;Lcom/nice/cxonechat/message/Action;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventErrorListener;ILjava/lang/Object;)V
-	public static final fun typingEnd (Lcom/nice/cxonechat/ChatThreadEventHandler;)V
-	public static final fun typingEnd (Lcom/nice/cxonechat/ChatThreadEventHandler;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;)V
-	public static final fun typingEnd (Lcom/nice/cxonechat/ChatThreadEventHandler;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventErrorListener;)V
-	public static synthetic fun typingEnd$default (Lcom/nice/cxonechat/ChatThreadEventHandler;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventErrorListener;ILjava/lang/Object;)V
-	public static final fun typingStart (Lcom/nice/cxonechat/ChatThreadEventHandler;)V
-	public static final fun typingStart (Lcom/nice/cxonechat/ChatThreadEventHandler;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;)V
-	public static final fun typingStart (Lcom/nice/cxonechat/ChatThreadEventHandler;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventErrorListener;)V
-	public static synthetic fun typingStart$default (Lcom/nice/cxonechat/ChatThreadEventHandler;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventSentListener;Lcom/nice/cxonechat/ChatThreadEventHandler$OnEventErrorListener;ILjava/lang/Object;)V
+	public static final fun loadMetadata (Lcom/nice/cxonechat/ChatThreadEventHandler;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun markThreadRead (Lcom/nice/cxonechat/ChatThreadEventHandler;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun selectTimeSlot (Lcom/nice/cxonechat/ChatThreadEventHandler;Ljava/lang/String;Lcom/nice/cxonechat/message/TimeSlot;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun sendTranscript (Lcom/nice/cxonechat/ChatThreadEventHandler;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun triggerAction (Lcom/nice/cxonechat/ChatThreadEventHandler;Lcom/nice/cxonechat/message/Action;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun typingEnd (Lcom/nice/cxonechat/ChatThreadEventHandler;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun typingStart (Lcom/nice/cxonechat/ChatThreadEventHandler;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class com/nice/cxonechat/ChatThreadHandler {
 	public abstract fun actions ()Lcom/nice/cxonechat/ChatThreadActionHandler;
-	public abstract fun archive (Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun archive$default (Lcom/nice/cxonechat/ChatThreadHandler;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public abstract fun archive (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun customFields ()Lcom/nice/cxonechat/ChatFieldHandler;
 	public abstract fun endContact ()V
 	public abstract fun events ()Lcom/nice/cxonechat/ChatThreadEventHandler;
 	public abstract fun get ()Lcom/nice/cxonechat/thread/ChatThread;
-	public abstract fun get (Lcom/nice/cxonechat/ChatThreadHandler$OnThreadUpdatedListener;)Lcom/nice/cxonechat/Cancellable;
+	public abstract fun getThreadFlow ()Lkotlinx/coroutines/flow/Flow;
 	public abstract fun messages ()Lcom/nice/cxonechat/ChatThreadMessageHandler;
 	public abstract fun refresh ()V
 	public abstract fun setName (Ljava/lang/String;)V
 }
 
-public abstract interface class com/nice/cxonechat/ChatThreadHandler$OnThreadUpdatedListener {
-	public abstract fun onUpdated (Lcom/nice/cxonechat/thread/ChatThread;)V
-}
-
 public abstract interface class com/nice/cxonechat/ChatThreadMessageHandler {
 	public abstract fun loadMore ()V
-	public abstract fun send (Lcom/nice/cxonechat/message/OutboundMessage;Lcom/nice/cxonechat/ChatThreadMessageHandler$OnMessageTransferListener;)V
-	public fun send (Ljava/lang/Iterable;Ljava/lang/String;Ljava/lang/String;Lcom/nice/cxonechat/ChatThreadMessageHandler$OnMessageTransferListener;)V
-	public fun send (Ljava/lang/String;Ljava/lang/String;Lcom/nice/cxonechat/ChatThreadMessageHandler$OnMessageTransferListener;)V
-	public static synthetic fun send$default (Lcom/nice/cxonechat/ChatThreadMessageHandler;Lcom/nice/cxonechat/message/OutboundMessage;Lcom/nice/cxonechat/ChatThreadMessageHandler$OnMessageTransferListener;ILjava/lang/Object;)V
-	public static synthetic fun send$default (Lcom/nice/cxonechat/ChatThreadMessageHandler;Ljava/lang/Iterable;Ljava/lang/String;Ljava/lang/String;Lcom/nice/cxonechat/ChatThreadMessageHandler$OnMessageTransferListener;ILjava/lang/Object;)V
-	public static synthetic fun send$default (Lcom/nice/cxonechat/ChatThreadMessageHandler;Ljava/lang/String;Ljava/lang/String;Lcom/nice/cxonechat/ChatThreadMessageHandler$OnMessageTransferListener;ILjava/lang/Object;)V
-}
-
-public abstract interface class com/nice/cxonechat/ChatThreadMessageHandler$OnMessageTransferListener {
-	public static final field Companion Lcom/nice/cxonechat/ChatThreadMessageHandler$OnMessageTransferListener$Companion;
-	public static fun createFrom (Lcom/nice/cxonechat/ChatThreadMessageHandler$OnUUIDListener;Lcom/nice/cxonechat/ChatThreadMessageHandler$OnUUIDListener;)Lcom/nice/cxonechat/ChatThreadMessageHandler$OnMessageTransferListener;
-	public static fun invoke (Lcom/nice/cxonechat/ChatThreadMessageHandler$OnUUIDListener;Lcom/nice/cxonechat/ChatThreadMessageHandler$OnUUIDListener;)Lcom/nice/cxonechat/ChatThreadMessageHandler$OnMessageTransferListener;
-	public fun onProcessed (Ljava/util/UUID;)V
-	public fun onProcessing (Lcom/nice/cxonechat/message/OutboundMessage;)V
-	public fun onSent (Ljava/util/UUID;)V
-}
-
-public final class com/nice/cxonechat/ChatThreadMessageHandler$OnMessageTransferListener$Companion {
-	public final fun createFrom (Lcom/nice/cxonechat/ChatThreadMessageHandler$OnUUIDListener;Lcom/nice/cxonechat/ChatThreadMessageHandler$OnUUIDListener;)Lcom/nice/cxonechat/ChatThreadMessageHandler$OnMessageTransferListener;
-	public static synthetic fun createFrom$default (Lcom/nice/cxonechat/ChatThreadMessageHandler$OnMessageTransferListener$Companion;Lcom/nice/cxonechat/ChatThreadMessageHandler$OnUUIDListener;Lcom/nice/cxonechat/ChatThreadMessageHandler$OnUUIDListener;ILjava/lang/Object;)Lcom/nice/cxonechat/ChatThreadMessageHandler$OnMessageTransferListener;
-	public final fun invoke (Lcom/nice/cxonechat/ChatThreadMessageHandler$OnUUIDListener;Lcom/nice/cxonechat/ChatThreadMessageHandler$OnUUIDListener;)Lcom/nice/cxonechat/ChatThreadMessageHandler$OnMessageTransferListener;
-	public static synthetic fun invoke$default (Lcom/nice/cxonechat/ChatThreadMessageHandler$OnMessageTransferListener$Companion;Lcom/nice/cxonechat/ChatThreadMessageHandler$OnUUIDListener;Lcom/nice/cxonechat/ChatThreadMessageHandler$OnUUIDListener;ILjava/lang/Object;)Lcom/nice/cxonechat/ChatThreadMessageHandler$OnMessageTransferListener;
-}
-
-public abstract interface class com/nice/cxonechat/ChatThreadMessageHandler$OnUUIDListener {
-	public abstract fun onTriggered (Ljava/util/UUID;)V
+	public abstract fun send (Lcom/nice/cxonechat/message/OutboundMessage;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun send (Ljava/lang/Iterable;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun send (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun send$default (Lcom/nice/cxonechat/ChatThreadMessageHandler;Ljava/lang/Iterable;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun send$default (Lcom/nice/cxonechat/ChatThreadMessageHandler;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public abstract interface class com/nice/cxonechat/ChatThreadsHandler {
@@ -369,13 +288,9 @@ public abstract interface class com/nice/cxonechat/ChatThreadsHandler {
 	public abstract fun create (Ljava/util/Map;Lkotlin/sequences/Sequence;)Lcom/nice/cxonechat/ChatThreadHandler;
 	public fun create (Lkotlin/sequences/Sequence;)Lcom/nice/cxonechat/ChatThreadHandler;
 	public abstract fun getPreChatSurvey ()Lcom/nice/cxonechat/prechat/PreChatSurvey;
+	public abstract fun getThreadsFlow ()Lkotlinx/coroutines/flow/Flow;
 	public abstract fun refresh ()V
 	public abstract fun thread (Lcom/nice/cxonechat/thread/ChatThread;)Lcom/nice/cxonechat/ChatThreadHandler;
-	public abstract fun threads (Lcom/nice/cxonechat/ChatThreadsHandler$OnThreadsUpdatedListener;)Lcom/nice/cxonechat/Cancellable;
-}
-
-public abstract interface class com/nice/cxonechat/ChatThreadsHandler$OnThreadsUpdatedListener {
-	public abstract fun onThreadsUpdated (Ljava/util/List;)V
 }
 
 public abstract interface class com/nice/cxonechat/EventResponse {
@@ -386,6 +301,17 @@ public final class com/nice/cxonechat/EventResponse$Success : com/nice/cxonechat
 	public fun equals (Ljava/lang/Object;)Z
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/nice/cxonechat/OAuthToken {
+	public static final field Companion Lcom/nice/cxonechat/OAuthToken$Companion;
+	public abstract fun getAccessToken ()Ljava/lang/String;
+	public abstract fun getExpiryDateMillis ()Ljava/lang/Long;
+}
+
+public final class com/nice/cxonechat/OAuthToken$Companion {
+	public final fun invoke (Ljava/lang/String;Ljava/lang/Long;)Lcom/nice/cxonechat/OAuthToken;
+	public static synthetic fun invoke$default (Lcom/nice/cxonechat/OAuthToken$Companion;Ljava/lang/String;Ljava/lang/Long;ILjava/lang/Object;)Lcom/nice/cxonechat/OAuthToken;
 }
 
 public abstract interface class com/nice/cxonechat/Popup {
@@ -401,8 +327,13 @@ public abstract interface class com/nice/cxonechat/Popup$InactivityPopup : com/n
 }
 
 public abstract interface class com/nice/cxonechat/Popup$InactivityPopup$Countdown {
-	public abstract fun getStartedAt ()Ljava/util/Date;
+	public abstract fun getStartedAt ()Lkotlin/time/Instant;
 	public abstract fun getTimeoutSeconds ()J
+}
+
+public abstract interface class com/nice/cxonechat/PopupEvent {
+	public abstract fun getMetadata ()Lcom/nice/cxonechat/analytics/ActionMetadata;
+	public abstract fun getVariables ()Ljava/util/Map;
 }
 
 public abstract interface annotation class com/nice/cxonechat/Public : java/lang/annotation/Annotation {
@@ -420,6 +351,19 @@ public abstract interface class com/nice/cxonechat/SocketFactoryConfiguration {
 public final class com/nice/cxonechat/SocketFactoryConfiguration$Companion {
 	public final fun create (Lcom/nice/cxonechat/state/Environment;JLjava/lang/String;)Lcom/nice/cxonechat/SocketFactoryConfiguration;
 	public final fun invoke (Lcom/nice/cxonechat/state/Environment;JLjava/lang/String;)Lcom/nice/cxonechat/SocketFactoryConfiguration;
+}
+
+public abstract interface class com/nice/cxonechat/TokenDelegateListener {
+	public abstract fun onNewTokenRequested (Lcom/nice/cxonechat/TokenRequestReason;)Lcom/nice/cxonechat/OAuthToken;
+}
+
+public final class com/nice/cxonechat/TokenRequestReason : java/lang/Enum {
+	public static final field TOKEN_EXPIRED Lcom/nice/cxonechat/TokenRequestReason;
+	public static final field TOKEN_INVALID Lcom/nice/cxonechat/TokenRequestReason;
+	public static final field UNSPECIFIED Lcom/nice/cxonechat/TokenRequestReason;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/nice/cxonechat/TokenRequestReason;
+	public static fun values ()[Lcom/nice/cxonechat/TokenRequestReason;
 }
 
 public abstract interface class com/nice/cxonechat/UserName {
@@ -465,13 +409,14 @@ public final class com/nice/cxonechat/exceptions/AnalyticsEventDispatchException
 }
 
 public abstract class com/nice/cxonechat/exceptions/CXoneException : java/lang/Exception {
-	public static final field serialVersionUID J
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun <init> (Ljava/lang/Throwable;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class com/nice/cxonechat/exceptions/InternalError : com/nice/cxonechat/exceptions/CXoneException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class com/nice/cxonechat/exceptions/InvalidCustomFieldValue : com/nice/cxonechat/exceptions/CXoneException {
@@ -494,7 +439,6 @@ public final class com/nice/cxonechat/exceptions/MissingThreadListFetchException
 }
 
 public abstract class com/nice/cxonechat/exceptions/RuntimeChatException : com/nice/cxonechat/exceptions/CXoneException {
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
@@ -508,7 +452,18 @@ public final class com/nice/cxonechat/exceptions/RuntimeChatException$Authorizat
 public final class com/nice/cxonechat/exceptions/RuntimeChatException$ConnectionTokenFailed : com/nice/cxonechat/exceptions/RuntimeChatException {
 }
 
+public final class com/nice/cxonechat/exceptions/RuntimeChatException$FeatureUnavailableException : com/nice/cxonechat/exceptions/RuntimeChatException {
+}
+
+public final class com/nice/cxonechat/exceptions/RuntimeChatException$InvalidAccessTokenException : com/nice/cxonechat/exceptions/RuntimeChatException {
+}
+
 public final class com/nice/cxonechat/exceptions/RuntimeChatException$ServerCommunicationError : com/nice/cxonechat/exceptions/RuntimeChatException {
+}
+
+public final class com/nice/cxonechat/exceptions/RuntimeChatException$TokenDelegationFailedException : com/nice/cxonechat/exceptions/RuntimeChatException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class com/nice/cxonechat/exceptions/SdkVersionNotSupported : com/nice/cxonechat/exceptions/CXoneException {
@@ -566,12 +521,13 @@ public abstract interface class com/nice/cxonechat/message/Media {
 public abstract class com/nice/cxonechat/message/Message {
 	public abstract fun getAttachments ()Ljava/lang/Iterable;
 	public abstract fun getAuthor ()Lcom/nice/cxonechat/message/MessageAuthor;
-	public abstract fun getCreatedAt ()Ljava/util/Date;
+	public abstract fun getCreatedAt ()Lkotlin/time/Instant;
 	public abstract fun getDirection ()Lcom/nice/cxonechat/message/MessageDirection;
 	public abstract fun getFallbackText ()Ljava/lang/String;
 	public abstract fun getId ()Ljava/util/UUID;
 	public abstract fun getMetadata ()Lcom/nice/cxonechat/message/MessageMetadata;
 	public abstract fun getThreadId ()Ljava/util/UUID;
+	public fun isAiGenerated ()Z
 }
 
 public abstract class com/nice/cxonechat/message/Message$ListPicker : com/nice/cxonechat/message/Message {
@@ -631,9 +587,9 @@ public final class com/nice/cxonechat/message/MessageDirection : java/lang/Enum 
 }
 
 public abstract interface class com/nice/cxonechat/message/MessageMetadata {
-	public abstract fun getReadAt ()Ljava/util/Date;
-	public abstract fun getSeenAt ()Ljava/util/Date;
-	public abstract fun getSeenByCustomerAt ()Ljava/util/Date;
+	public abstract fun getReadAt ()Lkotlin/time/Instant;
+	public abstract fun getSeenAt ()Lkotlin/time/Instant;
+	public abstract fun getSeenByCustomerAt ()Lkotlin/time/Instant;
 	public abstract fun getStatus ()Lcom/nice/cxonechat/message/MessageStatus;
 }
 
@@ -700,7 +656,7 @@ public final class com/nice/cxonechat/message/TextFormat : java/lang/Enum {
 public abstract interface class com/nice/cxonechat/message/TimeSlot {
 	public abstract fun getDuration ()J
 	public abstract fun getId ()Ljava/lang/String;
-	public abstract fun getStartTime ()Ljava/util/Date;
+	public abstract fun getStartTime ()Lkotlin/time/Instant;
 }
 
 public abstract interface class com/nice/cxonechat/prechat/PreChatSurvey {
@@ -781,7 +737,6 @@ public abstract interface class com/nice/cxonechat/state/Connection {
 }
 
 public abstract interface class com/nice/cxonechat/state/Environment {
-	public abstract fun getAuthUrl ()Ljava/lang/String;
 	public abstract fun getBaseUrl ()Ljava/lang/String;
 	public abstract fun getChatUrl ()Ljava/lang/String;
 	public abstract fun getLocation ()Ljava/lang/String;
@@ -789,6 +744,7 @@ public abstract interface class com/nice/cxonechat/state/Environment {
 	public abstract fun getName ()Ljava/lang/String;
 	public abstract fun getOriginHeader ()Ljava/lang/String;
 	public abstract fun getSocketUrl ()Ljava/lang/String;
+	public abstract fun getTokenUrl ()Ljava/lang/String;
 }
 
 public abstract interface class com/nice/cxonechat/state/FieldDefinition {
@@ -858,14 +814,15 @@ public abstract class com/nice/cxonechat/thread/Agent {
 	public abstract fun getImageUrl ()Ljava/lang/String;
 	public abstract fun getLastName ()Ljava/lang/String;
 	public abstract fun getNickname ()Ljava/lang/String;
-	public abstract fun isBotUser ()Z
-	public abstract fun isSurveyUser ()Z
+	public abstract fun isBotUser ()Ljava/lang/Boolean;
+	public abstract fun isSurveyUser ()Ljava/lang/Boolean;
 	public abstract fun isTyping ()Z
 }
 
 public abstract class com/nice/cxonechat/thread/ChatThread {
 	public fun <init> ()V
 	public abstract fun getCanAddMoreMessages ()Z
+	public abstract fun getContactId ()Ljava/lang/String;
 	public abstract fun getFields ()Ljava/util/List;
 	public final fun getHasMoreMessagesToLoad ()Z
 	public abstract fun getHasOnlineAgent ()Z
@@ -891,7 +848,7 @@ public final class com/nice/cxonechat/thread/ChatThreadState : java/lang/Enum {
 
 public abstract interface class com/nice/cxonechat/thread/CustomField {
 	public abstract fun getId ()Ljava/lang/String;
-	public abstract fun getUpdatedAt ()Ljava/util/Date;
+	public abstract fun getUpdatedAt ()Lkotlin/time/Instant;
 	public abstract fun getValue ()Ljava/lang/String;
 }
 

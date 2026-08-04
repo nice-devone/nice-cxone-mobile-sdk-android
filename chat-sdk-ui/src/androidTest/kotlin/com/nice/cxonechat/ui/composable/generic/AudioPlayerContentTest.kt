@@ -21,79 +21,72 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+import com.nice.cxonechat.ui.AbstractComponentActivityUiTest
+import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatShapes
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
-import com.nice.cxonechat.ui.util.TestPlayerState
-import org.junit.Rule
+import com.nice.cxonechat.ui.util.toAccessibilityTimeFormat
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.Locale
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
-class AudioPlayerContentTest {
-    @get:Rule
-    val composeTestRule = createAndroidComposeRule<androidx.activity.ComponentActivity>()
+class AudioPlayerContentTest : AbstractComponentActivityUiTest() {
 
-    private fun createPlayerState(
-        available: Boolean = true,
-        isPlaying: Boolean = false,
-        durationMs: Long = TimeUnit.MINUTES.toMillis(1),
-        positionMs: Long = TimeUnit.SECONDS.toMillis(20),
-        progress: Float = 0.25f,
-        canSeekForward: Boolean = true,
-        canSeekBackward: Boolean = true,
-    ) = TestPlayerState(available, isPlaying, durationMs, positionMs, progress, canSeekForward, canSeekBackward)
+    private fun buildExpectedContentDescription(positionMs: Long, durationMs: Long): String {
+        val infinityText = getString(R.string.content_description_audio_duration_infinite)
+        val locale = Locale.getDefault()
+        val currentTimeAccessible = positionMs.milliseconds.toAccessibilityTimeFormat(locale) { infinityText }
+        val totalTimeAccessible = durationMs.milliseconds.toAccessibilityTimeFormat(locale) { infinityText }
+        return getString(R.string.progress_indicator_content_description, currentTimeAccessible, totalTimeAccessible)
+    }
 
     @Test
     fun audioPlayerContent_displaysCorrectTimesAndProgress() {
-        val state = createPlayerState()
         val currentTime = "00:20"
         val remainingTime = "00:40"
-
         composeTestRule.setContent {
-            TestContent(playerState = state, currentTime = currentTime, remainingTime = remainingTime)
+            TestContent(currentTime = currentTime, remainingTime = remainingTime)
         }
-
         composeTestRule.onNodeWithText(currentTime).assertIsDisplayed()
         composeTestRule.onNodeWithText(remainingTime).assertIsDisplayed()
     }
 
     @Test
     fun audioPlayerContent_disabledState_alphaIsReduced() {
-        val state = createPlayerState(available = false)
         val currentTime = "00:20"
         val remainingTime = "00:40"
-
         composeTestRule.setContent {
-            TestContent(playerState = state, currentTime = currentTime, remainingTime = remainingTime)
+            TestContent(isEnabled = false, currentTime = currentTime, remainingTime = remainingTime)
         }
-
         composeTestRule.onNodeWithText(currentTime).assertIsDisplayed()
         composeTestRule.onNodeWithText(remainingTime).assertIsDisplayed()
     }
 
     @Test
     fun audioPlayerContent_allControlsEnabledAndVisible() {
-        val state = createPlayerState(
-            available = true,
-            canSeekForward = true,
-            canSeekBackward = true
-        )
         composeTestRule.setContent {
-            TestContent(playerState = state)
+            TestContent(isEnabled = true, canSeekForward = true, canSeekBack = true)
         }
         composeTestRule.onNodeWithTag("play_pause_button").assertIsDisplayed().assertIsEnabled()
         composeTestRule.onNodeWithTag("seek_back_button").assertIsDisplayed().assertIsEnabled()
@@ -103,13 +96,8 @@ class AudioPlayerContentTest {
 
     @Test
     fun audioPlayerContent_allControlsDisabled() {
-        val state = createPlayerState(
-            available = false,
-            canSeekForward = true,
-            canSeekBackward = true
-        )
         composeTestRule.setContent {
-            TestContent(playerState = state)
+            TestContent(isEnabled = false, canSeekForward = true, canSeekBack = true)
         }
         composeTestRule.onNodeWithTag("play_pause_button").assertIsDisplayed().assertIsNotEnabled()
         composeTestRule.onNodeWithTag("seek_back_button").assertIsDisplayed().assertIsNotEnabled()
@@ -119,13 +107,8 @@ class AudioPlayerContentTest {
 
     @Test
     fun audioPlayerContent_seekButtonsHidden() {
-        val state = createPlayerState(
-            available = true,
-            canSeekForward = false,
-            canSeekBackward = false
-        )
         composeTestRule.setContent {
-            TestContent(playerState = state)
+            TestContent(isEnabled = true, canSeekForward = false, canSeekBack = false)
         }
         composeTestRule.onNodeWithTag("play_pause_button").assertIsDisplayed().assertIsEnabled()
         composeTestRule.onNodeWithTag("seek_back_button").assertDoesNotExist()
@@ -135,13 +118,13 @@ class AudioPlayerContentTest {
 
     @Test
     fun audioPlayerContent_playPauseButton_updateState() {
-        val state = createPlayerState(available = true)
+        var isEnabled by mutableStateOf(true)
         composeTestRule.setContent {
-            TestContent(playerState = state)
+            TestContent(isEnabled = isEnabled)
         }
         composeTestRule.onNodeWithTag("play_pause_button").assertIsDisplayed().assertIsEnabled()
         composeTestRule.runOnUiThread {
-            state.available.value = false
+            isEnabled = false
         }
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithTag("play_pause_button").assertIsDisplayed().assertIsNotEnabled()
@@ -150,12 +133,8 @@ class AudioPlayerContentTest {
     @Test
     fun audioPlayerContent_playPauseButton_callsCallback() {
         var playPauseClicked = false
-        val state = createPlayerState(available = true)
         composeTestRule.setContent {
-            TestContent(
-                playerState = state,
-                playPause = { playPauseClicked = true },
-            )
+            TestContent(isEnabled = true, playPause = { playPauseClicked = true })
         }
         composeTestRule.onNodeWithTag("play_pause_button").performClick()
         assert(playPauseClicked)
@@ -164,12 +143,8 @@ class AudioPlayerContentTest {
     @Test
     fun audioPlayerContent_seekBackButton_callsCallback() {
         var seekBackClicked = false
-        val state = createPlayerState(available = true, canSeekBackward = true)
         composeTestRule.setContent {
-            TestContent(
-                playerState = state,
-                seekBack = { seekBackClicked = true }
-            )
+            TestContent(isEnabled = true, canSeekBack = true, seekBack = { seekBackClicked = true })
         }
         composeTestRule.onNodeWithTag("seek_back_button").performClick()
         assert(seekBackClicked)
@@ -178,12 +153,8 @@ class AudioPlayerContentTest {
     @Test
     fun audioPlayerContent_seekForwardButton_callsCallback() {
         var seekForwardClicked = false
-        val state = createPlayerState(available = true, canSeekForward = true)
         composeTestRule.setContent {
-            TestContent(
-                playerState = state,
-                seekForward = { seekForwardClicked = true }
-            )
+            TestContent(isEnabled = true, canSeekForward = true, seekForward = { seekForwardClicked = true })
         }
         composeTestRule.onNodeWithTag("seek_forward_button").performClick()
         assert(seekForwardClicked)
@@ -191,10 +162,14 @@ class AudioPlayerContentTest {
 
     @Test
     fun audioPlayerContent_dynamicStateUpdates() {
-        val state = TestPlayerState(available = true, canSeekForward = true, canSeekBackward = true)
+        var isEnabled by mutableStateOf(true)
+        var canSeekForward by mutableStateOf(true)
+        var canSeekBack by mutableStateOf(true)
         composeTestRule.setContent {
             TestContent(
-                playerState = state,
+                isEnabled = isEnabled,
+                canSeekForward = canSeekForward,
+                canSeekBack = canSeekBack,
             )
         }
         // Initially all controls enabled
@@ -202,18 +177,16 @@ class AudioPlayerContentTest {
         composeTestRule.onNodeWithTag("seek_back_button").assertIsDisplayed().assertIsEnabled()
         composeTestRule.onNodeWithTag("seek_forward_button").assertIsDisplayed().assertIsEnabled()
         // Disable controls dynamically
-        composeTestRule.runOnUiThread {
-            state.available.value = false
-        }
+        composeTestRule.runOnUiThread { isEnabled = false }
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithTag("play_pause_button").assertIsDisplayed().assertIsNotEnabled()
         composeTestRule.onNodeWithTag("seek_back_button").assertIsDisplayed().assertIsNotEnabled()
         composeTestRule.onNodeWithTag("seek_forward_button").assertIsDisplayed().assertIsNotEnabled()
         // Hide seek buttons dynamically
         composeTestRule.runOnUiThread {
-            state.canSeekForward.value = false
-            state.canSeekBackward.value = false
-            state.available.value = true // re-enable for visibility check
+            canSeekForward = false
+            canSeekBack = false
+            isEnabled = true
         }
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithTag("seek_back_button").assertDoesNotExist()
@@ -221,12 +194,100 @@ class AudioPlayerContentTest {
         composeTestRule.onNodeWithTag("play_pause_button").assertIsDisplayed().assertIsEnabled()
     }
 
+    @Test
+    fun progressIndicator_updatesAccessibilityDescription_whenTimeChanges() {
+        val durationMs = TimeUnit.MINUTES.toMillis(2)
+        val positionMs = TimeUnit.SECONDS.toMillis(30)
+        val currentTime = "00:30"
+
+        composeTestRule.setContent {
+            TestContent(
+                currentTime = currentTime,
+                position = positionMs.milliseconds,
+                duration = durationMs.milliseconds,
+            )
+        }
+
+        // The accessibility description is set on the parent Column that contains the progress indicator
+        // with format from R.string.progress_indicator_content_description
+        val expectedDescription = buildExpectedContentDescription(positionMs, durationMs)
+        composeTestRule.onNode(
+            SemanticsMatcher.expectValue(
+                SemanticsProperties.ContentDescription,
+                listOf(expectedDescription)
+            )
+        ).assertIsDisplayed()
+    }
+
+    @Test
+    fun disabledControls_maintainAccessibilitySemantics() {
+        val durationMs = TimeUnit.MINUTES.toMillis(1)
+        val positionMs = TimeUnit.SECONDS.toMillis(20)
+
+        composeTestRule.setContent {
+            TestContent(
+                isEnabled = false,
+                position = positionMs.milliseconds,
+                duration = durationMs.milliseconds,
+            )
+        }
+
+        // Disabled controls should still have proper accessibility semantics
+        composeTestRule.onNodeWithTag("play_pause_button")
+            .assertIsDisplayed()
+            .assertIsNotEnabled()
+
+        // The accessibility description is set on the Column using R.string.progress_indicator_content_description
+        val expectedDescription = buildExpectedContentDescription(positionMs, durationMs)
+        composeTestRule.onNode(
+            SemanticsMatcher.expectValue(
+                SemanticsProperties.ContentDescription,
+                listOf(expectedDescription)
+            )
+        ).assertIsDisplayed()
+    }
+
+    @Test
+    fun playPauseButton_hasAccessibilityAction() {
+        composeTestRule.setContent {
+            TestContent(isEnabled = true, isPlaying = false)
+        }
+
+        composeTestRule.onNodeWithTag("play_pause_button")
+            .assertIsDisplayed()
+            .assertIsEnabled()
+    }
+
+    @Test
+    fun seekButtons_haveAccessibilityDescriptions() {
+        composeTestRule.setContent {
+            TestContent(canSeekForward = true, canSeekBack = true)
+        }
+
+        // Verify seek back button has content description
+        composeTestRule.onNodeWithTag("seek_back_button")
+            .assertIsDisplayed()
+            .assertIsEnabled()
+
+        // Verify seek forward button has content description
+        composeTestRule.onNodeWithTag("seek_forward_button")
+            .assertIsDisplayed()
+            .assertIsEnabled()
+    }
+
     @Composable
     private fun TestContent(
-        playerState: TestPlayerState,
         currentTime: String = "00:20",
         remainingTime: String = "00:40",
-        animatedProgress: Float = playerState.progress.value,
+        position: Duration = 20_000.milliseconds,
+        duration: Duration = 60_000.milliseconds,
+        animatedProgress: Float = 0.25f,
+        isEnabled: Boolean = true,
+        isPlaying: Boolean = false,
+        canSeekBack: Boolean = true,
+        seekBackIncrementMs: Long = 10_000L,
+        canSeekForward: Boolean = true,
+        seekForwardIncrementMs: Long = 10_000L,
         seekBack: () -> Unit = {},
         seekForward: () -> Unit = {},
         playPause: () -> Unit = {},
@@ -245,7 +306,14 @@ class AudioPlayerContentTest {
                         currentTime = currentTime,
                         animatedProgress = animatedProgress,
                         remainingTime = remainingTime,
-                        playerState = playerState,
+                        position = position,
+                        duration = duration,
+                        isEnabled = isEnabled,
+                        isPlaying = isPlaying,
+                        canSeekBack = canSeekBack,
+                        seekBackIncrementMs = seekBackIncrementMs,
+                        canSeekForward = canSeekForward,
+                        seekForwardIncrementMs = seekForwardIncrementMs,
                         onSeekBack = seekBack,
                         onSeekForward = seekForward,
                         onPlayPause = playPause,

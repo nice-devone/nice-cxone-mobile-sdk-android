@@ -46,6 +46,16 @@
     <string name="attention">Attention</string>
 
     <!--
+      Accessibility labels for tree field component
+    -->
+    <!-- Accessibility suffix for selected tree field item -->
+    <string name="tree_field_selected">selected</string>
+    <!-- Accessibility suffix for expanded tree field item -->
+    <string name="tree_field_expanded">expanded</string>
+    <!-- Accessibility suffix for collapsed tree field item -->
+    <string name="tree_field_collapsed">collapsed</string>
+
+    <!--
       Thread and conversation management
     -->
     <!-- Labels for thread/conversation state in the conversation list -->
@@ -57,6 +67,14 @@
     <string name="thread_list_title">Conversations</string>
     <!-- Content description for archive conversation button -->
     <string name="archive_thread_content_description">Archive conversation</string>
+    <!-- Suffix for unread thread status in content description (accessibility) -->
+    <string name="unread_status_suffix">unread message</string>
+    <!-- Accessibility label combining attachment type and name (used for TalkBack announcements) -->
+    <string name="accessibility_attachment_type_and_name"><xliff:g example="Image" id="type">%1$s</xliff:g> <xliff:g example="photo.jpg" id="name">%2$s</xliff:g></string>
+    <!-- Accessibility connector for last message in thread list description -->
+    <string name="accessibility_thread_last_message">, last message <xliff:g example="Hello" id="message">%1$s</xliff:g></string>
+    <!-- Accessibility connector for message time in thread list description -->
+    <string name="accessibility_thread_time">, at <xliff:g example="10:30 AM" id="time">%1$s</xliff:g></string>
     <!-- Label for thread/conversation name field -->
     <string name="label_thread_name">Conversation name</string>
     <!-- Banner or label for archived threads -->
@@ -90,9 +108,13 @@
     <!-- Content description for text input field (accessibility) -->
     <string name="content_description_text_input">Text input</string>
     <!-- Title for image preview screen -->
-    <string name="image_preview_title">Image preview</string>
+    <string name="image_preview_title">Image preview of: <xliff:g example="IMAG_0001.jpg" id="file_name">%1$s</xliff:g></string>
+    <!-- Title for image preview screen in case content description is missing -->
+    <string name="image_preview_title_fallback">Image preview</string>
     <!-- Title for video preview screen -->
-    <string name="video_preview_title">Video preview</string>
+    <string name="video_preview_title">Video preview of: <xliff:g example="VIDEO.MP4" id="file_name">%1$s</xliff:g></string>
+    <!-- Title for video preview screen in case content description is missing -->
+    <string name="video_preview_title_fallback">Video preview</string>
     <!-- Message shown while SDK is initializing -->
     <string name="preparing_sdk">Preparing chat</string>
     <!-- Message read status label -->
@@ -113,6 +135,8 @@
     <string name="loading_delay_message">The operation is taking longer than expected.</string>
     <!-- Offline status label -->
     <string name="offline">Offline</string>
+    <!-- Title for offline screen/panel -->
+    <string name="panel_title_offline">Offline Screen</string>
     <!-- Banner for offline state -->
     <string name="offline_banner">We are currently offline.</string>
     <!-- Message for offline state -->
@@ -141,6 +165,10 @@
     <string name="livechat_close_chat">Close chat</string>
     <!-- Options menu for conversation -->
     <string name="livechat_conversation_options">Conversation options</string>
+    <!-- Title contentDescription in multi-thread mode (no agent assigned) -->
+    <string name="content_description_conversation_name">Conversation name: %1$s</string>
+    <!-- Title contentDescription in multi-thread mode (agent assigned) -->
+    <string name="content_description_conversation_with_agent">Conversation name: %1$s, Agent: %2$s</string>
     <!-- End contact confirmation dialog description -->
     <string name="livechat_end_confirmation_text">Are you sure you want to end this conversation?</string>
 
@@ -158,11 +186,11 @@
     <!-- Label for extra attachments count (e.g. +3) -->
     <string name="extra_attachments_count">+%1$s</string>
     <!-- Share multiple attachments action label -->
-    <string name="share_attachment_others">Share attachment <xliff:g example="IMAG_0001.jpg" id="file_name">%1$s</xliff:g> + <xliff:g example="5" id="item_count">%2$d</xliff:g> others</string>
+    <string name="share_attachment_others">Share attachment <xliff:g example="Image" id="file_type">%1$s</xliff:g> + <xliff:g example="5" id="item_count">%2$d</xliff:g> others</string>
     <!-- Share single attachment action label -->
-    <string name="share_attachment">Share attachment %1$s</string>
+    <string name="share_attachment">Share attachment: %1$s</string>
     <!-- Share selected attachment action label -->
-    <string name="share_attachment_selected">Share selected attachment</string>
+    <string name="share_attachment_selected">Share attachment(s)</string>
     <!-- Content description for share all attachments button (accessibility) -->
     <string name="content_description_share_all">Share all attachments</string>
     <!-- Label for selected items count in multi-select lists -->
@@ -271,6 +299,14 @@
     <string name="record_audio_stop_content_description">Stop audio recording</string>
     <!-- Error message when temporary audio file cannot be deleted -->
     <string name="record_audio_failed_cleanup">Unable to delete temporary audio recording</string>
+    <!-- Content description for recorded audio duration, used for both in progress recording or current progress during recording review -->
+    <string name="content_description_audio_duration">Audio duration: <xliff:g example="00:01:23" id="audio_duration">%1$s</xliff:g></string>
+    <!-- Content description for audio message input field during recording and audio message review -->
+    <string name="content_description_audio_message_input">Audio message input</string>
+    <!-- State description audio_message_input when audio recording is in progress -->
+    <string name="state_description_recording_in_progress">Recording in progress</string>
+    <!-- State description audio_message_input when audio recording is finished and ready for review -->
+    <string name="state_description_recording_finished_review_the_audio">Recording finished - review the audio</string>
 
     <!--
       Pre-chat survey and custom fields
@@ -296,9 +332,7 @@
     <!-- Content description for expandable dropdown icon (used for accessibility) -->
     <string name="content_description_dropdown_field_icon_expandable">Open options</string>
     <!-- Content description for selectable item frame (accessibility) -->
-    <string name="content_description_selection_frame">Selectable item</string>
-    <!-- Content description for selected item frame (accessibility) -->
-    <string name="content_description_selection_frame_selected">Item selected</string>
+    <string name="content_description_selection_frame">Selection indicator</string>
     <!-- Content description for play video button (accessibility) -->
     <string name="content_description_play_video">Play video</string>
     <!-- Content description for back button (accessibility) -->
@@ -307,17 +341,64 @@
     <string name="content_description_play">Play</string>
     <!-- Content description for pause button (accessibility) -->
     <string name="content_description_pause">Pause</string>
-    <!-- Content description for file preview thumbnail (accessibility), it describes file (by name or Uri path) which is shown as a preview -->
-    <string name="content_description_file_preview">Preview thumbnail for file: <xliff:g example="IMG_0001.jpg" id="filename">%1$s</xliff:g></string>
-    <!-- Content description for URL link (accessibility) -->
-    <string name="content_description_url_link">URL link</string>
+    <!-- On click label for URL link (accessibility) -->
+    <string name="on_click_label_url_link">Open URL link</string>
     <!-- Content description for button which removes prepared attachment before upload -->
     <string name="content_description_remove_prepared_attachment">Remove prepared attachment %1$s</string>
     <!-- Content description for prepared attachment preview before upload -->
     <string name="content_description_prepared_attachment">Preview of attachment: %1$s, click to show attachment in detail</string>
     <!-- Fallback filename value when the actual filename and file Uri is not available -->
     <string name="fallback_filename_value">unknown</string>
+    <!-- Content description for the attachment detail view (used for accessibility) -->
+    <string name="content_description_attachment_detail">Display attachment detail view</string>
+    <!-- Content description for selecting attachments to share (used for accessibility) -->
+    <string name="content_description_attachments_sharing">Select attachments for sharing</string>
+    <!-- Content description for the overflow indicator showing all attachments (used for accessibility) -->
+    <string name="content_description_show_all_attachments">Show all %1$d attachments</string>
+    <!-- Content description for the placeholder icon representing an attachment (used for accessibility) -->
+    <string name="content_description_attachment_placeholder_view">Placeholder icon for <xliff:g example="Image" id="file_type">%1$s</xliff:g></string>
+    <!-- Content description for the button to toggle selection mode (used for accessibility) -->
+    <string name="content_description_select_button">Toggle selection mode</string>
+    <!-- State description for when selection mode is active (used for accessibility) -->
+    <string name="state_description_selecting">Selecting</string>
+    <!-- State description for when viewing mode is active (used for accessibility) -->
+    <string name="state_description_viewing">Viewing</string>
+    <!-- Content description for rich link image -->
+    <string name="content_description_rich_link_image">Image for: <xliff:g example="Something!" id="img_description_base">%1$s</xliff:g></string>
+    <!-- Content description for a message with attachments (used for accessibility), it describes that message has attachments and how many attachments it has -->
+    <string name="content_description_attachment_message"><xliff:g example="5" id="attachment_count">%1$d</xliff:g> attachments</string>
+    <!-- Content description for an attachment item in a message with multiple attachments (used for accessibility), it describes type of the attachment and its order in the message attachments list -->
+    <string name="content_description_attachment_item"><xliff:g example="Image" id="attachment_type">%1$s</xliff:g> <xliff:g example="1" id="attachment_order">%2$d</xliff:g> of <xliff:g example="5" id="total_count">%3$d</xliff:g></string>
+    <!-- Content description for a message with a single attachment (used for accessibility), it describes type of the attachment and will be used as part of accessibility_message formatted string -->
+    <string name="content_description_attachment_single"><xliff:g example="Image" id="attachment_type">%1$s</xliff:g> attachment</string>
+    <!-- Content description for audio progress indicator showing current time out of total duration -->
+    <string name="progress_indicator_content_description">Audio playback progress. %1$s of %2$s played.</string>
+    <!-- Content description for infinite audio duration in accessibility announcements -->
+    <string name="content_description_audio_duration_infinite">Unknown duration</string>
+    <!--
+        Message accessibility (TalkBack/screen reader)
+    -->
+    <!-- Accessibility label for customer message with date and time -->
+    <string name="accessibility_message_you">Message by you, <xliff:g example="your message text" id="message_text">%1$s</xliff:g>, at <xliff:g example="Today, 10:30 AM" id="datetime">%2$s</xliff:g></string>
+    <!-- Accessibility label for agent message with agent name, date and time -->
+    <string name="accessibility_message_from_agent">Message from <xliff:g example="John Agent" id="agent_name">%1$s</xliff:g>, <xliff:g example="your message text" id="message_text">%2$s</xliff:g>, at <xliff:g example="Yesterday, 10:30 AM" id="datetime">%3$s</xliff:g></string>
+    <!-- Accessibility label for message with unknown sender -->
+    <string name="accessibility_no_agent_name">Agent</string>
+    <!-- Label identifying a message as AI-generated (EU AI Act authorship indicator) -->
+    <string name="ai_assistant_label">AI Assistant</string>
+    <!-- Displayed when an agent is assigned but their personal information is hidden -->
+    <string name="agent_default_name">Agent</string>
+    <!-- Content description for image attachments (used for accessibility) -->
+    <string name="content_description_attachment_type_image">Image</string>
+    <!-- Content description for video attachments (used for accessibility) -->
+    <string name="content_description_attachment_type_video">Video</string>
+    <!-- Content description for PDF files (used for accessibility) -->
+    <string name="content_description_attachment_type_document">Document</string>
+    <!-- Content description for attachement files (used for accessibility), fallback type used if no other type matches -->
+    <string name="content_description_attachment_type_file">File</string>
 
+    <!-- Accessibility label for audio message -->
+    <string name="accessibility_audio_message">Audio message</string>
     <!--
       Plurals for media controls and notifications
     -->
@@ -372,6 +453,12 @@
     <string name="unsupported_message_status">Message cannot be displayed</string>
     <!-- Message for unsupported message content in chat -->
     <string name="unsupported_message">This message could not be displayed in the chat as it uses a format that is currently unsupported.</string>
+    <!-- Error message for unsupported message type when user tries to interact with it -->
+    <string name="unsupported_message_error">Unsupported message type</string>
+    <!-- State description for accessibility when agent is assigned to conversation -->
+    <string name="state_description_agent_assigned">Agent assigned to conversation</string>
+    <!-- State description for accessibility when no agent is assigned to conversation -->
+    <string name="state_description_no_agent_assigned">No agent assigned to conversation</string>
 
     <!--
       Inactivity timeout and error dialogs
@@ -380,6 +467,8 @@
     <string name="inactivity_time_up_title">Time is up!</string>
     <!-- Subtitle for inactivity timeout dialog with detailed message which announces to the user that chat conversation was terminated -->
     <string name="inactivity_time_up_subtitle">This conversation will now end due to inactivity</string>
+    <!-- Shown when the backend rejects the SDK version; non-dismissible dialog body -->
+    <string name="error_sdk_version_not_supported">This version of the application is not supported. Please update to continue.</string>
     <!-- Generic error dialog title -->
     <string name="error_dialog_title">Oops</string>
     <!-- Generic error dialog label for a button by which the user acknowledges that there was error preventing his action  -->
@@ -392,8 +481,10 @@
     <!--
       Rich content message strings
     -->
-    <!-- Quick Reply - The explanation for a state where reply options are disabled -->
+    <!-- @deprecated Use rich_content_disable_message instead. Kept for backward compatibility with host app overrides. -->
     <string name="quick_reply_disable_message">These options are no longer visible because you\'ve already responded or the message is no longer the most recent.</string>
+    <!-- The explanation for a state where rich content reply options are disabled. -->
+    <string name="rich_content_disable_message">These options are no longer visible because you\'ve already responded or the message is no longer the most recent.</string>
     <!-- The label for state when options from message are unavailable -->
     <string name="options_unavailable">Options unavailable</string>
     <!-- List picker open prompt -->
@@ -402,6 +493,10 @@
     <string name="option_selected">Option selected</string>
     <!-- Prompt for single-choice quick reply -->
     <string name="select_option_below">Select one option below</string>
+    <!-- Accessibility label for onClick action of rich message status bar - e.g. "Options unavailable" -->
+    <string name="accessibility_label_onclick_more_information">Click for more information</string>
+    <!-- Accessibility click label combining the current status with an action hint, e.g. "Options unavailable. Click for more information" -->
+    <string name="accessibility_label_status_click_for_info">%1$s. Click for more information</string>
 
     <!--
       Send Transcript feature
@@ -430,6 +525,8 @@
     <string name="close">Close</string>
     <!-- Generic error label -->
     <string name="error">Error</string>
+    <!-- Hint for TalkBack users describing available gesture interactions on the full-screen image viewer -->
+    <string name="content_description_zoomable_image_hint">Pinch to zoom. Double-tap to reset zoom.</string>
 
     <!--
       Time Picker strings
@@ -438,8 +535,8 @@
     <string name="time_picker_dialogue_description">Please select a preferred time slot.</string>
     <!-- Format: "March 30, 2026 at 5:00 AM, 30 min" — %1$s = date, %2$s = time, %3$s = duration -->
     <string name="time_slot_localized_text">%1$s at %2$s, %3$s</string>
-    <!-- Format: "5:00 AM, 30 min" — %1$s = time, %2$s = duration -->
-    <string name="time_slot_accessibility_text">%1$s, %2$s</string>
+    <!-- Format: "March 30, 2026, 5:00 AM, 30 min" — %1$s = date, %2$s = time, %3$s = duration -->
+    <string name="time_slot_accessibility_text">%1$s, %2$s, %3$s</string>
     <!-- Accessibility state when a time slot is currently selected -->
     <string name="time_slot_state_selected">Selected</string>
     <!-- Accessibility state when a time slot is not selected -->

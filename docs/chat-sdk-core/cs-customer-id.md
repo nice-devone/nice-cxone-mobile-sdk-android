@@ -14,10 +14,13 @@ However, in some cases, you might want to set your own customer id
 To set your own customer id, you just need to specify it either in the `ChatBuilder`
 e.g:
 ```kotlin
-val chat = ChatBuilder()
-    // other setup steps
-    .setCustomerId("myCustomerId")
-    .build()
+// build() is a suspend function — call it from a coroutine.
+scope.launch {
+    val chat = ChatBuilder(context, config)
+        // other setup steps
+        .setCustomerId("myCustomerId")
+        .build()
+}
 ```
 or in the ChatInstanceProvider instance before configure is called
 e.g:

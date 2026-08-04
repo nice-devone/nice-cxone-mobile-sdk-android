@@ -16,6 +16,10 @@
 package com.nice.cxonechat.ui.composable.conversation
 
 import androidx.activity.ComponentActivity
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircleOutline
+import androidx.compose.material.icons.filled.TouchApp
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -29,6 +33,15 @@ import com.nice.cxonechat.ui.util.preview.message.UiSdkListPicker
 import org.junit.Rule
 import org.junit.Test
 
+/**
+ * Tests for [ListPickerMessage] bottom sheet functionality and status display.
+ *
+ * Tests verify:
+ * - Bottom sheet displays title, subtitle, and action buttons correctly
+ * - Cancel and Submit button callbacks are triggered
+ * - Message status displays correct text and icons for SELECTABLE and SELECTED states
+ * - Status component accepts Triple<ImageVector, String, Color> parameter
+ */
 class ListPickerBottomSheetTest {
 
     @get:Rule
@@ -50,8 +63,8 @@ class ListPickerBottomSheetTest {
             }
         }
 
-        composeTestRule.onNodeWithTag("list_picker_title").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("list_picker_subtitle").assertIsDisplayed()
+        composeTestRule.onNodeWithTag(testTag = "list_picker_title", useUnmergedTree = true).assertIsDisplayed()
+        composeTestRule.onNodeWithTag(testTag = "list_picker_subtitle", useUnmergedTree = true).assertIsDisplayed()
 
         listPicker.actions.forEach { action ->
             val replyButton = action as? ReplyButton
@@ -71,32 +84,42 @@ class ListPickerBottomSheetTest {
 
     @Test
     fun messageStatusText_isDisplayed_forSelectable() {
+        // Setup: Create status text and Triple manually since .asTriple() is private
+        val statusText = composeTestRule.activity.getString(R.string.list_picker_open_message)
+
         composeTestRule.setContent {
             ChatTheme {
+                // Test ListPickerMessageStatus with SELECTABLE state (TouchApp icon)
                 ListPickerMessageStatus(
-                    messageStatusState = MessageStatusState.SELECTABLE,
-                    onClick = {}
+                    status = Triple(Icons.Default.TouchApp, statusText, Color.Blue)
                 )
             }
         }
+
+        // Verify: Status text is displayed correctly
         composeTestRule.onNodeWithText(
-            text = composeTestRule.activity.getString(R.string.list_picker_open_message),
+            text = statusText,
             useUnmergedTree = true,
         ).assertIsDisplayed()
     }
 
     @Test
     fun messageStatusText_isDisplayed_forSelected() {
+        // Setup: Create status text and Triple manually since .asTriple() is private
+        val statusText = composeTestRule.activity.getString(R.string.option_selected)
+
         composeTestRule.setContent {
             ChatTheme {
+                // Test ListPickerMessageStatus with SELECTED state (CheckCircle icon)
                 ListPickerMessageStatus(
-                    messageStatusState = MessageStatusState.SELECTED,
-                    onClick = {}
+                    status = Triple(Icons.Default.CheckCircleOutline, statusText, Color.Blue)
                 )
             }
         }
+
+        // Verify: Status text is displayed correctly
         composeTestRule.onNodeWithText(
-            text = composeTestRule.activity.getString(R.string.option_selected),
+            text = statusText,
             useUnmergedTree = true
         ).assertIsDisplayed()
     }

@@ -122,4 +122,14 @@
     <string name="new_custom_key">Klíč</string>
     <string name="new_custom_value">Hodnota</string>
     <string name="extra_customer_fields">Dodatečné pole zákazníka</string>
+
+    <!-- Explicit OAuth Unavailable Dialog strings -->
+    <string name="explicit_oauth_unavailable_title">Explicitní OAuth není dostupné</string>
+    <string name="explicit_oauth_unavailable_message">Explicitní OAuth tok není dostupný v aktuální verzi serveru. Prosím použijte Implicitní JWT tok.</string>
+
+    <!-- Google Sign-In Bottom Sheet -->
+    <string name="sign_in_with_google">Přihlásit se přes Google</string>
+    <string name="sign_in_with_google_subtitle">Vyberte způsob přihlášení přes Google</string>
+    <string name="oauth_method_implicit">Implicitní</string>
+    <string name="oauth_method_explicit">Explicitní</string>
 </resources>

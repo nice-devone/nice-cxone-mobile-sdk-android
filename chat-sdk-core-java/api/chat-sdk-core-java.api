@@ -1,0 +1,209 @@
+public final class com/nice/cxonechat/api/ChatActionHandlerJavaInterop {
+	public static final fun onPopup (Lcom/nice/cxonechat/ChatActionHandler;Ljava/util/function/Consumer;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun onPopup (Lcom/nice/cxonechat/ChatActionHandler;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun onPopup (Lcom/nice/cxonechat/ChatActionHandler;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;Ljava/util/concurrent/Executor;)Lcom/nice/cxonechat/Cancellable;
+	public static synthetic fun onPopup$default (Lcom/nice/cxonechat/ChatActionHandler;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;Ljava/util/concurrent/Executor;ILjava/lang/Object;)Lcom/nice/cxonechat/Cancellable;
+}
+
+public final class com/nice/cxonechat/api/ChatBuilderJavaInterop {
+	public static final fun buildAsync (Lcom/nice/cxonechat/ChatBuilder;Ljava/util/function/Consumer;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun buildAsync (Lcom/nice/cxonechat/ChatBuilder;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun buildAsync (Lcom/nice/cxonechat/ChatBuilder;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;Ljava/util/concurrent/Executor;)Lcom/nice/cxonechat/Cancellable;
+	public static synthetic fun buildAsync$default (Lcom/nice/cxonechat/ChatBuilder;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;Ljava/util/concurrent/Executor;ILjava/lang/Object;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun getDefaultAsync (Landroid/content/Context;Lcom/nice/cxonechat/SocketFactoryConfiguration;Ljava/util/function/Consumer;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun getDefaultAsync (Landroid/content/Context;Lcom/nice/cxonechat/SocketFactoryConfiguration;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun getDefaultAsync (Landroid/content/Context;Lcom/nice/cxonechat/SocketFactoryConfiguration;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;Lcom/nice/cxonechat/log/Logger;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun getDefaultAsync (Landroid/content/Context;Lcom/nice/cxonechat/SocketFactoryConfiguration;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;Lcom/nice/cxonechat/log/Logger;Ljava/util/concurrent/Executor;)Lcom/nice/cxonechat/Cancellable;
+	public static synthetic fun getDefaultAsync$default (Landroid/content/Context;Lcom/nice/cxonechat/SocketFactoryConfiguration;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;Lcom/nice/cxonechat/log/Logger;Ljava/util/concurrent/Executor;ILjava/lang/Object;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun getDefaultBlocking (Landroid/content/Context;Lcom/nice/cxonechat/SocketFactoryConfiguration;)Lcom/nice/cxonechat/ChatBuilder;
+	public static final fun getDefaultBlocking (Landroid/content/Context;Lcom/nice/cxonechat/SocketFactoryConfiguration;Lcom/nice/cxonechat/log/Logger;)Lcom/nice/cxonechat/ChatBuilder;
+	public static synthetic fun getDefaultBlocking$default (Landroid/content/Context;Lcom/nice/cxonechat/SocketFactoryConfiguration;Lcom/nice/cxonechat/log/Logger;ILjava/lang/Object;)Lcom/nice/cxonechat/ChatBuilder;
+}
+
+public final class com/nice/cxonechat/api/ChatEventHandlerCoroutineWrapper : com/nice/cxonechat/ChatEventHandler, java/lang/AutoCloseable {
+	public fun <init> (Lcom/nice/cxonechat/ChatEventHandler;)V
+	public fun <init> (Lcom/nice/cxonechat/ChatEventHandler;Ljava/util/concurrent/Executor;)V
+	public synthetic fun <init> (Lcom/nice/cxonechat/ChatEventHandler;Ljava/util/concurrent/Executor;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun chatWindowOpenAsync ()V
+	public final fun chatWindowOpenAsync (Lkotlin/time/Instant;)V
+	public final fun chatWindowOpenAsync (Lkotlin/time/Instant;Ljava/lang/Runnable;)V
+	public final fun chatWindowOpenAsync (Lkotlin/time/Instant;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;)V
+	public static synthetic fun chatWindowOpenAsync$default (Lcom/nice/cxonechat/api/ChatEventHandlerCoroutineWrapper;Lkotlin/time/Instant;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;ILjava/lang/Object;)V
+	public fun close ()V
+	public final fun conversionAsync (Ljava/lang/String;Ljava/lang/Number;)V
+	public final fun conversionAsync (Ljava/lang/String;Ljava/lang/Number;Lkotlin/time/Instant;)V
+	public final fun conversionAsync (Ljava/lang/String;Ljava/lang/Number;Lkotlin/time/Instant;Ljava/lang/Runnable;)V
+	public final fun conversionAsync (Ljava/lang/String;Ljava/lang/Number;Lkotlin/time/Instant;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;)V
+	public static synthetic fun conversionAsync$default (Lcom/nice/cxonechat/api/ChatEventHandlerCoroutineWrapper;Ljava/lang/String;Ljava/lang/Number;Lkotlin/time/Instant;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;ILjava/lang/Object;)V
+	public final fun customVisitorAsync (Ljava/lang/Object;)V
+	public final fun customVisitorAsync (Ljava/lang/Object;Ljava/lang/Runnable;)V
+	public final fun customVisitorAsync (Ljava/lang/Object;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;)V
+	public static synthetic fun customVisitorAsync$default (Lcom/nice/cxonechat/api/ChatEventHandlerCoroutineWrapper;Ljava/lang/Object;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;ILjava/lang/Object;)V
+	public final fun eventAsync (Ljava/util/UUID;)V
+	public final fun eventAsync (Ljava/util/UUID;Ljava/lang/Runnable;)V
+	public final fun eventAsync (Ljava/util/UUID;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;)V
+	public static synthetic fun eventAsync$default (Lcom/nice/cxonechat/api/ChatEventHandlerCoroutineWrapper;Ljava/util/UUID;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;ILjava/lang/Object;)V
+	public final fun pageViewAsync (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun pageViewAsync (Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;)V
+	public final fun pageViewAsync (Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;Ljava/lang/Runnable;)V
+	public final fun pageViewAsync (Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;)V
+	public static synthetic fun pageViewAsync$default (Lcom/nice/cxonechat/api/ChatEventHandlerCoroutineWrapper;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;ILjava/lang/Object;)V
+	public final fun pageViewEndedAsync (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun pageViewEndedAsync (Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;)V
+	public final fun pageViewEndedAsync (Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;Ljava/lang/Runnable;)V
+	public final fun pageViewEndedAsync (Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;)V
+	public static synthetic fun pageViewEndedAsync$default (Lcom/nice/cxonechat/api/ChatEventHandlerCoroutineWrapper;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;ILjava/lang/Object;)V
+	public final fun proactiveActionClickAsync (Lcom/nice/cxonechat/analytics/ActionMetadata;)V
+	public final fun proactiveActionClickAsync (Lcom/nice/cxonechat/analytics/ActionMetadata;Lkotlin/time/Instant;)V
+	public final fun proactiveActionClickAsync (Lcom/nice/cxonechat/analytics/ActionMetadata;Lkotlin/time/Instant;Ljava/lang/Runnable;)V
+	public final fun proactiveActionClickAsync (Lcom/nice/cxonechat/analytics/ActionMetadata;Lkotlin/time/Instant;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;)V
+	public static synthetic fun proactiveActionClickAsync$default (Lcom/nice/cxonechat/api/ChatEventHandlerCoroutineWrapper;Lcom/nice/cxonechat/analytics/ActionMetadata;Lkotlin/time/Instant;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;ILjava/lang/Object;)V
+	public final fun proactiveActionDisplayAsync (Lcom/nice/cxonechat/analytics/ActionMetadata;)V
+	public final fun proactiveActionDisplayAsync (Lcom/nice/cxonechat/analytics/ActionMetadata;Lkotlin/time/Instant;)V
+	public final fun proactiveActionDisplayAsync (Lcom/nice/cxonechat/analytics/ActionMetadata;Lkotlin/time/Instant;Ljava/lang/Runnable;)V
+	public final fun proactiveActionDisplayAsync (Lcom/nice/cxonechat/analytics/ActionMetadata;Lkotlin/time/Instant;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;)V
+	public static synthetic fun proactiveActionDisplayAsync$default (Lcom/nice/cxonechat/api/ChatEventHandlerCoroutineWrapper;Lcom/nice/cxonechat/analytics/ActionMetadata;Lkotlin/time/Instant;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;ILjava/lang/Object;)V
+	public final fun proactiveActionFailureAsync (Lcom/nice/cxonechat/analytics/ActionMetadata;)V
+	public final fun proactiveActionFailureAsync (Lcom/nice/cxonechat/analytics/ActionMetadata;Lkotlin/time/Instant;)V
+	public final fun proactiveActionFailureAsync (Lcom/nice/cxonechat/analytics/ActionMetadata;Lkotlin/time/Instant;Ljava/lang/Runnable;)V
+	public final fun proactiveActionFailureAsync (Lcom/nice/cxonechat/analytics/ActionMetadata;Lkotlin/time/Instant;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;)V
+	public static synthetic fun proactiveActionFailureAsync$default (Lcom/nice/cxonechat/api/ChatEventHandlerCoroutineWrapper;Lcom/nice/cxonechat/analytics/ActionMetadata;Lkotlin/time/Instant;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;ILjava/lang/Object;)V
+	public final fun proactiveActionSuccessAsync (Lcom/nice/cxonechat/analytics/ActionMetadata;)V
+	public final fun proactiveActionSuccessAsync (Lcom/nice/cxonechat/analytics/ActionMetadata;Lkotlin/time/Instant;)V
+	public final fun proactiveActionSuccessAsync (Lcom/nice/cxonechat/analytics/ActionMetadata;Lkotlin/time/Instant;Ljava/lang/Runnable;)V
+	public final fun proactiveActionSuccessAsync (Lcom/nice/cxonechat/analytics/ActionMetadata;Lkotlin/time/Instant;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;)V
+	public static synthetic fun proactiveActionSuccessAsync$default (Lcom/nice/cxonechat/api/ChatEventHandlerCoroutineWrapper;Lcom/nice/cxonechat/analytics/ActionMetadata;Lkotlin/time/Instant;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;ILjava/lang/Object;)V
+	public synthetic fun trigger (Lcom/nice/cxonechat/event/ChatEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun triggerAsync (Lcom/nice/cxonechat/event/ChatEvent;)V
+	public final fun triggerAsync (Lcom/nice/cxonechat/event/ChatEvent;Ljava/lang/Runnable;)V
+	public final fun triggerAsync (Lcom/nice/cxonechat/event/ChatEvent;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;)V
+	public static synthetic fun triggerAsync$default (Lcom/nice/cxonechat/api/ChatEventHandlerCoroutineWrapper;Lcom/nice/cxonechat/event/ChatEvent;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;ILjava/lang/Object;)V
+}
+
+public final class com/nice/cxonechat/api/ChatInstanceProviderJavaInterop {
+	public static final fun closeSuspendingAsync (Lcom/nice/cxonechat/ChatInstanceProvider;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun closeSuspendingAsync (Lcom/nice/cxonechat/ChatInstanceProvider;Ljava/lang/Runnable;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun closeSuspendingAsync (Lcom/nice/cxonechat/ChatInstanceProvider;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun closeSuspendingAsync (Lcom/nice/cxonechat/ChatInstanceProvider;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;Ljava/util/concurrent/Executor;)Lcom/nice/cxonechat/Cancellable;
+	public static synthetic fun closeSuspendingAsync$default (Lcom/nice/cxonechat/ChatInstanceProvider;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;Ljava/util/concurrent/Executor;ILjava/lang/Object;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun configureAsync (Lcom/nice/cxonechat/ChatInstanceProvider;Landroid/content/Context;Ljava/util/function/Consumer;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun configureAsync (Lcom/nice/cxonechat/ChatInstanceProvider;Landroid/content/Context;Ljava/util/function/Consumer;Ljava/lang/Runnable;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun configureAsync (Lcom/nice/cxonechat/ChatInstanceProvider;Landroid/content/Context;Ljava/util/function/Consumer;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun configureAsync (Lcom/nice/cxonechat/ChatInstanceProvider;Landroid/content/Context;Ljava/util/function/Consumer;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;Ljava/util/concurrent/Executor;)Lcom/nice/cxonechat/Cancellable;
+	public static synthetic fun configureAsync$default (Lcom/nice/cxonechat/ChatInstanceProvider;Landroid/content/Context;Ljava/util/function/Consumer;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;Ljava/util/concurrent/Executor;ILjava/lang/Object;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun configureBlocking (Lcom/nice/cxonechat/ChatInstanceProvider;Landroid/content/Context;Ljava/util/function/Consumer;)V
+	public static final fun signOutAsync (Lcom/nice/cxonechat/ChatInstanceProvider;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun signOutAsync (Lcom/nice/cxonechat/ChatInstanceProvider;Ljava/lang/Runnable;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun signOutAsync (Lcom/nice/cxonechat/ChatInstanceProvider;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun signOutAsync (Lcom/nice/cxonechat/ChatInstanceProvider;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;Ljava/util/concurrent/Executor;)Lcom/nice/cxonechat/Cancellable;
+	public static synthetic fun signOutAsync$default (Lcom/nice/cxonechat/ChatInstanceProvider;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;Ljava/util/concurrent/Executor;ILjava/lang/Object;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun signOutBlocking (Lcom/nice/cxonechat/ChatInstanceProvider;)V
+}
+
+public final class com/nice/cxonechat/api/ChatJavaInterop {
+	public static final fun connectAsync (Lcom/nice/cxonechat/Chat;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun connectAsync (Lcom/nice/cxonechat/Chat;Ljava/lang/Runnable;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun connectAsync (Lcom/nice/cxonechat/Chat;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun connectAsync (Lcom/nice/cxonechat/Chat;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;Ljava/util/concurrent/Executor;)Lcom/nice/cxonechat/Cancellable;
+	public static synthetic fun connectAsync$default (Lcom/nice/cxonechat/Chat;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;Ljava/util/concurrent/Executor;ILjava/lang/Object;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun getChannelAvailabilityAsync (Lcom/nice/cxonechat/Chat;Ljava/util/function/Consumer;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun getChannelAvailabilityAsync (Lcom/nice/cxonechat/Chat;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun getChannelAvailabilityAsync (Lcom/nice/cxonechat/Chat;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;Ljava/util/concurrent/Executor;)Lcom/nice/cxonechat/Cancellable;
+	public static synthetic fun getChannelAvailabilityAsync$default (Lcom/nice/cxonechat/Chat;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;Ljava/util/concurrent/Executor;ILjava/lang/Object;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun observeState (Lcom/nice/cxonechat/Chat;Ljava/util/function/Consumer;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun observeState (Lcom/nice/cxonechat/Chat;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun observeState (Lcom/nice/cxonechat/Chat;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;Ljava/util/concurrent/Executor;)Lcom/nice/cxonechat/Cancellable;
+	public static synthetic fun observeState$default (Lcom/nice/cxonechat/Chat;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;Ljava/util/concurrent/Executor;ILjava/lang/Object;)Lcom/nice/cxonechat/Cancellable;
+}
+
+public final class com/nice/cxonechat/api/ChatThreadActionHandlerJavaInterop {
+	public static final fun onPopup (Lcom/nice/cxonechat/ChatThreadActionHandler;Ljava/util/function/Consumer;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun onPopup (Lcom/nice/cxonechat/ChatThreadActionHandler;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun onPopup (Lcom/nice/cxonechat/ChatThreadActionHandler;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;Ljava/util/concurrent/Executor;)Lcom/nice/cxonechat/Cancellable;
+	public static synthetic fun onPopup$default (Lcom/nice/cxonechat/ChatThreadActionHandler;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;Ljava/util/concurrent/Executor;ILjava/lang/Object;)Lcom/nice/cxonechat/Cancellable;
+}
+
+public final class com/nice/cxonechat/api/ChatThreadEventHandlerCoroutineWrapper : com/nice/cxonechat/ChatThreadEventHandler, java/lang/AutoCloseable {
+	public fun <init> (Lcom/nice/cxonechat/ChatThreadEventHandler;)V
+	public fun <init> (Lcom/nice/cxonechat/ChatThreadEventHandler;Ljava/util/concurrent/Executor;)V
+	public synthetic fun <init> (Lcom/nice/cxonechat/ChatThreadEventHandler;Ljava/util/concurrent/Executor;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun close ()V
+	public final fun loadMetadataAsync ()V
+	public final fun loadMetadataAsync (Ljava/lang/Runnable;)V
+	public final fun loadMetadataAsync (Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;)V
+	public static synthetic fun loadMetadataAsync$default (Lcom/nice/cxonechat/api/ChatThreadEventHandlerCoroutineWrapper;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;ILjava/lang/Object;)V
+	public final fun markThreadReadAsync ()V
+	public final fun markThreadReadAsync (Ljava/lang/Runnable;)V
+	public final fun markThreadReadAsync (Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;)V
+	public static synthetic fun markThreadReadAsync$default (Lcom/nice/cxonechat/api/ChatThreadEventHandlerCoroutineWrapper;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;ILjava/lang/Object;)V
+	public final fun sendTranscriptAsync (Ljava/lang/String;)V
+	public final fun sendTranscriptAsync (Ljava/lang/String;Ljava/util/function/Consumer;)V
+	public final fun sendTranscriptAsync (Ljava/lang/String;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;)V
+	public static synthetic fun sendTranscriptAsync$default (Lcom/nice/cxonechat/api/ChatThreadEventHandlerCoroutineWrapper;Ljava/lang/String;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;ILjava/lang/Object;)V
+	public synthetic fun trigger (Lcom/nice/cxonechat/event/thread/ChatThreadEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun triggerActionAsync (Lcom/nice/cxonechat/message/Action;)V
+	public final fun triggerActionAsync (Lcom/nice/cxonechat/message/Action;Ljava/lang/Runnable;)V
+	public final fun triggerActionAsync (Lcom/nice/cxonechat/message/Action;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;)V
+	public static synthetic fun triggerActionAsync$default (Lcom/nice/cxonechat/api/ChatThreadEventHandlerCoroutineWrapper;Lcom/nice/cxonechat/message/Action;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;ILjava/lang/Object;)V
+	public final fun triggerAsync (Lcom/nice/cxonechat/event/thread/ChatThreadEvent;)V
+	public final fun triggerAsync (Lcom/nice/cxonechat/event/thread/ChatThreadEvent;Ljava/lang/Runnable;)V
+	public final fun triggerAsync (Lcom/nice/cxonechat/event/thread/ChatThreadEvent;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;)V
+	public static synthetic fun triggerAsync$default (Lcom/nice/cxonechat/api/ChatThreadEventHandlerCoroutineWrapper;Lcom/nice/cxonechat/event/thread/ChatThreadEvent;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;ILjava/lang/Object;)V
+	public final fun typingEndAsync ()V
+	public final fun typingEndAsync (Ljava/lang/Runnable;)V
+	public final fun typingEndAsync (Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;)V
+	public static synthetic fun typingEndAsync$default (Lcom/nice/cxonechat/api/ChatThreadEventHandlerCoroutineWrapper;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;ILjava/lang/Object;)V
+	public final fun typingStartAsync ()V
+	public final fun typingStartAsync (Ljava/lang/Runnable;)V
+	public final fun typingStartAsync (Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;)V
+	public static synthetic fun typingStartAsync$default (Lcom/nice/cxonechat/api/ChatThreadEventHandlerCoroutineWrapper;Ljava/lang/Runnable;Lcom/nice/cxonechat/api/ErrorCallback;ILjava/lang/Object;)V
+}
+
+public final class com/nice/cxonechat/api/ChatThreadHandlerJavaInterop {
+	public static final fun archiveAsync (Lcom/nice/cxonechat/ChatThreadHandler;Ljava/util/function/Consumer;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun archiveAsync (Lcom/nice/cxonechat/ChatThreadHandler;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun archiveAsync (Lcom/nice/cxonechat/ChatThreadHandler;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;Ljava/util/concurrent/Executor;)Lcom/nice/cxonechat/Cancellable;
+	public static synthetic fun archiveAsync$default (Lcom/nice/cxonechat/ChatThreadHandler;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;Ljava/util/concurrent/Executor;ILjava/lang/Object;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun observeThread (Lcom/nice/cxonechat/ChatThreadHandler;Ljava/util/function/Consumer;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun observeThread (Lcom/nice/cxonechat/ChatThreadHandler;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun observeThread (Lcom/nice/cxonechat/ChatThreadHandler;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;Ljava/util/concurrent/Executor;)Lcom/nice/cxonechat/Cancellable;
+	public static synthetic fun observeThread$default (Lcom/nice/cxonechat/ChatThreadHandler;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;Ljava/util/concurrent/Executor;ILjava/lang/Object;)Lcom/nice/cxonechat/Cancellable;
+}
+
+public final class com/nice/cxonechat/api/ChatThreadMessageHandlerCoroutineWrapper : com/nice/cxonechat/ChatThreadMessageHandler, java/lang/AutoCloseable {
+	public fun <init> (Lcom/nice/cxonechat/ChatThreadMessageHandler;)V
+	public fun <init> (Lcom/nice/cxonechat/ChatThreadMessageHandler;Ljava/util/concurrent/Executor;)V
+	public synthetic fun <init> (Lcom/nice/cxonechat/ChatThreadMessageHandler;Ljava/util/concurrent/Executor;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun close ()V
+	public fun loadMore ()V
+	public synthetic fun send (Lcom/nice/cxonechat/message/OutboundMessage;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public synthetic fun send (Ljava/lang/Iterable;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public synthetic fun send (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun sendAsync (Lcom/nice/cxonechat/message/OutboundMessage;)V
+	public final fun sendAsync (Lcom/nice/cxonechat/message/OutboundMessage;Ljava/util/function/Consumer;)V
+	public final fun sendAsync (Lcom/nice/cxonechat/message/OutboundMessage;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;)V
+	public final fun sendAsync (Ljava/lang/Iterable;)V
+	public final fun sendAsync (Ljava/lang/Iterable;Ljava/lang/String;)V
+	public final fun sendAsync (Ljava/lang/Iterable;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun sendAsync (Ljava/lang/Iterable;Ljava/lang/String;Ljava/lang/String;Ljava/util/function/Consumer;)V
+	public final fun sendAsync (Ljava/lang/Iterable;Ljava/lang/String;Ljava/lang/String;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;)V
+	public final fun sendAsync (Ljava/lang/String;)V
+	public final fun sendAsync (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun sendAsync (Ljava/lang/String;Ljava/lang/String;Ljava/util/function/Consumer;)V
+	public final fun sendAsync (Ljava/lang/String;Ljava/lang/String;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;)V
+	public static synthetic fun sendAsync$default (Lcom/nice/cxonechat/api/ChatThreadMessageHandlerCoroutineWrapper;Lcom/nice/cxonechat/message/OutboundMessage;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;ILjava/lang/Object;)V
+	public static synthetic fun sendAsync$default (Lcom/nice/cxonechat/api/ChatThreadMessageHandlerCoroutineWrapper;Ljava/lang/Iterable;Ljava/lang/String;Ljava/lang/String;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;ILjava/lang/Object;)V
+	public static synthetic fun sendAsync$default (Lcom/nice/cxonechat/api/ChatThreadMessageHandlerCoroutineWrapper;Ljava/lang/String;Ljava/lang/String;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;ILjava/lang/Object;)V
+}
+
+public final class com/nice/cxonechat/api/ChatThreadsHandlerJavaInterop {
+	public static final fun observeThreads (Lcom/nice/cxonechat/ChatThreadsHandler;Ljava/util/function/Consumer;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun observeThreads (Lcom/nice/cxonechat/ChatThreadsHandler;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;)Lcom/nice/cxonechat/Cancellable;
+	public static final fun observeThreads (Lcom/nice/cxonechat/ChatThreadsHandler;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;Ljava/util/concurrent/Executor;)Lcom/nice/cxonechat/Cancellable;
+	public static synthetic fun observeThreads$default (Lcom/nice/cxonechat/ChatThreadsHandler;Ljava/util/function/Consumer;Lcom/nice/cxonechat/api/ErrorCallback;Ljava/util/concurrent/Executor;ILjava/lang/Object;)Lcom/nice/cxonechat/Cancellable;
+}
+
+public abstract interface class com/nice/cxonechat/api/ErrorCallback {
+	public abstract fun onError (Lcom/nice/cxonechat/exceptions/CXoneException;)V
+}
+

@@ -23,13 +23,13 @@ comments:
   UndocumentedPublicClass:
     active: true
     searchInInnerObject: true
-    excludes: ['**/test/**', '**/testDebug/**', '**/androidTest/**', '**/*.Spec.kt']
+    excludes: [ '**/test/**', '**/**Test**.kt',  '**/testDebug/**', '**/androidTest/**', '**/*.Spec.kt' ]
   UndocumentedPublicFunction:
     active: true
-    excludes: ['**/test/**', '**/testDebug/**', '**/androidTest/**', '**/*.Spec.kt']
+    excludes: [ '**/test/**', '**/**Test**.kt', '**/testDebug/**', '**/androidTest/**', '**/*.Spec.kt' ]
   UndocumentedPublicProperty:
     active: true
-    excludes: ['**/test/**', '**/testDebug/**', '**/androidTest/**', '**/*.Spec.kt']
+    excludes: [ '**/test/**', '**/**Test**.kt', '**/testDebug/**', '**/androidTest/**', '**/*.Spec.kt' ]
 
 complexity:
   CognitiveComplexMethod:
@@ -64,6 +64,7 @@ complexity:
     active: true
   StringLiteralDuplication:
     active: true
+    excludes: [ '**/test/**', '**/androidTest/**', '**/*.Spec.kt' ]
     ignoreAnnotated:
       - "androidx.compose.ui.tooling.preview.Preview"
       - "androidx.compose.ui.tooling.preview.PreviewLightDark"
@@ -355,11 +356,15 @@ naming:
   FunctionMaxLength:
     active: true
     excludes: [ '**/test/**', '**/androidTest/**', '**/*.Spec.kt' ]
+    ignoreAnnotated:
+      - "org.junit.Test"
+      - "androidx.compose.ui.tooling.preview.Preview"
   FunctionNaming:
     active: true
     excludes: [ '**/test/**', '**/androidTest/**', '**/*.Spec.kt' ]
     ignoreAnnotated:
       - "androidx.compose.runtime.Composable"
+      - "org.junit.Test"
   FunctionParameterNaming:
     active: true
   InvalidPackageDeclaration:
@@ -407,6 +412,10 @@ potential-bugs:
     active: true
   Deprecation:
     active: true
+    excludes: [ '**/test/**', '**/**Test**.kt', '**/androidTest/**', '**/*.Spec.kt' ]
+    ignoreAnnotated:
+      - "javax.inject.Inject"
+      - "org.junit.Test"
   DontDowncastCollectionTypes:
     active: true
   DoubleMutabilityForCollection:
@@ -427,6 +436,9 @@ potential-bugs:
     active: true
   ImplicitUnitReturnType:
     active: true
+    excludes: [ '**/test/**', '**/**Test**.kt', '**/androidTest/**', '**/*.Spec.kt' ]
+    ignoreAnnotated:
+      - "org.junit.Test"
   InvalidRange:
     active: true
   IteratorHasNextCallsNextMethod:
@@ -435,9 +447,10 @@ potential-bugs:
     active: true
   LateinitUsage:
     active: true
-    excludes: [ '**/test/**', '**/androidTest/**', '**/*.Spec.kt' ]
+    excludes: [ '**/test/**', '**/**Test**.kt', '**/androidTest/**', '**/*.Spec.kt' ]
     ignoreAnnotated:
       - "javax.inject.Inject"
+      - "org.junit.Test"
   MapGetWithNotNullAssertionOperator:
     active: true
   MissingPackageDeclaration:
@@ -506,13 +519,18 @@ style:
     active: true
   ExpressionBodySyntax:
     active: true
-    excludes: [ '**/test/**', '**/androidTest/**', '**/*.Spec.kt' ]
+    excludes: [ '**/test/**', '**/**Test**.kt', '**/androidTest/**', '**/*.Spec.kt' ]
+    ignoreAnnotated:
+      - "org.junit.Test"
   ForbiddenImport:
     active: true
   ForbiddenMethodCall:
     active: true
   ForbiddenVoid:
     active: true
+    excludes: [ '**/test/**', '**/**Test**.kt', '**/androidTest/**', '**/*.Spec.kt' ]
+    ignoreAnnotated:
+      - "org.junit.Test"
   FunctionOnlyReturningConstant:
     active: true
   LoopWithTooManyJumpStatements:

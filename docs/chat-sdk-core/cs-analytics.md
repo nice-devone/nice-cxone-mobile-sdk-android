@@ -20,13 +20,13 @@ More information about WFA can be found in the [CXone documentation](https://hel
   - The user is leaving a page or screen previously recorded with a Page View Event.
     A Page View Ended event should be generated as each page is left.
 - **ProactiveActionClickEvent**
-  - Action regards to `ChatActionHandler::onPopup`
+  - Action regards to `ChatActionHandler.popupFlow`
 - **ProactiveActionDisplayEvent**
-  - Action regards to `ChatActionHandler::onPopup`
+  - Action regards to `ChatActionHandler.popupFlow`
 - **ProactiveActionFailureEvent**
-  - Action regards to `ChatActionHandler::onPopup`
+  - Action regards to `ChatActionHandler.popupFlow`
 - **ProactiveActionSuccessEvent**
-  - Action regards to `ChatActionHandler::onPopup`
+  - Action regards to `ChatActionHandler.popupFlow`
 - **TriggerEvent**
   - Trigger an automation event by ID
 
@@ -48,14 +48,18 @@ Sample:
 ```kotlin
 class ChatViewModel : ViewModel() {
 
-  private val chat = ChatInstanceProvider.get().chat
+  private val chat = ChatInstanceProvider.get().chat.let(::requireNotNull)
   private val events = chat.events()
 
   /**
    * Called when the chat window is opened.
+   * The analytics extensions (chatWindowOpen, pageView, ...) are suspend functions, so call them
+   * from a coroutine. Java consumers use ChatEventHandlerCoroutineWrapper.chatWindowOpenAsync(...).
    */
   internal fun reportOnResume() {
-    events.chatWindowOpen()
+    viewModelScope.launch {
+      events.chatWindowOpen()
+    }
   }
 }
 ```
@@ -83,5 +87,5 @@ When the proactive action is presented to the user, the integration should repor
 and when user interacts with it the application should report `events.proactiveActionClick(action.metadata)`.
 Reporting of success and failure is left to interpretation of integrators.
 
-In current version the SDK only supports Popup Box which requires the integration to implement `ChatActionHandler.OnPopupActionListener` interface and register it via the `ChatActionHandler.onPopup` method.
+In current version the SDK only supports Popup Box, which the integration observes by collecting the `ChatActionHandler.popupFlow` (or `ChatThreadActionHandler.popupFlow`) `Flow`. Java consumers use `ChatActionHandlerJavaInterop.onPopup(...)`.
 Other details can be found in the [Chat SDK documentation](https://help.nice-incontact.com/content/acd/digital/guide/guideactions/mobileapplicationpopupbox.htm?tocpath=CXone%20Guide%7CCXone%20Guide%7CCreate%20Engagement%20Rules%7CLegacy%20Engagement%20Actions%7C_____6#MobileApplicationPopupBox).

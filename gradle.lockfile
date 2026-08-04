@@ -1,13 +1,14 @@
 # This is a Gradle generated file for dependency locking.
 # Manual edits can break the build and are not advised.
 # This file is expected to be part of source control.
-com.fasterxml.jackson.core:jackson-annotations:2.15.3=dokkaHtmlGeneratorRuntimeResolver~internal,dokkaHtmlPublicationPluginResolver~internal
-com.fasterxml.jackson.core:jackson-core:2.15.3=dokkaHtmlGeneratorRuntimeResolver~internal,dokkaHtmlPublicationPluginResolver~internal
-com.fasterxml.jackson.core:jackson-databind:2.15.3=dokkaHtmlGeneratorRuntimeResolver~internal,dokkaHtmlPublicationPluginResolver~internal
-com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.15.3=dokkaHtmlGeneratorRuntimeResolver~internal
-com.fasterxml.jackson.module:jackson-module-kotlin:2.15.3=dokkaHtmlGeneratorRuntimeResolver~internal,dokkaHtmlPublicationPluginResolver~internal
-com.fasterxml.jackson:jackson-bom:2.15.3=dokkaHtmlGeneratorRuntimeResolver~internal,dokkaHtmlPublicationPluginResolver~internal
-com.fasterxml.woodstox:woodstox-core:6.5.1=dokkaHtmlGeneratorRuntimeResolver~internal
+# To regenerate this file, run: ./gradlew :dependencies --write-locks
+com.fasterxml.jackson.core:jackson-annotations:2.18.9=dokkaHtmlGeneratorRuntimeResolver~internal,dokkaHtmlPublicationPluginResolver~internal
+com.fasterxml.jackson.core:jackson-core:2.18.9=dokkaHtmlGeneratorRuntimeResolver~internal,dokkaHtmlPublicationPluginResolver~internal
+com.fasterxml.jackson.core:jackson-databind:2.18.9=dokkaHtmlGeneratorRuntimeResolver~internal,dokkaHtmlPublicationPluginResolver~internal
+com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.18.9=dokkaHtmlGeneratorRuntimeResolver~internal
+com.fasterxml.jackson.module:jackson-module-kotlin:2.18.9=dokkaHtmlGeneratorRuntimeResolver~internal,dokkaHtmlPublicationPluginResolver~internal
+com.fasterxml.jackson:jackson-bom:2.18.9=dokkaHtmlGeneratorRuntimeResolver~internal,dokkaHtmlPublicationPluginResolver~internal
+com.fasterxml.woodstox:woodstox-core:7.0.0=dokkaHtmlGeneratorRuntimeResolver~internal
 dev.drewhamilton.poko:poko-annotations-jvm:0.17.1=detekt
 dev.drewhamilton.poko:poko-annotations:0.17.1=detekt
 io.github.davidburstrom.contester:contester-breakpoint:0.2.0=detekt
@@ -36,7 +37,7 @@ io.gitlab.arturbosch.detekt:detekt-rules-style:1.23.8=detekt
 io.gitlab.arturbosch.detekt:detekt-rules:1.23.8=detekt
 io.gitlab.arturbosch.detekt:detekt-tooling:1.23.8=detekt
 io.gitlab.arturbosch.detekt:detekt-utils:1.23.8=detekt
-org.codehaus.woodstox:stax2-api:4.2.1=dokkaHtmlGeneratorRuntimeResolver~internal
+org.codehaus.woodstox:stax2-api:4.2.2=dokkaHtmlGeneratorRuntimeResolver~internal
 org.freemarker:freemarker:2.3.32=dokkaHtmlGeneratorRuntimeResolver~internal,dokkaHtmlPublicationPluginResolver~internal
 org.jacoco:org.jacoco.agent:0.8.14=jacocoAgent,jacocoAnt
 org.jacoco:org.jacoco.ant:0.8.14=jacocoAnt
@@ -74,7 +75,7 @@ org.jetbrains:annotations:13.0=detekt
 org.jetbrains:annotations:23.0.0=dokkaHtmlGeneratorRuntimeResolver~internal,dokkaHtmlPublicationPluginResolver~internal
 org.jetbrains:markdown-jvm:0.7.3=dokkaHtmlGeneratorRuntimeResolver~internal,dokkaHtmlPublicationPluginResolver~internal
 org.jetbrains:markdown:0.7.3=dokkaHtmlGeneratorRuntimeResolver~internal,dokkaHtmlPublicationPluginResolver~internal
-org.jsoup:jsoup:1.16.1=dokkaHtmlGeneratorRuntimeResolver~internal,dokkaHtmlPublicationPluginResolver~internal
+org.jsoup:jsoup:1.21.1=dokkaHtmlGeneratorRuntimeResolver~internal,dokkaHtmlPublicationPluginResolver~internal
 org.ow2.asm:asm-commons:9.9=jacocoAnt
 org.ow2.asm:asm-tree:9.6=bcv-rt-jvm-cp-resolver
 org.ow2.asm:asm-tree:9.9=jacocoAnt

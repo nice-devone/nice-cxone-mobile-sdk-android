@@ -23,7 +23,6 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -171,8 +170,8 @@ internal class TreeFieldTest {
             }
         }
 
-        // Child shouldn't be visible until parent is expanded
-        composeTestRule.onNodeWithText("Child").assertDoesNotExist()
+        // Child shouldn't be visible until parent is expanded - use tag instead of text
+        composeTestRule.onNodeWithTag("tree_node_Child").assertDoesNotExist()
 
         // Expand programmatically (simulates the effect of user expanding the node)
         composeTestRule.runOnUiThread {
@@ -182,11 +181,11 @@ internal class TreeFieldTest {
         // Give composition time to update
         composeTestRule.waitForIdle()
 
-        // Now child should be visible
-        composeTestRule.onNodeWithText("Child").assertIsDisplayed()
+        // Now child should be visible - use tag instead of text
+        composeTestRule.onNodeWithTag("tree_node_Child").assertIsDisplayed()
 
-        // Click child to select
-        composeTestRule.onNodeWithText("Child").performClick()
+        // Click child to select using tag
+        composeTestRule.onNodeWithTag("tree_node_Child").performClick()
 
         // Wait for selection to propagate
         composeTestRule.waitForIdle()

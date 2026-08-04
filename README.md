@@ -9,22 +9,22 @@ The repository contains an Android SDK for chat functionality, UI components, an
 
 - **Project Type**: Android SDK library with UI module
 - **Primary Languages**: Kotlin
-- **Target Runtime**: Android API 35 (Android 15)
-- **Supported Runtime**: Android API 24-36 (Android 7.0 to Android 16)
-- **Build System**: Gradle 9.3.1 with Android Gradle Plugin 8.13.2, JDK 17
-- **Java Compatibility**: Source and target compatibility Java 11
+- **Target Runtime**: Android API 36 (Android 16)
+- **Supported Runtime**: Android API 26-36 (Android 8.0 to Android 16)
+- **Build System**: Gradle 9.5.x with Android Gradle Plugin 9.2.x
+- **Java Compatibility**: Source and target compatibility Java 17
 - **Architecture**: Multi-module Android library with Jetpack Compose UI
 
 ### Key Frameworks and Dependencies
 
 - **UI Framework**: Jetpack Compose with Material Design 3
 - **Networking**: Retrofit 3.0.0 with OkHttp 5.3.2
-- **Serialization**: Kotlinx Serialization 1.9.0
-- **Dependency Injection**: Koin 4.1.1 with KSP annotations
+- **Serialization**: Kotlinx Serialization
+- **Dependency Injection**: Koin 4.2.x with Koin Compiler
 - **Push Notifications**: Firebase Cloud Messaging
-- **Image Loading**: Coil 3.3.0
+- **Image Loading**: Coil 3.x
 - **Media Playback**: AndroidX Media3 (ExoPlayer)
-- **Testing**: JUnit 4, Kotest, MockK, Robolectric
+- **Testing**: JUnit 4, Kotest, MockK, Robolectric, Roborazzi
 
 ## Prerequisites for project build
 
@@ -32,7 +32,7 @@ The repository contains an Android SDK for chat functionality, UI components, an
 CI). Avoid JDK 25 — it is currently incompatible with Detekt.
 
 **Android SDK & Build Tools**:
-Android SDK with API levels 24–36 and corresponding build tools must be installed.
+Android SDK with API levels 26–36 and corresponding build tools must be installed.
 Specify SDK location in `local.properties` using `sdk.dir` property if you are having issues, e.g.:
 
 ```properties
@@ -113,7 +113,7 @@ Visit [NICE documentation][NICE-docs] for more information about CXone Chat and 
 Current [API][API].
 
 You can also find a simplified example of possible SDK usage
-in [SDK case studies](docs/case-studies.md)
+in [SDK case studies](docs/case-studies.md#core-sdk)
 documentation.
 
 We offer a brief how-to guide for integration [here][implementation].
@@ -154,7 +154,7 @@ More of the details can be found in the module [README](chat-sdk-ui/README.md)
 
 ### Additional information
 
-A brief case study about [configuring UI module][configuring-ui] will lead you through the setup process.
+A brief case-study about [configuring UI module][configuring-ui] will lead you through the setup process.
 
 We offer a brief how-to guide for integration [here][integration-ui].
 
@@ -179,11 +179,34 @@ Add the following exclusion to your backup rules:
 ```xml
 <exclude domain="file" path="datastore/secure_store.preferences_pb" />
 <exclude domain="sharedpref" path="cxonechat_tink_keyset.xml" />
-<exclude domain="sharedpref" path="com.nice.cxonechat.secure.xml" />
 ```
 
 This ensures that the SDK's secure preferences are not included in the application's backup and won't cause an issue if
 the application is restored on a different device.
+
+## Environment Setup
+
+To develop and build CXone Chat SDK for Android, ensure your environment meets the following requirements:
+
+- **Java Development Kit (JDK) 17** (Temurin recommended)
+- **Android Studio** (latest stable recommended)
+- **Android SDK API level 36** (compile target)
+- **Minimum SDK API level 24**
+- **Android Build Tools and Platform Tools**
+- **Git LFS** (project contains images used in store application and roborrazzi golden images stored in Git LFS)
+
+### Setup Steps
+
+1. **Install Android Studio** and open the SDK Manager:
+  - Install API 36 and update Build Tools/Platform Tools.
+3. **Verify SDK installation:**
+  - Android Studio > Preferences > Appearance & Behavior > System Settings > Android SDK
+  - Ensure API 36 is installed and selected
+  - Update Build Tools and Platform Tools
+4. **Gradle:**
+  - Use the provided `./gradlew` wrapper for all builds and tests
+5. **Troubleshooting:**
+  - If builds fail with SDK errors, check ANDROID_HOME and API 36 installation
 
 ## Tooling modules:
 

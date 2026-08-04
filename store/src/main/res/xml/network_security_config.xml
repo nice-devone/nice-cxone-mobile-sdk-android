@@ -17,15 +17,12 @@
     <debug-overrides>
         <trust-anchors>
             <!-- Trust user added CAs while debuggable only -->
-            <certificates src="@raw/lets_encrypt" />
             <certificates src="system" />
             <certificates src="user" />
         </trust-anchors>
     </debug-overrides>
     <base-config>
         <trust-anchors>
-            <!-- CA for the dummyjson.com -->
-            <certificates src="@raw/lets_encrypt" />
             <certificates src="system" />
         </trust-anchors>
     </base-config>

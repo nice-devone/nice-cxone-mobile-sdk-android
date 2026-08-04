@@ -28,7 +28,7 @@ credentials file.
   chat.setDeviceToken(yourDeviceToken)
 ```
 
-[Case Study Push Notifications](chat-sdk-core/cs-push-notifications.md) offers more detail about this topic.
+[Case Study Push Notifications](../chat-sdk-core/cs-push-notifications.md) offers more detail about this topic.
 
 ## Conversations (formerly Threads)
 
@@ -49,19 +49,24 @@ This is a list of all the threads you can access and have been created by this a
 
   ```kotlin
   val threadsHandler = chat.threads() // (1)
-  threadsHandler.threads {
-    // todo save the threads list
-    // update ui
-  }
+  // Collect threadsFlow from a coroutine scope; the SDK triggers refresh() automatically on first
+  // collection. Java consumers use ChatThreadsHandlerJavaInterop.observeThreads(...).
+  threadsHandler.threadsFlow
+    .onEach { threads ->
+      // todo save the threads list
+      // update ui
+    }
+    .launchIn(scope)
   ```
 
 > [!NOTE]
 > Note that we do not encourage a specific pattern as every application's code might be different.
 > Use your own expertise to determine how to update the UI and save the list of threads.
+> For full ViewModel examples see the [Coroutines case study](../chat-sdk-core/cs-coroutines.md).
 
 > [!WARNING]
-> Some listener methods return Cancellable effect.
-> You, are required to cancel the effect once it's no longer necessary.
+> Collection is tied to the coroutine scope you launch it in — cancel that scope (e.g. by scoping it
+> to `viewModelScope` or the relevant lifecycle) once the flow is no longer needed.
 
 Now that you have saved the list of threads, you have options, depending on whether the
 configuration is single or multi-threaded.
@@ -75,8 +80,8 @@ Use a thread list to fetch the first instance in the list OR create a new thread
 > instances can have at most one thread.
 > Thrown exception can be of type `UnsupportedChannelConfigException` in case you are trying
 > to create second thread (or archive current one),
-> or it can be of type `MissingThreadListFetchException` when you have called `create` before the chat has signaled
-`ChatStateListener.onReady()`.
+> or it can be of type `MissingThreadListFetchException` when you have called `create` before the chat has emitted
+> `ChatStateEvent.Ready` on `chat.stateFlow`.
 > If the channel configuration doesn't include pre-chat survey, the Chat will prepare an empty thread with no messages automatically.
 
 ```kotlin
@@ -177,27 +182,30 @@ You have several options here. One is that you're permitted to listen to the Thr
 which include agent changes, messages and other updates. Another is to fetch the _current_ state
 (…of the Thread) that the library holds.
 
-#### Listen to Thread changes
+#### Observe Thread changes
 
 Thread changes typically include Metadata refresh, Agent swaps or new sent/received Messages. Might
 be extended in the future with more events and/or more reactivity.
 
 > [!WARNING]
-> If you don't use this form of listening to Thread changes, effect-inducing
-> methods (`ChatThreadMessageHandler::loadMore` or similar) will have no effect when invoked.
+> If you are not collecting `threadFlow`, effect-inducing methods
+> (`ChatThreadMessageHandler.loadMore` or similar) will have no effect when invoked.
 
 ```kotlin
-  threadHandler.get {
-    // TODO save current state and/or
-    // update ui
-  }
-  threadHandler.refresh()
+  // Collect threadFlow from a coroutine scope; call refresh() in onStart to trigger the first update.
+  // Java consumers use ChatThreadHandlerJavaInterop.observeThread(...).
+  threadHandler.threadFlow
+    .onStart { threadHandler.refresh() }
+    .onEach { thread ->
+      // TODO save current state and/or update ui
+    }
+    .launchIn(scope)
 ```
 
 #### Get current Thread state
 
-At any point you might request the handler to return the current Thread state. This will be updated
-every time `get {}` is called. Even if cancelled the **instance** will remember the latest value.
+At any point you might request the handler to return the current Thread state synchronously. The
+**instance** remembers the latest value observed through `threadFlow`.
 
 ```kotlin
   val thread = threadHandler.get()
@@ -214,26 +222,21 @@ by your application.
 
 ### Send a Message
 
-There are multiple messages you can send at this point. Notably Text or Attachment messages. Both
-can be listened to, so UI reflects true state of any given message. Listeners are obviously
-optional.
+There are multiple messages you can send at this point. Notably Text or Attachment messages.
+`send()` is a `suspend` function that returns the new message id once the message has left the
+device; call it from a coroutine.
 
 ```kotlin
   val messageHandler = threadHandler.messages()
-  messageHandler.send("Hello world!")
+  scope.launch {
+    val messageId: String = messageHandler.send(OutboundMessage("Hello world!"))
+    // messageId is available once the message has been sent
+  }
 ```
 
-… or the same with a listener:
-
-  ```kotlin
-  messageHandler.send(
-    "Hello world!",
-    OnMessageTransferListener(
-      onProcessed = { /* notify UI */ },
-      onSent = { /* notify UI */ }
-    )
-  )
-  ```
+> Java consumers wrap the handler in `ChatThreadMessageHandlerCoroutineWrapper` and call
+> `sendAsync(message, onResult, onError)` — see the
+> [Coroutine API migration guide](migration/MIGRATION_COROUTINE_API.md).
 
 ### Send a Message with a document
 
@@ -251,7 +254,7 @@ differ from regular text Messages.
     fileName = "${UUID.randomUUID()}.pdf",
     friendlyName = "my-awesome-pdf.pdf"
   )
-  messageHandler.send(listOf(descriptor))
+  scope.launch { messageHandler.send(listOf(descriptor)) }
 ```
 
 > [!WARNING]
@@ -270,25 +273,24 @@ convenient to use the alternate constructor for `ContentDescriptor`:
     fileName = "${UUID.randomUUID()}.jpg",
     friendlyName = "imageName.jpg"
   )
-  messageHandler.send(listOf(descriptor))
+  scope.launch { messageHandler.send(listOf(descriptor)) }
 ```
 
 > [!WARNING]
 > Note that such attachments will be stored in memory until they are uploaded to the server.
 > Be careful how large files you'll upload as they also have to conform to the file size limits enforced by the channel configuration.
 > Channel configuration file size restrictions (in MB) can be retrieved from the `Chat` instance via
-`chat.configuration.fileRestrictions.allowedFileSize`.
+> `chat.configuration.fileRestrictions.allowedFileSize`.
 > SDK enables `largeHeap` in its Android Manifest to allow loading of large files to memory for this purpose.
 
-In case of an issue during attachment upload, the application will be notified via `ChatStateListener.onChatRuntimeException`, if the
-optional `ChatStateListener` instance was supplied to the SDK. The `onChatRuntimeException` will be invoked with an
-instance of `RuntimeChatException.AttachmentUploadError` which will contain information about the cause and the
-attachment filename.
+In case of an issue during attachment upload, the application is notified through `chat.stateFlow`
+with a `ChatStateEvent.RuntimeException` whose `exception` is a `RuntimeChatException.AttachmentUploadError`
+containing information about the cause and the attachment filename.
 
 ### Load more Messages
 
-Loading more messages requires `threadHandler.get {}` to be active. Updates are delivered through
-that callback.
+Loading more messages requires active collection of `threadHandler.threadFlow`. Updates are
+delivered through that flow.
 
   ```kotlin
   messageHandler.loadMore()
@@ -300,39 +302,55 @@ Add any key-value pairs to this Thread. They will be locally stored until next a
 on the given thread. (ie. Sending a Message, …)
 
   ```kotlin
-  val fieldHandler = threadHandler.fields()
+  val fieldHandler = threadHandler.customFields()
   fieldHandler.add(mapOf("pet-preference" to "dog"))
   ```
 
-### Listen to Actions
+### Observe Actions
 
-If you want to support popups, you should register this callback (or at least create
-the `actionHandler`) as soon as possible.
-The SDK cannot guarantee that this callback will be called multiple times,
-nor it can guarantee that it will be called at least once.
+If you want to support popups, you should start collecting `popupFlow` (or at least create the
+`actionHandler`) as soon as possible.
+The SDK cannot guarantee that a popup will be emitted multiple times, nor that it will be emitted at
+least once.
 
   ```kotlin
+  // Create once and keep a reference for the component's lifetime.
   val actionHandler = threadHandler.actions()
-  actionHandler.onPopup { variables, metadata ->
-    // save metadata for analytic events
-    // show popup with variables (should be )
-  }
-  // when done with actions (typically after receiving the first one)
-  actionHandler.close()
+
+  actionHandler.popupFlow
+    .onEach { popup ->
+      // save metadata for analytic events
+      // show popup with variables
+    }
+    .launchIn(scope)
+
+  // The handler starts internal listeners on construction; cancelling the collection scope does
+  // NOT stop them. Call close() from your lifecycle teardown (e.g. ViewModel.onCleared() /
+  // Activity.onDestroy()) to release them:
+  //     actionHandler.close()
   ```
+
+> Java consumers use `ChatThreadActionHandlerJavaInterop.onPopup(...)` (or
+> `ChatActionHandlerJavaInterop.onPopup(...)` for the chat-level handler) — see the
+> [Coroutine API migration guide](migration/MIGRATION_COROUTINE_API.md).
 
 ### Send an Event
 
-You are permitted to send various types of events that are Thread specific. The API is designed to
-be flexible, so we can add more events in the future relatively painlessly. Check the Available
-Events section below or browse object `com.nice.cxonechat.ChatThreadEventHandlerActions` for more info.
+You are permitted to send various types of events that are Thread specific. The thread event
+actions are `suspend` functions — call them from a coroutine. Check the Available Events section
+below or browse object `com.nice.cxonechat.ChatThreadEventHandlerActions` for more info.
 
   ```kotlin
-  fun archiveThread(threadHandler: ChatThreadsHandler) {
+  fun markRead(threadHandler: ChatThreadHandler, scope: CoroutineScope) {
     val eventHandler = threadHandler.events()
-    eventHandler.archiveThread()
+    scope.launch { eventHandler.markThreadRead() }
   }
   ```
+
+> To archive a thread, use the `suspend fun ChatThreadHandler.archive()` directly:
+> `scope.launch { threadHandler.archive() }`. Java consumers wrap the handler in
+> `ChatThreadEventHandlerCoroutineWrapper` for events, or use
+> `ChatThreadHandlerJavaInterop.archiveAsync(...)` to archive.
 
 #### Available Events
 
@@ -362,34 +380,35 @@ Though you might find a helpful description of how this state machine works.
 ### Sending
 
 All text messages are automatically processed as soon as they are sent
-through `ChatThreadMessageHandler::send`. Messages with attachments (documents) are processed
-by sending them to a storage server first. Once successfully stored, they are reported as processed through listener.
+through `ChatThreadMessageHandler.send`. Messages with attachments (documents) are processed
+by sending them to a storage server first.
 
-The state is never directly reported by the SDK for a message, since only successfully sent messages, are reported.
-UI implementation are encouraged to use this state to show the user that the message is being sent.
+The `suspend send()` call returns the message id once the message has successfully left the device.
+UI implementations are encouraged to use this state to show the user that the message is being sent.
 
 ### Sent
 
-The Message reaches this state once it successfully leaves this device.
-If it doesn't leave this device, then the corresponding callback is never triggered.
+The Message reaches this state once it successfully leaves this device — the point at which
+`suspend send()` returns its message id. If it doesn't leave this device, `send()` throws instead.
 
 ### Received
 
-The Received state is implicit. That means that if the `ChatThreadHandler::get` with callback returns
-the message in its list of messages, the message was received successfully by the server.
+The Received state is implicit. That means that if the thread emitted through
+`ChatThreadHandler.threadFlow` contains the message in its list of messages, the message was
+received successfully by the server.
 
-If your new message is not received within a reasonable amount of time through this callback, offer
+If your new message is not received within a reasonable amount of time through this flow, offer
 your users to resend the message.
 
 ### Read
 
 The agent has read the message and/or acted upon it. This indication is now part of the Message
-object received through aforementioned `ChatThreadHandler::get`.
+object received through `ChatThreadHandler.threadFlow`.
 
 ### FailedToDeliver
 
 This state is not directly reported by the SDK, but can be inferred,
-when listener callback `ChatStateListener.onChatRuntimeException` receives an instance of
+when `chat.stateFlow` emits a `ChatStateEvent.RuntimeException` whose `exception` is a
 `ServerCommunicationError` with message `SendingMessageFailed`.
 
 UI implementation are encouraged to use this state to show the user that the message failed to be sent.

@@ -40,7 +40,9 @@ property is true, indicating the thread is still active, otherwise, a new thread
 >This case study builds on the information in [CS: Instance Holder][cs-instance-holder], so you should familiarize yourself
 >with that before continuing.
 > A complete reference how to integrate the Live Chat can be found in the chat-sdk-ui and the store sample app, this
-> example omits some details like handling of reconnection for brevity.
+> example omits some details like handling of reconnection for brevity — see
+> [Reconnect Backoff Behavior][reconnect-backoff] for how the SDK retries dropped or failed connections
+> automatically.
 
 With brand & channel which are set as live chat, perform following steps:
 
@@ -79,10 +81,7 @@ Example below is simplified as it doesn't handle callbacks back to the ui for ed
 class ChatConversationViewModel : ViewModel() {
    private val chat = ChatInstanceProvider.get().chat.let(::requireNotNull)
    private val threadsHandler: ChatThreadsHandler = chat.threads()
-   private val chatThreadUpdateFlow: Flow<ChatThread?> = callbackFlow {
-      val cancellable = threadsHandler.threads(::trySend)
-      awaitClose(cancellable::cancel)
-   }
+   private val chatThreadUpdateFlow: Flow<ChatThread?> = threadsHandler.threadsFlow
       .map(List<ChatThread>::firstOrNull)
 
    private val threadHandlerFlow: StateFlow<ChatThreadHandler?> = chatThreadUpdateFlow
@@ -93,10 +92,7 @@ class ChatConversationViewModel : ViewModel() {
    val threadFlow: Flow<ChatThread?> = threadHandlerFlow
       .filterNotNull()
       .flatMapLatest { chatThreadHandler ->
-         callbackFlow {
-            val cancellable = chatThreadHandler.get(::trySend)
-            awaitClose(cancellable::cancel)
-         }
+         chatThreadHandler.threadFlow.onStart { chatThreadHandler.refresh() }
       }
       .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
 
@@ -128,3 +124,5 @@ class ChatConversationViewModel : ViewModel() {
 [cs-instance-holder]: cs-instance-holder.md
 
 [cs-coroutines]: cs-coroutines.md
+
+[reconnect-backoff]: ../architecture/reconnect-backoff.md

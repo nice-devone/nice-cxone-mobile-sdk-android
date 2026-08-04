@@ -1,0 +1,117 @@
+/*
+ * Copyright (c) 2021-2026. NICE Ltd. All rights reserved.
+ *
+ * Licensed under the NICE License;
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://github.com/nice-devone/nice-cxone-mobile-sdk-android/blob/main/LICENSE
+ *
+ * TO THE EXTENT PERMITTED BY APPLICABLE LAW, THE CXONE MOBILE SDK IS PROVIDED ON
+ * AN “AS IS” BASIS. NICE HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS
+ * OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
+ */
+
+@file:Suppress("FunctionMaxLength")
+
+package com.nice.cxonechat
+
+import com.nice.cxonechat.ChatThreadEventHandlerActions.loadMetadata
+import com.nice.cxonechat.ChatThreadEventHandlerActions.markThreadRead
+import com.nice.cxonechat.ChatThreadEventHandlerActions.selectTimeSlot
+import com.nice.cxonechat.ChatThreadEventHandlerActions.sendTranscript
+import com.nice.cxonechat.ChatThreadEventHandlerActions.triggerAction
+import com.nice.cxonechat.ChatThreadEventHandlerActions.typingEnd
+import com.nice.cxonechat.ChatThreadEventHandlerActions.typingStart
+import com.nice.cxonechat.event.thread.PostbackEvent
+import com.nice.cxonechat.internal.model.ActionInternal
+import com.nice.cxonechat.internal.model.ActionKtx.toEvent
+import com.nice.cxonechat.internal.model.TimeSlotInternal
+import com.nice.cxonechat.model.makeChatThread
+import com.nice.cxonechat.server.ServerRequest
+import com.nice.cxonechat.thread.ChatThread
+import org.junit.Test
+import kotlin.time.Instant
+
+internal class ChatThreadEventTest : AbstractMultiThreadChatTest() {
+
+    private lateinit var events: ChatThreadEventHandler
+    private lateinit var thread: ChatThread
+
+    override fun prepare() {
+        super.prepare()
+        thread = makeChatThread()
+        events = chat.threads().thread(thread).events()
+    }
+
+    // ---
+
+    @Test
+    fun trigger_MarkThreadReadEvent_sendsExpectedMessage() {
+        val id = thread.id
+        assertSendText(ServerRequest.MarkThreadRead(connection, thread), id.toString()) {
+            events.markThreadRead()
+        }
+    }
+
+    @Test
+    fun trigger_TypingStartEvent_sendsExpectedMessage() {
+        val id = thread.id
+        assertSendText(ServerRequest.SenderTypingStarted(connection, thread), id.toString()) {
+            events.typingStart()
+        }
+    }
+
+    @Test
+    fun trigger_TypingEndEvent_sendsExpectedMessage() {
+        val id = thread.id
+        assertSendText(ServerRequest.SenderTypingEnded(connection, thread), id.toString()) {
+            events.typingEnd()
+        }
+    }
+
+    @Test
+    fun trigger_LoadThreadMetadata_sendsExpectedMessage() {
+        val id = thread.id
+        assertSendText(ServerRequest.LoadThreadMetadata(connection, thread), id.toString()) {
+            events.loadMetadata()
+        }
+    }
+
+    @Test
+    fun trigger_PostbackEvent_sendsExpectedMessage() {
+        val id = thread.id
+        val action = ActionInternal.PostbackReplyButton(text = "test", postback = "test")
+        assertSendText(ServerRequest.PostbackEvent(connection, thread, action.toEvent() as PostbackEvent), id.toString()) {
+            events.triggerAction(action)
+        }
+    }
+
+    @Test
+    fun trigger_ReplyButtonEvent_sendsExpectedMessage() {
+        val id = thread.id
+        val action = ActionInternal.ReplyButton(text = "test", postback = "test", null, null)
+        assertSendText(ServerRequest.SendMessage(connection, thread, storage, message = action.text, postback = action.postback), id.toString()) {
+            events.triggerAction(action)
+        }
+    }
+
+    @Test
+    fun trigger_SelectTimeSlot_sendsExpectedMessage() {
+        val id = thread.id
+        val timeSlot = TimeSlotInternal(id = "unique-id", duration = 3600L, startTime = Instant.fromEpochMilliseconds(0))
+        val localizedText = "Tuesday 4pm - 1 hour"
+        assertSendText(ServerRequest.SendMessage(connection, thread, storage, message = localizedText, postback = timeSlot.id), id.toString()) {
+            events.selectTimeSlot(localizedText, timeSlot)
+        }
+    }
+
+    @Test
+    fun trigger_SendTranscriptEvent_sendsExpectedMessage() {
+        val id = thread.id
+        assertSendTextLaunched(ServerRequest.SendTranscript(connection, thread, "test@gmail.com"), id.toString()) {
+            events.sendTranscript(email = "test@gmail.com")
+        }
+    }
+}

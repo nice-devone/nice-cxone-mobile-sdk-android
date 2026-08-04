@@ -15,52 +15,96 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.nice.cxonechat.ui.AbstractComponentActivityUiTest
+import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.composable.conversation.model.Message.QuickReply
 import com.nice.cxonechat.ui.util.preview.message.UiSdkQuickReply
-import org.junit.Rule
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
 import org.junit.Test
 
-class QuickReplyMessageStatusTest {
-    @get:Rule
-    val composeTestRule = createComposeRule()
+/**
+ * Tests for [QuickReplyMessage] status display and interaction handling.
+ *
+ * Tests verify:
+ * - Status displays correct text for SELECTED, DISABLED, and SELECTABLE states
+ * - Click handling for DISABLED state shows snackbar via parent component
+ * - Quick reply options are displayed and selectable
+ * - Parent component handles accessibility interactions (post-refactoring architecture)
+ */
+class QuickReplyMessageStatusTest : AbstractComponentActivityUiTest() {
 
     @Test
     fun showsSelectedState() {
         composeTestRule.setContent {
-            QuickReplyMessageStatus(MessageStatusState.SELECTED, onClick = {})
+            PreviewMessageItemBase {
+                QuickReplyMessageStatus(MessageStatusState.SELECTED)
+            }
         }
         composeTestRule.onNodeWithTag("quick_reply_message_status")
             .assertExists()
-            .assertTextContains("option selected", ignoreCase = true)
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithTag("quick_reply_message_status_text", useUnmergedTree = true)
+            .assertExists()
+            .assertTextContains(getString(R.string.option_selected))
+            .assertIsDisplayed()
     }
 
     @Test
     fun showsDisabledState_andTriggersOnClick() {
-        var clicked = false
-        composeTestRule.setContent {
-            QuickReplyMessageStatus(MessageStatusState.DISABLED, onClick = { clicked = true })
+        // Setup: Mock SnackbarHostState to verify click handling
+        val snackBarHostState = mockk<SnackbarHostState> {
+            coEvery { showSnackbar(any(), any(), any(), any()) } returns mockk()
         }
-        composeTestRule.onNodeWithTag("quick_reply_message_status")
+
+        composeTestRule.setContent {
+            PreviewMessageItemBase {
+                // Test parent QuickReplyMessage component (not just status)
+                // After refactoring, parent handles click interactions for accessibility
+                QuickReplyMessage(
+                    message = QuickReply(UiSdkQuickReply()) {},
+                    messageStatusState = MessageStatusState.DISABLED,
+                    snackBarHostState = snackBarHostState
+                )
+            }
+        }
+
+        // Verify: Disabled state text is displayed in the status component
+        composeTestRule.onNodeWithTag("quick_reply_message_status_text", useUnmergedTree = true)
             .assertExists()
-            .assertTextContains("Options unavailable", ignoreCase = true)
-            .performClick()
-        assert(clicked)
+            .assertTextContains(getString(R.string.options_unavailable))
+
+        // Action: Click on the parent message (which handles clicks when DISABLED)
+        composeTestRule.onNodeWithTag("quick_reply_message").performClick()
+
+        // Verify: Snackbar was triggered with detailed disable message
+        coVerify {
+            snackBarHostState.showSnackbar(
+                message = any(),
+                duration = any(),
+                withDismissAction = any(),
+                actionLabel = any()
+            )
+        }
     }
 
     @Test
     fun showsSelectableState() {
         composeTestRule.setContent {
-            QuickReplyMessageStatus(MessageStatusState.SELECTABLE, onClick = {})
+            PreviewMessageItemBase {
+                QuickReplyMessageStatus(MessageStatusState.SELECTABLE)
+            }
         }
-        composeTestRule.onNodeWithTag("quick_reply_message_status")
+        composeTestRule.onNodeWithTag("quick_reply_message_status_text")
             .assertExists()
-            .assertTextContains("Select one option below", ignoreCase = true)
+            .assertTextContains(getString(R.string.select_option_below))
     }
 
 

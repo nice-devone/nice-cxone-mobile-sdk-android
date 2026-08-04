@@ -16,19 +16,14 @@
 package com.nice.cxonechat.ui.composable
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import com.nice.cxonechat.ui.AbstractComponentActivityUiTest
 import com.nice.cxonechat.ui.composable.generic.MessageAvatar
 import com.nice.cxonechat.ui.domain.model.Person
-import org.junit.Rule
 import org.junit.Test
 
-class MessageAvatarTest {
-
-    @get:Rule
-    val composeTestRule = createComposeRule()
+class MessageAvatarTest : AbstractComponentActivityUiTest() {
 
     @Test
     fun messageAvatar_displaysImage_whenImageUrlProvided() {
@@ -38,7 +33,7 @@ class MessageAvatarTest {
         }
         composeTestRule.onNodeWithTag("avatarImage").assertIsDisplayed()
         composeTestRule.onNodeWithText("SJ").assertDoesNotExist()
-        composeTestRule.onNodeWithContentDescription("avatarPlaceholder").assertDoesNotExist()
+        composeTestRule.onNodeWithTag("avatarPlaceholder").assertDoesNotExist()
     }
 
     @Test
@@ -49,7 +44,7 @@ class MessageAvatarTest {
         }
         composeTestRule.onNodeWithText("SJ").assertIsDisplayed()
         composeTestRule.onNodeWithTag("avatarImage").assertDoesNotExist()
-        composeTestRule.onNodeWithContentDescription("avatarPlaceholder").assertDoesNotExist()
+        composeTestRule.onNodeWithTag("avatarPlaceholder").assertDoesNotExist()
     }
 
     @Test
@@ -58,7 +53,8 @@ class MessageAvatarTest {
         composeTestRule.setContent {
             MessageAvatar(agent = person)
         }
-        composeTestRule.onNodeWithContentDescription("avatarPlaceholder").assertIsDisplayed()
+        // Avatar placeholder is displayed but has no accessibility content
+        composeTestRule.onNodeWithTag("avatarPlaceholder").assertIsDisplayed()
         composeTestRule.onNodeWithTag("avatarImage").assertDoesNotExist()
         composeTestRule.onNodeWithText("SJ").assertDoesNotExist()
     }

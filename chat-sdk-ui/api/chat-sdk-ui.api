@@ -40,9 +40,3 @@ public final class com/nice/cxonechat/ui/screen/ChatActivity$Companion {
 	public final fun startChat (Landroid/app/Activity;)V
 }
 
-public final class com/nice/cxonechat/ui/screen/ComposableSingletons$LoadingOverlayFullScreenKt {
-	public static final field INSTANCE Lcom/nice/cxonechat/ui/screen/ComposableSingletons$LoadingOverlayFullScreenKt;
-	public fun <init> ()V
-	public final fun getLambda$310804538$chat_sdk_ui_release ()Lkotlin/jvm/functions/Function2;
-}
-

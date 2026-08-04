@@ -15,8 +15,9 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
-import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertContentDescriptionContains
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -24,26 +25,25 @@ import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasStateDescription
 import androidx.compose.ui.test.hasTestTag
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.nice.cxonechat.message.TimeSlot
+import com.nice.cxonechat.ui.AbstractComponentActivityUiTest
 import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.composable.conversation.model.Message.TimePicker
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.util.formatDuration
+import com.nice.cxonechat.ui.util.formatHeader
+import com.nice.cxonechat.ui.util.formatTime
 import com.nice.cxonechat.ui.util.preview.message.UiSdkTimePicker
 import com.nice.cxonechat.ui.util.toDateKey
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
-import org.junit.Rule
 import org.junit.Test
 
-class TimePickerBottomSheetTest {
-
-    @get:Rule
-    val composeTestRule = createAndroidComposeRule<ComponentActivity>()
+class TimePickerBottomSheetTest : AbstractComponentActivityUiTest() {
 
     @Test
     fun timePickerBottomSheet_displaysTitleSubtitleSlots_andHandlesActions() {
@@ -151,7 +151,7 @@ class TimePickerBottomSheetTest {
     }
 
     @Test
-    fun timePickerBottomSheet_accessibilityDragHandleExists_onBottomSheet() {
+    fun timePickerBottomSheet_dragHandleExists_onBottomSheet() {
         val timePicker = TimePicker(UiSdkTimePicker())
 
         composeTestRule.setContent {
@@ -165,6 +165,7 @@ class TimePickerBottomSheetTest {
         }
 
         composeTestRule.onNodeWithTag("time_picker_bottom_sheet").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("DragHandle", useUnmergedTree = true).assertIsDisplayed()
     }
 
     @Test
@@ -189,6 +190,47 @@ class TimePickerBottomSheetTest {
             .assertTextContains(expectedSubtitle)
         composeTestRule.onNodeWithText(timePicker.popupTitle).assertIsDisplayed()
         composeTestRule.onNodeWithText(expectedSubtitle).assertIsDisplayed()
+    }
+
+    @Test
+    fun timePickerBottomSheet_accessibilitySlotStateDescription_updatesWithSelection() {
+        val timePicker = TimePicker(UiSdkTimePicker())
+
+        composeTestRule.setContent {
+            ChatTheme {
+                TimePickerBottomSheetContent(
+                    message = timePicker,
+                    onDismiss = {},
+                    onDone = { _, _ -> }
+                )
+            }
+        }
+
+        val firstSlot = timePicker.timeSlots.first()
+        val firstSlotTag = uniqueSlotRowTag(
+            slot = firstSlot,
+            dateKey = firstSlot.startTime.toDateKey(),
+            index = 0
+        )
+        val expectedA11y = composeTestRule.activity.getString(
+            R.string.time_slot_accessibility_text,
+            formatHeader(composeTestRule.activity, firstSlot.startTime.toDateKey()),
+            formatTime(composeTestRule.activity, firstSlot.startTime),
+            formatDuration(firstSlot.duration)
+        )
+
+        val slotNode = selectableSlotNode(firstSlotTag)
+        val notSelectedState = composeTestRule.activity.getString(R.string.time_slot_state_not_selected)
+        val selectedState = composeTestRule.activity.getString(R.string.time_slot_state_selected)
+
+        slotNode.assert(hasStateDescription(notSelectedState))
+        slotNode.assertContentDescriptionContains(expectedA11y)
+
+        slotNode.performClick()
+        slotNode.assert(hasStateDescription(selectedState))
+
+        slotNode.performClick()
+        slotNode.assert(hasStateDescription(notSelectedState))
     }
 
     private fun selectableSlotNode(slotTag: String) = composeTestRule.onNode(

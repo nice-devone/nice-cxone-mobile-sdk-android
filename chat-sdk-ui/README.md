@@ -12,7 +12,7 @@ Min SDK version: 24
 
 * Kotlin 2.2.10
 * Jetpack Compose BOM 2025.10.00
-* Koin 4.1.1
+* Koin 4.2.1
 * Firebase Cloud Messaging 34.4.0 (unless the push notifications are not used)
 
 This module requires that the integrating application uses Koin during its startup and it is also recommended
