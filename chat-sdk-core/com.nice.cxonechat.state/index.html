@@ -1,0 +1,324 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>com.nice.cxonechat.state</title>
+<link href="../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../styles/style.css" rel="Stylesheet">
+<link href="../../styles/main.css" rel="Stylesheet">
+<link href="../../styles/prism.css" rel="Stylesheet">
+<link href="../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../ui-kit/ui-kit.min.js" defer></script></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../index.html" tabindex="1">
+                    CXone Mobile SDK
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">4.0.0-SNAPSHOT
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":chat-sdk-core/release">release</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":chat-sdk-core/release" data-filter=":chat-sdk-core/release">
+                                <span class="checkbox--icon"></span>
+                                release
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    CXone Mobile SDK
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="package" id="content" pageids="chat-sdk-core::com.nice.cxonechat.state////PointingToDeclaration//-532840381">
+  <div class="breadcrumbs"><a href="../index.html">chat-sdk-core</a><span class="delimiter">/</span><span class="current">com.nice.cxonechat.state</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>Package-level</span></span> <span><span>declarations</span></span></h1>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="TYPE">Types</button><button class="section-tab" data-togglable="FUNCTION,EXTENSION_FUNCTION">Functions</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="TYPE">
+        <h2 class="tableheader">Types</h2>
+        <div class="table"><a data-name="-1959461566%2FClasslikes%2F-532840381" anchor-label="Configuration" id="-1959461566%2FClasslikes%2F-532840381" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-configuration/index.html"><span><span>Configuration</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1959461566%2FClasslikes%2F-532840381"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-configuration/index.html">Configuration</a></div><div class="brief "><p class="paragraph">The various options for how a channel is configured.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1279258836%2FClasslikes%2F-532840381" anchor-label="Connection" id="-1279258836%2FClasslikes%2F-532840381" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-connection/index.html"><span><span>Connection</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1279258836%2FClasslikes%2F-532840381"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-connection/index.html">Connection</a></div><div class="brief "><p class="paragraph">Definition of a data object, which is holding information relevant to the lifecycle of SDK connection to the backend.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-719818619%2FClasslikes%2F-532840381" anchor-label="Environment" id="-719818619%2FClasslikes%2F-532840381" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-environment/index.html"><span><span>Environment</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-719818619%2FClasslikes%2F-532840381"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-environment/index.html">Environment</a></div><div class="brief "><p class="paragraph">Current SDK environment providing backend (remote) configuration. This can differ from region to region and permits connecting to your own running copy of the service.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="865807979%2FClasslikes%2F-532840381" anchor-label="FieldDefinition" id="865807979%2FClasslikes%2F-532840381" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-field-definition/index.html"><span>Field</span><wbr><span><span>Definition</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="865807979%2FClasslikes%2F-532840381"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-field-definition/index.html">FieldDefinition</a></div><div class="brief "><p class="paragraph">Definition of a custom Field that is stored on the server.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1643679341%2FClasslikes%2F-532840381" anchor-label="FieldDefinitionList" id="1643679341%2FClasslikes%2F-532840381" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-field-definition-list/index.html"><span>Field</span><wbr><span>Definition</span><wbr><span><span>List</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1643679341%2FClasslikes%2F-532840381"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace"><span class="token keyword">typealias </span><a href="-field-definition-list/index.html">FieldDefinitionList</a><span class="token operator"> = </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.sequences/-sequence/index.html">Sequence</a><span class="token operator">&lt;</span><a href="-field-definition/index.html">FieldDefinition</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Type alias for a list of <a href="-field-definition/index.html">FieldDefinition</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-388391641%2FClasslikes%2F-532840381" anchor-label="FileRestrictions" id="-388391641%2FClasslikes%2F-532840381" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-file-restrictions/index.html"><span>File</span><wbr><span><span>Restrictions</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-388391641%2FClasslikes%2F-532840381"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-file-restrictions/index.html">FileRestrictions</a></div><div class="brief "><p class="paragraph">Restrictions to be enforced on uploaded attachments.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-558338175%2FClasslikes%2F-532840381" anchor-label="HierarchyNode" id="-558338175%2FClasslikes%2F-532840381" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-hierarchy-node/index.html"><span>Hierarchy</span><wbr><span><span>Node</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-558338175%2FClasslikes%2F-532840381"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-hierarchy-node/index.html">HierarchyNode</a><span class="token operator">&lt;</span><a href="-hierarchy-node/index.html">T</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Node definition for general data tree.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1167906135%2FClasslikes%2F-532840381" anchor-label="SelectorNode" id="-1167906135%2FClasslikes%2F-532840381" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-selector-node/index.html"><span>Selector</span><wbr><span><span>Node</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1167906135%2FClasslikes%2F-532840381"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-selector-node/index.html">SelectorNode</a></div><div class="brief "><p class="paragraph">Details of each entry in the list.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="EXTENSION_FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="-1745913555%2FFunctions%2F-532840381" anchor-label="checkRequired" id="-1745913555%2FFunctions%2F-532840381" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="check-required.html"><span>check</span><wbr><span><span>Required</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1745913555%2FFunctions%2F-532840381"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="-field-definition-list/index.html">FieldDefinitionList</a><span class="token punctuation">.</span><a href="check-required.html"><span class="token function">checkRequired</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">values<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Check that all required fields in the list have a value specified in <a href="check-required.html">values</a></p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-590958137%2FFunctions%2F-532840381" anchor-label="contains" id="-590958137%2FFunctions%2F-532840381" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="contains.html"><span><span>contains</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-590958137%2FFunctions%2F-532840381"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.sequences/-sequence/index.html">Sequence</a><span class="token operator">&lt;</span><a href="-selector-node/index.html">SelectorNode</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="contains.html"><span class="token function">contains</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">nodeId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Test if a sequence of <a href="-selector-node/index.html">SelectorNode</a> contains a given node id.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="280438989%2FFunctions%2F-532840381" anchor-label="containsField" id="280438989%2FFunctions%2F-532840381" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="contains-field.html"><span>contains</span><wbr><span><span>Field</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="280438989%2FFunctions%2F-532840381"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="-field-definition-list/index.html">FieldDefinitionList</a><span class="token punctuation">.</span><a href="contains-field.html"><span class="token function">containsField</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">fieldId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Test target <a href="-field-definition-list/index.html">FieldDefinitionList</a> for a <a href="-field-definition/index.html">FieldDefinition</a> with a matching fieldId.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2036321682%2FFunctions%2F-532840381" anchor-label="lookup" id="2036321682%2FFunctions%2F-532840381" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="lookup.html"><span><span>lookup</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2036321682%2FFunctions%2F-532840381"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace"><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="lookup.html">T</a><span class="token operator">&gt; </span><a href="-hierarchy-node/index.html">HierarchyNode</a><span class="token operator">&lt;</span><a href="lookup.html">T</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="lookup.html"><span class="token function">lookup</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">nodeId<span class="token operator">: </span><a href="lookup.html">T</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-hierarchy-node/index.html">HierarchyNode</a><span class="token operator">&lt;</span><a href="lookup.html">T</a><span class="token operator">&gt;</span><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Search the hierarchy for the node with the given <a href="lookup.html">nodeId</a>.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="-field-definition-list/index.html">FieldDefinitionList</a><span class="token punctuation">.</span><a href="lookup.html"><span class="token function">lookup</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">fieldId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-field-definition/index.html">FieldDefinition</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Search target <a href="-field-definition-list/index.html">FieldDefinitionList</a> for a <a href="-field-definition/index.html">FieldDefinition</a> item with the requested fieldId.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="lookup.html">T</a><span class="token operator">&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.sequences/-sequence/index.html">Sequence</a><span class="token operator">&lt;</span><a href="-hierarchy-node/index.html">HierarchyNode</a><span class="token operator">&lt;</span><a href="lookup.html">T</a><span class="token operator">&gt;</span><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="lookup.html"><span class="token function">lookup</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">nodeId<span class="token operator">: </span><a href="lookup.html">T</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-hierarchy-node/index.html">HierarchyNode</a><span class="token operator">&lt;</span><a href="lookup.html">T</a><span class="token operator">&gt;</span><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Recursively search a list of hierarchy nodes for the node with the given <a href="lookup.html">nodeId</a>.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.sequences/-sequence/index.html">Sequence</a><span class="token operator">&lt;</span><a href="-selector-node/index.html">SelectorNode</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><a href="lookup.html"><span class="token function">lookup</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">nodeId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-selector-node/index.html">SelectorNode</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Search a sequence of nodes for a matching node id.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1440912046%2FFunctions%2F-532840381" anchor-label="validate" id="1440912046%2FFunctions%2F-532840381" data-filterable-set=":chat-sdk-core/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":chat-sdk-core/release" data-filterable-set=":chat-sdk-core/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="validate.html"><span><span>validate</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1440912046%2FFunctions%2F-532840381"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chat-sdk-core/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="-field-definition-list/index.html">FieldDefinitionList</a><span class="token punctuation">.</span><a href="validate.html"><span class="token function">validate</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">values<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Validate a map of proposed fieldId, value pairs against the target <a href="-field-definition-list/index.html">FieldDefinitionList</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,7 @@
+# Excluding non-published modules and subtree directories
+exclude:
+  paths:
+    - store
+    - shared
+
+autofix_init_hook: setup_aikido.sh
