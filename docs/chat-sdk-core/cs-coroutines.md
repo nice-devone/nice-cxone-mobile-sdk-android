@@ -9,7 +9,7 @@ Coroutines are widely accepted framework in the Android space, therefore we woul
 how to implement some extensions atop of CXone Chat SDK.
 
 The following examples are based on source code in the Chat SDK UI module, which can be
-found [here](../../chat-sdk-ui/src/main/java/com/nice/cxonechat/ui/viewmodel).
+found [here](../../chat-sdk-ui/src/main/kotlin/com/nice/cxonechat/ui/viewmodel).
 
 ## Libraries
 

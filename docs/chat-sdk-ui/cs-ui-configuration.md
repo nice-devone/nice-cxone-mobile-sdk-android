@@ -91,7 +91,7 @@ Just add the `UiModule.chatUiModule()` to your Koin modules, which will provide 
 ### Custom field definitions
 
 If you are using custom fields (applies to both contact and customer) in the chat which are not user editable, you need to provide the
-[UiCustomFieldsProvider](/chat-sdk-ui/src/main/java/com/nice/cxonechat/ui/api/UiCustomFieldsProvider.kt)
+[UiCustomFieldsProvider](/chat-sdk-ui/src/main/kotlin/com/nice/cxonechat/ui/api/UiCustomFieldsProvider.kt)
 implementation(s) to the UI Koin module. These implementations will be used to append the custom fields to events sent to the server.
 
 Example of providing custom field definitions to the Koin module:
