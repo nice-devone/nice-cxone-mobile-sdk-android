@@ -463,4 +463,4 @@ All exceptions are reported via `ChatStateListener.onChatRuntimeException()` on 
 ### Further Reading
 
 - [Migration Guide: OAuth Flows](../migration/MIGRATION_OAUTH_FLOWS.md)
-- [Sample implementation](../../store/src/main/java/com/nice/cxonechat/sample/)
+- [Sample implementation](../../store/src/main/kotlin/com/nice/cxonechat/sample/)
