@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `docs/privacy.md` — data collection & privacy disclosure, to support Google Play "Data safety" declarations
+
 <a name="4.0.0"></a>
 
 ## [4.0.0] - 2026-08-04

@@ -118,6 +118,9 @@ documentation.
 
 We offer a brief how-to guide for integration [here][implementation].
 
+See our [data collection & privacy disclosure][privacy] for what data the SDK collects, stores on-device, and
+transmits — useful when filling out your app's Google Play Data safety form.
+
 [NICE-docs]: https://help.nice-incontact.com/content/acd/digital/mobilesdk/cxonemobilesdk.htm
 
 [API]: https://nice-devone.github.io/nice-cxone-mobile-sdk-android/
@@ -125,6 +128,8 @@ We offer a brief how-to guide for integration [here][implementation].
 [API-1.3]: https://help.nice-incontact.com/mobilesdk/Android1.3/dist/index.html
 
 [implementation]: docs/implementation.md
+
+[privacy]: docs/privacy.md
 
 ## CXone Chat UI
 
