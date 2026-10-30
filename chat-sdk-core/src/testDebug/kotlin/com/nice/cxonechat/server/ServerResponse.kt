@@ -275,6 +275,7 @@ internal object ServerResponse {
     fun MessageCreated(
         thread: ChatThread,
         message: Any,
+        status: String = "new",
     ) = object {
         val eventId = TestUUID
         val eventType = "MessageCreated"
@@ -283,7 +284,7 @@ internal object ServerResponse {
             val case = object {
                 val id = TestContactId
                 val threadIdOnExternalPlatform = thread.id
-                val status = "new"
+                val status = status
                 val createdAt = Instant.fromEpochMilliseconds(0)
             }
             val thread = object {

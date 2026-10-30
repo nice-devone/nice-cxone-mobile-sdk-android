@@ -211,7 +211,7 @@ configurations.configureEach {
 }
 
 group = property("GROUP") as String
-version = "4.0.0" // Fallback version
+version = "4.0.1" // Fallback version
 
 allprojects {
     group = rootProject.group

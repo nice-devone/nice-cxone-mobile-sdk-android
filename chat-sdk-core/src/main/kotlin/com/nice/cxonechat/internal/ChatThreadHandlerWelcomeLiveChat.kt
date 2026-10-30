@@ -39,6 +39,7 @@ import com.nice.cxonechat.util.UUIDProvider
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.onEach
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -74,7 +75,13 @@ internal class ChatThreadHandlerWelcomeLiveChat(
      */
     val eventSendEnabled = eventSendEnabledMap.getOrPut(mutableThread.id) { AtomicBoolean(mutableThread.messages.size < 2) }
 
-    override val threadFlow: Flow<ChatThread> = origin.threadFlow
+    /**
+     * The welcome check runs as a step of the decorator chain instead of in a second collector of [origin]'s
+     * cold flow: a second collector re-runs the message de-duplication below this decorator and takes new
+     * messages away from the shared flow. The check must also stay below [ChatThreadHandlerLiveChat], which
+     * removes the conversation start from the thread.
+     */
+    override val threadFlow: Flow<ChatThread> = origin.threadFlow.onEach(::onThreadUpdate)
 
     init {
         scope("init") {
@@ -83,26 +90,26 @@ internal class ChatThreadHandlerWelcomeLiveChat(
             // Register lateAppend with the thread lifecycle so socket callbacks are cleaned up
             // if the handler is discarded before the welcome message is ever sent.
             mutableThread.resultCallbacks[UUIDProvider.next()] = Cancellable { lateAppend.cancel() }
-            if (canSendWelcomeEvent(mutableThread.messages.size)) {
-                chat.entrails.threading.coroutineScope.safeLaunch(childScope("welcomeLiveChatMonitor")) {
-                    origin.threadFlow.safeCollect(childScope("welcomeLiveChatCollect")) { threadUpdate ->
-                        scope("ThreadUpdate") {
-                            verbose("On thread update")
-                            if (canSendWelcomeEvent(threadUpdate.messages.size)) {
-                                val storedMessage = storedMessage()
-                                val hasStart = threadUpdate.messages.hasConversationStart()
-                                if (storedMessage.isNotBlank() && hasStart && eventSendEnabled.getAndSet(false)) {
-                                    verbose("Adding welcome message on thread update")
-                                    triggerWelcomeMessageEvent(storedMessage)
-                                    lateAppend.cancel()
-                                }
-                            }
-                        }
-                    }
-                }.also { monitorJob ->
-                    mutableThread.resultCallbacks[UUIDProvider.next()] = Cancellable { monitorJob.cancel() }
+        }
+    }
+
+    /** Runs inside the shared chain, so a throw here would end [threadFlow] for every collector: log it instead. */
+    private fun onThreadUpdate(threadUpdate: ChatThread) = scope("ThreadUpdate") {
+        try {
+            if (canSendWelcomeEvent(threadUpdate.messages.size)) {
+                verbose("On thread update")
+                val storedMessage = storedMessage()
+                val hasStart = threadUpdate.messages.hasConversationStart()
+                if (storedMessage.isNotBlank() && hasStart && eventSendEnabled.getAndSet(false)) {
+                    verbose("Adding welcome message on thread update")
+                    triggerWelcomeMessageEvent(storedMessage)
+                    lateAppend.cancel()
                 }
             }
+        } catch (expected: CancellationException) {
+            throw expected
+        } catch (logged: Exception) {
+            warning("Welcome check on thread update failed", logged)
         }
     }
 

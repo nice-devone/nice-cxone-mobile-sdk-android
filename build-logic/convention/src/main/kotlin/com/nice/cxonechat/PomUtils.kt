@@ -42,9 +42,9 @@ fun Project.configurePomMetadata(pom: MavenPom) {
 
     pom.developers {
         developer {
-            id.set(prop("POM_DEVELOPER_ID") ?: "BrandEmbassy")
+            id.set(prop("POM_DEVELOPER_ID") ?: "nice-devone")
             name.set(prop("POM_DEVELOPER_NAME") ?: "NICE")
-            url.set(prop("POM_DEVELOPER_URL") ?: "https://github.com/BrandEmbassy/")
+            url.set(prop("POM_DEVELOPER_URL") ?: "https://github.com/nice-devone/")
         }
     }
 

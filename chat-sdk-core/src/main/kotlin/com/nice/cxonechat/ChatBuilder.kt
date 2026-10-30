@@ -91,8 +91,8 @@ interface ChatBuilder {
      * Sets optional customerId.
      * If the customerId is specified, and it differs from the previous one, the chat will
      * reset any persistent data.
-     * If no customerId is specified, the chat will use the persisted one, if none is available it will be acquired
-     * from the server once the chat user is authorized.
+     * If no customerId is specified, the chat will use the persisted one; if none is available, a
+     * random local one is generated instead.
      */
     fun setCustomerId(customerId: String): ChatBuilder
 

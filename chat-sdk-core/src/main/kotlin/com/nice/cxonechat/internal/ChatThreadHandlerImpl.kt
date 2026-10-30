@@ -173,7 +173,8 @@ internal class ChatThreadHandlerImpl(
         throw InvalidStateException("endContact is only valid for live chat channels")
     }
 
-    override fun customFields(): ChatFieldHandler = ChatFieldHandlerThread(this, thread, chat.entrails.threading.coroutineScope, this)
+    override fun customFields(): ChatFieldHandler =
+        ChatFieldHandlerThread(this, thread, chat.entrails.threading.coroutineScope, this, ::sendThreadUpdated)
 
     private fun sendThreadUpdated() {
         // send thread updated to host application

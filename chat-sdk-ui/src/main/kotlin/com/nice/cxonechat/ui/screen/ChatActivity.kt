@@ -58,10 +58,7 @@ import androidx.navigation.createGraph
 import com.nice.cxonechat.ChatMode.LiveChat
 import com.nice.cxonechat.ChatMode.MultiThread
 import com.nice.cxonechat.ChatState
-import com.nice.cxonechat.ChatState.Connected
-import com.nice.cxonechat.ChatState.Connecting
 import com.nice.cxonechat.ChatState.Initial
-import com.nice.cxonechat.ChatState.Prepared
 import com.nice.cxonechat.ChatState.Preparing
 import com.nice.cxonechat.ChatState.Ready
 import com.nice.cxonechat.Public
@@ -115,9 +112,7 @@ import com.nice.cxonechat.ui.viewmodel.ChatViewModel
 import com.nice.cxonechat.ui.viewmodel.ConversationDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.get
 import org.koin.android.ext.android.inject
@@ -212,6 +207,7 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
         duration {
             waitForReadyJob?.cancel()
             waitForReadyJob = null
+            chatViewModel.cancelReportOnResume()
         }
     }
 
@@ -393,11 +389,12 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
 
     override fun onResume() {
         super.onResume()
-        lifecycleScope.launch {
-            chatStateViewModel.state.filter { it.isAtLeastPrepared() }.firstOrNull()?.also {
-                chatViewModel.reportOnResume()
-            }
-        }
+        // reportOnResume() waits for Ready itself and tracks its own job (cancelled from onPause()
+        // via cancelReportOnResume()) -- calling it directly, rather than behind an outer
+        // lifecycleScope.launch { state.filter { isAtLeastPrepared() } ... }, avoids an untracked
+        // coroutine that would survive onPause() (lifecycleScope only cancels at onDestroy) and could
+        // re-arm the wait, and report chatWindowOpen(), for a screen that's no longer visible.
+        chatViewModel.reportOnResume()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             checkNotificationPermissions(
                 permission.POST_NOTIFICATIONS,
@@ -415,8 +412,6 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
             }
         }
     }
-
-    private fun ChatState.isAtLeastPrepared() = this === Connected || this === Ready || this === Prepared || this === Connecting
 
     @Suppress(
         "UndocumentedPublicClass", // Companion objects don't require documentation.

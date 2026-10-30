@@ -41,7 +41,7 @@ import java.util.concurrent.ConcurrentSkipListSet
 /**
  * This class wraps the original [ChatThreadHandler] and adds handling for events related to messages:
  * * - listens for [EventMoreMessagesLoaded] to update the thread with more messages.
- * * - listens for [EventMessageCreated] to update the thread with newly created messages.
+ * * - listens for [EventMessageCreated] to add new messages and to refresh the thread's contact metadata.
  * * It also handles unsupported message types by sending a fallback answer.
  */
 internal class ChatThreadHandlerMessages(
@@ -73,19 +73,25 @@ internal class ChatThreadHandlerMessages(
                 val message = event.message
                 if (
                     !event.inThread(thread) ||
-                    thread.messages.contains(message) ||
                     ((message as? MessageText)?.parameters as? Parameters.Object)?.isUnsupportedMessageTypeAnswer == true
                 ) {
                     return@mapNotNull null
                 }
                 try {
-                    val messageToAdd = resolveMessageToAdd(message, thread.messages)
-                    thread += thread.asCopyable().copy(
+                    val isDuplicate = thread.messages.contains(message)
+                    val updated = thread.asCopyable().copy(
                         contactId = event.contactId,
                         threadState = event.threadState,
-                        messages = thread.messages.updateWith(listOfNotNull(messageToAdd)),
+                        messages = if (isDuplicate) {
+                            thread.messages
+                        } else {
+                            thread.messages.updateWith(listOfNotNull(resolveMessageToAdd(message, thread.messages)))
+                        },
                     )
-                    if (message is MessageUnsupported) {
+                    // A duplicate only refreshes metadata; when that changes nothing there is nothing to emit.
+                    if (isDuplicate && updated == thread.asCopyable().copy()) return@mapNotNull null
+                    thread += updated
+                    if (!isDuplicate && message is MessageUnsupported) {
                         sendUnsupportedMessageType(message)
                     }
                     get()

@@ -28,7 +28,7 @@ credentials file.
   chat.setDeviceToken(yourDeviceToken)
 ```
 
-[Case Study Push Notifications](../chat-sdk-core/cs-push-notifications.md) offers more detail about this topic.
+[Case Study Push Notifications](chat-sdk-core/cs-push-notifications.md) offers more detail about this topic.
 
 ## Conversations (formerly Threads)
 
@@ -62,7 +62,7 @@ This is a list of all the threads you can access and have been created by this a
 > [!NOTE]
 > Note that we do not encourage a specific pattern as every application's code might be different.
 > Use your own expertise to determine how to update the UI and save the list of threads.
-> For full ViewModel examples see the [Coroutines case study](../chat-sdk-core/cs-coroutines.md).
+> For full ViewModel examples see the [Coroutines case study](chat-sdk-core/cs-coroutines.md).
 
 > [!WARNING]
 > Collection is tied to the coroutine scope you launch it in — cancel that scope (e.g. by scoping it

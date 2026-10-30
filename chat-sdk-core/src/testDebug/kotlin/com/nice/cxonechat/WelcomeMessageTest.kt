@@ -35,6 +35,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifyOrder
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
@@ -160,6 +161,7 @@ internal class WelcomeMessageTest : AbstractMultiThreadChatTest() {
             origin = origin,
             chat = chat as ChatWithParameters,
             mutableThread = mutableThread,
+            sharedThreadFlow = CompletableDeferred(originFlow),
         )
         assertFalse(
             handler.prepareWelcomeMessageJob.isCompleted,

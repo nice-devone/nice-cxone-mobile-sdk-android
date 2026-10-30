@@ -43,6 +43,7 @@ import com.nice.cxonechat.thread.ChatThreadState
 import com.nice.cxonechat.thread.CustomField
 import com.nice.cxonechat.util.UUIDProvider
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
@@ -78,6 +79,10 @@ internal class ChatThreadHandlerWelcome(
     private val origin: ChatThreadHandler,
     private val chat: ChatWithParameters,
     private val mutableThread: ChatThreadMutable,
+    // The handler's outermost, shared threadFlow, completed once the decorator chain is built. The welcome
+    // collectors must observe the thread through it, not through origin: a second collector of origin's cold
+    // flow runs the message handling below it again and takes new messages away from the shared flow.
+    private val sharedThreadFlow: Deferred<Flow<ChatThread>>,
 ) : ChatThreadHandler by origin, LoggerScope by LoggerScope("ChatThreadHandlerWelcome", chat.entrails.logger) {
 
     private val sendOutboundEvent = AtomicBoolean(canAppendToThread())
@@ -105,7 +110,7 @@ internal class ChatThreadHandlerWelcome(
         if (canAppendToThread()) {
             chat.entrails.threading.coroutineScope.safeLaunch(childScope("welcomeTaskCancellation")) {
                 if (!prepareWelcomeMessageJob.isCompleted) {
-                    origin.threadFlow.filter { it.messages.size > 1 }.first()
+                    sharedThreadFlow.await().filter { it.messages.size > 1 }.first()
                     if (!prepareWelcomeMessageJob.isCompleted) prepareWelcomeMessageJob.cancel()
                 }
             }
@@ -131,7 +136,7 @@ internal class ChatThreadHandlerWelcome(
                 // Must use `any { it !is WelcomeMessage }` rather than `isNotEmpty()` — the initial
                 // onStart emission already contains only the WelcomeMessage placeholder, so isNotEmpty()
                 // would fire immediately and delete the placeholder before it can be displayed.
-                origin.threadFlow.filter { thread -> thread.messages.any { it !is WelcomeMessage } }.first()
+                sharedThreadFlow.await().filter { thread -> thread.messages.any { it !is WelcomeMessage } }.first()
                 verbose("Removing temporary message")
                 mutableThread += mutableThread.asCopyable().copy(
                     messages = mutableThread.messages.dropWhile { it is WelcomeMessage }

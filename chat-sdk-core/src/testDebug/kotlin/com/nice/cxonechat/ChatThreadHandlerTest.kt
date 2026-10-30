@@ -30,7 +30,9 @@ import com.nice.cxonechat.internal.model.ChannelConfiguration
 import com.nice.cxonechat.internal.model.ChatThreadMutable
 import com.nice.cxonechat.internal.model.ChatThreadMutable.Companion.asMutable
 import com.nice.cxonechat.internal.model.CustomFieldInternal
+import com.nice.cxonechat.internal.model.MessageDirectionModel
 import com.nice.cxonechat.internal.model.MessageModel
+import com.nice.cxonechat.internal.model.WelcomeMessage
 import com.nice.cxonechat.internal.model.network.Parameters
 import com.nice.cxonechat.internal.serializer.Default
 import com.nice.cxonechat.message.Message
@@ -65,6 +67,9 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 internal class ChatThreadHandlerTest : AbstractMultiThreadChatTest() {
@@ -212,6 +217,15 @@ internal class ChatThreadHandlerTest : AbstractMultiThreadChatTest() {
     }
 
     @Test
+    fun `get reflects a MessageCreated that arrives before threadFlow is collected`() {
+        val messageModel = makeMessageModel(threadIdOnExternalPlatform = chatThread.id)
+
+        socketServer.sendServerMessage(ServerResponse.MessageCreated(chatThread, messageModel))
+
+        assertEquals(listOfNotNull(messageModel.toMessage()), thread.get().messages)
+    }
+
+    @Test
     fun get_ignores_duplicit_messageCreated() {
         val id = chatThread.id
         val messageModel = makeMessageModel(
@@ -224,6 +238,32 @@ internal class ChatThreadHandlerTest : AbstractMultiThreadChatTest() {
             sendServerMessage(ServerResponse.MessageCreated(chatThread, messageModel))
         }
         assertNull(actual)
+    }
+
+    @Test
+    fun `duplicate messageCreated applies the contact id and keeps the messages`() {
+        val messageModel = makeMessageModel(threadIdOnExternalPlatform = chatThread.id)
+        val message = messageModel.toMessage()
+        assertNotNull(message)
+        updateChatThread(chatThread.asCopyable().copy(messages = listOf(message), contactId = "previousContactId"))
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.MessageCreated(chatThread, messageModel))
+        }
+        assertEquals(TestContactId, actual.contactId)
+        assertEquals(listOf(message), actual.messages)
+    }
+
+    @Test
+    fun `duplicate messageCreated for a closed contact closes the thread`() {
+        val messageModel = makeMessageModel(threadIdOnExternalPlatform = chatThread.id)
+        val message = messageModel.toMessage()
+        assertNotNull(message)
+        updateChatThread(chatThread.asCopyable().copy(messages = listOf(message), contactId = TestContactId))
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.MessageCreated(chatThread, messageModel, status = "closed"))
+        }
+        assertEquals(ChatThreadState.Closed, actual.threadState)
+        assertEquals(listOf(message), actual.messages)
     }
 
     @Test
@@ -589,6 +629,93 @@ internal class ChatThreadHandlerTest : AbstractMultiThreadChatTest() {
         secondJob.cancel()
         assertEquals(expected, firstCollectorResult, "First concurrent collector must observe the new message")
         assertEquals(expected, secondCollectorResult, "Second concurrent collector must observe the new message")
+    }
+
+    @Test
+    fun `threadFlow delivers first agent reply to a new thread holding one customer message`() {
+        assertAgentReplyObserved(customerMessageCount = 1)
+    }
+
+    @Test
+    fun `threadFlow delivers first agent reply to a new thread holding two customer messages`() {
+        assertAgentReplyObserved(customerMessageCount = 2)
+    }
+
+    /**
+     * A blank stored welcome message keeps the welcome decorator waiting for a proactive action, so its own
+     * collectors stay subscribed while the locally created thread holds a single message.
+     */
+    private fun assertAgentReplyObserved(customerMessageCount: Int) {
+        every { storage.welcomeMessage } returns ""
+        val handler = chat.threads().create()
+        val created = handler.get()
+        val agentMessage = makeMessageModel(threadIdOnExternalPlatform = created.id, direction = MessageDirectionModel.ToClient)
+        var observed: ChatThread? = null
+        val job = testScope.launch {
+            observed = handler.threadFlow.first { thread -> thread.messages.any { it.id == agentMessage.idOnExternalPlatform } }
+        }
+        repeat(customerMessageCount) {
+            socketServer.sendServerMessage(
+                ServerResponse.MessageCreated(created, makeMessageModel(threadIdOnExternalPlatform = created.id))
+            )
+        }
+        socketServer.sendServerMessage(ServerResponse.MessageCreated(created, agentMessage))
+        job.cancel()
+        assertEquals(customerMessageCount + 1, observed?.messages?.size, "Collector must observe the agent reply")
+    }
+
+    @Test
+    fun `threadFlow drops the welcome placeholder once the first customer message arrives`() {
+        val handler = chat.threads().create()
+        val created = handler.get()
+        // The placeholder is stamped with the real clock; a real reply always comes after it.
+        val customerMessage = makeMessageModel(threadIdOnExternalPlatform = created.id, createdAt = Clock.System.now() + 1.seconds)
+        var observed: ChatThread? = null
+        val job = testScope.launch {
+            observed = handler.threadFlow.first { thread ->
+                thread.messages.any { it.id == customerMessage.idOnExternalPlatform } && thread.messages.none { it is WelcomeMessage }
+            }
+        }
+        socketServer.sendServerMessage(ServerResponse.MessageCreated(created, customerMessage))
+        job.cancel()
+        assertEquals(listOf(customerMessage.idOnExternalPlatform), observed?.messages?.map { it.id })
+    }
+
+    @Test
+    fun `late threadFlow subscriber of a new thread sees the welcome placeholder`() {
+        val handler = chat.threads().create()
+        var observed: ChatThread? = null
+        val job = testScope.launch { observed = handler.threadFlow.first() }
+        job.cancel()
+        assertTrue(observed?.messages?.singleOrNull() is WelcomeMessage, "Expected only the welcome placeholder, got $observed")
+    }
+
+    @Test
+    fun `threadFlow delivers agent reply to a recovered thread still holding the welcome placeholder`() {
+        val threadId = UUID.randomUUID()
+        val placeholder = WelcomeMessage(
+            makeMessageModel(threadIdOnExternalPlatform = threadId, direction = MessageDirectionModel.ToClient)
+        )
+        val recovered = makeChatThread(id = threadId, messages = listOf(placeholder)).asMutable()
+        val handler = chat.threads().thread(recovered)
+        val agentMessage = makeMessageModel(threadIdOnExternalPlatform = threadId, direction = MessageDirectionModel.ToClient)
+        var observed: ChatThread? = null
+        val job = testScope.launch {
+            observed = handler.threadFlow.first { thread -> thread.messages.any { it.id == agentMessage.idOnExternalPlatform } }
+        }
+        socketServer.sendServerMessage(ServerResponse.MessageCreated(recovered, agentMessage))
+        job.cancel()
+        assertNotNull(observed, "Collector must observe the agent reply")
+    }
+
+    @Test
+    fun `late threadFlow subscriber of a new thread sees custom fields added before it subscribed`() {
+        val handler = chat.threads().create()
+        handler.customFields().add(mapOf("key" to "value"))
+        var observed: ChatThread? = null
+        val job = testScope.launch { observed = handler.threadFlow.first() }
+        job.cancel()
+        assertEquals("value", observed?.fields?.singleOrNull { it.id == "key" }?.value, "Late subscriber got $observed")
     }
 
     @Test

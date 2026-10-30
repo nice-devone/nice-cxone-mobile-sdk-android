@@ -22,16 +22,21 @@ import com.nice.cxonechat.FakeChatStateListener.ChatStateConnection.Ready
 import com.nice.cxonechat.enums.ErrorType.RecoveringThreadFailed
 import com.nice.cxonechat.exceptions.MissingThreadListFetchException
 import com.nice.cxonechat.exceptions.UnsupportedChannelConfigException
+import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.model.makeChatThread
+import com.nice.cxonechat.model.makeMessageModel
 import com.nice.cxonechat.server.ServerRequest
 import com.nice.cxonechat.server.ServerResponse
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.thread.ChatThreadState
 import com.nice.cxonechat.tool.nextStringMap
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 internal class ChatThreadsHandlerSingleThreadTest : AbstractSingleThreadChatTest() {
@@ -218,5 +223,93 @@ internal class ChatThreadsHandlerSingleThreadTest : AbstractSingleThreadChatTest
         assertEquals(1, lateResults[0].size, "Replay must hold the authoritative thread, not the failure emptyList")
         assertEquals(thread.id, lateResults[0][0].id)
         lateJob.cancel()
+    }
+
+    @Test
+    fun `threadsFlow shows the contact of a later recovery over the contact cached from MessageCreated`() {
+        val recovered = recoverOpenAndCloseThread()
+
+        socketServer.sendServerMessage(ServerResponse.ThreadRecovered(thread = recovered.copyWithContact(NEW_CONTACT_ID)))
+
+        assertEquals(NEW_CONTACT_ID, lastListed(recovered).contactId)
+    }
+
+    @Test
+    fun `threadsFlow reopens a thread closed by MessageCreated when it is recovered again`() {
+        val recovered = recoverOpenAndCloseThread()
+
+        socketServer.sendServerMessage(ServerResponse.ThreadRecovered(thread = recovered.copyWithContact(NEW_CONTACT_ID)))
+
+        assertEquals(ChatThreadState.Ready, lastListed(recovered).threadState)
+    }
+
+    @Test
+    fun `threadsFlow keeps a close that arrived after a recovery while nobody collected the list`() {
+        connect()
+        val thread = makeChatThread(contactId = "contact-a")
+        val firstCollector = testScope.launch { threads.threadsFlow.collect { listed += it } }
+        socketServer.sendServerMessage(ServerResponse.ThreadRecovered(thread = thread))
+        threads.thread(thread)
+        firstCollector.cancel()
+        socketServer.sendServerMessage(ServerResponse.ThreadRecovered(thread = thread))
+        socketServer.sendServerMessage(
+            ServerResponse.MessageCreated(thread, makeMessageModel(threadIdOnExternalPlatform = thread.id), status = "closed")
+        )
+
+        listed.clear()
+        val secondCollector = testScope.launch { threads.threadsFlow.collect { listed += it } }
+
+        assertEquals(ChatThreadState.Closed, lastListed(thread).threadState)
+        secondCollector.cancel()
+    }
+
+    @Test
+    fun `threadsFlow keeps a close when a lagging collector catches up on earlier recoveries`() {
+        connect()
+        val thread = makeChatThread(contactId = "contact-a")
+        val laggingDispatcher = StandardTestDispatcher(testScope.testScheduler)
+        val laggingCollector = testScope.launch(laggingDispatcher) { threads.threadsFlow.collect { listed += it } }
+        testScope.testScheduler.runCurrent()
+        socketServer.sendServerMessage(ServerResponse.ThreadRecovered(thread = thread))
+        threads.thread(thread)
+        socketServer.sendServerMessage(ServerResponse.ThreadRecovered(thread = thread))
+        socketServer.sendServerMessage(
+            ServerResponse.MessageCreated(thread, makeMessageModel(threadIdOnExternalPlatform = thread.id), status = "closed")
+        )
+
+        testScope.testScheduler.runCurrent()
+
+        assertEquals(ChatThreadState.Closed, lastListed(thread).threadState)
+        laggingCollector.cancel()
+    }
+
+    private val listed = mutableListOf<List<ChatThread>>()
+
+    /**
+     * Recovers a thread with contact A, opens its handler so the cache watcher starts, then closes the case with a
+     * MessageCreated, which carries [TestContactId]. Both values land in the threadsFlow cache.
+     */
+    private fun recoverOpenAndCloseThread(): ChatThread {
+        connect()
+        val thread = makeChatThread(contactId = "contact-a")
+        testScope.launch { threads.threadsFlow.collect { listed += it } }
+        socketServer.sendServerMessage(ServerResponse.ThreadRecovered(thread = thread))
+        threads.thread(thread)
+        socketServer.sendServerMessage(
+            ServerResponse.MessageCreated(thread, makeMessageModel(threadIdOnExternalPlatform = thread.id), status = "closed")
+        )
+        val closed = lastListed(thread)
+        assertEquals(ChatThreadState.Closed, closed.threadState, "Precondition: MessageCreated closes the listed thread")
+        assertEquals(TestContactId, closed.contactId, "Precondition: the list shows the MessageCreated contact")
+        return thread
+    }
+
+    private fun lastListed(thread: ChatThread): ChatThread =
+        assertNotNull(listed.lastOrNull()?.find { it.id == thread.id }, "threadsFlow must list ${thread.id}")
+
+    private fun ChatThread.copyWithContact(contactId: String) = asCopyable().copy(contactId = contactId)
+
+    private companion object {
+        private const val NEW_CONTACT_ID = "contact-b"
     }
 }

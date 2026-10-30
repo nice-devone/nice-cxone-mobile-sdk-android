@@ -36,6 +36,8 @@ internal class ChatFieldHandlerThread(
     private val thread: ChatThreadMutable,
     private val coroutineScope: CoroutineScope,
     parentScope: LoggerScope,
+    // No server event follows a Pending update, so threadFlow learns of it only through this.
+    private val notifyPendingUpdate: () -> Unit,
 ) : ChatFieldHandler, LoggerScope by LoggerScope("ChatFieldHandlerThread", parentScope) {
 
     override fun add(fields: Map<String, String>): Unit = scope("add") {
@@ -46,7 +48,10 @@ internal class ChatFieldHandlerThread(
                 updateContactCustomFields(customFields)
             }
 
-            Pending -> updateContactCustomFields(customFields)
+            Pending -> {
+                updateContactCustomFields(customFields)
+                notifyPendingUpdate()
+            }
             Closed -> throw InvalidStateException("Cannot add custom fields to a closed thread")
         }
     }
