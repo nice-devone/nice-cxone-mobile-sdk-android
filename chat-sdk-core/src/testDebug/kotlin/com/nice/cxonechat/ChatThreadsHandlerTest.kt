@@ -22,6 +22,7 @@ import com.nice.cxonechat.exceptions.RuntimeChatException
 import com.nice.cxonechat.internal.ChatLogging
 import com.nice.cxonechat.internal.ChatThreadsHandlerMemoizeHandlers
 import com.nice.cxonechat.internal.ChatWithParameters
+import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.model.ChannelConfiguration
 import com.nice.cxonechat.internal.model.ChatThreadMutable.Companion.asMutable
 import com.nice.cxonechat.internal.model.network.EventCaseStatusChanged.CaseStatus.Closed
@@ -493,6 +494,207 @@ internal class ChatThreadsHandlerTest : AbstractMultiThreadChatTest() {
         val updatedThread = results.last().find { it.id == thread.id }
         assertNotNull(updatedThread, "Thread must still be present after the message arrives")
         assertTrue(updatedThread.messages.isNotEmpty(), "New message must be visible in the list-level snapshot")
+    }
+
+    @Test
+    fun `threadsFlow carries contactId and threadState from a MessageCreated for a cached thread`() {
+        val thread = makeChatThread(
+            id = UUID.fromString("cc000000-0000-0000-0000-00000000000c"),
+            threadState = Received,
+            contactId = null,
+        )
+        reconnect()
+        val results = mutableListOf<List<ChatThread>>()
+        val job = testScope.launch { threads.threadsFlow.collect { results.add(it) } }
+
+        socketServer.sendServerMessage(ServerResponse.ThreadListFetched(listOf(thread)))
+        threads.thread(thread)
+        socketServer.sendServerMessage(
+            ServerResponse.MessageCreated(thread, makeMessageModel(threadIdOnExternalPlatform = thread.id))
+        )
+        job.cancel()
+
+        val updatedThread = results.last().find { it.id == thread.id }
+        assertNotNull(updatedThread)
+        assertEquals(TestContactId, updatedThread.contactId)
+        assertEquals(ChatThreadState.Ready, updatedThread.threadState)
+    }
+
+    @Test
+    fun `threadsFlow delivers Closed from a MessageCreated that closes a cached thread`() {
+        val thread = makeChatThread(
+            id = UUID.fromString("cc000000-0000-0000-0000-00000000000d"),
+            threadState = Received,
+            contactId = null,
+        )
+        reconnect()
+        val results = mutableListOf<List<ChatThread>>()
+        val job = testScope.launch { threads.threadsFlow.collect { results.add(it) } }
+
+        socketServer.sendServerMessage(ServerResponse.ThreadListFetched(listOf(thread)))
+        threads.thread(thread)
+        socketServer.sendServerMessage(
+            ServerResponse.MessageCreated(
+                thread,
+                makeMessageModel(threadIdOnExternalPlatform = thread.id),
+                status = "closed",
+            )
+        )
+        job.cancel()
+
+        val updatedThread = results.last().find { it.id == thread.id }
+        assertNotNull(updatedThread)
+        assertEquals(ChatThreadState.Closed, updatedThread.threadState)
+        assertEquals(1, updatedThread.messages.size)
+    }
+
+    @Test
+    fun `threadsFlow keeps Closed from the thread list over an older cached state`() {
+        val thread = makeChatThread(
+            id = UUID.fromString("cc000000-0000-0000-0000-00000000000e"),
+            threadState = Received,
+            contactId = null,
+        )
+        reconnect()
+        val results = mutableListOf<List<ChatThread>>()
+        val job = testScope.launch { threads.threadsFlow.collect { results.add(it) } }
+
+        socketServer.sendServerMessage(ServerResponse.ThreadListFetched(listOf(thread)))
+        threads.thread(thread)
+        socketServer.sendServerMessage(
+            ServerResponse.MessageCreated(thread, makeMessageModel(threadIdOnExternalPlatform = thread.id))
+        )
+        socketServer.sendServerMessage(ServerResponse.CaseStatusChanged(thread, Closed))
+        job.cancel()
+
+        val updatedThread = results.last().find { it.id == thread.id }
+        assertNotNull(updatedThread)
+        assertEquals(ChatThreadState.Closed, updatedThread.threadState)
+    }
+
+    @Test
+    fun `threadsFlow keeps Closed and the contact from a MessageCreated after the thread list is fetched again`() {
+        val thread = makeChatThread(
+            id = UUID.fromString("cc000000-0000-0000-0000-000000000020"),
+            threadState = Received,
+            contactId = null,
+        )
+        val results = collectAfterMessageCreated(thread, status = "closed")
+
+        refetchThreadList(thread)
+
+        val updatedThread = assertNotNull(results.last().find { it.id == thread.id })
+        assertEquals(ChatThreadState.Closed, updatedThread.threadState)
+        assertEquals(TestContactId, updatedThread.contactId)
+    }
+
+    @Test
+    fun `threadsFlow keeps the state and contact of an open thread from a MessageCreated after the list is fetched again`() {
+        val thread = makeChatThread(
+            id = UUID.fromString("cc000000-0000-0000-0000-000000000021"),
+            threadState = Received,
+            contactId = null,
+        )
+        val results = collectAfterMessageCreated(thread)
+
+        refetchThreadList(thread)
+
+        val updatedThread = assertNotNull(results.last().find { it.id == thread.id })
+        assertEquals(ChatThreadState.Ready, updatedThread.threadState)
+        assertEquals(TestContactId, updatedThread.contactId)
+    }
+
+    @Test
+    fun `threadsFlow keeps Closed from the thread list when a snapshot from before the close is opened`() {
+        val thread = makeChatThread(
+            id = UUID.fromString("cc000000-0000-0000-0000-000000000022"),
+            threadState = Received,
+            contactId = null,
+        )
+        reconnect()
+        val results = mutableListOf<List<ChatThread>>()
+        val job = testScope.launch { threads.threadsFlow.collect { results.add(it) } }
+        socketServer.sendServerMessage(ServerResponse.ThreadListFetched(listOf(thread)))
+        val snapshot = assertNotNull(results.last().find { it.id == thread.id }).asCopyable().copy()
+        socketServer.sendServerMessage(ServerResponse.CaseStatusChanged(thread, Closed))
+
+        threads.thread(snapshot)
+        job.cancel()
+
+        val updatedThread = assertNotNull(results.last().find { it.id == thread.id })
+        assertEquals(ChatThreadState.Closed, updatedThread.threadState)
+    }
+
+    /** Lists [thread], opens its handler so the cache watcher starts, then sends a MessageCreated for it. */
+    private fun collectAfterMessageCreated(thread: ChatThread, status: String = "new"): List<List<ChatThread>> {
+        reconnect()
+        val results = mutableListOf<List<ChatThread>>()
+        testScope.launch { threads.threadsFlow.collect { results.add(it) } }
+        socketServer.sendServerMessage(ServerResponse.ThreadListFetched(listOf(thread)))
+        threads.thread(thread)
+        socketServer.sendServerMessage(
+            ServerResponse.MessageCreated(thread, makeMessageModel(threadIdOnExternalPlatform = thread.id), status = status)
+        )
+        return results
+    }
+
+    /** What a refresh() brings: a new list without contact or case state, then the thread's metadata. */
+    private fun refetchThreadList(thread: ChatThread) {
+        threads.refresh()
+        socketServer.sendServerMessage(ServerResponse.ThreadListFetched(listOf(thread)))
+        socketServer.sendServerMessage(
+            ServerResponse.ThreadMetadataLoaded(agent = makeAgent(), message = makeMessageModel(threadIdOnExternalPlatform = thread.id))
+        )
+    }
+
+    @Test
+    fun `threadsFlow shows Loaded once metadata loads for a cached thread`() {
+        val thread = makeChatThread(
+            id = UUID.fromString("cc000000-0000-0000-0000-00000000000f"),
+            threadState = Received,
+            contactId = null,
+        )
+        reconnect()
+        val results = mutableListOf<List<ChatThread>>()
+        val job = testScope.launch { threads.threadsFlow.collect { results.add(it) } }
+
+        socketServer.sendServerMessage(ServerResponse.ThreadListFetched(listOf(thread)))
+        threads.thread(thread)
+        // The watcher caches an emission before the metadata arrives; the list must still advance to Loaded
+        socketServer.sendServerMessage(ServerResponse.TypingStarted(thread))
+        socketServer.sendServerMessage(
+            ServerResponse.ThreadMetadataLoaded(
+                agent = makeAgent(),
+                message = makeMessageModel(threadIdOnExternalPlatform = thread.id),
+            )
+        )
+        job.cancel()
+
+        val updatedThread = results.last().find { it.id == thread.id }
+        assertNotNull(updatedThread)
+        assertEquals(Loaded, updatedThread.threadState)
+    }
+
+    @Test
+    fun `threadsFlow does not re-emit for a MessageCreated that changes nothing`() {
+        val thread = makeChatThread(
+            id = UUID.fromString("cc000000-0000-0000-0000-000000000010"),
+            threadState = Received,
+            contactId = null,
+        )
+        val messageModel = makeMessageModel(threadIdOnExternalPlatform = thread.id)
+        reconnect()
+        val results = mutableListOf<List<ChatThread>>()
+        val job = testScope.launch { threads.threadsFlow.collect { results.add(it) } }
+
+        socketServer.sendServerMessage(ServerResponse.ThreadListFetched(listOf(thread)))
+        threads.thread(thread)
+        socketServer.sendServerMessage(ServerResponse.MessageCreated(thread, messageModel))
+        val emissionsAfterFirst = results.size
+        socketServer.sendServerMessage(ServerResponse.MessageCreated(thread, messageModel))
+        job.cancel()
+
+        assertEquals(emissionsAfterFirst, results.size, "An echo that changes nothing must not re-emit threadsFlow")
     }
 
     @Test

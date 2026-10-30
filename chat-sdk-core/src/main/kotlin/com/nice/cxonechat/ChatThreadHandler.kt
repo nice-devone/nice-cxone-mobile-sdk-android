@@ -64,10 +64,9 @@ interface ChatThreadHandler {
      * Returns the latest [thread][ChatThread] snapshot observed on this handler.
      * This value is safe to call on the main thread.
      *
-     * State only starts advancing once [threadFlow] has been collected at least once; before
-     * that, [get] alone will not reflect server-side updates. Once started, updates continue
-     * to be applied for the remainder of the chat session, even if no collector remains active.
-     * Use [threadFlow] to observe changes reactively.
+     * State starts advancing shortly after the handler is created, whether or not [threadFlow] is
+     * collected, and updates continue to be applied for the remainder of the chat session, even if
+     * no collector remains active. Use [threadFlow] to observe changes reactively.
      */
     fun get(): ChatThread
 

@@ -19,6 +19,7 @@ import com.nice.cxonechat.enums.EventType.RecoverLivechat
 import com.nice.cxonechat.enums.EventType.SendOutbound
 import com.nice.cxonechat.internal.ChatThreadHandlerLiveChat.Companion.BEGIN_CONVERSATION_MESSAGE
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
+import com.nice.cxonechat.internal.model.MessageDirectionModel.ToClient
 import com.nice.cxonechat.internal.model.MessageModel
 import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.model.makeMessage
@@ -281,6 +282,119 @@ internal class ChatThreadHandlerWelcomeLiveChatTest : AbstractLiveChatTest() {
 
         val recoverSends = sends.count { it.contains(RecoverLivechat.value) }
         assertEquals(1, recoverSends, "thread() must build a single LiveChat handler chain (no duplicate cache-watcher stack)")
+    }
+
+    // --- DE-182612: the welcome monitor must not take new messages from threadFlow ---
+
+    @Test
+    fun `threadFlow delivers the echo of the first customer message to a new LiveChat thread`() {
+        assertMessagesObserved(makeMessageModel(threadIdOnExternalPlatform = threadId))
+    }
+
+    @Test
+    fun `threadFlow delivers the echo of the second customer message to a new LiveChat thread`() {
+        assertMessagesObserved(
+            makeMessageModel(threadIdOnExternalPlatform = threadId),
+            makeMessageModel(threadIdOnExternalPlatform = threadId),
+        )
+    }
+
+    @Test
+    fun `threadFlow delivers the agent reply to a new LiveChat thread holding one customer message`() {
+        assertMessagesObserved(
+            makeMessageModel(threadIdOnExternalPlatform = threadId),
+            makeMessageModel(threadIdOnExternalPlatform = threadId, direction = ToClient),
+        )
+    }
+
+    @Test
+    fun `threadFlow delivers a MessageCreated sent to a new LiveChat thread before the first collector`() {
+        ignoreSends()
+        val thread = makeChatThread(messages = emptyList(), id = threadId)
+        val handler = chat.threads().thread(thread)
+        val message = makeMessageModel(threadIdOnExternalPlatform = threadId)
+        socketServer.sendServerMessage(ServerResponse.MessageCreated(thread, message))
+        val observed = mutableListOf<ChatThread>()
+        val job = testScope.launch { handler.threadFlow.collect { observed += it } }
+        testScope.advanceUntilIdle()
+        assertTrue(
+            observed.any { update -> update.messages.any { it.id == message.idOnExternalPlatform } },
+            "An event before the first collector must not be lost; get() holds ${handler.get().messages.size} " +
+                "message(s), emissions: ${observed.map { it.messages.size }}"
+        )
+        job.cancel()
+    }
+
+    @Test
+    fun `threadFlow delivers a MessageCreated sent to a recovered LiveChat thread before the first collector`() {
+        ignoreSends()
+        val thread = makeChatThread(messages = listOf(makeMessage(), makeMessage()), id = threadId)
+        val handler = chat.threads().thread(thread)
+        testScope.advanceUntilIdle()
+        val message = makeMessageModel(threadIdOnExternalPlatform = threadId)
+        socketServer.sendServerMessage(ServerResponse.MessageCreated(thread, message))
+        testScope.advanceUntilIdle()
+        val observed = mutableListOf<ChatThread>()
+        val job = testScope.launch { handler.threadFlow.collect { observed += it } }
+        testScope.advanceUntilIdle()
+        assertTrue(
+            observed.any { update -> update.messages.any { it.id == message.idOnExternalPlatform } },
+            "An event before the first collector must not be lost; get() holds ${handler.get().messages.size} " +
+                "message(s), emissions: ${observed.map { it.messages.size }}"
+        )
+        job.cancel()
+    }
+
+    @Test
+    fun `threadFlow keeps delivering when the welcome check fails on a thread update`() {
+        ignoreSends()
+        val thread = makeChatThread(messages = emptyList(), id = threadId)
+        val handler = chat.threads().thread(thread)
+        val observed = mutableListOf<ChatThread>()
+        val job = testScope.launch { handler.threadFlow.collect { observed += it } }
+        testScope.advanceUntilIdle()
+        every { storage.welcomeMessage } throws IllegalStateException("storage unavailable")
+
+        val start = makeMessageModel(
+            threadIdOnExternalPlatform = threadId,
+            messageContent = makeMessageContent(BEGIN_CONVERSATION_MESSAGE),
+        )
+        val reply = makeMessageModel(threadIdOnExternalPlatform = threadId)
+        listOf(start, reply).forEach { message ->
+            socketServer.sendServerMessage(ServerResponse.MessageCreated(thread, message))
+            testScope.advanceUntilIdle()
+        }
+
+        assertTrue(
+            observed.any { update -> update.messages.any { it.id == reply.idOnExternalPlatform } },
+            "threadFlow must survive a failing welcome check; emissions: ${observed.map { it.messages.size }}"
+        )
+        job.cancel()
+    }
+
+    /**
+     * An empty thread starts the welcome monitor, which keeps collecting the handler chain below the shared flow
+     * for the thread's lifetime. Each message arrives only as a server [ServerResponse.MessageCreated] — sending
+     * does not append locally — so the collector must observe every one of them.
+     */
+    private fun assertMessagesObserved(vararg messages: MessageModel) {
+        ignoreSends()
+        val thread = makeChatThread(messages = emptyList(), id = threadId)
+        val handler = chat.threads().thread(thread)
+        val observed = mutableListOf<ChatThread>()
+        val job = testScope.launch { handler.threadFlow.collect { observed += it } }
+        testScope.advanceUntilIdle()
+
+        messages.forEach { message ->
+            socketServer.sendServerMessage(ServerResponse.MessageCreated(thread, message))
+            testScope.advanceUntilIdle()
+            assertTrue(
+                observed.any { update -> update.messages.any { it.id == message.idOnExternalPlatform } },
+                "threadFlow must emit message ${message.idOnExternalPlatform}; " +
+                    "handler.get() holds ${handler.get().messages.size} message(s), emissions: ${observed.map { it.messages.size }}"
+            )
+        }
+        job.cancel()
     }
 
     private companion object {

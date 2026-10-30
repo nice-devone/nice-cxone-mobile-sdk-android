@@ -256,7 +256,7 @@ internal class PreferencesValueStorage private constructor(
                             null
                         }
                     },
-                initialCustomerId = store.getString(PREF_CUSTOMER_ID).firstOrNull(),
+                initialCustomerId = store.readOrGenerateCustomerId(loggerScope),
                 initialVisitorId = visitorId,
                 initialVisitDetails = store.getString(PREF_VISIT_DETAILS).firstOrNull()
                     ?.let { json ->
@@ -309,6 +309,40 @@ internal class PreferencesValueStorage private constructor(
             // putStoreVisitorId() already catches and logs persistence failures -- no need to
             // duplicate that handling here.
             UUIDProvider.next().also { fresh -> putStoreVisitorId(fresh, logger) }
+
+        /**
+         * Returns the persisted `customerId`, or generates and persists a fresh local one if absent --
+         * mirroring [readOrGenerateVisitorId] and matching the iOS SDK's own behavior. Without this, an
+         * anonymous visitor has no `customerId` until the backend assigns one during `connect()`'s token
+         * exchange, well after `prepare()` -- which runs this -- so [com.nice.cxonechat.internal.ChatStoreVisitor]'s
+         * Visitor registration always failed with [com.nice.cxonechat.exceptions.MissingCustomerId] on a
+         * fresh anonymous visitor's first attempt.
+         *
+         * `ChatBuilderDefault.prepareChatParameters()` overwrites this with an app-supplied `customerId`
+         * if one was configured, and `ChatImpl.connect()` overwrites it again with whatever the backend's
+         * token-exchange response returns. For `AuthenticationType.Anonymous`, this value (local or
+         * app-supplied) *is* sent as part of the token request itself
+         * (`ChatImpl.createAuthRequestBody()`), same as an app-supplied `setCustomerId()` already did --
+         * the backend is expected to adopt it as the customer's identity, matching iOS's own behavior.
+         * For an authenticated (OAuth/secured-cookie) session, which never sends `customerId` as part of
+         * authentication, this local value is only a short-lived Visitor-registration placeholder,
+         * replaced once the real identity is confirmed. Known issue: that replacement does not currently
+         * re-run the Visitor registration call itself, so such a session's Visitor record keeps the
+         * placeholder identity.
+         */
+        private suspend fun EncryptedDataStoreContract.readOrGenerateCustomerId(logger: Logger): String =
+            getString(PREF_CUSTOMER_ID).firstOrNull() ?: generateAndPersistCustomerId(logger)
+
+        private suspend fun EncryptedDataStoreContract.generateAndPersistCustomerId(logger: Logger): String =
+            UUIDProvider.next().toString().also { fresh ->
+                try {
+                    putString(PREF_CUSTOMER_ID, fresh)
+                } catch (cancellation: CancellationException) {
+                    throw cancellation
+                } catch (expected: Exception) {
+                    logger.warning("Failed to persist $PREF_CUSTOMER_ID", expected)
+                }
+            }
 
         private suspend fun EncryptedDataStoreContract.tryRemoveCorruptKey(key: String, logger: Logger) {
             try {

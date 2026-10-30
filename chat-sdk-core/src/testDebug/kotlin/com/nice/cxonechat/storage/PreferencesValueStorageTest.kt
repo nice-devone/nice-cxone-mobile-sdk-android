@@ -119,6 +119,21 @@ internal class PreferencesValueStorageTest {
     }
 
     @Test
+    fun `customerId auto-generates and persists when absent from store, like visitorId`() = runTest {
+        val storage = PreferencesValueStorage.create(mockDataStore, this)
+        val generatedId = storage.customerId
+        assertTrue(generatedId != null, "A locally-generated customerId must be assigned when none is persisted")
+        coVerify { mockDataStore.putString("share_customer_id", generatedId) }
+    }
+
+    @Test
+    fun `customerId reads the persisted value instead of generating a new one`() = runTest {
+        coEvery { mockDataStore.getString("share_customer_id") } returns flowOf("persisted-customer-id")
+        val storage = PreferencesValueStorage.create(mockDataStore, this)
+        storage.customerId shouldBe "persisted-customer-id"
+    }
+
+    @Test
     fun `visitorId auto-generates and persists when absent from store`() = runTest {
         val storage = PreferencesValueStorage.create(mockDataStore, this)
         val generatedId = storage.visitorId

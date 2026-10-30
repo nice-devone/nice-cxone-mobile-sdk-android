@@ -33,21 +33,22 @@ import kotlinx.coroutines.flow.shareIn
  * Sharing ensures the mutation runs exactly once per event and every collector observes the same
  * result, instead of racing on who mutates first and silently dropping the update for the loser.
  *
- * Uses [SharingStarted.Lazily], mirroring [ChatThreadsHandlerImpl.threadsFlow]: the same
- * chat-session-scoped subscription that flow already relies on, and the same trade-off — this flow
- * goes stale after a `close()` + `connect()` cycle on the *same* `Chat` instance (the session-scoped
- * subscription is cancelled and never restarts), same as `threadsFlow` already does today. This is a
- * non-issue in practice because production always rebuilds the `Chat` instance on reconnect
- * (`ChatInstanceProvider`), which yields a fresh handler graph rather than reviving this one.
+ * Uses [SharingStarted.Eagerly] in the chat session's scope: the same session-scoped subscription
+ * [ChatThreadsHandlerImpl.threadsFlow] relies on, with the same trade-off — this flow goes stale after a
+ * `close()` + `connect()` cycle on the *same* `Chat` instance (the session-scoped subscription is
+ * cancelled and never restarts). This is a non-issue in practice because production always rebuilds
+ * the `Chat` instance on reconnect (`ChatInstanceProvider`), which yields a fresh handler graph rather
+ * than reviving this one.
  *
  * Must be the outermost decorator: everything below it must have exactly one collector (the shared
  * flow itself) so its own internal event handling isn't subject to the same race this class fixes.
  *
- * Note on [SharingStarted.Lazily]: once [threadFlow] is collected for the first time, the upstream
- * subscription (and this thread's event processing) keeps running for the rest of the chat session,
- * even after every downstream collector has cancelled — `Lazily` never stops, unlike
- * `WhileSubscribed()`. See [ChatThreadHandler.get]'s KDoc for the resulting effect on when state
- * advances.
+ * Why [SharingStarted.Eagerly]: the chain below applies socket events (a new message, a recovery) to
+ * the thread only while it is collected, and those events are not replayed. Started lazily, an event
+ * that arrived before the first collector was lost for good, from [ChatThreadHandler.get] too. Started
+ * eagerly, the chain subscribes as soon as the session's dispatcher runs the sharing coroutine after
+ * the handler is built, and keeps running for the rest of the chat session, like a lazily started one
+ * after its first collector. [ChatThreadsHandlerMemoizeHandlers] keeps that to one chain per thread.
  *
  * @param origin The original decorated `ChatThreadHandler` instance.
  * @param coroutineScope The chat session's own scope, so a closed/rebuilt session doesn't try to
@@ -60,5 +61,5 @@ internal class ChatThreadHandlerShared(
 ) : ChatThreadHandler by origin {
 
     override val threadFlow: Flow<ChatThread> = origin.threadFlow
-        .shareIn(coroutineScope, SharingStarted.Lazily, replay = 1)
+        .shareIn(coroutineScope, SharingStarted.Eagerly, replay = 1)
 }

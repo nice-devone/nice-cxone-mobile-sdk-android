@@ -114,6 +114,8 @@ internal class ChatViewModel(
     @VisibleForTesting
     internal var resolveStateJob: Job? = null
 
+    private var reportOnResumeJob: Job? = null
+
     private val showDialog by lazy { MutableStateFlow<DialogState>(refreshDialogState()) }
     val dialogShown by lazy {
         viewModelScope.launch {
@@ -270,9 +272,15 @@ internal class ChatViewModel(
     }
 
     internal fun reportOnResume() = scope("reportOnResume") {
-        viewModelScope.launch(Dispatchers.IO) {
+        // A prior call's wait for Ready may still be pending (e.g. a config change, or Home then
+        // back before Ready) — cancel it so chatWindowOpen() isn't reported more than once for the
+        // same resume. onPause() also cancels this via cancelReportOnResume().
+        reportOnResumeJob?.cancel()
+        reportOnResumeJob = viewModelScope.launch(Dispatchers.IO) {
             duration {
-                chatStateViewModel.state.first { it.isAtLeastPrepared() }
+                // Must wait for Ready, not just Prepared/Connecting, or the backend drops the
+                // proactive WelcomeMessage trigger silently.
+                chatStateViewModel.state.first { it === ChatState.Ready }
                 events.chatWindowOpen()
                 val extraCustomValues = uiCustomerFieldsProvider.customFields()
                 if (extraCustomValues.isNotEmpty()) {
@@ -280,6 +288,12 @@ internal class ChatViewModel(
                 }
             }
         }
+    }
+
+    /** Stops waiting to report a chat-window open — call when the screen is no longer resumed. */
+    internal fun cancelReportOnResume() = scope("cancelReportOnResume") {
+        reportOnResumeJob?.cancel()
+        reportOnResumeJob = null
     }
 
     private fun showDialog(dialog: DialogState) = scope("showDialog") {

@@ -16,11 +16,14 @@
 package com.nice.cxonechat.ui.util
 
 import com.nice.cxonechat.ChatState
-import com.nice.cxonechat.ChatState.Initial
-import com.nice.cxonechat.ChatState.Preparing
+import com.nice.cxonechat.ChatState.Connected
+import com.nice.cxonechat.ChatState.Connecting
+import com.nice.cxonechat.ChatState.Prepared
+import com.nice.cxonechat.ChatState.Ready
 
 /**
  * Returns true if the chat state is `Prepared` or any state that follows it in the lifecycle
  * (e.g., `Connecting`, `Connected`, `Ready`), excluding error states (`Offline`, `ConnectionLost`, `SdkNotSupported`).
  */
-internal fun ChatState.isAtLeastPrepared(): Boolean = this !== Initial && this !== Preparing
+internal fun ChatState.isAtLeastPrepared(): Boolean =
+    this === Prepared || this === Connecting || this === Connected || this === Ready

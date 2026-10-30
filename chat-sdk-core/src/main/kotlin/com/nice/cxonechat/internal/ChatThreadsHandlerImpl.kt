@@ -42,6 +42,7 @@ import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState.Pending
 import com.nice.cxonechat.util.UUIDProvider
 import com.nice.cxonechat.util.newBufferedSharedFlow
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -147,6 +148,7 @@ internal class ChatThreadsHandlerImpl(
         isThreadCreated: Boolean = false,
     ): ChatThreadHandler {
         val mutableThread = thread as? ChatThreadMutable ?: ChatThreadMutable.from(thread)
+        val sharedThreadFlow = CompletableDeferred<Flow<ChatThread>>()
         var handler: ChatThreadHandler
         handler = ChatThreadHandlerImpl(chat, mutableThread)
         if (chat.chatMode === MultiThread) {
@@ -165,10 +167,11 @@ internal class ChatThreadsHandlerImpl(
             // Add the welcome message decorator for locally created (Pending) threads or threads
             // recovered from the server that already carry a welcome message — in both cases the
             // decorator ensures the welcome is properly handled.
-            handler = ChatThreadHandlerWelcome(handler, chat, mutableThread)
+            handler = ChatThreadHandlerWelcome(handler, chat, mutableThread, sharedThreadFlow)
         }
         handler = ChatThreadHandlerFilter(handler, chat)
         handler = ChatThreadHandlerShared(handler, chat.entrails.threading.coroutineScope)
+        sharedThreadFlow.complete(handler.threadFlow)
         return handler
     }
 

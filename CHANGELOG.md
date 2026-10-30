@@ -2,9 +2,21 @@
 
 ## [Unreleased]
 
-### Added
+## [4.0.1] - 2026-10-30
 
-- `docs/privacy.md` — data collection & privacy disclosure, to support Google Play "Data safety" declarations
+### Changed
+
+- `chat-sdk-ui` adds an attachment picked while the chat is `Offline` or its connection is lost only if the chat recovers
+
+### Fixed
+
+- Fix thread updates such as a new message being lost when they arrived before `ChatThreadHandler.threadFlow` was first collected, so neither `threadFlow` nor `ChatThreadHandler.get()` ever showed them. A thread handler now applies updates from shortly after it is created, whether or not it is collected
+- Fix `ChatThreadsHandler.threadsFlow` keeping a thread's loaded `contactId` and `threadState` after a new-message event changed them, so the thread list disagreed with the open thread; a thread closed by such an event now shows as closed in the list until a later thread recovery reopens it or brings a new contact
+- Fix `ChatThread.contactId` and `ChatThread.threadState` not being updated when a new-message event arrives for a message that is already in the thread
+- Fix new messages not reaching `threadFlow` in a live chat conversation started with `ChatThreadsHandler.create()`. The customer's own messages after the first, and agent replies, were added to the thread but often not emitted, so a UI rendering `threadFlow` showed them only after the next agent typing indicator, a `refresh()` or a new thread handler
+- Fix a missing new-message update for a newly created thread in a multi-thread channel. When such a thread held only the customer's first message, the agent's first reply could reach `threadFlow` late or never, so the Chat UI posted no notification for it while another thread was open. Custom fields added to such a thread before its first message now also reach `threadFlow`
+- Fix the proactive `WelcomeMessage` action being dropped on a new anonymous visitor's first chat open. Visitor registration failed until the backend assigned a `customerId`; when the app supplies no `customerId`, the SDK now generates a local one at startup
+- Fix `ChatEventHandlerActions.chatWindowOpen()` being reported before the chat was actually `Ready`, which could cause the backend to drop a proactive `WelcomeMessage` action; `chat-sdk-ui` now reports it only once `Ready`
 
 <a name="4.0.0"></a>
 
@@ -40,13 +52,13 @@
 - **BREAKING**: Increase minSdk version 24 -> 26
 - Increase targetSdk version 35 -> 36
 - Increase compileSdk 36 -> 37
-    - Required by the latest stable versions of androidx libraries (e.g., androidx.core:core-ktx:1.19.0)
+   - Required by the latest stable versions of androidx libraries (e.g., androidx.core:core-ktx:1.19.0)
 - **BREAKING**:
-    - **`Agent.fullName`**: return type changed from `String` to `String?`; it now returns `null` when neither name component was provided by the backend, replacing the previous empty-string result.
-    - **`Agent.firstName`**, **`Agent.lastName`**, and **`Agent.imageUrl`**: return type changed from `String` to `String?`; `null` now indicates the field was not provided by the backend, as opposed to `""` which is an explicitly empty value.
-    - **`Agent.isBotUser`** and **`Agent.isSurveyUser`**: return type changed from `Boolean` to `Boolean?`; `null` now indicates the agent's bot/survey status is unknown (not provided by the backend), which is distinct from `false` (definitively not a bot/survey agent).
+  - **`Agent.fullName`**: return type changed from `String` to `String?`; it now returns `null` when neither name component was provided by the backend, replacing the previous empty-string result.
+  - **`Agent.firstName`**, **`Agent.lastName`**, and **`Agent.imageUrl`**: return type changed from `String` to `String?`; `null` now indicates the field was not provided by the backend, as opposed to `""` which is an explicitly empty value.
+  - **`Agent.isBotUser`** and **`Agent.isSurveyUser`**: return type changed from `Boolean` to `Boolean?`; `null` now indicates the agent's bot/survey status is unknown (not provided by the backend), which is distinct from `false` (definitively not a bot/survey agent).
 - **BREAKING**:
-    - **Time API**: All public time fields and parameters now use `kotlin.time.Instant` instead of `java.util.Date`. Affected API surface: `Message.createdAt`, `TimeSlot.startTime`, `MessageMetadata.seenAt`/`readAt`/`seenByCustomerAt`, `CustomField.updatedAt`, `Popup.InactivityPopup.Countdown.startedAt`, and the `instant` parameter on all `ChatEventHandlerActions` extension functions (renamed from `date`). Replace `Date()` with `kotlin.time.Clock.System.now()` and `Date(epochMs)` with `kotlin.time.Instant.fromEpochMilliseconds(epochMs)`.
+  - **Time API**: All public time fields and parameters now use `kotlin.time.Instant` instead of `java.util.Date`. Affected API surface: `Message.createdAt`, `TimeSlot.startTime`, `MessageMetadata.seenAt`/`readAt`/`seenByCustomerAt`, `CustomField.updatedAt`, `Popup.InactivityPopup.Countdown.startedAt`, and the `instant` parameter on all `ChatEventHandlerActions` extension functions (renamed from `date`). Replace `Date()` with `kotlin.time.Clock.System.now()` and `Date(epochMs)` with `kotlin.time.Instant.fromEpochMilliseconds(epochMs)`.
 - **BREAKING** Coroutine API migration — several public APIs have been migrated to `suspend` functions; callers must invoke them from a coroutine context. See the [Coroutine API migration guide](docs/migration/MIGRATION_COROUTINE_API.md) for the full callback → suspend/Flow mapping and Java interop. Java callers should add the new `com.nice.cxone:chat-sdk-core-java` dependency and use the helpers documented under **Added**:
     - `ChatBuilder.build()` is now a `suspend` function; call it from a coroutine or use `ChatBuilderJavaInterop.getDefaultBlocking()` for Java/blocking contexts
     - `Chat.connect()` is now a `suspend` function; call it from a coroutine
@@ -64,9 +76,9 @@
 - **BREAKING**  **`ChatThread.contactId`**: Exposed as a public abstract property; existing `ChatThread` subclasses must add `override val contactId: String?`.
 - **BREAKING** Add implicit OAuth token delegation flow: integrators implement `TokenDelegateListener` and register it via `ChatBuilder.setTokenDelegateListener()`; the SDK calls `onNewTokenRequested()` with `UNSPECIFIED` on initial connect, `TOKEN_INVALID` when the backend rejects the stored token (HTTP 401), and `TOKEN_EXPIRED` when the token expires proactively during a session. The integrator's `onNewTokenRequested` implementation is expected to perform a **silent background refresh** (e.g. AppAuth `AuthState.performActionWithFreshTokens` using a cached refresh token) for `TOKEN_EXPIRED` / `TOKEN_INVALID` reasons — no browser UI should be shown to the user.
 - **New exception types** — three new `RuntimeChatException` subclasses are now thrown and must be handled in your `ChatInstanceProvider.Listener.onChatRuntimeException` (or `ChatStateListener`) implementation:
-    - `FeatureUnavailableException` — thrown when the explicit OAuth flow (`ChatBuilder.setAuthorization(...)`) is used but the backend returns an error during the transaction token exchange. Indicates the explicit flow is not functioning on the current backend version. Switch to the implicit flow via `setTokenDelegateListener(...)`.
-    - `InvalidAccessTokenException` — thrown when the backend rejects the JWT used in the implicit flow and the SDK's automatic recovery also fails. Treat as a hard re-authentication signal.
-    - `TokenDelegationFailedException` — thrown when `TokenDelegateListener.onNewTokenRequested` throws. The original cause is available via `Throwable.cause`.
+  - `FeatureUnavailableException` — thrown when the explicit OAuth flow (`ChatBuilder.setAuthorization(...)`) is used but the backend returns an error during the transaction token exchange. Indicates the explicit flow is not functioning on the current backend version. Switch to the implicit flow via `setTokenDelegateListener(...)`.
+  - `InvalidAccessTokenException` — thrown when the backend rejects the JWT used in the implicit flow and the SDK's automatic recovery also fails. Treat as a hard re-authentication signal.
+  - `TokenDelegationFailedException` — thrown when `TokenDelegateListener.onNewTokenRequested` throws. The original cause is available via `Throwable.cause`.
 - **Known issue**: Explicit OAuth flow (`ChatBuilder.setAuthorization(...)`) is currently not supported by the backend in the latest SDK version. Use implicit flow (`setTokenDelegateListener(...)`) for upgrades, or stay on your previous SDK version until explicit flow is supported.
 - Bump `org.jetbrains.kotlin` from 2.2.21 to 2.4.0
 - Bump `org.jetbrains.kotlinx:kotlinx-serialization-json` from 1.9.0 to 1.11.0
@@ -86,7 +98,7 @@
 - Bump `com.google.gms.google-services` from 4.4.4 to 4.5.0
 - Bump `com.squareup.okhttp3:okhttp` from 5.3.2 to 5.4.0
 - Default SocketFactoryConfiguration implementation is now a data class with value equality,
-  which may cause issues if users rely on previous reference only equality
+    which may cause issues if users rely on previous reference only equality
 - Published javadoc artifacts now use a single `-javadoc.jar` classifier per module instead of separate `-debug-javadoc.jar`/`-release-javadoc.jar` variants, and are no longer exposed as a Gradle Module Metadata `docstype=javadoc` variant; classifier-based javadoc resolution used by Maven, Gradle, and IDEs is unaffected
 
 ### Deprecated
@@ -766,50 +778,52 @@
         - failure
     - typing start/end
 
-[Unreleased]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/4.0.0...HEAD
+[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/4.0.1...HEAD
 
-[4.0.0]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/3.3.1...4.0.0
+[4.0.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/4.0.0...4.0.1
 
-[3.3.1]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/3.3.0...3.3.1
+[4.0.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.3.1...4.0.0
 
-[3.3.0]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/3.2.2...3.3.0
+[3.3.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.3.0...3.3.1
 
-[3.2.3]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/3.2.2...3.2.3
+[3.3.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.2.2...3.3.0
 
-[3.2.2]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/3.2.1...3.2.2
+[3.2.3]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.2.2...3.2.3
 
-[3.2.1]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/3.2.0...3.2.1
+[3.2.2]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.2.1...3.2.2
 
-[3.2.0]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/3.1.2...3.2.0
+[3.2.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.2.0...3.2.1
 
-[3.1.2]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/3.1.1...3.1.2
+[3.2.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.1.2...3.2.0
 
-[3.1.1]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/3.1.0...3.1.1
+[3.1.2]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.1.1...3.1.2
 
-[3.1.0]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/3.0.0...3.1.0
+[3.1.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.1.0...3.1.1
 
-[3.0.0]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/2.2.2...3.0.0
+[3.1.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/3.0.0...3.1.0
 
-[2.2.2]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/2.2.1...2.2.2
+[3.0.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.2.2...3.0.0
 
-[2.2.1]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/2.2.0...2.2.1
+[2.2.2]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.2.1...2.2.2
 
-[2.2.0]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/2.1.1...2.2.0
+[2.2.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.2.0...2.2.1
 
-[2.1.1]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/2.1.0...2.1.1
+[2.2.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.1.1...2.2.0
 
-[2.1.0]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/2.0.0...2.1.0
+[2.1.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.1.0...2.1.1
 
-[2.0.0]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/1.3.1...2.0.0
+[2.1.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/2.0.0...2.1.0
 
-[1.3.1]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/1.3.0...1.3.1
+[2.0.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.3.1...2.0.0
 
-[1.3.0]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/1.2.1...1.3.0
+[1.3.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.3.0...1.3.1
 
-[1.2.1]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/1.2.0...1.2.1
+[1.3.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.2.1...1.3.0
 
-[1.2.0]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/1.1.0...1.2.0
+[1.2.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.2.0...1.2.1
 
-[1.1.0]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/1.0.1...1.1.0
+[1.2.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.1.0...1.2.0
 
-[1.0.1]: https://github.com/BrandEmbassy/cxone-mobile-sdk-android/compare/1.0.0...1.0.1
+[1.1.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.0.1...1.1.0
+
+[1.0.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/1.0.0...1.0.1
