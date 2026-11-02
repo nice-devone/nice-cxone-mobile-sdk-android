@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+<a name="4.0.1"></a>
+
 ## [4.0.1] - 2026-10-30
 
 ### Changed
@@ -274,40 +276,40 @@
 
 ### Added
 
-- `RemoteLogger` to report errors to the server and exposed in the public API ([US-SDK-001](docs/user-stories.md))
-- Inactivity Popup Support ([US-SDK-002](docs/user-stories.md))
+- `RemoteLogger` to report errors to the server and exposed in the public API
+- Inactivity Popup Support
 - `ChatThreadActionHandler` which can be obtained from `ChatThreadHandler`
 - `Popup` which is provided to `OnPopup` listeners registered in the `ChatThreadActionHandler`
-- `InactivityPopup` ([US-SDK-002](docs/user-stories.md))
+- `InactivityPopup`
 - Utility extension method `ChatThreadEventHandler.triggerAction` to allow easy triggering of `Action` events (for Quick Replies, List
   Picker, Popups)
-- Daily Perfecto build workflow for automated testing ([US-INFRA-001](docs/user-stories.md))
-- Concurrency controls to PR workflows to cancel previous runs and save CI resources ([US-INFRA-002](docs/user-stories.md))
+- Daily Perfecto build workflow for automated testing
+- Concurrency controls to PR workflows to cancel previous runs and save CI resources
 - UI tests support
-- ChatInstanceProvider unit test coverage ([US-INFRA-004](docs/user-stories.md))
-- Presurvey field validation check dynamically ([US-UI-011](docs/user-stories.md))
-- Video and Image caching to improve loading performance ([US-PERF-003](docs/user-stories.md))
-- Indicator for attachment preparing ([US-UI-012](docs/user-stories.md))
-- WebSocket exponential reconnect with backoff strategy ([US-SDK-005](docs/user-stories.md))
+- ChatInstanceProvider unit test coverage
+- Presurvey field validation check dynamically
+- Video and Image caching to improve loading performance
+- Indicator for attachment preparing
+- WebSocket exponential reconnect with backoff strategy
 - androidx.material3.adaptive dependency for adaptive UI layouts
 - androidx.window and androidx.window-testing dependencies for window size class support
 
 ### Changed
 
 - **BREAKING CHANGE**: Bump com.squareup.okhttp3:okhttp from 4.12.0 to 5.1.0
-- Updated the thread list cell design for unread state ([US-UI-001](docs/user-stories.md))
-- Updated UI for List Picker ([US-UI-001](docs/user-stories.md))
-- Updated UI for Quick Replies ([US-UI-002](docs/user-stories.md))
-- Updated UI for voice messages ([US-UI-003](docs/user-stories.md))
-- Updated UI for attachments ([US-UI-004](docs/user-stories.md))
-- Updated UI for typing indicator ([US-UI-005](docs/user-stories.md))
-- Updated UI for Position in Queue ([US-UI-006](docs/user-stories.md))
-- Updated UI for offline mode ([US-UI-007](docs/user-stories.md))
-- Updated UI for Rich-Link ([US-UI-008](docs/user-stories.md))
-- Updated UI for Basic Conversation ([US-UI-009](docs/user-stories.md))
-- Updated UI for Accessibility ([US-UI-010](docs/user-stories.md))
-- QuickReply message interaction behavior - options only visible for last message ([US-UI-013](docs/user-stories.md))
-- UI module error handling with grouped error types ([US-UI-014](docs/user-stories.md))
+- Updated the thread list cell design for unread state
+- Updated UI for List Picker
+- Updated UI for Quick Replies
+- Updated UI for voice messages
+- Updated UI for attachments
+- Updated UI for typing indicator
+- Updated UI for Position in Queue
+- Updated UI for offline mode
+- Updated UI for Rich-Link
+- Updated UI for Basic Conversation
+- Updated UI for Accessibility
+- QuickReply message interaction behavior - options only visible for last message
+- UI module error handling with grouped error types
 - Increased compileSdkVersion to 36
 - Update Android Gradle Plugin 8.11.1 -> 8.13.0
 - Bump androidx.compose:compose-bom from 2025.06.01 to 2025.10.00
@@ -322,15 +324,15 @@
 
 ### Fixed
 
-- Handle failure & added auto retry mechanism during visitor creation/updation ([US-SDK-003](docs/user-stories.md))
-- Filter unsupported message answers ([US-SDK-004](docs/user-stories.md))
-- Presurvey invalid email and field validation ([US-UI-011](docs/user-stories.md))
-- Server error reporting in single thread mode - ThreadRecoveryFailure errors now suppressed ([US-SDK-006](docs/user-stories.md))
-- Single attachment preview - fixed size and design according to new specifications ([US-UI-015](docs/user-stories.md))
-- Deeplink handling - delay Chat access until it is ready or in terminal state ([US-UI-016](docs/user-stories.md))
-- Custom Fields dropdown - menu now opens properly and expands on clear ([US-UI-017](docs/user-stories.md))
-- Memory leak in TemporaryFileStorage - using Application context instead of Activity ([US-UI-018](docs/user-stories.md))
-- ExplicitGcViolation for Android 16 compatibility ([US-SDK-007](docs/user-stories.md))
+- Handle failure & added auto retry mechanism during visitor creation/updation
+- Filter unsupported message answers
+- Presurvey invalid email and field validation
+- Server error reporting in single thread mode - ThreadRecoveryFailure errors now suppressed
+- Single attachment preview - fixed size and design according to new specifications
+- Deeplink handling - delay Chat access until it is ready or in terminal state
+- Custom Fields dropdown - menu now opens properly and expands on clear
+- Memory leak in TemporaryFileStorage - using Application context instead of Activity
+- ExplicitGcViolation for Android 16 compatibility
 
 ### Security
 
