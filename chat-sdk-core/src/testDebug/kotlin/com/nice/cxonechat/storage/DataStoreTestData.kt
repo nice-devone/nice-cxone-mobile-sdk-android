@@ -32,7 +32,8 @@ private val dataStoreScopes = mutableMapOf<EncryptedCookieDataStore, CoroutineSc
  *
  * Each test gets its own isolated DataStore instance with a unique file name to prevent conflicts.
  *
- * @param tempDir The temporary directory to use for the DataStore file. Should be provided by the test using @TempDir (JUnit 5) or TemporaryFolder (JUnit 4).
+ * @param tempDir The temporary directory to use for the DataStore file.
+ * Should be provided by the test using @TempDir (JUnit 5) or TemporaryFolder (JUnit 4).
  */
 internal fun createTestCookieDataStore(tempDir: File): EncryptedCookieDataStore {
     val testFile = File(tempDir, "cookies-${UUID.randomUUID()}.pb")

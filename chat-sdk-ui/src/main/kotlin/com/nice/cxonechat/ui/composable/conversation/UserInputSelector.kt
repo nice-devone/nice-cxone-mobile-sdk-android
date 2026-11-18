@@ -52,6 +52,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.state.Configuration
 import com.nice.cxonechat.ui.R.string
@@ -60,6 +61,7 @@ import com.nice.cxonechat.ui.composable.conversation.InputState.Audio
 import com.nice.cxonechat.ui.composable.conversation.InputState.None
 import com.nice.cxonechat.ui.composable.theme.ChatIconButton
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.SendButton
 import com.nice.cxonechat.ui.data.RequestResult
 import kotlinx.coroutines.CoroutineScope
@@ -85,6 +87,8 @@ import kotlin.time.Duration.Companion.seconds
  * @param focusRequester FocusRequester for managing input focus.
  * @param showMessageProcessing Whether to show a loading indicator for message processing.
  * @param modifier Modifier for styling the row.
+ * @param horizontalPadding Wide-screen content inset, which replaces the row's own side margin rather than
+ * adding to it.
  * @param onError Callback for error messages.
  * @param content Composable content for the input field (usually a text field).
  */
@@ -99,12 +103,16 @@ internal fun UserInputSelector(
     focusRequester: FocusRequester,
     showMessageProcessing: Boolean,
     modifier: Modifier = Modifier,
+    horizontalPadding: Dp = 0.dp,
     onError: (String) -> Unit,
     content: @Composable RowScope.() -> Unit,
 ) {
+    // Replaces the row's own margin rather than adding to it, so the controls line up with the conversation.
+    // Both input states share the row: separate margins would slide the bar sideways as the recorder opens.
+    val sideMargin = maxOf(space.large, horizontalPadding)
     val rowMod = modifier
         .height(72.dp)
-        .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+        .padding(start = sideMargin, end = sideMargin, bottom = space.large)
         .focusGroup()
     val onAudioRecordToggle = audioRecordingUiState.onAudioRecordToggle
     val coroutineScope = rememberCoroutineScope()

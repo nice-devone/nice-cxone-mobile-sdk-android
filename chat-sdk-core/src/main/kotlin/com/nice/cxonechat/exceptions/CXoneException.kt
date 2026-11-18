@@ -207,6 +207,21 @@ sealed class RuntimeChatException(message: String, cause: Throwable? = null) : C
     class InvalidAccessTokenException internal constructor(message: String) : RuntimeChatException(message)
 
     /**
+     * The backend rejected the OAuth refresh token while the SDK attempted to exchange it for a
+     * new access token.
+     *
+     * Unlike [InvalidAccessTokenException], which reports a rejected JWT in the **implicit** flow,
+     * this exception reports a rejected `refresh_token` in the **explicit** flow. Both are terminal:
+     * the SDK has no credential left in storage that can recover the session automatically.
+     * Integrators should have the user complete a full (re-)authentication and reconnect using
+     * [com.nice.cxonechat.ChatBuilder.setAuthorization] with a fresh authorization code.
+     *
+     * This exception is reported via [com.nice.cxonechat.ChatStateListener.onChatRuntimeException].
+     */
+    @Public
+    class InvalidRefreshTokenException internal constructor(message: String) : RuntimeChatException(message)
+
+    /**
      * Thrown by [com.nice.cxonechat.TokenDelegateListener.onNewTokenRequested] when the integrator
      * is unable to provide a token (e.g. user cancelled login, network error during OAuth exchange).
      *
@@ -219,16 +234,21 @@ sealed class RuntimeChatException(message: String, cause: Throwable? = null) : C
     /**
      * The **explicit OAuth flow** (`ChatBuilder.setAuthorization(...)`) is not available on the backend.
      *
-     * This exception is thrown when the explicit OAuth flow is used but the backend API returns an error
-     * while attempting to exchange the authorization code for a transaction token. This indicates that
-     * the explicit flow is not supported or not functioning on the current backend version.
+     * This exception was thrown when the explicit OAuth flow was used but the backend API returned an
+     * error while attempting to exchange the authorization code for a transaction token, indicating that
+     * the explicit flow was not supported or not functioning on the current backend version.
      *
-     * **Required actions:**
-     * - Switch to the implicit OAuth flow via `ChatBuilder.setTokenDelegateListener(...)`, or
-     * - Stay on a previous SDK version until the explicit flow is restored.
-     *
-     * This exception is reported via [com.nice.cxonechat.ChatStateListener.onChatRuntimeException].
+     * The backend issue this exception worked around has been fixed. The SDK no longer throws this
+     * exception — explicit-flow token-exchange errors now surface as [AuthorizationError] instead, the
+     * same as any other flow's token-exchange failure. This class is retained, deprecated, for source
+     * and binary compatibility with integrators still catching it explicitly; it will be removed in a
+     * future major version.
      */
     @Public
+    @Deprecated(
+        message = "No longer thrown by the SDK; explicit-flow token-exchange errors now surface as " +
+                "AuthorizationError instead. Retained for binary compatibility only.",
+        level = DeprecationLevel.WARNING,
+    )
     class FeatureUnavailableException internal constructor(message: String) : RuntimeChatException(message)
 }

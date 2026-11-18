@@ -43,6 +43,8 @@ internal class ValueStorage(
     private val Context.storage: DataStore<Preferences> by preferencesDataStore(name = PREFERENCES_FILE_NAME)
     private val data: Flow<Preferences> by lazy { context.storage.data }
 
+    private val encryptedPendingSurveyStorage by lazy { EncryptedPendingSurveyStorage(context) }
+
     /**
      * Retrieves a string value from the DataStore.
      *
@@ -78,6 +80,33 @@ internal class ValueStorage(
     }
 
     /**
+     * Atomically reads and rewrites a string value in a single DataStore transaction, so a
+     * read-modify-write sequence (e.g. updating a serialized map) cannot race another writer.
+     *
+     * @param key The key to update.
+     * @param transform Computes the new value from the current one (empty string if absent).
+     */
+    suspend fun updateString(key: StringKey, transform: (String) -> String) {
+        context.storage.edit { preferences ->
+            preferences[key.value] = transform(preferences[key.value].orEmpty())
+        }
+    }
+
+    /**
+     * Same as [updateString], but encrypted (AES-256-GCM, Android Keystore) and stored in a
+     * separate, backup-excluded file - for the Satisfaction Survey stash, since `surveyUrl` can
+     * carry customer/session identifiers unlike this store's other (unencrypted) keys.
+     */
+    suspend fun updateEncryptedPendingSurvey(transform: (String) -> String) {
+        encryptedPendingSurveyStorage.update(transform)
+    }
+
+    /** Clears the encrypted Satisfaction Survey stash - see [updateEncryptedPendingSurvey]. */
+    suspend fun clearEncryptedPendingSurveys() {
+        encryptedPendingSurveyStorage.clear()
+    }
+
+    /**
      * Adds a string value to a set stored in the DataStore.
      *
      * @param key The key associated with the string set.
@@ -103,7 +132,8 @@ internal class ValueStorage(
     }
 
     /**
-     * Clears all stored preferences in the DataStore.
+     * Clears all stored preferences in this (unencrypted) DataStore - not the encrypted Satisfaction
+     * Survey stash, which is a separate file; see [clearEncryptedPendingSurveys].
      */
     suspend fun clear() {
         context.storage.edit(MutablePreferences::clear)

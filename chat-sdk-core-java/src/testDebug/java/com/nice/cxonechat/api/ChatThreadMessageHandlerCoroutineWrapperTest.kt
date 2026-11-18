@@ -153,6 +153,34 @@ internal class ChatThreadMessageHandlerCoroutineWrapperTest {
     }
 
     @Test
+    fun `sendAsync after close synthesizes onError synchronously`() = runTest {
+        val handler = mockk<ChatThreadMessageHandler>()
+        coEvery { handler.send(any<OutboundMessage>()) } returns "irrelevant"
+        val wrapper = ChatThreadMessageHandlerCoroutineWrapper(handler, this)
+        val received = AtomicReference<CXoneException?>(null)
+        val onSuccessCalled = AtomicBoolean(false)
+
+        wrapper.close()
+        wrapper.sendAsync(
+            message = OutboundMessage(message = nextString()),
+            onSuccess = { onSuccessCalled.set(true) },
+            onError = { received.set(it) },
+        )
+
+        // onError must be dispatched synchronously on the calling thread before sendAsync returns.
+        // Assert the message, not just the type: the generic catch-all in this wrapper also
+        // produces an InternalError, so a type-only check could not tell the closed-scope guard
+        // from an unrelated failure that happened to be wrapped the same way.
+        val error = assertIs<InternalError>(received.get())
+        assertEquals(WRAPPER_CLOSED_MESSAGE, error.message)
+        assertFalse(onSuccessCalled.get())
+
+        // Drain the scheduler to confirm no late onSuccess is delivered asynchronously.
+        advanceUntilIdle()
+        assertFalse(onSuccessCalled.get())
+    }
+
+    @Test
     fun `sendAsync with string delegates correctly`() = runTest {
         val handler = mockk<ChatThreadMessageHandler>()
         val expectedId = "test-id"

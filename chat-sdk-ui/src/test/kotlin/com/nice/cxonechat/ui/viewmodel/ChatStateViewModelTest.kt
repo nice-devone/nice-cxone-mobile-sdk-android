@@ -15,6 +15,10 @@
 
 package com.nice.cxonechat.ui.viewmodel
 
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.nice.cxonechat.ChatInstanceProvider
 import com.nice.cxonechat.ChatInstanceProvider.Listener
 import com.nice.cxonechat.ChatState
@@ -28,6 +32,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.slot
+import io.mockk.verify
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
@@ -45,6 +50,7 @@ internal class ChatStateViewModelTest {
     fun setUp() {
         every { chatInstanceProvider.chatState } returns ChatState.Initial
         every { chatInstanceProvider.addListener(capture(listenerSlot)) } just runs
+        every { chatInstanceProvider.removeListener(any()) } just runs
         viewModel = ChatStateViewModel(chatInstanceProvider, LoggerNoop)
         capturedListener = listenerSlot.captured
     }
@@ -119,5 +125,81 @@ internal class ChatStateViewModelTest {
         val viewModelWithRace = ChatStateViewModel(chatInstanceProvider, LoggerNoop)
 
         assertSame(ErrorGroup.HIGH_SPECIFIC, viewModelWithRace.chatErrorState.value.errorGroup)
+    }
+
+    // ── showError() ───────────────────────────────────────────────────────────
+
+    @Test
+    fun `showError sets the supplied errorGroup`() {
+        viewModel.showError(ErrorGroup.LOW, "something went wrong")
+
+        assertSame(ErrorGroup.LOW, viewModel.chatErrorState.value.errorGroup)
+    }
+
+    @Test
+    fun `showError propagates the supplied message`() {
+        viewModel.showError(ErrorGroup.LOW, "network timeout")
+
+        assertEquals("network timeout", viewModel.chatErrorState.value.message)
+    }
+
+    @Test
+    fun `showError with title propagates title into ChatErrorState`() {
+        viewModel.showError(ErrorGroup.HIGH, "body message", title = "Error title")
+
+        assertEquals("Error title", viewModel.chatErrorState.value.title)
+    }
+
+    @Test
+    fun `showError without title leaves title as null`() {
+        viewModel.showError(ErrorGroup.LOW, "body message")
+
+        assertNull(viewModel.chatErrorState.value.title)
+    }
+
+    // ── onCleared() ───────────────────────────────────────────────────────────
+
+    @Test
+    fun `onCleared deregisters exactly the listener that was registered`() {
+        val store = storeHolding(viewModel)
+
+        store.clear()
+
+        // Deregistering the exact captured instance is the whole contract: the provider is what
+        // dispatches callbacks, so once it no longer holds this listener it cannot deliver any.
+        // (A test cannot go further by invoking capturedListener directly — that bypasses the
+        // provider and would exercise the listener object, not the registration.)
+        verify(exactly = 1) { chatInstanceProvider.removeListener(capturedListener) }
+        verify(exactly = 1) { chatInstanceProvider.addListener(capturedListener) }
+    }
+
+    @Test
+    fun `onCleared resets state to Initial so stale observers are not stuck in a terminal state`() {
+        val store = storeHolding(viewModel)
+        capturedListener.onChatStateChanged(ChatState.Ready)
+
+        store.clear()
+
+        assertSame(ChatState.Initial, viewModel.state.value)
+    }
+
+    // ── helpers ───────────────────────────────────────────────────────────────
+
+    /**
+     * Puts [viewModel] into a [ViewModelStore] so that [ViewModelStore.clear] drives the real
+     * `ChatStateViewModel.onCleared()` override, exactly as the Android lifecycle would.
+     *
+     * `onCleared()` is `protected`, so a test cannot call it directly, and [ChatStateViewModel] is
+     * `final`, so it cannot be subclassed or `spyk`-ed without the MockK inline agent. Going
+     * through the store is the supported route and keeps the test free of reflection that would
+     * silently break if the method were renamed.
+     */
+    private fun storeHolding(viewModel: ChatStateViewModel): ViewModelStore = ViewModelStore().also { store ->
+        ViewModelProvider.create(
+            store = store,
+            factory = viewModelFactory {
+                initializer { viewModel }
+            },
+        )[ChatStateViewModel::class]
     }
 }

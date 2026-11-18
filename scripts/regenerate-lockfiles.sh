@@ -19,11 +19,9 @@ set -x
 
 PROFILE="-Pandroid.experimental.settings.executionProfile=high"
 
-# Root project: gradle.lockfile, buildscript-gradle.lockfile, settings-gradle.lockfile
-# dokkaGenerate is included defensively: Dokka's internal resolver configurations
-# (dokkaHtmlGeneratorRuntimeResolver~internal, etc.) have previously required a
-# dedicated run to lock correctly, even though the current Dokka version already
-# captures them via `dependencies` alone.
+# Root project: gradle.lockfile, buildscript-gradle.lockfile, settings-gradle.lockfile.
+# `dependencies` alone also captures Dokka's internal resolver configurations
+# (dokkaHtmlGeneratorRuntimeResolver~internal, etc.), so no separate Dokka run is needed.
 ./gradlew dependencies --write-locks $PROFILE
 
 # build-logic is an included build (includeBuild); --write-locks does not propagate

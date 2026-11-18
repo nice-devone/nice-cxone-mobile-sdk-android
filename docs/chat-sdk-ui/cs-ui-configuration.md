@@ -27,52 +27,57 @@ These will be passed to the Core SDK when needed.
 ## Prerequisites
 
 - You have a working CXone Chat SDK integration in your Android application (it has to be initialized before the UI).
-- Your application can use Android Compose with BOM 2025.10.00 or newer.
+- Your application can use Android Compose with the BOM version the SDK builds against (`androidx-compose-bom` in
+  `gradle/libs.versions.toml`) or newer.
 
 ## Step 1: Add the SDK repository
 
-   ```groovy
-   // In your root build.gradle or settings.gradle
-maven {
-  url = uri("https://maven.pkg.github.com/nice-digital/cxone-mobile-sdk-android")
-  credentials {
-    username = project.findProperty("gpr.user") ?: System.getenv("GPR_USERNAME")
-    password = project.findProperty("gpr.key") ?: System.getenv("GPR_TOKEN")
+```kotlin
+// In your root settings.gradle.kts — `Settings` has no top-level `repositories`,
+// so the repository is declared inside `dependencyResolutionManagement`.
+dependencyResolutionManagement {
+  repositories {
+    maven {
+      url = uri("https://maven.pkg.github.com/nice-digital/cxone-mobile-sdk-android")
+      credentials {
+        username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GPR_USERNAME")
+        password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GPR_TOKEN")
+      }
+    }
   }
 }
-   ```
+```
 
 ## Step 2: Add Dependency
 
-Add the chat-sdk-ui dependency to your build.gradle file:
+Add the chat-sdk-ui dependency to your `build.gradle.kts` (or `build.gradle`) file:
 
-```groovy
-    implementation 'com.nice.cxone:chat-sdk-ui:<latest-version>'
+```kotlin
+    implementation("com.nice.cxone:chat-sdk-ui:<latest-version>")
 ```
 
 ## Step 3: Initialize the Chat SDK
 
 Before using the Chat UI, initialize the CXone Chat SDK in your application with the `ChatInstanceProvider` class.
 Specifically the `ChatInstanceProvider` has to be at least in the `Prepared` state, which means that the `ChatInstanceProvider` has to be
-initialized with the `ChatSdkConfig`.
+initialized with the `SocketFactoryConfiguration`.
 This can be done in the `onCreate` method of your `Application` class or in a dedicated `androidx.startup.Initializer` implementation.
 
 ## Step 4: Initialize the Chat UI Dependency Injection
 
 ### No existing Koin setup
 
-If your application does not use Koin, add the Koin core dependency to your project:
-
-```groovy
-    implementation "io.insert-koin:koin-core:$koin_version"
-```
-
-Then you can initialize Koin with the Chat UI module in your application class like this:
+If your application does not use Koin, you still do not need to declare it: `chat-sdk-ui` exposes `koin-android` as an
+`api` dependency, so Koin is already on your compile classpath. Start it with the Chat UI module in your application
+class:
 
 ```kotlin
-   fun setupChatUi() {
+import org.koin.android.ext.koin.androidContext
+
+fun Application.setupChatUi() {
     startKoin {
-        UiModule.chatUiModule()
+        androidContext(this@setupChatUi)
+        includes(UiModule.chatUiModule())
     }
 }
 ```
@@ -81,46 +86,58 @@ as part of your application initialization code for the Chat UI.
 
 ### Existing Koin setup
 
-Just add the `UiModule.chatUiModule()` to your Koin modules, which will provide the necessary dependencies for the Chat UI.
+Call `includes(UiModule.chatUiModule())` inside your existing `startKoin { }` block, alongside your own `modules(...)`
+calls — `chatUiModule()` returns a `KoinConfiguration`, which `includes` accepts, not a `Module`.
+
+### Registering the Android context
+
+Either way the Koin setup has to register `androidContext(...)`. `chatUiModule()` does not register it, and the UI
+resolves `Context` and `Application` from the graph — `androidContext(...)` is what declares both. Koin resolves
+lazily, so omitting it leaves `startKoin` succeeding and the failure surfacing later, on the first injection inside
+`ChatActivity`.
 
 > [!NOTE]
 > It is important that the module is set up before you start using any of the Chat UI `ChatActivity`.
 
-## Step 4: Customize the UI Configuration
+## Step 5: Customize the UI Configuration
 
 ### Custom field definitions
 
 If you are using custom fields (applies to both contact and customer) in the chat which are not user editable, you need to provide the
-[UiCustomFieldsProvider](/chat-sdk-ui/src/main/kotlin/com/nice/cxonechat/ui/api/UiCustomFieldsProvider.kt)
+[UiCustomFieldsProvider](../../chat-sdk-ui/src/main/kotlin/com/nice/cxonechat/ui/api/UiCustomFieldsProvider.kt)
 implementation(s) to the UI Koin module. These implementations will be used to append the custom fields to events sent to the server.
 
 Example of providing custom field definitions to the Koin module:
 
 ```kotlin
 class MyCustomerCustomFieldsProvider : UiCustomFieldsProvider {
-    override val customFieldDefinitions: Map<String, String>
-        get() = mapOf(
-            "loyaltyLevel" to getLoyaltyLevel(),
-            "referralCode" to getReferralCode(),
-        )
+    override fun customFields(): Map<String, String> = mapOf(
+        "loyaltyLevel" to getLoyaltyLevel(),
+        "referralCode" to getReferralCode(),
+    )
 }
 
 class MyContactCustomFieldsProvider : UiCustomFieldsProvider {
-    override val customFieldDefinitions: Map<String, String>
-        get() = mapOf(
-            "issueSource" to getIssueSource(),
-        )
+    override fun customFields(): Map<String, String> = mapOf(
+        "issueSource" to getIssueSource(),
+    )
 }
 
-fun setupChatUi() {
+fun Application.setupChatUi() {
     startKoin {
-        UiModule.chatUiModule(
-            customerCustomFieldsProvider = MyCustomerCustomFieldsProvider(),
-            contactCustomFieldsProvider = MyContactCustomFieldsProvider(),
+        androidContext(this@setupChatUi)
+        includes(
+            UiModule.chatUiModule(
+                customerFieldsProvider = MyCustomerCustomFieldsProvider(),
+                contactFieldsProvider = MyContactCustomFieldsProvider(),
+            )
         )
     }
 }
 ```
+
+`UiCustomFieldsProvider` is a `fun interface` with a single `customFields()` method, so it can also be supplied as a
+lambda. The fields are queried from a background thread.
 
 ### Logging
 
@@ -129,7 +146,7 @@ instance is a No-op variant.
 
 Detailed case study about logging is available [here](../chat-sdk-core/cs-logging.md) and can be also applied to the Chat UI.
 
-## Step 5: Configure Push Notifications
+## Step 6: Configure Push Notifications
 
 ### Firebase configuration
 
@@ -196,15 +213,15 @@ Add following entry to your `<application>` tag in you app's manifest:
 <service android:name="com.nice.cxonechat.ui.services.PushListenerService" android:enabled="false" />
 ```
 
-## Step 6: Provide Translations (optional)
+## Step 7: Provide Translations (optional)
 
 The Chat SDK UI comes with default English translations.
 If your default application language is not English, override the default strings in your application's resources.
 Also if you need to support additional languages, you will need to provide the translations in your application resources.
 
-All strings are defined in the [res/values/strings.xml](/chat-sdk-ui/src/main/res/values/strings.xml) file.
+All strings are defined in the [res/values/strings.xml](../../chat-sdk-ui/src/main/res/values/strings.xml) file.
 
-## Step 7: Enable Backported PhotoPicker (optional)
+## Step 8: Enable Backported PhotoPicker (optional)
 
 If your application targets Android versions below 11 and you want to allow users to use the PhotoPicker functionality
 so they can attach photos / recorded videos as attachments to chat messages, you will need to enable the backported PhotoPicker.
@@ -231,3 +248,6 @@ There are two additional configuration options which can be set by overriding re
 
 - `loading_close_button_delay_ms` - delay in milliseconds before the close button is shown on the loading screen.
   Default value is `20000` (20 seconds).
+- `local_notification_data_scheme` - URI scheme used by the deep link that local message notifications carry, matched by
+  the intent filter the UI module contributes to the merged manifest. Default value is `com.nice.cxonechat.ui`. Override
+  it only if that scheme collides with one your application already handles.

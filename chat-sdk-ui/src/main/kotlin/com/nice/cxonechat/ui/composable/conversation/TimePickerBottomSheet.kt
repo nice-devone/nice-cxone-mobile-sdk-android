@@ -15,32 +15,26 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
-import androidx.compose.foundation.background
+import android.content.Context
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetValue.Expanded
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -59,21 +54,28 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
-import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.message.TimeSlot
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.conversation.model.Message.TimePicker
+import com.nice.cxonechat.ui.composable.generic.scrollbar.rememberScrollbarState
+import com.nice.cxonechat.ui.composable.generic.scrollbar.scrollbar
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatShapes
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
+import com.nice.cxonechat.ui.composable.theme.ModalBottomSheet
 import com.nice.cxonechat.ui.util.formatDuration
 import com.nice.cxonechat.ui.util.formatHeader
 import com.nice.cxonechat.ui.util.formatTime
 import com.nice.cxonechat.ui.util.preview.message.UiSdkTimePicker
 import com.nice.cxonechat.ui.util.toDateKey
 
+/**
+ * Built on the same [ChatTheme.ModalBottomSheet] the list picker and pre-chat survey share, rather than
+ * a custom-made header/footer: that is what keeps its title padding, edge-to-edge divider and
+ * Cancel/Submit row identical to theirs, and to the design.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun TimePickerBottomSheet(
@@ -81,164 +83,10 @@ internal fun TimePickerBottomSheet(
     onDismiss: () -> Unit,
     onDone: (TimeSlot, String) -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true) {
-        it === Expanded
-    }
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        contentWindowInsets = { WindowInsets() },
-        containerColor = chatColors.token.background.default,
-        contentColor = chatColors.token.content.primary,
-        dragHandle = {
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .background(chatColors.token.background.surface.subtle)
-            ) {
-                Surface(
-                    modifier =
-                        Modifier
-                            .padding(vertical = space.large)
-                            .semantics {
-                                testTag = "DragHandle"
-                                hideFromAccessibility()
-                            }
-                            .align(Alignment.Center),
-                    color = chatColors.token.content.tertiary,
-                    shape = MaterialTheme.shapes.extraLarge,
-                ) {
-                    Box(Modifier.size(width = 32.dp, height = 4.dp))
-                }
-            }
-        },
-        modifier = Modifier
-            .fillMaxHeight()
-            .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding())
-            .semantics {
-                testTag = "time_picker_bottom_sheet"
-            }
-    ) {
-        TimePickerBottomSheetContent(message = message, onDismiss = onDismiss, onDone = onDone)
-    }
-}
-
-@Composable
-internal fun TimePickerBottomSheetContent(
-    message: TimePicker,
-    onDismiss: () -> Unit,
-    onDone: (TimeSlot, String) -> Unit,
-) {
     var selectedSlot: TimeSlot? by remember { mutableStateOf(null) }
     val groupedSlots = remember(message.timeSlots) {
-        groupSlotsByDate(message.timeSlots)
+        message.timeSlots.groupBy { it.startTime.toDateKey() }.toSortedMap()
     }
-
-    Column(
-        modifier = Modifier
-            .fillMaxHeight()
-            .background(chatColors.token.background.surface.subtle)
-    ) {
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(top = space.medium)
-        ) {
-            TimePickerHeader(message.popupTitle)
-            TimePickerSlotGroups(
-                groupedSlots = groupedSlots,
-                selectedSlot = selectedSlot,
-                onSelected = { slot -> selectedSlot = if (selectedSlot == slot) null else slot }
-            )
-        }
-        HorizontalDivider(color = chatColors.token.border.default)
-        BottomSheetButtonSection(
-            selectedSlot = selectedSlot,
-            onDismiss = onDismiss,
-            onDone = onDone,
-        )
-    }
-}
-
-@Composable
-private fun TimePickerHeader(title: String) {
-    val subtitle = stringResource(string.time_picker_dialogue_description)
-    Column(
-        modifier = Modifier
-            .semantics(mergeDescendants = true) {
-                testTag = "time_picker_header"
-            }
-    ) {
-        Text(
-            text = title,
-            style = chatTypography.bottomSheetTitleText,
-            modifier = Modifier.padding(start = space.large),
-            color = chatColors.token.content.primary
-        )
-
-        Text(
-            text = subtitle,
-            color = chatColors.token.content.secondary,
-            style = chatTypography.listPickerBottomSheetSubtitleText,
-            modifier = Modifier.padding(start = space.large)
-        )
-    }
-
-    HorizontalDivider(
-        thickness = space.bottomSheetBorderWidth,
-        color = chatColors.token.border.default,
-        modifier = Modifier.padding(start = space.large, end = space.large, top = space.xl, bottom = space.medium)
-    )
-}
-
-@Composable
-private fun TimePickerSlotGroups(
-    groupedSlots: Map<String, List<TimeSlot>>,
-    selectedSlot: TimeSlot?,
-    onSelected: (TimeSlot) -> Unit,
-) {
-    val context = LocalContext.current
-    val sections = remember(groupedSlots) {
-        groupedSlots.entries.map { it.key to it.value }
-    }
-
-    LazyColumn(modifier = Modifier.padding(start = space.large, bottom = space.large, end = space.large)) {
-        items(
-            items = sections,
-            key = { (date, _) -> date }
-        ) { (date, daySlots) ->
-            Text(
-                text = formatHeader(context, date),
-                style = chatTypography.dateHeader,
-                color = chatColors.token.content.primary,
-                modifier = Modifier
-                    .padding(bottom = space.medium, top = space.large)
-                    .semantics {
-                        heading()
-                        testTag = "time_picker_date_header_$date"
-                    },
-            )
-
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(space.medium),
-                verticalArrangement = Arrangement.spacedBy(space.medium)
-            ) {
-                daySlots.forEachIndexed { index, slot ->
-                    TimeSlotItem(
-                        slot = slot,
-                        slotTag = uniqueSlotRowTag(slot = slot, dateKey = date, index = index),
-                        modifier = Modifier.size(space.timeSlotSize),
-                        selected = selectedSlot == slot,
-                        onSelected = { onSelected(slot) }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun BottomSheetButtonSection(selectedSlot: TimeSlot?, onDismiss: () -> Unit, onDone: (TimeSlot, String) -> Unit) {
     val context = LocalContext.current
     val selectedSlotLocalizedText = selectedSlot?.let { slot ->
         stringResource(
@@ -248,29 +96,121 @@ private fun BottomSheetButtonSection(selectedSlot: TimeSlot?, onDismiss: () -> U
             formatDuration(slot.duration),
         )
     }
-    Row(
-        horizontalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(chatColors.token.background.default)
-            .padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding())
-    ) {
-        BottomSheetButtonText(
-            text = stringResource(string.cancel),
-            enabled = true,
-            testTag = "time_picker_cancel_button",
-            onClick = { onDismiss() }
+
+    ChatTheme.ModalBottomSheet(
+        onDismiss = onDismiss,
+        onSubmit = {
+            val slot = selectedSlot
+            val localizedText = selectedSlotLocalizedText
+            if (slot != null && localizedText != null) {
+                onDone(slot, localizedText)
+            }
+        },
+        canSubmit = selectedSlot != null,
+        title = message.popupTitle,
+        modifier = Modifier.testTag("time_picker_bottom_sheet"),
+    ) { contentPadding ->
+        TimePickerSlotGroups(
+            groupedSlots = groupedSlots,
+            contentPadding = contentPadding,
+            selectedSlot = selectedSlot,
+            onSelected = { slot -> selectedSlot = if (selectedSlot == slot) null else slot }
         )
-        BottomSheetButtonText(
-            text = stringResource(string.submit),
-            enabled = selectedSlot != null,
-            testTag = "time_picker_submit_button",
-            onClick = {
-                if (selectedSlot != null && selectedSlotLocalizedText != null) {
-                    onDone(selectedSlot, selectedSlotLocalizedText)
+    }
+}
+
+@Composable
+private fun TimePickerSlotGroups(
+    groupedSlots: Map<String, List<TimeSlot>>,
+    contentPadding: PaddingValues,
+    selectedSlot: TimeSlot?,
+    onSelected: (TimeSlot) -> Unit,
+) {
+    val context = LocalContext.current
+    val sections = remember(groupedSlots) {
+        groupedSlots.entries.map { it.key to it.value }
+    }
+    val listState = rememberLazyListState()
+    val scrollbarState = rememberScrollbarState()
+
+    LazyColumn(
+        state = listState,
+        contentPadding = contentPadding,
+        modifier = Modifier
+            .fillMaxSize()
+            .scrollbar(listState, scrollbarState, Orientation.Vertical)
+    ) {
+        item {
+            // The design's description line, on the same subtle surface as the date groups below it.
+            Text(
+                text = stringResource(string.time_picker_dialogue_description),
+                style = chatTypography.listPickerBottomSheetSubtitleText,
+                color = chatColors.token.content.secondary,
+                modifier = Modifier
+                    .padding(bottom = space.medium)
+                    .semantics {
+                        testTag = "time_picker_subtitle"
+                    },
+            )
+        }
+        items(
+            items = sections,
+            key = { (date, _) -> date }
+        ) { (date, daySlots) ->
+            TimePickerDateSection(
+                context = context,
+                date = date,
+                daySlots = daySlots,
+                selectedSlot = selectedSlot,
+                onSelected = onSelected,
+            )
+        }
+    }
+}
+
+@Composable
+private fun TimePickerDateSection(
+    context: Context,
+    date: String,
+    daySlots: List<TimeSlot>,
+    selectedSlot: TimeSlot?,
+    onSelected: (TimeSlot) -> Unit,
+) {
+    Text(
+        text = formatHeader(context, date),
+        style = chatTypography.dateHeader,
+        color = chatColors.token.content.primary,
+        modifier = Modifier
+            .padding(bottom = space.medium, top = space.large)
+            .semantics {
+                heading()
+                testTag = "time_picker_date_header_$date"
+            },
+    )
+
+    // As many columns as fit at the slot's minimum width, stretched to fill the row: the design's three
+    // in a phone's portrait window and six in its landscape one. A short last row keeps the column widths.
+    BoxWithConstraints(Modifier.selectableGroup()) {
+        val gap = space.medium
+        val columns = ((maxWidth + gap) / (space.timeSlotMinWidth + gap)).toInt().coerceAtLeast(1)
+        Column(verticalArrangement = Arrangement.spacedBy(gap)) {
+            daySlots.withIndex().chunked(columns).forEach { row ->
+                Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
+                    row.forEach { (index, slot) ->
+                        TimeSlotItem(
+                            slot = slot,
+                            slotTag = uniqueSlotRowTag(slot = slot, dateKey = date, index = index),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(space.timeSlotHeight),
+                            selected = selectedSlot == slot,
+                            onSelected = { onSelected(slot) }
+                        )
+                    }
+                    repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
                 }
             }
-        )
+        }
     }
 }
 
@@ -322,7 +262,7 @@ private fun TimeSlotContent(
     val duration = formatDuration(slot.duration)
     Column(
         modifier = Modifier
-            .padding(space.chipPadding)
+            .padding(space.timeSlotPadding)
             .semantics {
                 testTag = slotTag
             }
@@ -350,11 +290,6 @@ private fun TimeSlotContent(
             style = chatTypography.timePickerDuration,
         )
     }
-}
-
-private fun groupSlotsByDate(slots: Iterable<TimeSlot>): Map<String, List<TimeSlot>> {
-    return slots.groupBy { it.startTime.toDateKey() }
-        .toSortedMap()
 }
 
 @PreviewLightDark

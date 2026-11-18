@@ -19,6 +19,7 @@ import androidx.annotation.CallSuper
 import com.nice.cxonechat.api.AuthService
 import com.nice.cxonechat.api.RemoteService
 import com.nice.cxonechat.enums.CXoneEnvironment
+import com.nice.cxonechat.internal.ChannelConfigurationCache
 import com.nice.cxonechat.internal.ChatEntrails
 import com.nice.cxonechat.internal.model.AvailabilityStatus.Online
 import com.nice.cxonechat.internal.model.ChannelAvailability
@@ -105,6 +106,10 @@ internal abstract class AbstractChatTestSubstrate {
 
     @Before
     fun prepareInternal() {
+        // Every build() is now cache-first (see ChannelConfigurationCache); without this, a test
+        // could silently reuse a ChannelConfiguration mocked by a previous test using the same
+        // brandId/channelId (e.g. SocketFactoryMock's fixed constants) instead of its own mock.
+        ChannelConfigurationCache.clear()
         socketServer = MockServer()
         socket = socketServer.socket
         proxyListener = socketServer.proxyListener
@@ -131,19 +136,28 @@ internal abstract class AbstractChatTestSubstrate {
     protected fun mockLogger() = MockLogger()
 
     // relaxUnitFun = true means we don't need to mock all the setters.
-    private fun mockStorage(): ValueStorage = mockk(relaxUnitFun = true) {
-        every { visitorId } returns UUID.fromString(TestUUID)
-        every { customerId } returns TestUUID
-        every { destinationId } returns UUID.fromString(TestUUID)
-        every { welcomeMessage } returns testWelcomeMessage
-        every { authToken } returns "token"
-        every { authTokenExpDate } returns Clock.System.now() + 1.days
-        every { deviceToken } returns null
-        every { transactionTokenModel } returns TransactionTokenModel(
-            transactionToken = TestUUID,
-            expiresIn = 3600L,
-            customerIdentity = makeCustomerIdentity(idOnExternalPlatform = UUID.fromString(TestUUID))
-        )
+    private fun mockStorage(): ValueStorage {
+        val deliveredSurveyThreadIds = mutableSetOf<UUID>()
+        return mockk(relaxUnitFun = true) {
+            every { visitorId } returns UUID.fromString(TestUUID)
+            every { customerId } returns TestUUID
+            every { destinationId } returns UUID.fromString(TestUUID)
+            every { welcomeMessage } returns testWelcomeMessage
+            every { authToken } returns "token"
+            every { authTokenExpDate } returns Clock.System.now() + 1.days
+            every { deviceToken } returns null
+            every { transactionTokenModel } returns TransactionTokenModel(
+                transactionToken = TestUUID,
+                expiresIn = 3600L,
+                customerIdentity = makeCustomerIdentity(idOnExternalPlatform = UUID.fromString(TestUUID))
+            )
+            every { markSurveyDeliveredIfAbsent(any()) } answers {
+                deliveredSurveyThreadIds.add(firstArg<UUID>())
+            }
+            every { isSurveyDelivered(any()) } answers {
+                firstArg<UUID>() in deliveredSurveyThreadIds
+            }
+        }
     }
 
     fun <T> mockCall(result: () -> T) = mockk<Call<T>> {

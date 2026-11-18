@@ -34,19 +34,23 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.LayoutDirection.Ltr
 import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.message.MessageDirection
 import com.nice.cxonechat.message.MessageDirection.ToAgent
+import com.nice.cxonechat.ui.composable.conversation.ContentType.AudioAttachment
 import com.nice.cxonechat.ui.composable.conversation.ContentType.ListPicker
 import com.nice.cxonechat.ui.composable.conversation.ContentType.QuickReply
 import com.nice.cxonechat.ui.composable.conversation.ContentType.RichLink
@@ -63,6 +67,9 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatShapes
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
+import com.nice.cxonechat.ui.composable.theme.audioCellPlaybackRowWidth
+import com.nice.cxonechat.ui.composable.theme.isWideScreen
+import com.nice.cxonechat.ui.composable.theme.wideScreenHorizontalPadding
 import com.nice.cxonechat.ui.domain.model.Person
 
 /**
@@ -112,26 +119,30 @@ internal fun MessageFrame(
         x = space.messageAvatarSize / 2 * -1,
         y = space.messageAvatarSize / 2,
     )
+    val avatarGutter = avatarGutterSize(isAgent)
     // Inverse the layout direction for the frame if the message is from the client, so we don't have to use different offsets/paddings
     CompositionLocalProvider(value = LocalLayoutDirection provides direction) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy(space.medium),
+            horizontalArrangement = Arrangement.spacedBy(space.semiLarge),
             verticalAlignment = Alignment.CenterVertically,
-            modifier = modifier.semantics {
-                isTraversalGroup = true
-            },
+            modifier = modifier
+                .padding(start = avatarGutter)
+                .semantics {
+                    isTraversalGroup = true
+                },
         ) {
             Box(
                 contentAlignment = Alignment.BottomStart,
                 modifier = Modifier
                     .padding(bottom = paddingBottom)
             ) {
-                MainSlot(showFrame, position, colors, currentDirection, framedContent, subFrameContent)
+                MainSlot(showFrame, position, messageContentType, colors, currentDirection, framedContent, subFrameContent)
                 if (showAvatar) {
                     MessageAvatar(
                         avatar,
                         modifier = Modifier
                             .offset(offset.x, offset.y)
+                            .testTag("message_avatar")
                             .semantics {
                                 traversalIndex = -1f
                             }
@@ -142,6 +153,15 @@ internal fun MessageFrame(
         }
     }
 }
+
+/**
+ * Room the frame gives up at its leading edge for the avatar that `Modifier.offset` draws half outside it without
+ * reserving layout space, so it lands on the content column's edge the way the wide-screen design draws it. A compact
+ * window gives up none: its design puts the bubble on the column's edge and lets the avatar overhang into the screen
+ * margin. Taken for every agent message rather than only the one carrying an avatar, so a group stays in one column.
+ */
+@Composable
+private fun avatarGutterSize(isAgent: Boolean): Dp = if (isAgent && isWideScreen()) space.messageAvatarSize / 2 else 0.dp
 
 @Composable
 private fun TrailingSlot(showAvatar: Boolean, offset: DpOffset, slotContent: @Composable (() -> Unit)) {
@@ -160,6 +180,7 @@ private fun TrailingSlot(showAvatar: Boolean, offset: DpOffset, slotContent: @Co
 private fun MainSlot(
     showFrame: Boolean,
     position: MessageItemGroupState,
+    messageContentType: ContentType,
     colors: ColorPair,
     currentDirection: LayoutDirection,
     framedContent: @Composable (() -> Unit),
@@ -172,7 +193,7 @@ private fun MainSlot(
     ) {
         AnimatedContent(showFrame) { show: Boolean ->
             if (show) {
-                Frame(position, colors.background) {
+                Frame(position, messageContentType, colors.background) {
                     Column {
                         Content(currentDirection, framedContent)
                     }
@@ -201,16 +222,35 @@ private fun LayoutDirection.inverse() = when (this) {
 @Composable
 private fun Frame(
     position: MessageItemGroupState,
+    messageContentType: ContentType,
     color: Color,
     framedContent: @Composable () -> Unit,
 ) {
+    // An audio cell cannot wrap its playback row, so a narrow window widens its bubble rather than clip a control.
+    val minimumMaxWidth = if (messageContentType == AudioAttachment) audioCellPlaybackRowWidth() else 0.dp
     Surface(
-        modifier = Modifier.widthIn(max = LocalConfiguration.current.screenWidthDp.dp * 0.776f),
+        modifier = Modifier.widthIn(max = maxOf(messageBubbleMaxWidth(), minimumMaxWidth)),
         shape = position.stateToShape(toAgent = false),
         color = color,
     ) {
         framedContent()
     }
+}
+
+/**
+ * Maximum width a message bubble - and anything meant to line up with it, such as a quick reply's
+ * options row - may grow to: [Space.messageBubbleMaxWidthFraction] of the content column, the same
+ * column [wideScreenHorizontalPadding] insets from the window on both edges.
+ *
+ * Floored at 0.dp, since a window narrower than its own padding would otherwise subtract to negative.
+ *
+ * @see wideScreenHorizontalPadding
+ */
+@Composable
+internal fun messageBubbleMaxWidth(): Dp {
+    val containerWidthDp = with(LocalDensity.current) { LocalWindowInfo.current.containerSize.width.toDp() }
+    val contentWidthDp = (containerWidthDp - wideScreenHorizontalPadding() * 2).coerceAtLeast(0.dp)
+    return contentWidthDp * space.messageBubbleMaxWidthFraction
 }
 
 @Composable

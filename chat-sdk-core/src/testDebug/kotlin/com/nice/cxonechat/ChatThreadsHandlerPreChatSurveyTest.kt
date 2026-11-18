@@ -18,6 +18,7 @@
 package com.nice.cxonechat
 
 import com.nice.cxonechat.exceptions.MissingPreChatCustomFieldsException
+import com.nice.cxonechat.internal.ChannelConfigurationCache
 import com.nice.cxonechat.internal.model.ChannelConfiguration
 import com.nice.cxonechat.internal.model.ChannelIdentifier
 import com.nice.cxonechat.internal.model.CustomFieldPolyType
@@ -262,6 +263,9 @@ internal class ChatThreadsHandlerPreChatSurveyTest : AbstractMultiThreadChatTest
         builder: ChatBuilder = prepareBuilder().second,
         body: ChatBuilder.() -> ChatBuilder = { this },
     ): Chat = kotlinx.coroutines.runBlocking {
+        // build() is now cache-first (ChannelConfigurationCache); each call here follows a
+        // preChatSurveys/channels reassignment and expects that new survey to actually be fetched.
+        ChannelConfigurationCache.clear()
         builder
             .setDevelopmentMode(true)
             .body()

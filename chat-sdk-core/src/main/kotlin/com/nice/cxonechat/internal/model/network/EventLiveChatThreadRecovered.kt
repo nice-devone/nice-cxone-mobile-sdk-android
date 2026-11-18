@@ -24,6 +24,7 @@ import com.nice.cxonechat.internal.model.MessageModel
 import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState
+import com.nice.cxonechat.thread.ContactHandler
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -52,6 +53,7 @@ internal data class EventLiveChatThreadRecovered(
             ?.copy(
                 fields = postback.data.contact?.customFields.orEmpty().map(CustomFieldModel::toCustomField),
                 contactId = data.contact?.id,
+                contactHandler = ContactHandler.from(data.contact?.handler),
             )
     val scrollToken get() = data.messagesScrollToken
     val customerCustomFields get() = data.customer?.customFields.orEmpty().map(CustomFieldModel::toCustomField)

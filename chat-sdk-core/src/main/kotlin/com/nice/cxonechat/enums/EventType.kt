@@ -135,6 +135,10 @@ internal enum class EventType(val value: String) {
     @SerialName("CaseStatusChanged")
     CaseStatusChanged("CaseStatusChanged"),
 
+    /** An event received when the handler of a contact changes between CXone and a bot. */
+    @SerialName("ContactHandlerChanged")
+    ContactHandlerChanged("ContactHandlerChanged"),
+
     // Custom Fields
 
     /** An event to send to set custom field values for a contact (thread). */

@@ -20,8 +20,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -36,6 +37,7 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.ModalBottomSheet
+import com.nice.cxonechat.ui.composable.theme.SheetAnchors
 import com.nice.cxonechat.ui.domain.model.CustomValueItemList
 import com.nice.cxonechat.ui.util.preview.FieldModelListProvider
 
@@ -63,16 +65,17 @@ internal fun EditCustomValuesScreen(
     }.value
     ChatTheme.ModalBottomSheet(
         title = title,
-        subtitle = stringResource(string.edit_custom_field_subtitle),
         onDismiss = onCancel,
         modifier = modifier.testTag("edit_custom_values_screen"),
         onSubmit = { onConfirm(listState.value) },
         sheetState = sheetState,
         canSubmit = validatedSubmit,
-    ) {
+    ) { contentPadding ->
         CVFieldList(
             fields = listState.value,
+            subtitle = stringResource(string.edit_custom_field_subtitle),
             modifier = Modifier.fillMaxSize(),
+            contentPadding = contentPadding,
             onUpdated = { newList: CustomValueItemList ->
                 listState.value = newList
                 onUpdated(newList)
@@ -95,7 +98,7 @@ private fun EditCustomValuesScreenPreview(
                 EditCustomValuesScreen(
                     title = "Pre-Contact Survey",
                     fields = fields,
-                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                    sheetState = rememberBottomSheetState(SheetValue.Hidden, SheetAnchors.FullHeightOnly),
                     onCancel = {},
                     onConfirm = {},
                 )

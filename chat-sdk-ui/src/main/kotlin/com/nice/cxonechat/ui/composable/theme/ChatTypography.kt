@@ -219,11 +219,7 @@ internal data class ChatTypography(
         lineHeight = 14.4.sp,
         fontWeight = W400
     ),
-    val tooltipText: TextStyle = Typography.bodySmall.copy(
-        fontSize = 17.sp,
-        lineHeight = 22.sp,
-        fontWeight = W400,
-    ),
+    val tooltipText: TextStyle = Typography.bodyMedium.copy(letterSpacing = 0.25.sp),
     val headerBarTitle: TextStyle = Typography.titleMedium.copy(
         fontSize = 18.sp,
         letterSpacing = 0.15.sp,
@@ -296,6 +292,9 @@ internal data class ChatTypography(
         fontSize = 16.sp,
         lineHeight = 22.sp,
         fontWeight = W700,
+    ),
+    val archivedInfoBarText: TextStyle = Typography.bodyMedium.copy(
+        fontSize = 16.sp,
     ),
 )
 

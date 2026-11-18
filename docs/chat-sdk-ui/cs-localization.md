@@ -18,8 +18,8 @@ This step execution may be dependent on what solution you are using to facilitat
 using
 AndroidStudio IDE to manage strings.
 
-Generally you can start by copying default Chat SDK UI [strings](/chat-sdk-ui/src/main/res/values/strings.xml) file to your
-resource values folder under different name e.g.: [chat-ui-strings](/store/src/main/res/values/chat_ui_strings.xml)
+Generally you can start by copying default Chat SDK UI [strings](../../chat-sdk-ui/src/main/res/values/strings.xml) file to your
+resource values folder under different name e.g.: [chat-ui-strings](../../store/src/main/res/values/chat_ui_strings.xml)
 
 This will effectively override all chat strings with this copy and will provide you with opportunity to translate the default strings if
 your
@@ -30,5 +30,5 @@ In case you will skip this step and you will supply just translations you will n
 ## Supply additional resources
 
 Now you can provide translations for strings by defining resources with locale qualifier e.g.:
-[values-cs/chat-ui-string.xml](/store/src/main/res/values-cs/chat_ui_strings.xml)
+[values-cs/chat-ui-string.xml](../../store/src/main/res/values-cs/chat_ui_strings.xml)
 

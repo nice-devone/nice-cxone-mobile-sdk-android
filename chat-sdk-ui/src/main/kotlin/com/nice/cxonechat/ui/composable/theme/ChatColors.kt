@@ -50,6 +50,16 @@ internal val LocalChatColors = staticCompositionLocalOf {
     ChatColors(DefaultColors.lightTokens)
 }
 
+/**
+ * Colors of the message whose frame the content is being drawn inside, or `null` where there is no message —
+ * the attachment picker and the composer draw the same tiles with nothing behind them.
+ *
+ * Content which paints a background of its own reads the pair from here instead of assuming a sender. The
+ * pair is always the sender's own colors, including when the frame itself is drawn transparent, so such
+ * content still contrasts against the surface the transparent frame reveals.
+ */
+internal val LocalMessageColors = staticCompositionLocalOf<ChatColors.ColorPair?> { null }
+
 @Composable
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun PreviewChatColorsNight() {

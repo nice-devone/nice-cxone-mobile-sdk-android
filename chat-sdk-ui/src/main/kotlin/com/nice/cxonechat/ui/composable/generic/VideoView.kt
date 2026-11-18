@@ -17,11 +17,9 @@ package com.nice.cxonechat.ui.composable.generic
 
 import android.net.Uri
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,11 +33,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.net.toUri
 import com.nice.cxonechat.ui.composable.conversation.PreviewAttachments
-import com.nice.cxonechat.ui.composable.theme.BackButton
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
-import com.nice.cxonechat.ui.composable.theme.ShareButton
 
 /**
  * A FullScreen view for video which can be replaced with [FullscreenView] if the user,
@@ -68,7 +64,10 @@ internal fun VideoView(
         if (parsedUri != null) {
             VideoPlayer(
                 uri = parsedUri,
-                modifier = Modifier.testTag("video_player"),
+                // Capped so a wide window centres the video instead of stretching it; inert below the cap.
+                modifier = Modifier
+                    .testTag("video_player")
+                    .widthIn(max = space.componentMaxWidth),
             )
         } else {
             Text(
@@ -88,15 +87,8 @@ internal fun VideoView(
                 color = chatColors.token.background.default
             )
         ) {
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = space.medium)
-            ) {
-                BackButton(onDismiss)
-                ShareButton(title, onShare)
-            }
+            MediaViewerTopBar(title = title, onDismiss = onDismiss, onShare = onShare)
+            HorizontalDivider(color = chatColors.token.border.default)
             content()
         }
     }

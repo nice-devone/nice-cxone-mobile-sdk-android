@@ -15,6 +15,7 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
+import androidx.annotation.StringRes
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
@@ -63,14 +64,29 @@ internal fun SendTranscriptMenu(onSendTranscript: () -> Unit) {
 }
 
 @Composable
-internal fun ChangeThreadNameMenu(onEditThreadName: () -> Unit) {
+internal fun ChangeThreadNameMenu(
+    @StringRes text: Int = string.change_thread_name,
+    onEditThreadName: () -> Unit,
+) {
     IconMenuItem(
-        text = string.change_thread_name,
+        text = text,
         onClick = remember { onEditThreadName },
         icon = {
             ChatIcon(contentDescription = null)
         },
         modifier = Modifier.testTag("change_thread_name_menu_item"),
+    )
+}
+
+@Composable
+internal fun ArchiveThreadMenu(onArchiveThread: () -> Unit) {
+    IconMenuItem(
+        text = string.archive_thread_menu_item,
+        onClick = remember { onArchiveThread },
+        icon = {
+            ArchiveIcon(contentDescription = null)
+        },
+        modifier = Modifier.testTag("archive_thread_menu_item"),
     )
 }
 

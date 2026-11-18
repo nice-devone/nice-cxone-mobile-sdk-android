@@ -4,15 +4,22 @@
 1. [Introduction](#introduction)
 2. [Proguard / R8](#proguard--r8)
 3. [Setting Up](#setting-up)
-4. [Startup](#startup)
-5. [Configuration](#configuration)
-6. [Push Notification Tokens](#push-notification-tokens)
-7. [Threads](#threads)
-8. [Thread](#thread)
-9. [Message States](#message-states)
-10. [Manual Username Update](#manual-username-update)
-11. [Custom Fields](#custom-fields)
-12. [Global Events](#global-events)
+4. [Logging](#logging)
+5. [Startup](#startup)
+6. [Runtime Exceptions](#runtime-exceptions)
+7. [Configuration](#configuration)
+8. [Integrate UI module](#integrate-ui-module)
+9. [Manual Username Update](#manual-username-update)
+10. [Custom Fields](#custom-fields)
+11. [Global Events](#global-events)
+
+Building your own UI instead of using the UI module? These live in
+[Custom UI Implementation](custom-ui-implementation.md):
+
+- [Push Notification Tokens](custom-ui-implementation.md#push-notification-tokens)
+- [Conversations (formerly Threads)](custom-ui-implementation.md#conversations-formerly-threads)
+- [Thread](custom-ui-implementation.md#thread)
+- [Message States](custom-ui-implementation.md#message-states)
 
 ## Introduction
 This document will guide you through the necessary steps to integrate CXone Chat SDK into your application.
@@ -64,10 +71,6 @@ For more information about logging, see the [Logging case study](chat-sdk-core/c
 First you need to obtain a `Chat` instance. You can achieve that through our `ChatBuilder` or you can use `ChatInstanceProvider` which is covered [here](chat-sdk-core/cs-instance-holder.md).
 We recommend the use of `ChatInstanceProvider` since it provides state tracking for the chat instance, but to cover both cases we will show you how to use the `ChatBuilder` in the following example.
 
-> [!WARNING]
-> In the latest SDK version, **explicit OAuth flow (`setAuthorization`) is currently not supported by the backend**.
-> Prefer implicit OAuth via `setTokenDelegateListener(...)`, or stay on your current SDK version until explicit flow is supported.
-
 > [!NOTE]
 > As of version 4.0 the SDK is **coroutine-first**: `ChatBuilder.build()` and `Chat.connect()` are
 > `suspend` functions, and chat state is observed through `Chat.stateFlow` rather than a listener.
@@ -77,7 +80,7 @@ We recommend the use of `ChatInstanceProvider` since it provides state tracking 
 
 ```kotlin
   val config = SocketFactoryConfiguration(
-    CXoneEnvironment.YourRegion,
+    CXoneEnvironment.NA1.value, // replace with your region: NA1, EU1, AU1, CA1, UK1 or JP1
     yourBrandId,
     yourChannelId
   )
@@ -99,7 +102,6 @@ We recommend the use of `ChatInstanceProvider` since it provides state tracking 
     - **Explicit flow**: call `.setAuthorization(Authorization(code, verifier))`
     - **Implicit flow**: call `.setTokenDelegateListener(tokenDelegate)`
   - If both are set, the SDK uses the **explicit** flow.
-  - In the latest SDK version, explicit flow is currently not supported by the backend; use implicit flow instead.
   - If you don't use OAuth, don't call either OAuth API.
   - For full setup guidance, see the [OAuth Third-Party Authentication case study](chat-sdk-core/cs-oauth-third-party.md).
 - (2) Username
@@ -165,59 +167,26 @@ The SDK communicates critical errors as `ChatStateEvent.RuntimeException` events
 
 ### Exception Types
 
-#### RuntimeChatException.FeatureUnavailableException
-
-This exception is raised in the **explicit OAuth flow** when the backend returns an error during the
-transaction token exchange. It signals that the explicit OAuth flow (`setAuthorization(...)`) is not
-functioning on the current backend version.
-
-**Common Causes:**
-- The explicit OAuth flow is disabled or broken on the current backend version
-- The backend does not support the authorization-code grant for this channel
-
-**Required Actions:**
-1. Switch to the implicit OAuth flow via `ChatBuilder.setTokenDelegateListener(...)`, or
-2. Stay on a previous SDK version until the explicit flow is restored
-
-> [!NOTE]
-> If you are using `ChatActivity` from `chat-sdk-ui`, the SDK handles this exception with a
-> **silent exit** — `ChatActivity` closes automatically with no error dialog shown inside the chat screen.
-> Your `ChatInstanceProvider.Listener` registered at the app/activity level (outside `ChatActivity`)
-> is responsible for catching this exception and showing appropriate recovery UI to the user
-> (e.g. an error dialog prompting them to switch to the implicit flow).
-
-```kotlin
-override fun onChatRuntimeException(exception: RuntimeChatException) {
-    when (exception) {
-        is RuntimeChatException.FeatureUnavailableException -> {
-            // Explicit OAuth flow is not available on the backend.
-            // ChatActivity (chat-sdk-ui) has already exited silently — show recovery UI here.
-            showExplicitFlowUnavailableError()
-        }
-        else -> { /* handle other exceptions */ }
-    }
-}
-```
-
 #### RuntimeChatException.ConnectionTokenFailed
 
 This exception is raised in the **explicit OAuth flow** when SDK recovery of an expired transaction token
-cannot proceed (for example, missing `refresh_token`).
-
-> [!WARNING]
-> **Known issue for this release:** explicit flow is currently not supported by the backend in the latest SDK version.
-> For this release, prefer implicit flow for updated integrations, or stay on your previous SDK version.
+cannot proceed (for example, missing `refresh_token`, or the refresh-token exchange did not return a
+usable access token).
 
 **Explicit flow behavior:**
-- On token expiry, SDK first attempts background refresh using `refresh_token`
-- If refresh succeeds, user is not prompted
-- `ConnectionTokenFailed` is reported only when refresh cannot proceed and re-authentication is required
+- On token expiry, if the underlying OAuth access token is still valid, the SDK reuses it directly to
+  obtain a new transaction token — the `refresh_token` is not spent
+- If the access token has also expired, the SDK spends the `refresh_token` to mint a new access token,
+  then uses it to obtain a new transaction token
+- If either step succeeds, the user is not prompted
+- `ConnectionTokenFailed` is reported only when neither recovery path can proceed and re-authentication is required
 
 **Required Actions (explicit flow):**
 1. Update UI state to show the OAuth/login dialog to the user
 2. Initiate OAuth re-authentication with your OAuth provider
 3. Obtain new authorization credentials (authorization code and code verifier)
-4. Set the new authorization again using `setAuthorization(...)` (via `ChatBuilder` or `ChatInstanceProvider.configure { authorization = ... }`)
+4. Set the new authorization again using `setAuthorization(...)` (via `ChatBuilder` or the suspending
+   `ChatInstanceProvider.configure(context) { authorization = ... }`)
 5. Open ChatActivity again so chat will automatically reconnect with the new credentials
 
 **Example Implementation:**
@@ -227,14 +196,10 @@ scope.launch {
     chat.stateFlow.collect { event ->
         if (event is ChatStateEvent.RuntimeException) {
             when (val exception = event.exception) {
-                is RuntimeChatException.FeatureUnavailableException -> {
-                // Explicit OAuth flow is not available on this backend version.
-                // Switch to implicit flow or stay on a previous SDK version.
-                showExplicitFlowUnavailableError()
-            }
-            is RuntimeChatException.ConnectionTokenFailed -> {
-                    // SDK could not refresh via refresh_token - re-authentication required
-                    handleTokenExpiration()
+                is RuntimeChatException.ConnectionTokenFailed,
+                is RuntimeChatException.InvalidRefreshTokenException -> {
+                    // SDK could not recover the session in the background - re-authentication required
+                    handleReAuthenticationRequired()
                 }
                 else -> {
                     // Handle other exceptions
@@ -245,8 +210,9 @@ scope.launch {
     }
 }
 
-    private fun handleTokenExpiration() {
-        // SDK could not refresh with refresh_token
+    private fun handleReAuthenticationRequired() {
+        // SDK could not recover the session: either no credential was usable (ConnectionTokenFailed),
+        // or the backend rejected the refresh_token itself (InvalidRefreshTokenException)
         Log.w("Chat", "OAuth fallback re-authentication required")
 
         // Update UI state to show OAuth/login dialog
@@ -260,8 +226,8 @@ scope.launch {
 ```
 
 > [!IMPORTANT]
-> For explicit OAuth authentication, you **must** handle `ConnectionTokenFailed` by re-initiating the OAuth flow as a fallback path.
-> The SDK cannot automatically recover from this error because it does not have direct access to OAuth provider credentials.
+> For explicit OAuth authentication, you **must** handle `ConnectionTokenFailed` and `InvalidRefreshTokenException` by re-initiating the OAuth flow as a fallback path.
+> The SDK cannot automatically recover from either error because it does not have direct access to OAuth provider credentials.
 
 For detailed guidance on implementing OAuth authentication and handling token expiration, see the [OAuth Third-Party Authentication case study](chat-sdk-core/cs-oauth-third-party.md).
 
@@ -297,6 +263,14 @@ This exception is reported in the **implicit OAuth flow** when the backend rejec
 1. Prompt the user to sign in again
 2. Reconnect with a fresh token delivered by your `TokenDelegateListener`
 
+#### RuntimeChatException.InvalidRefreshTokenException
+
+This exception is reported in the **explicit OAuth flow** when the backend rejects the stored `refresh_token` while the SDK tries to exchange it for a new access token (for example, the refresh token expired or was revoked). Like `InvalidAccessTokenException`, this is terminal — the SDK has no credential left that can recover the session automatically; the two differ only in which flow and credential were rejected.
+
+**Recommended Actions:**
+1. Prompt the user to sign in again
+2. Re-run your PKCE OAuth flow and reconnect via `ChatBuilder.setAuthorization(...)` with a fresh authorization code and verifier
+
 #### RuntimeChatException.ServerCommunicationError
 
 This exception indicates a problem communicating with the CXone backend.
@@ -324,8 +298,10 @@ You can use the chat `configuration` property to support different UI/UX flows i
 preemptively verify that your assumptions about active chat configuration are correct.
 
 ```kotlin
-  val chat = MyChatInstanceProvider.chat ?: return
-  val chatConfiguration = chat.configuration
+fun readChatConfiguration() {
+    val chat = ChatInstanceProvider.get().chat ?: return
+    val chatConfiguration = chat.configuration
+}
 ```
 
 ## Integrate UI module
@@ -335,9 +311,9 @@ preemptively verify that your assumptions about active chat configuration are co
 > original file.
 
 To use the chat-sdk-ui module, you need to add it as a dependency in your project. You can do this by adding the following line to your
-`build.gradle` file:
+`build.gradle.kts` (or `build.gradle`) file:
 
-```groovy
+```kotlin
     implementation("com.nice.cxone:chat-sdk-ui:${chatSdkVersion}")
 ```
 
@@ -347,7 +323,7 @@ To use the chat-sdk-ui module, you need to add it as a dependency in your projec
 
 Before you start using the Chat UI, you need to initialize the CXone Chat SDK in your application using the `ChatInstanceProvider` class.
 Specifically the `ChatInstanceProvider` has to be at least in the `Prepared` state, which means that the `ChatInstanceProvider` has to be
-initialized with the `ChatSdkConfig`.
+initialized with the `SocketFactoryConfiguration`.
 This can be done in the `onCreate` method of your `Application` class or in a dedicated `androidx.startup.Initializer` implementation.
 
 #### Initialize the Chat UI Dependency Injection
@@ -355,20 +331,29 @@ This can be done in the `onCreate` method of your `Application` class or in a de
 If you are not using Koin in your application you can just call
 
 ```kotlin
+   import org.koin.android.ext.koin.androidContext
+
+   // from Application.onCreate()
    startKoin {
-      UiModule.chatUiModule()
+      androidContext(applicationContext)
+      includes(UiModule.chatUiModule())
    }
 ```
 
-Otherwise add the `UiModule.chatUiModule()` to your Koin modules, which will provide the necessary dependencies for the Chat UI.
+Otherwise call `includes(UiModule.chatUiModule())` inside your existing `startKoin { }` block, alongside your own
+`modules(...)` calls — `chatUiModule()` returns a `KoinConfiguration`, which `includes` accepts, not a `Module`.
 
-##### Custom fields
+Either way the Koin setup has to register `androidContext(...)`. `chatUiModule()` does not register it, and the UI
+resolves `Context` and `Application` from the graph, so without it the chat fails when it is opened rather than when
+Koin starts.
+
+##### Custom fields provider
 
 If you are using custom fields (applies to both contact and customer) in the chat which are not user editable, you need to provide the
 `UiCustomFieldsProvider`
 implementation(s) to the UI Koin module. These implementations will be used to append the custom fields to events sent to the server.
 
-##### Logging
+##### Chat UI logging
 
 If you want to enable logging in the Chat UI, you can provide an instance of `Logger` to the Koin UI module as parameter `logger`, default
 instance is a No-op variant.
@@ -410,14 +395,24 @@ There are two types of these custom fields based on the context of the said data
 Custom fields are defined as part of the channel configuration (on backend), and only defined custom fields can be supplied to the chat instance.
 
 ### Custom Field definitions
-Custom field definitions can be accessed by using chat configuration instance.
-Definition provides a `label` field which can hold human-readable label (or reference to string resource) and `fieldId`
-which is used for adding of custom field values.
+Custom field definitions reach the SDK as part of the pre-chat survey, and are read from
+`chat.threads().preChatSurvey?.fields` — a `FieldDefinitionList`. Each definition provides a `label` field which can hold
+a human-readable label (or reference to a string resource) and a `fieldId` which is used for adding of custom field
+values. Use `lookup(fieldId)` to find one:
+
+```kotlin
+import com.nice.cxonechat.state.FieldDefinition
+import com.nice.cxonechat.state.lookup
+
+val definition = chat.threads().preChatSurvey?.fields?.lookup("referral") as? FieldDefinition.Text
+```
 
 > [!NOTE]
-> Field definitions are provided only for custom fields, which are used for the pre-chat survey.
-> It is possible to use other custom fields, even without definition supplied in the configuration.
+> Field definitions are provided only for custom fields which are used for the pre-chat survey.
+> It is possible to use other custom fields, even without a definition supplied in the configuration — pass the key
+> directly, as shown in [Adding customer custom fields](#adding-customer-custom-fields).
 > Backend can reject undefined (meaning the definition is not present in channel configuration on backend) custom fields.
+> There is no definition list on `Chat.configuration`; the client-side validation API that exposed one was removed.
 
 #### Custom field types & expected values
 | Type      | Required value                         | Validations                                                                                                                    |
@@ -434,8 +429,10 @@ combine custom field definition `fieldId` with a value matching defined type.
 Immutable collection of customer custom fields is available as field of the Chat instance
 
 ```kotlin
-  val chat = MyChatInstanceProvide.chat ?: return
-  val customerCustomFields = chat.fields
+fun readCustomerCustomFields() {
+    val chat = ChatInstanceProvider.get().chat ?: return
+    val customerCustomFields = chat.fields
+}
 ```
 
 > [!NOTE]
@@ -455,12 +452,15 @@ configuration.
 
   ```kotlin
   fun addReferralUnknown() {
-    val chat = MyChatInstanceProvide.chat ?: return
-    val customerCustomFields = chat.configuration.customerCustomFields.lookup("referral") as? FieldDefinition.Text ?: return
-    val customFields = mapOf(customerCustomFields.fieldId to "referral_unknown")
-    chat.customFields().add(customFields)
+    val chat = ChatInstanceProvider.get().chat ?: return
+    // Custom fields are added by key, whether or not they have a pre-chat definition:
+    chat.customFields().add(mapOf("referral" to "referral_unknown"))
   }
   ```
+
+  Look a definition up with `lookup(fieldId)` only when you need its declared type — for example to confirm
+  `"referral"` is a `FieldDefinition.Text` before sending free-form text, or to read the allowed `nodeId`s of a
+  `FieldDefinition.Selector`. The key you send is the `fieldId` either way.
 
 > Supplying the same key with different value, will overwrite the existing custom field.
 
@@ -473,27 +473,37 @@ configuration.
 
 ### Analytics events
 
+The actions listed below are `suspend` extensions on `ChatEventHandler` declared inside
+`object ChatEventHandlerActions`. Import each action you use — importing the object alone does not bring its extension
+members into scope — and call it from a coroutine:
+
+```kotlin
+import com.nice.cxonechat.ChatEventHandlerActions.pageView
+
+scope.launch { chat.events().pageView(title, uri) }
+```
+
 - **ChatWindowOpenEvent**
   - Specific Chat page or screen (conversation) has been opened
   - Correct reporting of this event is required for "Welcome message" automation.
 - **ConversionEvent**
   - The user was redirected from other media (link, etc…), made a purchase, read an article.
-    Anything your company has internally defined as a conversion.  Generated by `ChatEventHandlerActions.conversion`
+    Anything your company has internally defined as a conversion.  Generated by `chat.events().conversion(...)`.
 - **CustomVisitorEvent**
   - Any event you may want to track.
 - **PageViewEvent**
-  - User has visited a page in the host application. Generated by `ChatEventHandlerActions.pageView`.
+  - User has visited a page in the host application. Generated by `chat.events().pageView(...)`.
 - **TimeSpentOnPageEvent**
   - User has left a page in the host application and time spent on the page.  Automatically
-    generated by `ChatEventHandlerActions.pageViewEnded`.
+    generated by `chat.events().pageViewEnded(...)`.
 - **ProactiveActionClickEvent**
-  - Action regards to `ChatActionHandler.popupFlow`. Generated by `ChatEventHandlerActions.proactiveActionClick`.
+  - Action regards to `ChatActionHandler.popupFlow`. Generated by `chat.events().proactiveActionClick(...)`.
 - **ProactiveActionDisplayEvent**
-  - Action regards to `ChatActionHandler.popupFlow`. Generated by `ChatEventHandlerActions.proactiveActionDisplay`.
+  - Action regards to `ChatActionHandler.popupFlow`. Generated by `chat.events().proactiveActionDisplay(...)`.
 - **ProactiveActionFailureEvent**
-  - Action regards to `ChatActionHandler.popupFlow`. Generated by `ChatEventHandlerActions.proactiveActionFailure`.
+  - Action regards to `ChatActionHandler.popupFlow`. Generated by `chat.events().proactiveActionFailure(...)`.
 - **ProactiveActionSuccessEvent**
-  - Action regards to `ChatActionHandler.popupFlow`. Generated by `ChatEventHandlerActions.proactiveActionSuccess`.
+  - Action regards to `ChatActionHandler.popupFlow`. Generated by `chat.events().proactiveActionSuccess(...)`.
 - **TriggerEvent**
   - Trigger an automation event by ID
 
@@ -503,24 +513,25 @@ configuration.
 > These events are automatically generated by the UI module (if you are using it) and should not be triggered manually.
 
 #### PageView triggered events
-Following events are automatically generated by the SDK when the application triggers
-` ChatEventHandler.pageView` and ` ChatEventHandler.pageViewEnded` methods.
+Following events are automatically generated by the SDK when the application calls
+`chat.events().pageView(...)` and `chat.events().pageViewEnded(...)`.
 These should be triggered for every page view by the user in the application.
 What is a "page" is defined by the application, it can be a activity, a fragment, or a specific compose view.
 
 - **VisitEvent**
   - Defines the beginning of a visit, which is a sequence of
     PageView events.
-  - Automatically generated by ` ChatEventHandlerActions.pageView` method when there is no
+  - Automatically generated by `chat.events().pageView(...)` when there is no
     current visit defined or when the last visit has been idle for more
     than 30 minutes.
 - **TimeSpentOnPageEvent**
   - Reports time spent on the last page in seconds.
-  - Automatically generated by `ChatEventHandlerActions.pageViewEnded`.
+  - Automatically generated by `chat.events().pageViewEnded(...)`.
 
 See analytics case study for information how to implement analytics events [here](chat-sdk-core/cs-analytics.md)
 
 ### Authorization events
 
-- **RefreshToken**
-  - Event notifying backend that authorization token has to be refreshed.
+Token refresh is managed entirely by the SDK — there is no event for it. The implicit OAuth flow asks
+your `TokenDelegateListener` for a fresh token; the explicit flow refreshes with the stored
+`refresh_token`. See the [OAuth flow migration guide](migration/MIGRATION_OAUTH_FLOWS.md).

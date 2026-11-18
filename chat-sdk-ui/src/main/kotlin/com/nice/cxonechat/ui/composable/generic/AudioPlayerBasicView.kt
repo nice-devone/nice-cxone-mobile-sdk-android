@@ -33,9 +33,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Lifecycle.Event.ON_DESTROY
@@ -56,6 +56,8 @@ import com.nice.cxonechat.ui.composable.player.rememberPositionAndDuration
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatShapes
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
+import com.nice.cxonechat.ui.composable.theme.audioCellMaxWidthInWindow
 import com.nice.cxonechat.ui.util.toTimeStamp
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -79,6 +81,12 @@ internal fun AudioPlayerBasicView(
     modifier: Modifier = Modifier,
     seekIncrement: Long = 10.seconds.inWholeMilliseconds,
 ) {
+    // Neither a preview nor a screenshot test can decode audio, so a player would never leave Loading and
+    // the cell would be captured mid-load. Draw the ready chrome before building one rather than after.
+    if (LocalInspectionMode.current) {
+        InspectionView(modifier, seekIncrement)
+        return
+    }
     val context = LocalContext.current
     val playerResult by produceAudioPlayerState(context, uri) {
         setSeekBackIncrementMs(seekIncrement)
@@ -112,6 +120,34 @@ private fun LoadingView(modifier: Modifier) {
         seekBackIncrementMs = 0L,
         canSeekForward = false,
         seekForwardIncrementMs = 0L,
+        modifier = modifier,
+    )
+}
+
+/**
+ * The chrome a prepared player would show, for a preview or a screenshot test.
+ *
+ * Stands in for [AudioPlayerView] rather than for [LoadingView], because this cell's chrome *is* its
+ * layout — there is no media surface — so a golden of it measures the real thing. The times are derived
+ * the same way [AudioPlayerView] derives them, leaving the trailing label showing time remaining, and the
+ * clip is the length of the one the design frame illustrates.
+ */
+@Composable
+private fun InspectionView(modifier: Modifier, seekIncrement: Long) {
+    val duration = 7.seconds
+    val position = 1.seconds
+    AudioPlayerContent(
+        currentTime = position.toTimeStamp(Locale.current),
+        animatedProgress = (position / duration).toFloat(),
+        remainingTime = (duration - position).toTimeStamp(Locale.current),
+        position = position,
+        duration = duration,
+        isEnabled = true,
+        isPlaying = false,
+        canSeekBack = true,
+        seekBackIncrementMs = seekIncrement,
+        canSeekForward = true,
+        seekForwardIncrementMs = seekIncrement,
         modifier = modifier,
     )
 }
@@ -214,16 +250,15 @@ internal sealed interface AudioPlayerState {
 private fun AudioPlayerPreview() {
     ChatTheme {
         BoxWithConstraints(Modifier.systemBarsPadding()) {
-            val maxAttachmentWidth = this.maxWidth.times(0.8f)
             Surface(
                 color = chatColors.token.brand.primary,
                 contentColor = chatColors.token.content.primary,
                 shape = chatShapes.bubbleSoloShape,
-                modifier = Modifier.widthIn(max = maxAttachmentWidth),
+                modifier = Modifier.widthIn(max = audioCellMaxWidthInWindow(this.maxWidth)),
             ) {
                 AudioPlayerBasicView(
                     uri = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3".toUri(),
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(space.audioMessagePadding)
                 )
             }
         }

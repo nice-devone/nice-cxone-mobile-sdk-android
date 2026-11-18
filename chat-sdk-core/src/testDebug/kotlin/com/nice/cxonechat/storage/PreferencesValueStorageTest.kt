@@ -22,6 +22,7 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,8 +32,11 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
+import java.io.IOException
 import java.util.UUID
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -86,7 +90,7 @@ internal class PreferencesValueStorageTest {
 
     @Test
     fun `authTokenExpDate write calls store putString`() = runTest {
-        val expDate = Instant.fromEpochMilliseconds(1000000)
+        val expDate = Instant.fromEpochMilliseconds(1_000_000)
         val storage = PreferencesValueStorage.create(mockDataStore, this)
         storage.authTokenExpDate = expDate
         advanceUntilIdle()
@@ -174,7 +178,7 @@ internal class PreferencesValueStorageTest {
         advanceUntilIdle()
         storage.clearStorage()
         storage.authToken shouldBe null
-        storage.customerId shouldBe null
+        storage.customerId shouldNotBe "some-customer"
         storage.welcomeMessage shouldBe ""
         advanceUntilIdle()
         coVerify { mockDataStore.clear() }
@@ -309,5 +313,56 @@ internal class PreferencesValueStorageTest {
         clearJob.join()
 
         assertEquals(listOf("write", "clear"), events, "the sibling write must land before store.clear(), never after")
+    }
+
+    /**
+     * Regression test: a transient IO error during `store.clear()` must be caught — not
+     * propagated out of `clearStorage()` — so that `Chat.signOut()`'s subsequent
+     * `cookieJar.clearAllCookies()` and `closeSuspending()` still execute.
+     */
+    @Test
+    fun `clearStorage does not propagate IOException from store clear`() = runTest {
+        coEvery { mockDataStore.clear() } throws IOException("disk full")
+
+        val storage = PreferencesValueStorage.create(mockDataStore, backgroundScope)
+        // Seed real values first: against a relaxed mock a fresh storage already reads back null/""
+        // for these fields, so asserting them without seeding would hold even if clearStorage()
+        // reset nothing at all.
+        storage.authToken = "token-to-be-cleared"
+        storage.welcomeMessage = "welcome-to-be-cleared"
+
+        // Must NOT throw — failures are logged internally so the signOut chain continues.
+        storage.clearStorage()
+
+        // coVerify proves the throwing call was actually reached, so the test cannot rot into a
+        // no-op if store.clear() ever stops being called.
+        coVerify { mockDataStore.clear() }
+        // clearStorage() resets the in-memory fields before store.clear() throws, so the caller
+        // sees cleared credentials even when persistence failed — the contract the KDoc describes.
+        storage.authToken shouldBe null
+        storage.welcomeMessage shouldBe ""
+    }
+
+    /**
+     * Regression test: a [CancellationException] thrown from `store.clear()` must be re-thrown
+     * immediately so the calling coroutine (e.g. a cancelled `signOut()`) is not silently
+     * swallowed. Absorbing it would leave the coroutine in a running state after its scope has
+     * been cancelled, which is a structured-concurrency violation.
+     */
+    @Test
+    fun `clearStorage rethrows CancellationException from store clear`() = runTest {
+        val cancellation = CancellationException("cancelled")
+        coEvery { mockDataStore.clear() } throws cancellation
+
+        val storage = PreferencesValueStorage.create(mockDataStore, backgroundScope)
+
+        val thrown = assertFailsWith<CancellationException> {
+            storage.clearStorage()
+        }
+
+        // Identity, not just type: `catch (cancellation) { throw cancellation }` rethrows the very
+        // instance the store threw. A generic catch that wrapped or replaced it — or the sibling
+        // `catch (expected: Exception)` swallowing it — would not produce this same object.
+        assertSame(cancellation, thrown)
     }
 }

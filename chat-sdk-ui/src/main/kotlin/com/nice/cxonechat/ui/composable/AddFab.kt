@@ -18,17 +18,19 @@ package com.nice.cxonechat.ui.composable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.shapes
 import com.nice.cxonechat.ui.composable.theme.Fab
 
 @Composable
-internal fun AddFab(onClick: () -> Unit = {}) {
+internal fun AddFab(onClick: () -> Unit = {}, modifier: Modifier = Modifier) {
     ChatTheme.Fab(
         onClick = onClick,
         shape = shapes.large,
         icon = rememberVectorPainter(image = Icons.Default.Add),
         contentDescription = null,
+        modifier = modifier,
     )
 }

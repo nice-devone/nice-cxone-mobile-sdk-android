@@ -99,7 +99,7 @@ internal fun ChatTheme.TextField(
                 )
             }
         },
-        labelPosition = TextFieldLabelPosition.Attached(alwaysMinimize = minimizedLabelBackground != null),
+        labelPosition = TextFieldLabelPosition.Cutout(isAlwaysMinimized = minimizedLabelBackground != null),
         placeholder = placeholder?.let { { Text(it) } },
         isError = error != null,
         supportingText = error?.let { { Text(it) } },

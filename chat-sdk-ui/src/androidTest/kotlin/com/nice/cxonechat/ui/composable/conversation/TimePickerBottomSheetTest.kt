@@ -15,6 +15,7 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertContentDescriptionContains
@@ -25,6 +26,7 @@ import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasStateDescription
 import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -48,16 +50,15 @@ class TimePickerBottomSheetTest : AbstractComponentActivityUiTest() {
     @Test
     fun timePickerBottomSheet_displaysTitleSubtitleSlots_andHandlesActions() {
         val timePicker = TimePicker(UiSdkTimePicker())
-        var dismissCalled = false
         var doneCalled = false
         var doneSlot: TimeSlot? = null
         var doneLocalizedText: String? = null
 
         composeTestRule.setContent {
             ChatTheme {
-                TimePickerBottomSheetContent(
+                TimePickerBottomSheet(
                     message = timePicker,
-                    onDismiss = { dismissCalled = true },
+                    onDismiss = {},
                     onDone = { slot, localizedText ->
                         doneCalled = true
                         doneSlot = slot
@@ -67,12 +68,10 @@ class TimePickerBottomSheetTest : AbstractComponentActivityUiTest() {
             }
         }
 
+        // The subtitle is the slot list's first line, not part of the sheet's title - see TimePickerSlotGroups.
         val expectedSubtitle = composeTestRule.activity.getString(R.string.time_picker_dialogue_description)
-        composeTestRule.onNodeWithTag("time_picker_header")
-            .assertIsDisplayed()
-            .assertTextContains(timePicker.popupTitle)
-            .assertTextContains(expectedSubtitle)
         composeTestRule.onNodeWithText(timePicker.popupTitle).assertIsDisplayed()
+        composeTestRule.onNodeWithTag("time_picker_subtitle").assertIsDisplayed().assertTextContains(expectedSubtitle)
         composeTestRule.onNodeWithText(expectedSubtitle).assertIsDisplayed()
 
         val firstSlot = timePicker.timeSlots.first()
@@ -86,12 +85,34 @@ class TimePickerBottomSheetTest : AbstractComponentActivityUiTest() {
 
         selectableSlotNode(firstSlotTag).performClick()
         composeTestRule.onNodeWithText(composeTestRule.activity.getString(R.string.submit)).assertIsEnabled().performClick()
+        // Submit goes through the shared sheet's hideSheet(), which only invokes onDone once the
+        // hide animation's coroutine completes; performClick()'s own sync isn't guaranteed to cover that.
+        composeTestRule.waitForIdle()
 
         assertTrue(doneCalled)
         assertEquals(firstSlot, doneSlot)
         assertNotNull(doneLocalizedText)
+    }
+
+    @Test
+    fun timePickerBottomSheet_clickingCancel_dismissesTheSheet() {
+        val timePicker = TimePicker(UiSdkTimePicker())
+        var dismissCalled = false
+
+        composeTestRule.setContent {
+            ChatTheme {
+                TimePickerBottomSheet(
+                    message = timePicker,
+                    onDismiss = { dismissCalled = true },
+                    onDone = { _, _ -> }
+                )
+            }
+        }
 
         composeTestRule.onNodeWithText(composeTestRule.activity.getString(R.string.cancel)).performClick()
+        // Cancel goes through the shared sheet's hideSheet(), which only invokes onDismiss once the
+        // hide animation's coroutine completes; performClick()'s own sync isn't guaranteed to cover that.
+        composeTestRule.waitForIdle()
         assertTrue(dismissCalled)
     }
 
@@ -101,7 +122,7 @@ class TimePickerBottomSheetTest : AbstractComponentActivityUiTest() {
 
         composeTestRule.setContent {
             ChatTheme {
-                TimePickerBottomSheetContent(
+                TimePickerBottomSheet(
                     message = timePicker,
                     onDismiss = {},
                     onDone = { _, _ -> }
@@ -132,7 +153,7 @@ class TimePickerBottomSheetTest : AbstractComponentActivityUiTest() {
 
         composeTestRule.setContent {
             ChatTheme {
-                TimePickerBottomSheetContent(
+                TimePickerBottomSheet(
                     message = timePicker,
                     onDismiss = {},
                     onDone = { _, _ -> }
@@ -164,17 +185,18 @@ class TimePickerBottomSheetTest : AbstractComponentActivityUiTest() {
             }
         }
 
+        val dragHandleDescription = composeTestRule.activity.getString(R.string.content_description_drag_handle)
         composeTestRule.onNodeWithTag("time_picker_bottom_sheet").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("DragHandle", useUnmergedTree = true).assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription(dragHandleDescription, useUnmergedTree = true).assertIsDisplayed()
     }
 
     @Test
-    fun timePickerBottomSheet_accessibilityHeaderContentDescriptions_matchVisibleText() {
+    fun timePickerBottomSheet_title_isMarkedAsHeadingForAccessibility() {
         val timePicker = TimePicker(UiSdkTimePicker())
 
         composeTestRule.setContent {
             ChatTheme {
-                TimePickerBottomSheetContent(
+                TimePickerBottomSheet(
                     message = timePicker,
                     onDismiss = {},
                     onDone = { _, _ -> }
@@ -182,14 +204,9 @@ class TimePickerBottomSheetTest : AbstractComponentActivityUiTest() {
             }
         }
 
-        val expectedSubtitle = composeTestRule.activity.getString(R.string.time_picker_dialogue_description)
-
-        composeTestRule.onNodeWithTag("time_picker_header")
+        composeTestRule.onNodeWithText(timePicker.popupTitle)
             .assertIsDisplayed()
-            .assertTextContains(timePicker.popupTitle)
-            .assertTextContains(expectedSubtitle)
-        composeTestRule.onNodeWithText(timePicker.popupTitle).assertIsDisplayed()
-        composeTestRule.onNodeWithText(expectedSubtitle).assertIsDisplayed()
+            .assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Heading))
     }
 
     @Test
@@ -198,7 +215,7 @@ class TimePickerBottomSheetTest : AbstractComponentActivityUiTest() {
 
         composeTestRule.setContent {
             ChatTheme {
-                TimePickerBottomSheetContent(
+                TimePickerBottomSheet(
                     message = timePicker,
                     onDismiss = {},
                     onDone = { _, _ -> }

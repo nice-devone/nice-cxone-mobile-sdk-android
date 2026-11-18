@@ -23,27 +23,35 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SheetValue.Expanded
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldLabelPosition
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -53,13 +61,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.generic.Requirement
@@ -71,7 +82,12 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
+import com.nice.cxonechat.ui.composable.theme.HideDialogStatusBarWideScreen
+import com.nice.cxonechat.ui.composable.theme.SheetAnchors
 import com.nice.cxonechat.ui.composable.theme.TextField
+import com.nice.cxonechat.ui.composable.theme.WideScreenModalBottomSheet
+import com.nice.cxonechat.ui.composable.theme.isWideScreen
+import com.nice.cxonechat.ui.composable.theme.wideScreenHorizontalPadding
 import com.nice.cxonechat.ui.screen.LoadingOverlayFullScreen
 import kotlinx.coroutines.launch
 
@@ -82,12 +98,13 @@ internal fun SendTranscriptBottomSheet(
     onSubmit: (String) -> Unit,
     showFullScreenLoading: Boolean,
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true) {
+    val sheetState = rememberBottomSheetState(SheetValue.Hidden, SheetAnchors.FullHeightOnly) {
         it === Expanded
     }
     val scope = rememberCoroutineScope()
 
-    ModalBottomSheet(
+    val dragHandleDescription = stringResource(string.content_description_drag_handle)
+    ChatTheme.WideScreenModalBottomSheet(
         onDismissRequest = {
             scope.launch {
                 sheetState.hide()
@@ -96,19 +113,18 @@ internal fun SendTranscriptBottomSheet(
         contentWindowInsets = { WindowInsets() },
         sheetState = sheetState,
         containerColor = chatColors.token.background.default,
-        contentColor = chatColors.token.content.primary,
         dragHandle = {
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .background(chatColors.token.background.surface.subtle)
+                    .background(chatColors.token.background.default)
             ) {
                 Surface(
                     modifier =
                         Modifier
                             .padding(vertical = space.large)
                             .semantics {
-                                contentDescription = "DragHandle"
+                                contentDescription = dragHandleDescription
                             }
                             .align(Alignment.Center),
                     color = chatColors.token.content.tertiary,
@@ -118,10 +134,14 @@ internal fun SendTranscriptBottomSheet(
                 }
             }
         },
+        // Same handling as ChatTheme.ModalBottomSheet: the sheet's own window gets no edge-to-edge insets, so a
+        // compact window pads for the status bar, a wide one hides it, and a side nav bar is cleared explicitly.
         modifier = Modifier
             .testTag("send_transcript_bottom_sheet")
-            .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding())
+            .padding(top = if (isWideScreen()) 0.dp else WindowInsets.statusBars.asPaddingValues().calculateTopPadding())
+            .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Horizontal))
     ) {
+        HideDialogStatusBarWideScreen()
         SendTranscriptContent(
             onDismiss = {
                 scope.launch {
@@ -157,31 +177,49 @@ internal fun SendTranscriptContent(
         confirmEmailText.text != emailText.text -> stringResource(string.emails_do_not_match)
         else -> null
     }
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(chatColors.token.background.surface.subtle)
-    ) {
-        val submit = { onSubmit(emailText.text.toString()) }
-        Column(
+    val submit = { onSubmit(emailText.text.toString()) }
+    val horizontalPadding = maxOf(space.large, wideScreenHorizontalPadding())
+    Column(modifier = Modifier.fillMaxSize()) {
+        SendTranscriptTitle(horizontalPadding)
+        Box(
             modifier = Modifier
-                .padding(start = space.large, top = space.large, end = space.large)
+                .weight(1f)
+                .fillMaxWidth()
+                .background(chatColors.token.background.surface.subtle)
         ) {
-            SendTranscriptHeader()
-            EmailFields(
-                emailText = emailText,
-                confirmEmailText = confirmEmailText,
-                confirmEmailFocused = confirmEmailFocused,
-                validator = validator,
-                error = error,
+            Column(
+                modifier = Modifier
+                    // The subtitle plus both fields overflow a short landscape window, more so with the keyboard up.
+                    .verticalScroll(rememberScrollState())
+                    // The sheet is its own window, which Material 3 puts in ADJUST_NOTHING from API 30, so
+                    // nothing resizes it and the keyboard has to be inset here.
+                    .imePadding()
+                    .padding(start = horizontalPadding, top = space.xl, end = horizontalPadding)
+                    .padding(bottom = space.sendTranscriptContentBottomPadding)
+            ) {
+                Text(
+                    text = stringResource(string.chat_transcript_message),
+                    color = chatColors.token.content.secondary,
+                    style = chatTypography.listPickerBottomSheetSubtitleText,
+                    modifier = Modifier
+                        .padding(bottom = space.large)
+                        .testTag("chat_transcript_subtitle")
+                )
+                EmailFields(
+                    emailText = emailText,
+                    confirmEmailText = confirmEmailText,
+                    confirmEmailFocused = confirmEmailFocused,
+                    validator = validator,
+                    error = error,
+                    onSubmit = submit,
+                )
+            }
+            SendTranscriptBottomBar(
+                onDismiss = onDismiss,
                 onSubmit = submit,
+                error = error
             )
         }
-        SendTranscriptBottomBar(
-            onDismiss = onDismiss,
-            onSubmit = submit,
-            error = error
-        )
     }
 }
 
@@ -234,7 +272,7 @@ private fun EmailFields(
         placeholder = {
             Text(text = stringResource(string.confirm_email_placeholder))
         },
-        labelPosition = TextFieldLabelPosition.Attached(alwaysMinimize = true),
+        labelPosition = TextFieldLabelPosition.Cutout(isAlwaysMinimized = true),
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Email,
             imeAction = ImeAction.Done,
@@ -248,27 +286,24 @@ private fun EmailFields(
     )
 }
 
+/** The title, fixed above the scrolling body on the sheet's own background, separated from it by a divider. */
 @Composable
-private fun SendTranscriptHeader() {
+private fun SendTranscriptTitle(horizontalPadding: Dp) {
     Column(
-        modifier = Modifier.semantics(mergeDescendants = true) {}
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(chatColors.token.background.default)
     ) {
         Text(
             text = stringResource(string.chat_transcript),
             style = chatTypography.bottomSheetTitleText,
             modifier = Modifier
-                .testTag("chat_transcript_title")
-                .padding(start = space.large),
+                .padding(start = horizontalPadding, end = horizontalPadding, bottom = space.semiLarge)
+                .semantics { heading() }
+                .testTag("chat_transcript_title"),
             color = chatColors.token.content.primary
         )
-        Text(
-            text = stringResource(string.chat_transcript_message),
-            color = chatColors.token.content.secondary,
-            style = chatTypography.listPickerBottomSheetSubtitleText,
-            modifier = Modifier
-                .padding(bottom = space.large, start = space.large)
-                .testTag("chat_transcript_subtitle")
-        )
+        HorizontalDivider(color = chatColors.token.border.default)
     }
 }
 
@@ -278,6 +313,9 @@ private fun BoxScope.SendTranscriptBottomBar(
     onSubmit: () -> Unit,
     error: String?,
 ) {
+    // BottomSheetButtonText already insets its label by its own padding plus the TextButton's, so only the rest of
+    // the wide-screen margin is added here, putting the labels on the same edge as the fields.
+    val buttonLabelInset = space.large + ButtonDefaults.TextButtonContentPadding.calculateStartPadding(LocalLayoutDirection.current)
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -290,6 +328,7 @@ private fun BoxScope.SendTranscriptBottomBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(chatColors.token.background.default)
+                .padding(horizontal = (wideScreenHorizontalPadding() - buttonLabelInset).coerceAtLeast(0.dp))
         ) {
             BottomSheetButtonText(
                 text = stringResource(string.cancel),

@@ -20,6 +20,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.core.app.NotificationCompat.MessagingStyle
 import androidx.core.app.Person
+import com.nice.cxonechat.Popup
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerScope
 import com.nice.cxonechat.log.debug
@@ -69,6 +70,13 @@ internal class NotifyUpdateUseCase(
             return
         }
         withContext(Dispatchers.Default) {
+            val unreadMessages = thread.getUnreadMessages()
+            if (unreadMessages.isEmpty()) {
+                // Nothing to show: posting here would build a MessagingStyle with zero messages,
+                // which renders as a notification with no title and no text.
+                verbose("No unread messages, skipping notification")
+                return@withContext
+            }
             debug("Notifying update")
             notificationManager.sendMessageNotification(
                 notificationId = thread.id.toString(),
@@ -78,12 +86,7 @@ internal class NotifyUpdateUseCase(
                     .setName(getThreadNameOrFallback(thread))
                     .build()
                 val messagingStyle = MessagingStyle(person)
-                val unreadMessages = thread.getUnreadMessages()
-                if (unreadMessages.isEmpty()) {
-                    verbose("No unread messages")
-                } else {
-                    verbose("Unread messages: ${unreadMessages.size}")
-                }
+                verbose("Unread messages: ${unreadMessages.size}")
                 for (message in unreadMessages) {
                     verbose(message.metadata.toString())
                     messagingStyle.addMessage(message)
@@ -92,6 +95,39 @@ internal class NotifyUpdateUseCase(
                 setStyle(messagingStyle)
                 setContentIntent(createContentIntent(thread, context))
                 setDeleteIntent(createDeleteIntent(thread, context))
+            }
+        }
+    }
+
+    /**
+     * Notifies the user that a Satisfaction Survey popup arrived for a background chat thread.
+     *
+     * Unlike [notifyUpdate], this is not driven by [Message] content — a Satisfaction Survey is
+     * never represented as a [Message] (see `MessageModel.toMessage()`), so it carries its own
+     * static title and the survey's own text instead of a [MessagingStyle].
+     *
+     * No `lastMessageId` is passed to [ChatNotificationManager.sendMessageNotification]: a survey
+     * never changes [Thread.lastMessageId], so reusing it here would collide with the dismissal key
+     * ("$notificationId:$lastMessageId") recorded for an earlier, unrelated regular-message
+     * notification on the same thread — silently skipping this notification if that one was ever
+     * swiped away. [createSurveyDeleteIntent] likewise builds its own delete `PendingIntent` with a
+     * distinct `Intent.data`, since `PendingIntent` identity ignores extras — a `dismissId` extra
+     * alone would not stop it from colliding with [createDeleteIntent]'s message-notification token.
+     *
+     * @param thread The chat thread the survey was received for.
+     * @param survey The Satisfaction Survey popup to notify about.
+     */
+    suspend fun notifySatisfactionSurvey(thread: Thread, survey: Popup.SatisfactionSurvey) = timedScope("notifySatisfactionSurvey") {
+        withContext(Dispatchers.Default) {
+            debug("Notifying satisfaction survey")
+            notificationManager.sendMessageNotification(
+                notificationId = thread.id.toString(),
+            ) {
+                setSmallIcon(R.drawable.ic_chat_push_service)
+                setContentTitle(context.getString(string.notification_satisfaction_survey_title))
+                setContentText(survey.text)
+                setContentIntent(createContentIntent(thread, context))
+                setDeleteIntent(createSurveyDeleteIntent(thread, context))
             }
         }
     }
@@ -152,6 +188,25 @@ internal class NotifyUpdateUseCase(
             buildDismissIntent(context = context, dismissId = "${thread.id}:${thread.lastMessageId}"),
             PENDING_INTENT_FLAGS
         )
+
+        /**
+         * `data` only gives this [PendingIntent] its own identity - `LocalNotificationService` does
+         * not read it. Both delete intents share request code 0, component, and action, with no
+         * `FLAG_UPDATE_CURRENT`; `PendingIntent.getService()` compares via `Intent.filterEquals()`,
+         * which ignores extras but checks `data`. Without a distinct `data`, this would return the
+         * message notification's existing token, carrying its stale dismiss id.
+         */
+        private fun createSurveyDeleteIntent(thread: Thread, context: Context): PendingIntent? {
+            val dismissId = "${thread.id}:survey"
+            return PendingIntent.getService(
+                context,
+                0,
+                buildDismissIntent(context = context, dismissId = dismissId).apply {
+                    data = Uri.parse("cxonechat://notification-dismiss/$dismissId")
+                },
+                PENDING_INTENT_FLAGS
+            )
+        }
 
         private fun createContentIntent(thread: Thread, context: Context): PendingIntent? = PendingIntent.getActivity(
             context,

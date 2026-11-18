@@ -15,39 +15,22 @@
 
 package com.nice.cxonechat.ui.util
 
-import android.content.res.Resources
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Dp
 
 /**
- * Converts a double value representing fraction of display width to Dp.
+ * This fraction of the shorter edge of the window the content is drawn in, as [Dp].
  *
- * Example: `0.1.dw` is 10% of the screen width
- */
-internal inline val Double.dw: Dp
-    get() = Resources.getSystem().displayMetrics.let { metrics ->
-        Dp(value = (this * metrics.widthPixels / metrics.density).toFloat())
-    }
-
-/**
- * Converts a double value representing a fraction of the smaller display dimension (width or height) to Dp.
+ * Example: `0.1f.ofWindowShorterEdge()` is 10% of the shorter edge of the window.
  *
- * Example: `0.1.dsm` is 10% of the smaller screen dimension (useful for responsive layouts).
+ * The window rather than the display, so that content in a window smaller than the display — one side of
+ * a split screen, a freeform window, or a foldable folded shut — is sized for the space it actually has.
+ * The shorter edge rather than the width, so that a square measured from it fits whichever way round the
+ * window is.
  */
-internal inline val Double.dsm: Dp
-    get() = Resources.getSystem().displayMetrics.let { metrics ->
-        Dp(value = (this * minOf(metrics.widthPixels, metrics.heightPixels) / metrics.density).toFloat())
-    }
-
-/**
- * Converts a float value representing fraction of display width to Dp.
- *
- * Example: `0.1.dw` is 10% of the screen width
- */
-internal inline val Float.dw: Dp get() = this.toDouble().dw
-
-/**
- * Converts a float value representing a fraction of the smaller display dimension (width or height) to Dp.
- *
- * Example: `0.1.dsm` is 10% of the smaller screen dimension (useful for responsive layouts).
- */
-internal inline val Float.dsm: Dp get() = this.toDouble().dsm
+@Composable
+internal fun Float.ofWindowShorterEdge(): Dp {
+    val windowSize = LocalWindowInfo.current.containerDpSize
+    return minOf(windowSize.width, windowSize.height) * this
+}

@@ -20,6 +20,7 @@ import com.nice.cxonechat.ChatMode.MultiThread
 import com.nice.cxonechat.ChatMode.SingleThread
 import com.nice.cxonechat.ChatThreadHandler
 import com.nice.cxonechat.ChatThreadsHandler
+import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.model.ChatThreadInternal
 import com.nice.cxonechat.internal.model.ChatThreadMutable
 import com.nice.cxonechat.internal.model.ChatThreadMutable.Companion.asMutable
@@ -88,13 +89,26 @@ internal class ChatThreadsHandlerImpl(
                 threadCopy.asSequence()
                     .filter(event::inThread)
                     .forEach { thread ->
-                        CaseStatusChangedHandlerActions.handleCaseClosed(thread, event) { _ ->
+                        val sendList = {
                             trySendOrLog(
                                 channel = channel,
                                 value = synchronized(threadsMutable) { threadsMutable.toList() },
                                 loggerScope = loggerScope,
                                 tag = "case-status update",
                             )
+                        }
+                        var reported = false
+                        CaseStatusChangedHandlerActions.handleCaseClosed(thread, event) {
+                            reported = true
+                            sendList()
+                        }
+                        // A handler-only change is not an archive, but the multi-thread list must still show the new
+                        // handler. LiveChat keeps no list of its own; its thread handler applies the change.
+                        val handler = event.contactHandler
+                        val handlerChanged = handler != null && handler != thread.contactHandler
+                        if (chat.chatMode === MultiThread && !reported && handlerChanged) {
+                            thread.update(thread.asCopyable().copy(contactHandler = handler))
+                            sendList()
                         }
                     }
             }
@@ -157,6 +171,7 @@ internal class ChatThreadsHandlerImpl(
         handler = ChatThreadHandlerMetadata(handler, chat, mutableThread)
         handler = ChatThreadHandlerMessages(handler, chat, mutableThread)
         handler = ChatThreadHandlerAgentUpdate(handler, chat, mutableThread)
+        handler = ChatThreadHandlerContactHandler(handler, chat, mutableThread)
         handler = ChatThreadHandlerAgentTyping(handler, chat)
         handler = ChatThreadHandlerMessageReadByAgent(handler, chat, mutableThread)
         handler = ChatThreadHandlerMessageSeenChanged(origin = handler, chat, mutableThread)

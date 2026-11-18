@@ -19,6 +19,7 @@ import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.thread.Agent
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState
+import com.nice.cxonechat.thread.ContactHandler
 import com.nice.cxonechat.thread.CustomField
 import java.util.UUID
 
@@ -34,6 +35,7 @@ internal data class ChatThreadInternal(
     override val positionInQueue: Int? = null,
     override val hasOnlineAgent: Boolean = true,
     override val contactId: String? = null,
+    override val contactHandler: ContactHandler? = null,
 ) : ChatThread() {
     override fun toString() = buildString {
         append("ChatThread(id=")
@@ -58,6 +60,8 @@ internal data class ChatThreadInternal(
         append(hasOnlineAgent)
         append(", contactId=")
         append(contactId)
+        append(", contactHandler=")
+        append(contactHandler)
         append(")")
     }
 }

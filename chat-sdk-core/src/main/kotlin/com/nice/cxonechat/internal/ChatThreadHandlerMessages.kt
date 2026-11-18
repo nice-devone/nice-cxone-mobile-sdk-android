@@ -16,6 +16,7 @@
 package com.nice.cxonechat.internal
 
 import com.nice.cxonechat.ChatThreadHandler
+import com.nice.cxonechat.internal.CaseStatusChangedHandlerActions.staysClosedFor
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.updateWith
 import com.nice.cxonechat.internal.model.ChatThreadMutable
@@ -31,6 +32,7 @@ import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.message.MessageStatus
 import com.nice.cxonechat.message.OutboundMessage.Companion.UnsupportedMessageTypeAnswer
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.thread.ChatThreadState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.mapNotNull
@@ -79,9 +81,14 @@ internal class ChatThreadHandlerMessages(
                 }
                 try {
                     val isDuplicate = thread.messages.contains(message)
+                    val keepsClosed = thread.staysClosedFor(event.contactId)
+                    // A message on a new case reopens a closed thread; a thread the user archived stays archived.
+                    val reopens = thread.threadState === ChatThreadState.Closed && event.threadState !== ChatThreadState.Closed
                     val updated = thread.asCopyable().copy(
-                        contactId = event.contactId,
-                        threadState = event.threadState,
+                        contactId = if (keepsClosed) thread.contactId else event.contactId,
+                        contactHandler = event.contactHandler ?: thread.contactHandler,
+                        threadState = if (keepsClosed) thread.threadState else event.threadState,
+                        canAddMoreMessages = if (keepsClosed) thread.canAddMoreMessages else thread.canAddMoreMessages || reopens,
                         messages = if (isDuplicate) {
                             thread.messages
                         } else {

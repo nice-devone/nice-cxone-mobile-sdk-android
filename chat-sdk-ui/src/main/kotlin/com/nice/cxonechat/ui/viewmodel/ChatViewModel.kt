@@ -20,7 +20,6 @@ import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nice.cxonechat.Chat
-import com.nice.cxonechat.ChatEventHandler
 import com.nice.cxonechat.ChatEventHandlerActions.chatWindowOpen
 import com.nice.cxonechat.ChatInstanceProvider
 import com.nice.cxonechat.ChatMode
@@ -62,11 +61,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.core.annotation.KoinViewModel
 import org.koin.core.annotation.Named
 import org.koin.core.annotation.Provided
 import org.koin.core.qualifier.named
 import org.koin.java.KoinJavaComponent.inject
+import kotlin.time.Duration.Companion.milliseconds
 
 @Suppress("TooManyFunctions")
 @KoinViewModel
@@ -92,9 +93,6 @@ internal class ChatViewModel(
 
     private val threads: ChatThreadsHandler
         get() = chat.threads()
-
-    private val events: ChatEventHandler
-        get() = chat.events()
 
     /** Possible dialog states. */
     sealed interface DialogState {
@@ -228,7 +226,12 @@ internal class ChatViewModel(
                     }
 
                     else -> {
-                        verbose("Pre-chat survey configured, showing survey dialog")
+                        verbose("Pre-chat survey configured, waiting for any pending satisfaction survey first")
+                        // Preparing renders in its own modal window below API 30, which could cover
+                        // the already-showing survey's Cancel control for as long as this waits.
+                        if (selectedThreadRepository.isSatisfactionSurveyShowing) dismissDialog()
+                        selectedThreadRepository.satisfactionSurveyShowingFlow.first { !it }
+                        verbose("Showing pre-chat survey dialog")
                         showDialog(Survey(chatSurvey))
                     }
                 }
@@ -244,20 +247,43 @@ internal class ChatViewModel(
     private suspend fun selectFirstThread(): Boolean = timedScope("selectFirstThread") {
         val currentThread = selectedThreadRepository.chatThreadHandler.get()
 
-        if (currentThread !== NoThread && currentThread.threadState === ChatThreadState.Pending) {
-            verbose("Currently selected thread is pending, recreating handler")
-            selectedThreadRepository.chatThreadHandler = threads.thread(currentThread) // Recreating pending thread handler
-            return true
+        if (currentThread !== NoThread) {
+            if (currentThread.threadState === ChatThreadState.Pending) {
+                verbose("Currently selected thread is pending, recreating handler")
+                selectedThreadRepository.chatThreadHandler = threads.thread(currentThread)
+                return true
+            }
+            // This also runs on every resume, not just "New Conversation" - a thread whose
+            // EndContact was not shown yet (survey still pending/showing) must be left as is.
+            // Once EndContact was shown, its lifecycle is done - resolve a fresh one instead.
+            val endContactAlreadyShown = selectedThreadRepository.withEndContactLock {
+                selectedThreadRepository.getEndContactShownForThread()
+            } == currentThread.id.toString()
+            if (!endContactAlreadyShown) {
+                verbose("Thread is already selected and not fully resolved yet, leaving it as is")
+                return true
+            }
+            verbose("EndContact was already shown for the selected thread, resolving a fresh one")
         }
+
+        // The thread we are trying to replace (null on a genuine cold start, where there is
+        // nothing to be stale yet).
+        val staleThreadId = currentThread.takeIf { it !== NoThread }?.id
 
         verbose("Starting thread list refresh")
         val flow = threads.threadsFlow
         verbose("Triggering threads refresh")
         threads.refresh()
 
-        return flow.first()
-            .filterNot { LiveChat === chatMode && !it.canAddMoreMessages }
-            .firstOrNull()
+        // threadsFlow replays its last (stale) value to a new collector, so without a stale
+        // thread to replace (cold start) take the first emission as-is; otherwise wait for one
+        // that actually differs, instead of racing refresh() with what was already cached.
+        // Bounded: some recovery outcomes (e.g. a suppressed failure, or handleLiveChatRecovered
+        // throwing) never emit at all, which would otherwise wait forever with no way out.
+        return withTimeoutOrNull(THREAD_REFRESH_TIMEOUT) {
+            flow.first { staleThreadId == null || it.firstOrNull()?.id != staleThreadId }
+        }
+            ?.firstOrNull()
             ?.let {
                 verbose("Selecting existing thread with id ${it.id}")
                 selectedThreadRepository.chatThreadHandler = threads.thread(it)
@@ -271,22 +297,53 @@ internal class ChatViewModel(
         }
     }
 
+    /**
+     * Once the chat is Ready, adds the customer custom fields and reports `chatWindowOpen()`, which can trigger the
+     * welcome message; a chat replaced meanwhile (e.g. by `signOut()`) is skipped, best effort.
+     *
+     * It waits for Ready, not just Prepared, or the backend drops the welcome message trigger. The fields go first, so a
+     * message sent during the report carries them. A repeated call replaces the pending one, so a resume is reported
+     * once, and [cancelReportOnResume] stops it, including a request in flight.
+     */
     internal fun reportOnResume() = scope("reportOnResume") {
-        // A prior call's wait for Ready may still be pending (e.g. a config change, or Home then
-        // back before Ready) — cancel it so chatWindowOpen() isn't reported more than once for the
-        // same resume. onPause() also cancels this via cancelReportOnResume().
         reportOnResumeJob?.cancel()
         reportOnResumeJob = viewModelScope.launch(Dispatchers.IO) {
             duration {
-                // Must wait for Ready, not just Prepared/Connecting, or the backend drops the
-                // proactive WelcomeMessage trigger silently.
                 chatStateViewModel.state.first { it === ChatState.Ready }
-                events.chatWindowOpen()
-                val extraCustomValues = uiCustomerFieldsProvider.customFields()
-                if (extraCustomValues.isNotEmpty()) {
-                    chat.customFields().add(extraCustomValues)
-                }
+                val reportingChat = chatProvider.chat ?: return@duration
+                addCustomerFields(reportingChat)
+                // A replaced chat is closed: reporting to it could refresh the token of the cleared session.
+                if (chatProvider.chat !== reportingChat) return@duration
+                reportChatWindowOpen(reportingChat)
             }
+        }
+    }
+
+    /**
+     * Skips a chat replaced meanwhile (signOut()): the fields belong to the session they were read for.
+     * Best effort — the chat can still be replaced between the check and add().
+     */
+    private fun addCustomerFields(reportingChat: Chat) {
+        try {
+            val extraCustomValues = uiCustomerFieldsProvider.customFields()
+            if (extraCustomValues.isNotEmpty() && chatProvider.chat === reportingChat) {
+                reportingChat.customFields().add(extraCustomValues)
+            }
+        } catch (expected: CancellationException) {
+            throw expected // a provider signalling cancellation ends the report, as a cancelled request does
+        } catch (logged: Exception) {
+            warning("Failed to add the customer custom fields", logged)
+        }
+    }
+
+    /** A failed report is logged rather than left to crash the app; a cancelled one ends quietly. */
+    private suspend fun reportChatWindowOpen(reportingChat: Chat) {
+        try {
+            reportingChat.events().chatWindowOpen()
+        } catch (expected: CancellationException) {
+            throw expected
+        } catch (logged: Exception) {
+            warning("Failed to report the chat window open", logged)
         }
     }
 
@@ -357,5 +414,10 @@ internal class ChatViewModel(
         withContext(NonCancellable) {
             chatProvider.closeSuspending()
         }
+    }
+
+    internal companion object {
+        /** Mirrors ChatThreadsHandlerMulti.METADATA_LOAD_TIMEOUT for a similar recovery wait. */
+        val THREAD_REFRESH_TIMEOUT = 30_000L.milliseconds
     }
 }

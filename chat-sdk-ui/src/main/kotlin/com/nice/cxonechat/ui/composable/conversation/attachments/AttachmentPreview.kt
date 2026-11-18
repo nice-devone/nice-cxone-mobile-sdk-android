@@ -122,6 +122,7 @@ internal fun AttachmentFramedSmallPreview(
     attachment: Attachment,
     isGroupAttachment: Boolean,
     modifier: Modifier = Modifier,
+    thumbnailSize: ThumbnailSize = ThumbnailSize.SMALL,
 ) {
     ChatTheme.ShapedFrame(
         modifier = modifier,
@@ -130,7 +131,7 @@ internal fun AttachmentFramedSmallPreview(
         content = {
             AttachmentPreview(
                 attachment = attachment,
-                thumbnailSize = ThumbnailSize.SMALL,
+                thumbnailSize = thumbnailSize,
                 isGroupAttachment = isGroupAttachment,
             )
         },
@@ -183,6 +184,7 @@ internal fun AttachmentPreview(
             attachment = attachment,
             modifier = modifier,
             isGroupAttachment = isGroupAttachment,
+            thumbnailSize = thumbnailSize,
             contentDescription = contentDescriptionText,
             showFrame = showFrame,
         )
@@ -204,10 +206,13 @@ internal fun String?.toPreviewType(thumbnailSize: ThumbnailSize): PreviewType = 
     this == null -> PreviewType.PLACEHOLDER
     this.startsWith("image/", ignoreCase = true) -> PreviewType.IMAGE
     this.startsWith("video/", ignoreCase = true) -> PreviewType.VIDEO
-    this.startsWith("audio/", ignoreCase = true) && thumbnailSize != ThumbnailSize.SMALL -> PreviewType.AUDIO
+    this.startsWith("audio/", ignoreCase = true) && thumbnailSize !in stagedThumbnailSizes -> PreviewType.AUDIO
     this.startsWith("application/pdf", ignoreCase = true) -> PreviewType.PDF
     else -> PreviewType.FILE
 }
+
+/** Sizes drawn for attachments staged before upload, where audio shows as a file rather than a player. */
+private val stagedThumbnailSizes = setOf(ThumbnailSize.SMALL, ThumbnailSize.COMPACT)
 
 internal enum class PreviewType {
     /** Generic file preview with extension. */

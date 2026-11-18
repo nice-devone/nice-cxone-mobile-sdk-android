@@ -24,11 +24,12 @@ import kotlin.time.Instant
 
 @Serializable
 internal data class TransactionTokenModel(
+    // Absent on a refresh-token-grant response, which only populates [thirdParty].
     @SerialName("accessToken")
-    val transactionToken: String,
+    val transactionToken: String? = null,
 
     @SerialName("expiresIn")
-    val expiresIn: Long,
+    val expiresIn: Long? = null,
 
     @SerialName("customerIdentity")
     val customerIdentity: CustomerIdentityModel? = null,
@@ -41,9 +42,10 @@ internal data class TransactionTokenModel(
     val createdAt: Instant = Clock.System.now(),
 ) {
     @Transient
-    val expiresAt: Instant = createdAt + expiresIn.seconds
+    val expiresAt: Instant? = expiresIn?.let { createdAt + it.seconds }
 
-    /** Whether the token has expired or not. */
+    /** Whether the token has expired or not. A response with no transaction token (e.g. a
+     * refresh-token-grant response, which only populates [thirdParty]) is treated as expired. */
     val isExpired: Boolean
-        get() = Clock.System.now() >= expiresAt
+        get() = transactionToken == null || expiresAt?.let { Clock.System.now() >= it } ?: true
 }

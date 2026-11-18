@@ -20,8 +20,8 @@ For this case study we will need following extra libraries, apart from the Chat 
 
 ```groovy
 dependencies {
-    implementation "androidx.lifecycle:lifecycle-common:2.6.2"
-    implementation "androidx.startup:startup-runtime:1.1.1"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:<latest-version>" // provides lifecycleScope
+    implementation "androidx.startup:startup-runtime:<latest-version>"
 }
 ```
 ## Creating & binding the `ChatInstanceProvider`
@@ -33,15 +33,20 @@ using the `androidx.startup` library.
 ```kotlin
 class ChatInitializer : Initializer<ChatInstanceProvider> {
     override fun create(context: Context) = ChatInstanceProvider.create(
-        context,
-        BuildConfig.CXoneRegion.let(CXoneEnvironment::valueOf).value,
-        BuildConfig.CXoneBrandId,
-        BuildConfig.CXoneChannelId
+        configuration = SocketFactoryConfiguration(
+            environment = BuildConfig.CXoneRegion.let(CXoneEnvironment::valueOf).value,
+            brandId = BuildConfig.CXoneBrandId, // Long
+            channelId = BuildConfig.CXoneChannelId,
+        )
     )
 
     override fun dependencies() = emptyList()
 }
 ```
+
+> [!NOTE]
+> `create()` does not take a `Context`. The provider receives one later, when you call
+> `prepare(context)` from the `Initial` state — see `onStart` and `onChatStateChanged` below.
 
 ### `AndroidManifest.xml`
 
@@ -75,14 +80,40 @@ The connection can also be lost because of other reasons, like dropped network c
 this, you should register a `ChatInstanceProvider.Listener`, so your application will
 be notified when the network socket connection needs to be reestablished.
 
+`closeSuspending()` closes the web sockets and returns the state to `Prepared`; the next `connect()` transparently
+rebuilds the `Chat` instance. Call it from a coroutine — the blocking `close()` variant is annotated `@WorkerThread` and
+must not be called from a lifecycle callback on the main thread.
+
+Close only a provider that has a `Chat` to close, and use `cancel()` for one that does not. `closeSuspending()` advances
+to `Prepared` whether or not it found a `Chat`, so calling it while `Initial` or `Preparing` cancels the build in flight
+and arrives at `Prepared` holding nothing: `connect()` then returns silently and `prepare()` is refused, stranding the
+provider for the life of the process. `cancel()` returns `Preparing` to `Initial`, so the next `onStart()` can prepare
+again. The window is not narrow — preparation takes a moment (see the note below), and a rotation inside it delivers
+`onStop()`.
+
+`SdkNotSupported` needs the same handling for a different reason. It is terminal and it also holds no `Chat`, so closing
+it strands no session — it discards the only record that the backend refused this SDK version, replacing it with a
+`Prepared` the provider can never act on. `cancel()` leaves it standing, which is what you want: nothing recovers it, so
+the state has to survive until the user updates the app.
+
+Wrap the call in `NonCancellable`. `lifecycleScope` is cancelled at `ON_DESTROY`, which can arrive while the close is
+still draining pending storage and cookie writes. A close cut short there leaves the provider's state where it was
+instead of back at `Prepared`, holding a `Chat` the provider will not rebuild — so no later `connect()` recovers the
+session. The close must therefore outlive the scope that started it.
+
+Close from `onStop()`, as the UI module's own `ChatActivity` does. `onPause()` also fires for transient interruptions — a
+permission dialog, split-screen focus loss, another activity opened for a result — and a close that cannot be abandoned
+would end a session the user is about to come back to. `onDestroy()` is too late: the scope is cancelled by then, so the
+coroutine never runs and `NonCancellable` protects nothing.
+
 > [!NOTE]
-> `ChatInstanceProvider.Listener` reports the provider's 8-state `ChatState` (the recommended way to
+> `ChatInstanceProvider.Listener` reports the provider's `ChatState` (the recommended way to
 > manage the chat lifecycle across process transitions). If you work with a `Chat` instance directly
 > — without the provider — observe its coroutine-native `Chat.stateFlow: SharedFlow<ChatStateEvent>`
 > instead. See the [Coroutine API migration guide](../migration/MIGRATION_COROUTINE_API.md).
 
 > Note that initialization may take about 2 seconds to fetch and resolve the instance. It's not
-> immediately available after resume!
+> immediately available once the activity starts!
 
 The CXone Chat SDK provides `com.nice.cxonechat.ChatInstanceProvider` to help with this process.
 
@@ -101,14 +132,17 @@ class ChatActivity : AppCompatActivity(R.layout.activity_chat) {
         chatInstanceProvider = ChatInstanceProvider.get()
     }
 
-    override fun onResume() {
-        super.onResume()
-    }
+    override fun onStop() {
+        super.onStop()
 
-    override fun onPause() {
-        super.onPause()
-
-        chatInstanceProvider?.stop()
+        val provider = chatInstanceProvider ?: return
+        when (provider.chatState) {
+            // Nothing to close: no Chat has been built yet, or the build was refused.
+            Initial, Preparing, SdkNotSupported -> provider.cancel()
+            else -> lifecycleScope.launch {
+                withContext(NonCancellable) { provider.closeSuspending() }
+            }
+        }
     }
 }
 ```
@@ -120,28 +154,42 @@ We can now expand our previous implementation of `ChatActivity` to include the `
 class ChatActivity : AppCompatActivity(R.layout.activity_chat), ChatInstanceProvider.Listener {
 
     private var chatInstanceProvider: ChatInstanceProvider? = null
+    private var chatStateSnackbar: Snackbar? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         chatInstanceProvider = ChatInstanceProvider.get()
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun onStart() {
+        super.onStart()
 
         val provider = chatInstanceProvider ?: return
         provider.addListener(this)
-        val chatState = provider.chatState
-        if (chatState === Prepared || chatState === ConnectionLost) {
-            provider.connect()
+        // addListener does not replay the current state, so the state on arrival has to be acted on
+        // here. On the first start of a process that is still Initial, nothing else will call prepare.
+        when (provider.chatState) {
+            Initial -> provider.prepare(this)
+            Prepared, ConnectionLost -> provider.connect()
+            // Terminal, and no further callback announces it, so restore the UI here after a rotation.
+            SdkNotSupported -> showSdkNotSupported()
+            else -> Unit // a prepare or connect is already in flight; the listener reports the result
         }
     }
 
-    override fun onPause() {
-        super.onPause()
+    override fun onStop() {
+        super.onStop()
 
-        chatInstanceProvider?.stop()
-        chatInstanceProvider?.removeListener(this)
+        val provider = chatInstanceProvider ?: return
+        provider.removeListener(this)
+        when (provider.chatState) {
+            // Cancelling returns Preparing to Initial, so the onStart above can prepare again, and
+            // leaves SdkNotSupported standing so that onStart still sees the refusal.
+            Initial, Preparing, SdkNotSupported -> provider.cancel()
+            else -> lifecycleScope.launch {
+                withContext(NonCancellable) { provider.closeSuspending() }
+            }
+        }
     }
 
     override fun onChatStateChanged(chatState: ChatState) {
@@ -162,12 +210,12 @@ class ChatActivity : AppCompatActivity(R.layout.activity_chat), ChatInstanceProv
                 // Show loading spinner or similar UI
             }
             Connected -> chatStateSnackbar = Snackbar.make(
-                Window.DecorView.RootView,
+                window.decorView.rootView,
                 "Chat SDK connected",
                 Snackbar.LENGTH_SHORT
             ).apply(Snackbar::show)
             Ready -> chatStateSnackbar = Snackbar.make(
-                Window.DecorView.RootView,
+                window.decorView.rootView,
                 "Chat SDK is ready",
                 Snackbar.LENGTH_SHORT
             ).apply(Snackbar::show)
@@ -175,13 +223,23 @@ class ChatActivity : AppCompatActivity(R.layout.activity_chat), ChatInstanceProv
                 // Show UI informing user that the Chat is not available, because the service is offline
             }
             ConnectionLost -> chatStateSnackbar = Snackbar.make(
-                Window.DecorView.RootView,
+                window.decorView.rootView,
                 "Chat SDK connection lost",
                 Snackbar.LENGTH_INDEFINITE
             ).setAction("Reconnect") {
                 chatInstanceProvider?.connect()
             }.apply(Snackbar::show)
+            SdkNotSupported -> showSdkNotSupported()
         }
+    }
+
+    // Neither prepare() nor connect() recovers this state, so offer an update rather than a retry.
+    private fun showSdkNotSupported() {
+        chatStateSnackbar = Snackbar.make(
+            window.decorView.rootView,
+            "This app version is no longer supported, please update",
+            Snackbar.LENGTH_INDEFINITE
+        ).apply(Snackbar::show)
     }
 
     companion object {

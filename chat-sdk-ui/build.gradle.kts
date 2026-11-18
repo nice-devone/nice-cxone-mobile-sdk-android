@@ -60,6 +60,29 @@ android {
             isIncludeAndroidResources = true
             all {
                 it.systemProperties["robolectric.pixelCopyRenderMode"] = "hardware"
+                // Screenshot goldens hold formatted dates and times, and the formatters are process-scoped
+                // ThreadLocals that freeze the zone and locale at construction, so a @Before pin cannot
+                // reach them. Set the JVM defaults instead, before anything is built.
+                it.systemProperties["user.timezone"] = "UTC"
+                it.systemProperties["user.language"] = "en"
+                it.systemProperties["user.country"] = "US"
+                // Forks are separate JVMs, so org.gradle.jvmargs never reaches them and they would take
+                // Gradle's 512m default. Only this module renders Compose through a Robolectric runtime, and
+                // the aggregate test task runs modules in parallel, so this stays off the other eight.
+                it.maxHeapSize = "2g"
+                // running tests on Java 17 or higher, the JVM requires --add-opens flags
+                // so that Robolectric can access internal OpenJDK classes and APIs
+                it.jvmArgs(
+                    "--add-opens=java.base/java.lang=ALL-UNNAMED",
+                    "--add-opens=java.base/java.util=ALL-UNNAMED",
+                    "--add-opens=java.base/java.io=ALL-UNNAMED",
+                    "--add-opens=java.base/java.net=ALL-UNNAMED",
+                    "--add-opens=java.base/java.security=ALL-UNNAMED",
+                    "--add-opens=java.base/java.text=ALL-UNNAMED",
+                    "--add-opens=java.base/jdk.internal.access=ALL-UNNAMED",
+                    "--add-opens=java.desktop/java.awt.font=ALL-UNNAMED",
+                    "--add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+                )
             }
         }
         managedDevices {
@@ -84,6 +107,8 @@ android {
 dependencies {
     // Chat Activity is public API
     api(libs.androidx.compose.activity)
+    // api, so the published api variant carries a version for the two Koin artifacts below
+    api(platform(libs.koin.bom))
     api(libs.koin.android)
     api(libs.koin.annotations)
     // Handling of push notification sent via FCM
@@ -140,6 +165,9 @@ dependencies {
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.androidx.emoji.bundled)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
+    testImplementation(libs.coil.test)
+    testImplementation(libs.media.test.utils)
 
     androidTestImplementation(libs.androidx.emoji.bundled)
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

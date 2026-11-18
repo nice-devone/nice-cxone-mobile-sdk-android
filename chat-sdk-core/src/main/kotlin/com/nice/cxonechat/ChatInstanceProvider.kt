@@ -353,10 +353,12 @@ class ChatInstanceProvider private constructor(
 
     /**
      * Builds a new [Chat] instance, replaying the provider's credentials and settings into the
-     * builder. Used both by [prepare] (fresh configuration fetch) and by per-session rebuilds in
-     * [doConnect] (which reuse the configuration fetched at prepare time via
-     * [ChannelConfigurationCache] — the getChannel REST call is costly and its result is fixed for
-     * the lifetime of a prepared provider).
+     * builder. Used both by [prepare], whose configuration fetch is cache-first but still bounded by
+     * [ChannelConfigurationCache]'s TTL (so a prepare() shortly after another one can reuse a still-fresh
+     * entry instead of hitting the backend again), and by per-session rebuilds in [doConnect], which
+     * reuse the configuration fetched at prepare time regardless of that TTL — the getChannel REST
+     * call is costly and its result is fixed for the lifetime of a prepared provider, so a rebuild
+     * should never need the network for it.
      */
     @Suppress("DEPRECATION")
     private suspend fun buildChat(

@@ -23,14 +23,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons.Filled
-import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.Icons.Outlined
+import androidx.compose.material.icons.outlined.Archive
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,6 +54,7 @@ import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nice.cxonechat.ui.AttachmentType
@@ -62,8 +63,11 @@ import com.nice.cxonechat.ui.composable.conversation.model.ConversationUiState
 import com.nice.cxonechat.ui.composable.conversation.model.PreviewMessageProvider
 import com.nice.cxonechat.ui.composable.conversation.model.Section
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.Scaffold
+import com.nice.cxonechat.ui.composable.theme.wideScreenHorizontalPadding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -78,7 +82,6 @@ import kotlinx.coroutines.launch
  * @param modifier Optional [Modifier] for [Scaffold] surrounding the conversation view.
  * @param onError Action invoked when an error occurs. The string parameter is a user friendly error message.
  * @param showMessageProcessing Whether to show the message processing indicator.
- * @param snackBarHostState The state of the snackbar host to show snackbars for errors and other information.
  */
 @Composable
 internal fun ChatConversation(
@@ -88,12 +91,13 @@ internal fun ChatConversation(
     modifier: Modifier = Modifier,
     onError: (String) -> Unit,
     showMessageProcessing: Boolean,
-    snackBarHostState: SnackbarHostState,
 ) {
     val scrollState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val messages = conversationState.messages(context).collectAsStateWithLifecycle(initialValue = emptyList()).value
+
+    val horizontalPadding: Dp = wideScreenHorizontalPadding()
 
     LaunchedEffect(messages) {
         if (scrollState.firstVisibleItemIndex <= 1) { // Only autoscroll if user is on last message
@@ -104,7 +108,7 @@ internal fun ChatConversation(
 
     Column(
         modifier = modifier
-            .background(color = ChatTheme.chatColors.token.background.default)
+            .background(color = chatColors.token.background.default)
             .testTag("chat_conversation_column")
             .fillMaxSize()
             .semantics {
@@ -115,13 +119,13 @@ internal fun ChatConversation(
             messages,
             conversation = conversationState,
             scrollState = scrollState,
+            horizontalPadding = horizontalPadding,
             modifier = Modifier
                 .testTag("message_list_view")
                 .weight(1f)
                 .semantics {
                     traversalIndex = 0f
                 },
-            snackBarHostState = snackBarHostState
         )
         UserInputView(
             conversationState = conversationState,
@@ -131,6 +135,7 @@ internal fun ChatConversation(
             onAttachmentTypeSelection = onAttachmentTypeSelection,
             showMessageProcessing = showMessageProcessing,
             onError = onError,
+            horizontalPadding = horizontalPadding,
             modifier = Modifier.semantics {
                 traversalIndex = 1f
             }
@@ -144,6 +149,7 @@ private fun UserInputView(
     scope: CoroutineScope,
     scrollState: LazyListState,
     audioRecordingState: AudioRecordingUiState,
+    horizontalPadding: Dp,
     modifier: Modifier = Modifier,
     onAttachmentTypeSelection: (attachmentType: AttachmentType) -> Unit,
     onError: (String) -> Unit,
@@ -162,6 +168,7 @@ private fun UserInputView(
             modifier = Modifier
                 .testTag("user_input")
                 .then(modifier),
+            horizontalPadding = horizontalPadding,
             showMessageProcessing = showMessageProcessing,
             onError = onError
         )
@@ -169,37 +176,37 @@ private fun UserInputView(
         val archiveMessage = stringResource(
             if (conversationState.isLiveChat) string.label_livechat_thread_archived else string.label_thread_archived
         )
+        HorizontalDivider(color = chatColors.token.border.default)
         Box(
             contentAlignment = Alignment.Center,
             modifier = modifier
                 .fillMaxWidth()
+                .height(space.archivedInfoBarHeight)
                 .semantics {
                     contentDescription = archiveMessage
                     testTag = "archived_info_box"
                 }
-                .background(ChatTheme.chatColors.token.background.surface.variant)
+                .background(chatColors.token.background.default)
         ) {
             Row(
-                horizontalArrangement = Arrangement.Center,
+                horizontalArrangement = Arrangement.spacedBy(space.medium),
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .padding(4.dp)
-                    .testTag("archived_info_row")
+                modifier = Modifier.testTag("archived_info_row")
             ) {
                 Icon(
-                    imageVector = Filled.Archive,
+                    imageVector = Outlined.Archive,
                     contentDescription = null,
-                    tint = ChatTheme.chatColors.token.content.primary,
+                    tint = chatColors.token.content.tertiary,
                     modifier = Modifier
                         .testTag("archive_icon")
-                        .padding(end = space.small)
                 )
                 Text(
                     text = archiveMessage,
+                    style = chatTypography.archivedInfoBarText,
                     modifier = Modifier.semantics {
                         hideFromAccessibility()
                     },
-                    color = ChatTheme.chatColors.token.content.primary
+                    color = chatColors.token.content.tertiary
                 )
             }
         }
@@ -212,7 +219,7 @@ internal fun MessageListView(
     conversation: ConversationUiState,
     scrollState: LazyListState,
     modifier: Modifier = Modifier,
-    snackBarHostState: SnackbarHostState,
+    horizontalPadding: Dp = 0.dp,
 ) {
     val canLoadMore = conversation.canLoadMore.collectAsStateWithLifecycle().value
     val agentDetails = conversation.agentTyping.collectAsStateWithLifecycle(null).value
@@ -250,7 +257,7 @@ internal fun MessageListView(
                 onMoreClicked = conversation.onMoreClicked,
                 onTimePickerSelected = conversation.onTimeSlotSelected,
                 onShare = conversation.onShare,
-                snackBarHostState = snackBarHostState,
+                horizontalPadding = horizontalPadding,
             )
         }
     }
@@ -268,7 +275,6 @@ private fun PreviewChat() {
             messages = conversation.messages(context).collectAsState(initial = emptyList()).value,
             scrollState = scrollState,
             conversation = conversation,
-            snackBarHostState = SnackbarHostState(),
         )
     }
 }
@@ -285,7 +291,6 @@ private fun PreviewChatMessageInput() {
                 onAttachmentTypeSelection = {},
                 showMessageProcessing = false,
                 onError = {},
-                snackBarHostState = SnackbarHostState(),
             )
         }
     }

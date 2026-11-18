@@ -26,7 +26,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,6 +40,8 @@ import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.message.MessageDirection
 import com.nice.cxonechat.message.MessageDirection.ToAgent
@@ -61,6 +62,12 @@ import com.nice.cxonechat.ui.domain.model.Person
 import com.nice.cxonechat.ui.util.preview.message.toPerson
 import java.util.UUID
 
+/**
+ * The conversation's messages, newest first.
+ *
+ * [horizontalPadding] is a wide-screen content inset which replaces the compact one rather than adding to it:
+ * the wide design frame puts the column at the inset itself, so a caller passing none still gets the compact 16dp.
+ */
 @Suppress("LongMethod")
 @Composable
 internal fun ColumnScope.Messages(
@@ -71,11 +78,11 @@ internal fun ColumnScope.Messages(
     agentIsTyping: Boolean,
     agentDetails: Person?,
     modifier: Modifier = Modifier,
+    horizontalPadding: Dp = 0.dp,
     onAttachmentClicked: (Attachment) -> Unit,
     onMoreClicked: (List<Attachment>) -> Unit,
     onShare: (Collection<Attachment>) -> Unit,
     onTimePickerSelected: (TimeSlot, String) -> Unit,
-    snackBarHostState: SnackbarHostState,
 ) {
     LaunchedEffect(agentIsTyping) {
         if (agentIsTyping) {
@@ -96,10 +103,10 @@ internal fun ColumnScope.Messages(
         modifier = modifier
             .testTag("messages")
             .weight(1f)
-            .padding(horizontal = space.medium)
+            .padding(horizontal = maxOf(horizontalPadding, space.large))
             .fillMaxSize()
             .semantics { isTraversalGroup = true },
-        contentPadding = PaddingValues(space.medium),
+        contentPadding = PaddingValues(vertical = space.medium),
     ) {
         // Typing indicator (should be read first)
         if (agentIsTyping && agentDetails != null) {
@@ -177,7 +184,6 @@ internal fun ColumnScope.Messages(
                         .testTag("message_item_$position")
                         .fillParentMaxWidth()
                         .animateItem(),
-                    snackBarHostState = snackBarHostState,
                 )
             }
 
@@ -316,7 +322,6 @@ private fun MessagesPreview() {
                 onAttachmentClicked = {},
                 onMoreClicked = { _ -> },
                 onShare = {},
-                snackBarHostState = SnackbarHostState(),
                 onTimePickerSelected = { _, _ -> },
             )
         }

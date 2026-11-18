@@ -34,6 +34,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
@@ -221,6 +222,35 @@ internal class ChatThreadEventHandlerCoroutineWrapperTest {
 
         assertIs<CXoneException>(receivedError.get())
         wrapper.close()
+    }
+
+    @Test
+    fun `triggerAsync after close synthesizes onError synchronously`() = runTest {
+        val handler = mockk<ChatThreadEventHandler>()
+        val event = mockk<ChatThreadEvent>()
+        coEvery { handler.trigger(event) } returns null
+        val wrapper = ChatThreadEventHandlerCoroutineWrapper(handler, this)
+        val received = AtomicReference<CXoneException?>(null)
+        val onSuccessCalled = AtomicBoolean(false)
+
+        wrapper.close()
+        wrapper.triggerAsync(
+            event,
+            onSuccess = { onSuccessCalled.set(true) },
+            onError = { received.set(it) },
+        )
+
+        // onError must be dispatched synchronously on the calling thread before triggerAsync returns.
+        // Assert the message, not just the type: the generic catch-all in this wrapper also
+        // produces an InternalError, so a type-only check could not tell the closed-scope guard
+        // from an unrelated failure that happened to be wrapped the same way.
+        val error = assertIs<InternalError>(received.get())
+        assertEquals(WRAPPER_CLOSED_MESSAGE, error.message)
+        assertFalse(onSuccessCalled.get())
+
+        // Drain the scheduler to confirm no late onSuccess is delivered asynchronously.
+        advanceUntilIdle()
+        assertFalse(onSuccessCalled.get())
     }
 
     // --- Error callback tests for all *Async methods ---

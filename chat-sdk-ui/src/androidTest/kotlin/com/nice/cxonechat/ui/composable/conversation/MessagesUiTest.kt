@@ -18,7 +18,6 @@ package com.nice.cxonechat.ui.composable.conversation
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
@@ -70,7 +69,6 @@ class MessagesUiTest : AbstractComponentActivityUiTest() {
                     onMoreClicked = {},
                     onShare = {},
                     modifier = Modifier,
-                    snackBarHostState = SnackbarHostState(),
                     onTimePickerSelected = { _, _ -> },
                 )
             }
@@ -96,7 +94,6 @@ class MessagesUiTest : AbstractComponentActivityUiTest() {
                     onMoreClicked = {},
                     onShare = {},
                     modifier = Modifier,
-                    snackBarHostState = SnackbarHostState(),
                     onTimePickerSelected = { _, _ -> },
                 )
             }
@@ -120,7 +117,6 @@ class MessagesUiTest : AbstractComponentActivityUiTest() {
                     onMoreClicked = {},
                     onShare = {},
                     modifier = Modifier,
-                    snackBarHostState = SnackbarHostState(),
                     onTimePickerSelected = { _, _ -> },
                 )
             }

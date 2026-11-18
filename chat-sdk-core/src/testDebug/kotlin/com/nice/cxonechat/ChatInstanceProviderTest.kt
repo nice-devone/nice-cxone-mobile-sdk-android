@@ -823,6 +823,30 @@ internal class ChatInstanceProviderTest {
         verify { listener.onChatStateChanged(Initial) }
     }
 
+    /**
+     * Regression test: [ChatInstanceProvider.signOut] wraps the delegated [Chat.signOut] in
+     * try/finally so that [ChatInstanceProvider.advanceState] always reaches Initial — even when
+     * the underlying suspend signOut throws (e.g. IOException during storage/cookie persistence).
+     * Without the finally, a failure would leave the provider stuck in a stale, non-Initial state,
+     * blocking every subsequent [ChatInstanceProvider.prepare] or [ChatInstanceProvider.connect].
+     */
+    @Test
+    fun `signOut advances state to Initial even when chat signOut throws`() = runTest(testDispatcher) {
+        val (provider) = provider(socketFactoryConfiguration)
+        provider.prepare(applicationContext)
+        advanceUntilIdle()
+        val chat = requireNotNull(provider.chat)
+        coEvery { chat.signOut() } throws IOException("storage write failed")
+
+        // signOut() propagates the IOException after its finally block runs.
+        try {
+            provider.signOut()
+        } catch (_: IOException) {
+        }
+
+        assertEquals(Initial, provider.chatState)
+    }
+
     @Test
     fun createReplacesSingleton() {
         val instance1 = ChatInstanceProvider.create(socketFactoryConfiguration)
@@ -1150,10 +1174,11 @@ internal class ChatInstanceProviderTest {
     @Test
     fun `onConnected called from within connect coroutine does not cancel it`() {
         val provider =
-            provider(onConnected = { listener ->
-                listener?.onConnected()
-                listener?.onReady() // Only runs if the connect coroutine was not cancelled by advanceState
-            }
+            provider(
+                onConnected = { listener ->
+                    listener?.onConnected()
+                    listener?.onReady() // Only runs if the connect coroutine was not cancelled by advanceState
+                }
             ).first
         val chatListener = mockk<Listener>(relaxUnitFun = true)
         provider.addListener(chatListener)
@@ -1340,6 +1365,29 @@ internal class ChatInstanceProviderTest {
         provider.signOut()
 
         assertNull(provider.customerId, "customerId must be null after signOut")
+    }
+
+    /**
+     * Regression guard for DE-134357: an unavailable LiveChat channel resolves `Offline`
+     * synchronously from inside `connect()` (`ChatLiveChat.connect()` skips the socket and calls
+     * `onReady()` inline), so a late `advanceState(Connecting)` can overwrite it and strand the
+     * provider in `Connecting`. `UnconfinedTestDispatcher` is required to run the connect body
+     * inline and reproduce that ordering; [connectHandlesOffline] asserts the same states on
+     * `StandardTestDispatcher`, which queues the body so `Connecting` always wins and the race is
+     * invisible.
+     */
+    @Test
+    fun `connect when channel is offline with synchronous dispatch leaves provider in Offline state`() {
+        val (provider) = provider(isOnline = false, dispatcher = UnconfinedTestDispatcher()) { it?.onReady() }
+
+        provider.prepare(applicationContext)
+        provider.connect()
+
+        assertEquals(
+            Offline,
+            provider.chatState,
+            "Offline resolved inside connect() must not be overwritten by the Connecting transition",
+        )
     }
 
     companion object {

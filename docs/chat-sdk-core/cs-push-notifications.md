@@ -88,7 +88,7 @@ messaging token, after SDK is initialized in order for proper push message suppo
 
 ```kotlin
     // context and config are left out for briefness.
-    // build() is a suspend function — call it from a coroutine.
+    // ChatBuilder(...) and build() are both suspend functions — call them from a coroutine.
     scope.launch {
         val builder = ChatBuilder(context = context, config = socketFactoryConfiguration)
         val chat = builder.build()

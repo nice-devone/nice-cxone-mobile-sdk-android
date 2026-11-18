@@ -21,10 +21,13 @@ import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -66,6 +69,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.message.OutboundMessage
 import com.nice.cxonechat.ui.AttachmentType
@@ -78,6 +82,7 @@ import com.nice.cxonechat.ui.composable.generic.AttachmentPickerDialog
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
+import com.nice.cxonechat.ui.composable.theme.isCompactHeightWindow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 
@@ -92,6 +97,8 @@ import kotlinx.coroutines.flow.collectLatest
  * @param onAttachmentTypeSelection Action called when the user has selected an attachment type,
  * which should be retrieved and sent as an attachment message.
  * @param modifier Modifier for visible content. It should supply paddings for navigation and ime keyboard.
+ * @param horizontalPadding Wide-screen inset for the input row and the attachment preview content, replacing
+ * each one's compact side margin rather than adding to it. Never the surface background, which spans the window.
  * @param resetScroll Action invoked when the user closes the keyboard for the text input.
  * @param onError Action invoked when an error occurs. The string parameter is a user friendly error message.
  * @param showMessageProcessing Whether to show the message processing indicator.
@@ -102,6 +109,7 @@ internal fun UserInput(
     audioRecordingUiState: AudioRecordingUiState,
     onAttachmentTypeSelection: (attachmentType: AttachmentType) -> Unit,
     modifier: Modifier = Modifier,
+    horizontalPadding: Dp = 0.dp,
     resetScroll: () -> Unit = {},
     onError: (String) -> Unit,
     showMessageProcessing: Boolean,
@@ -112,6 +120,7 @@ internal fun UserInput(
     modifier = modifier,
     resetScroll = resetScroll,
     initialInputSelector = None,
+    horizontalPadding = horizontalPadding,
     showMessageProcessing = showMessageProcessing,
     onError = onError,
 )
@@ -128,6 +137,7 @@ private fun UserInput(
     modifier: Modifier = Modifier,
     resetScroll: () -> Unit = {},
     initialInputSelector: InputState = None,
+    horizontalPadding: Dp = 0.dp,
     onError: (String) -> Unit,
     showMessageProcessing: Boolean,
 ) {
@@ -191,6 +201,10 @@ private fun UserInput(
         }
     }
 
+    // A keyboard over a short window leaves too little height for the full attachment bar and the input together.
+    @OptIn(ExperimentalLayoutApi::class)
+    val compactAttachments = isCompactHeightWindow() && WindowInsets.isImeVisible
+
     Surface(
         modifier = modifier
             .testTag("user_input")
@@ -207,7 +221,9 @@ private fun UserInput(
             AttachmentPreviewBar(
                 attachments = attachments.value,
                 onAttachmentClick = conversationUiState.onAttachmentClicked,
-                onAttachmentRemoved = conversationUiState.onRemovePendingAttachment
+                onAttachmentRemoved = conversationUiState.onRemovePendingAttachment,
+                horizontalPadding = horizontalPadding,
+                compact = compactAttachments,
             )
             HorizontalDivider(modifier = Modifier.padding(bottom = space.large))
             val sendMessageEnabledState = remember {
@@ -222,9 +238,10 @@ private fun UserInput(
                 }
             }
             Row(
-                modifier = Modifier.semantics(true) {
-                    isTraversalGroup = true
-                }
+                modifier = Modifier
+                    .semantics(true) {
+                        isTraversalGroup = true
+                    }
             ) {
                 UserInputSelector(
                     onSelectorChange = { currentInputSelector = it },
@@ -235,6 +252,7 @@ private fun UserInput(
                     currentInputSelector = currentInputSelector,
                     focusRequester = focusRequester,
                     showMessageProcessing = showMessageProcessing,
+                    horizontalPadding = horizontalPadding,
                     onError = onError,
                 ) {
                     UserInputText(

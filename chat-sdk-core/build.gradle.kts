@@ -48,7 +48,7 @@ android {
     }
 
     sourceSets {
-        getByName("test").resources.srcDir("src/test/assets")
+        getByName("test").resources.directories.add("src/test/assets")
     }
 
     publishing {

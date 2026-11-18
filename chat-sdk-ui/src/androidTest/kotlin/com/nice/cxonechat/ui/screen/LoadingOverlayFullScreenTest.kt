@@ -15,10 +15,12 @@
 
 package com.nice.cxonechat.ui.screen
 
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.tryPerformAccessibilityChecks
 import com.nice.cxonechat.ui.AbstractComponentActivityUiTest
+import com.nice.cxonechat.ui.R.string
 import org.junit.Test
 
 class LoadingOverlayFullScreenTest : AbstractComponentActivityUiTest() {
@@ -27,7 +29,7 @@ class LoadingOverlayFullScreenTest : AbstractComponentActivityUiTest() {
     fun loadingIndicatorIsDisplayedInitially() {
         composeTestRule.setContent {
             LoadingOverlayFullScreen(
-                closeButtonText = "Close chat",
+                closeButtonText = stringResource(string.loading_close_button_text),
                 onClose = {}
             )
         }
@@ -41,7 +43,7 @@ class LoadingOverlayFullScreenTest : AbstractComponentActivityUiTest() {
     fun closeButtonAppearsAfterDelay() {
         composeTestRule.setContent {
             LoadingOverlayFullScreen(
-                closeButtonText = "Close chat",
+                closeButtonText = stringResource(string.loading_close_button_text),
                 onClose = {}
             )
         }

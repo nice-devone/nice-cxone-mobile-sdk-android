@@ -61,8 +61,9 @@ internal class LiveChatOwnMessageIntegrationTest {
             val builder = ChatBuilder(context, config, logger)
                 .setDevelopmentMode(true)
                 .setUserName("de182612", "repro")
-            // A customer stored by an earlier run would recover its thread, whose 2+ messages keep the welcome
-            // monitor from starting, and the test would pass without the fix. Sign out to start as a new customer.
+            // A customer stored by an earlier run would recover its thread, whose 2+ messages skip the welcome check
+            // that once competed with threadFlow, and the test would pass without the fix. Sign out to start as a
+            // new customer.
             builder.build().signOut()
             val chat = builder.build()
             val collectorScope = CoroutineScope(Dispatchers.Default)

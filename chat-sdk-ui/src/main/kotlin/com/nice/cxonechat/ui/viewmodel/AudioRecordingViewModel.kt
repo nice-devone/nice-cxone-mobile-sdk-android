@@ -166,7 +166,7 @@ internal class AudioRecordingViewModel(
     }
 
     override fun onCleared() {
-        viewModelScope.launch { audioRecordingDataSource.stopRecording() }
+        audioRecordingDataSource.release()
         super.onCleared()
     }
 

@@ -23,6 +23,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
@@ -33,7 +35,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.isTraversalGroup
@@ -47,7 +48,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.message.MessageDirection.ToClient
-import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.conversation.attachments.AttachmentPreview
 import com.nice.cxonechat.ui.composable.conversation.model.Message
@@ -59,8 +59,9 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
-import com.nice.cxonechat.ui.util.dsm
+import com.nice.cxonechat.ui.composable.theme.audioCellMaxWidth
 import com.nice.cxonechat.ui.util.mimeTypeToDescription
+import com.nice.cxonechat.ui.util.ofWindowShorterEdge
 import com.nice.cxonechat.ui.util.preview.message.UiSdkText
 import java.util.UUID
 
@@ -170,12 +171,13 @@ internal fun AudioAttachment(
                         traversalIndex = -1f
                     }
             )
-            val maxAttachmentWidth = this.maxWidth.times(0.745f)
             AudioPlayerBasicView(
                 uri = attachment.attachment.url.toUri(),
-                modifier = modifier
+                // Ahead of the caller's padding, so the cap governs the whole cell rather than its content.
+                modifier = Modifier
+                    .widthIn(max = audioCellMaxWidth(this.maxWidth))
+                    .then(modifier)
                     .testTag("audio_player")
-                    .widthIn(min = space.smallAttachmentSize, max = maxAttachmentWidth)
             )
         }
     }
@@ -194,7 +196,7 @@ private fun SingleAttachmentPreview(
         attachment = attachment,
         messageId = messageId,
         modifier = Modifier
-            .size(space.attachmentPreviewRegularWidthPercentage.dsm)
+            .size(space.attachmentPreviewRegularWidthPercentage.ofWindowShorterEdge())
             .semantics(true) {
                 testTag = "attachment_preview_${attachment.url}"
                 contentDescription = contentDescriptionText
@@ -222,15 +224,16 @@ internal fun ShareAttachmentsIcon(contentDescription: String? = null, onClick: (
             .size(34.dp)
             .testTag("share_icon_button"),
     ) {
-        ShareIcon(contentDescription)
+        ShareIcon(contentDescription, Modifier.size(space.attachmentShareIconSize))
     }
 }
 
 @Composable
-internal fun ShareIcon(contentDescription: String? = null) {
+internal fun ShareIcon(contentDescription: String? = null, modifier: Modifier = Modifier) {
     Icon(
-        painter = painterResource(R.drawable.ic_share),
+        imageVector = Icons.Filled.Share,
         contentDescription = contentDescription,
+        modifier = modifier,
     )
 }
 

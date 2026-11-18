@@ -15,11 +15,12 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
-import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertContentDescriptionContains
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -31,9 +32,6 @@ import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.composable.conversation.model.Message
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.util.preview.message.UiSdkUnsupportedMessage
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.mockk
 import org.junit.Test
 
 class UnsupportedMessageTest : AbstractComponentActivityUiTest() {
@@ -49,7 +47,6 @@ class UnsupportedMessageTest : AbstractComponentActivityUiTest() {
                     onAttachmentClicked = {},
                     onMoreClicked = {},
                     onShare = {},
-                    snackBarHostState = SnackbarHostState(),
                 )
             }
         }
@@ -68,33 +65,31 @@ class UnsupportedMessageTest : AbstractComponentActivityUiTest() {
     }
 
     @Test
-    fun unsupportedMessageStatus_displaysIconAndText_andHandlesClick() {
-        val snackBarHostState = mockk<SnackbarHostState> {
-            coEvery { showSnackbar(any(), any(), any(), any()) } returns mockk()
-        }
-
+    fun unsupportedMessageStatus_displaysIconAndText_andShowsTooltipOnClick() {
         composeTestRule.setContent {
             Surface {
-                PreviewMessageItem(
-                    message = Message.Unsupported(UiSdkUnsupportedMessage()),
-                    snackBarHostState = snackBarHostState
-                )
+                PreviewMessageItem(message = Message.Unsupported(UiSdkUnsupportedMessage()))
             }
         }
 
-        // Check icon and text are displayed
-        val messageBody = composeTestRule
-            .onNodeWithTag(TAG_BODY)
-            .assertIsDisplayed()
+        val tooltipText = getString(R.string.unsupported_message)
+        val messageBody = composeTestRule.onNodeWithTag(TAG_BODY).assertIsDisplayed()
         composeTestRule.onNodeWithText(
             composeTestRule.activity.getString(R.string.unsupported_message_status)
         ).assertIsDisplayed()
 
-        // Check click works
+        composeTestRule.onNodeWithText(tooltipText).assertDoesNotExist()
+
         messageBody.performClick()
-        coVerify { snackBarHostState.showSnackbar(any(), any(), any(), any()) }
+
+        // The tooltip animates in its own window, so wait for it to appear, not for idle.
+        composeTestRule.waitUntil {
+            composeTestRule.onAllNodesWithText(tooltipText).fetchSemanticsNodes().isNotEmpty()
+        }
+        composeTestRule.onNodeWithText(tooltipText).assertIsDisplayed()
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Test
     fun fallbackText_fromUser_hasAccessibilityDescription() {
         val testText = "Test unsupported content"
@@ -122,6 +117,7 @@ class UnsupportedMessageTest : AbstractComponentActivityUiTest() {
         node.assertContentDescriptionContains(value = expectedDescription)
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Test
     fun fallbackText_fromAgent_hasAccessibilityDescription() {
         val testText = "Test unsupported agent content"

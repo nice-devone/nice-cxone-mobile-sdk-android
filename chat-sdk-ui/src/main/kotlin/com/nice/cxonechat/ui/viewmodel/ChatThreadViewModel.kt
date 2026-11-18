@@ -25,7 +25,9 @@ import com.nice.cxonechat.ChatThreadEventHandlerActions.sendTranscript
 import com.nice.cxonechat.ChatThreadEventHandlerActions.triggerAction
 import com.nice.cxonechat.ChatThreadEventHandlerActions.typingEnd
 import com.nice.cxonechat.ChatThreadEventHandlerActions.typingStart
+import com.nice.cxonechat.ChatThreadHandler
 import com.nice.cxonechat.EventResponse
+import com.nice.cxonechat.Popup
 import com.nice.cxonechat.exceptions.CXoneException
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerScope
@@ -48,6 +50,7 @@ import com.nice.cxonechat.prechat.PreChatSurvey
 import com.nice.cxonechat.state.Configuration
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState
+import com.nice.cxonechat.thread.ContactHandler
 import com.nice.cxonechat.thread.CustomField
 import com.nice.cxonechat.ui.UiModule
 import com.nice.cxonechat.ui.api.CustomFieldProviderType
@@ -57,14 +60,14 @@ import com.nice.cxonechat.ui.data.repository.SelectedThreadRepository
 import com.nice.cxonechat.ui.data.source.ContentDataSourceList
 import com.nice.cxonechat.ui.data.source.ContentDataSourceList.ContentRequestResult
 import com.nice.cxonechat.ui.data.source.ContentDataSourceList.ContentRequestResult.Error
+import com.nice.cxonechat.ui.data.source.SentAttachmentSeeder
 import com.nice.cxonechat.ui.domain.model.ChatThreadCopy.Companion.copy
 import com.nice.cxonechat.ui.domain.model.CustomValueItemList
 import com.nice.cxonechat.ui.domain.model.NoThread
+import com.nice.cxonechat.ui.domain.model.NoThreadHandler
 import com.nice.cxonechat.ui.domain.model.Person
 import com.nice.cxonechat.ui.domain.model.asPerson
 import com.nice.cxonechat.ui.domain.model.extractStringValues
-import com.nice.cxonechat.ui.storage.ValueStorage
-import com.nice.cxonechat.ui.storage.ValueStorage.StringKey.EndContactShownForThreadKey
 import com.nice.cxonechat.ui.util.isEmpty
 import com.nice.cxonechat.ui.util.preview.message.SdkMessage
 import com.nice.cxonechat.ui.util.preview.message.SdkReplyButton
@@ -79,6 +82,7 @@ import com.nice.cxonechat.utilities.isEmpty
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -96,9 +100,11 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
@@ -128,7 +134,7 @@ internal class ChatThreadViewModel(
     @Provided
     @Named(UiModule.LOGGER_NAME)
     internal val logger: Logger,
-    private val valueStorage: ValueStorage,
+    private val sentAttachmentSeeder: SentAttachmentSeeder,
 ) : ViewModel(), LoggerScope by LoggerScope("ChatThreadViewModel", logger) {
     // The Chat instance is session-scoped and rebuilt by the provider on reconnect, while this
     // ViewModel is activity-scoped and outlives sessions, so it is always reached through
@@ -172,11 +178,14 @@ internal class ChatThreadViewModel(
             if (threadId != it.get().id) {
                 // Reset the cached flow if the thread ID has changed and reset pending attachments when the thread changes.
                 chatThreadCachedFlow.value = NoThread
-                mutablePendingAttachments.value = emptyList()
+                // On Main, so it cannot land between the check and the write in addPendingAttachments.
+                withContext(Dispatchers.Main) { mutablePendingAttachments.value = emptyList() }
                 // Clear the EndContact dialog flag on genuine thread change (not initial setup).
                 // Only relevant for LiveChat mode where the EndContact dialog is used.
                 if (threadId != null && isLiveChat) {
-                    setEndContactShownForThread(null)
+                    selectedThreadRepository.withEndContactLock {
+                        selectedThreadRepository.bestEffortEndContactUpdate { selectedThreadRepository.setEndContactShownForThread(null) }
+                    }
                 }
             }
             threadNameOverride.value = null
@@ -220,6 +229,9 @@ internal class ChatThreadViewModel(
 
     val messages: Flow<List<SdkMessage>> = sentMessagesFlow
         .combine(receivedMessagesFlow) { sentMessageMap, chatUpdatePlusMessageMap ->
+            // Moves the local copies of sent PDFs before the echo is shown, so its preview needs no download. This also
+            // runs when a send registers its copies, so an echo that arrived before that is still adopted.
+            sentAttachmentSeeder.adoptEchoes(chatUpdatePlusMessageMap)
             sentMessageMap.plus(
                 chatUpdatePlusMessageMap
             ).values
@@ -235,15 +247,14 @@ internal class ChatThreadViewModel(
 
     val positionInQueue: StateFlow<Int?> = chatThreadCachedFlow
         .mapLatest { chatThread ->
-            // Hide the overlay whenever an agent is associated with this thread.
-            // The fallback chain (inboxAssignee ?: previousInboxAssignee ?: ownerAssignee)
-            // lives in EventLiveChatThreadRecovered.agent, not in threadAgent itself.
-            // CaseInboxAssigneeChanged never clears threadAgent (it only clears positionInQueue),
-            // so threadAgent remains non-null for the lifetime of the thread once any agent is assigned.
-            if (chatThread.threadAgent != null) null else chatThread.positionInQueue
+            // Hidden while an agent is associated, or while a handler other than CXone holds the contact.
+            if (chatThread.threadAgent != null || chatThread.isHandledByNonCxone) null else chatThread.positionInQueue
         }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
+
+    private val ChatThread.isHandledByNonCxone: Boolean
+        get() = contactHandler != null && contactHandler != ContactHandler.CXone
 
     private val chatMetadataInternalFlow = chatThreadCachedFlow
         .map { chatThread ->
@@ -313,11 +324,22 @@ internal class ChatThreadViewModel(
         .onEach { isArchived ->
             if (isLiveChat) {
                 val currentThreadId = threadId?.toString()
-                if (isArchived && getEndContactShownForThread() != currentThreadId) {
-                    setEndContactShownForThread(currentThreadId)
-                    showEndContactDialog()
-                } else if (!isArchived && EndContact == dialogShown.value) {
-                    dismissDialog()
+                selectedThreadRepository.withEndContactLock {
+                    selectedThreadRepository.bestEffortEndContactUpdate {
+                        val alreadyMarked = selectedThreadRepository.getEndContactShownForThread() == currentThreadId
+                        if (isArchived && !alreadyMarked && !isSatisfactionSurveyShowing()) {
+                            selectedThreadRepository.setEndContactShownForThread(currentThreadId)
+                            // The write above suspends; a survey can arrive while it's in flight. Re-check
+                            // before overwriting it - undo the mark instead so it shows later.
+                            if (isSatisfactionSurveyShowing()) {
+                                selectedThreadRepository.setEndContactShownForThread(null)
+                            } else {
+                                showEndContactDialog()
+                            }
+                        } else if (!isArchived && EndContact == dialogShown.value) {
+                            dismissDialog()
+                        }
+                    }
                 }
             }
         }
@@ -333,6 +355,16 @@ internal class ChatThreadViewModel(
 
     private val showDialog = MutableStateFlow<ConversationDialog>(None)
     val dialogShown = showDialog.asStateFlow()
+
+    // This view model is activity-scoped and outlives navigating back to ThreadList, where
+    // ThreadDialogView (and so this dialog) is not composed - without tracking that, a survey
+    // received while away from this screen would mark itself "showing" with nothing on screen to
+    // show it, blocking ChatThreadsViewModel.createThread()'s wait indefinitely.
+    private val isDialogHostAttached = MutableStateFlow(false)
+
+    // A survey is only ever delivered once, so switching threads and back must restore it rather
+    // than let the thread-switch logic below discard the only copy ever shown.
+    private val pendingSurveysByThread = mutableMapOf<UUID, Popup.SatisfactionSurvey>()
 
     private val _errorEvents = MutableSharedFlow<String>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     val errorEvents: SharedFlow<String> = _errorEvents.asSharedFlow()
@@ -350,20 +382,135 @@ internal class ChatThreadViewModel(
     init {
         viewModelScope.launch {
             chatThreadHandler.collectLatest { handler ->
+                val currentThreadId = handler.get().id
+                // A dialog left over from the previous handler belongs to its thread, not this one;
+                // restore from pendingSurveysByThread instead of only clearing to None, so a survey
+                // already received for this thread is not lost on returning to it.
+                val restoredSurvey = pendingSurveysByThread[currentThreadId]
+                showDialog.value = restoredSurvey
+                    ?.let { ConversationDialog.Popup(popup = it, currentThreadId) }
+                    ?: None
+                if (restoredSurvey != null) {
+                    // isArchived's auto-EndContact can race ahead of this restore and mark the
+                    // thread shown before the survey ever appeared - undo it, same as the fresh
+                    // delivery path below does, or dismissSatisfactionSurvey() would skip EndContact.
+                    selectedThreadRepository.withEndContactLock {
+                        selectedThreadRepository.bestEffortEndContactUpdate {
+                            if (selectedThreadRepository.getEndContactShownForThread() == currentThreadId.toString()) {
+                                selectedThreadRepository.setEndContactShownForThread(null)
+                            }
+                        }
+                    }
+                }
                 // collectLatest cancels this block (and its popup collection) when a new handler
                 // arrives, so switching threads/sessions stops the old popup flow automatically.
-                handler.actions().popupFlow.collect {
-                    showDialog(ConversationDialog.Popup(popup = it, handler.get().id))
+                // A survey consumed in the background (ChatThreadsViewModel.reconcileBackgroundSurveys,
+                // to post a local notification) is stashed in SelectedThreadRepository, since
+                // popupFlow's one-shot delivery means this fresh collection would otherwise never
+                // see it again. Recover it here so opening the thread still shows the dialog.
+                // NonCancellable: a thread switch between takeSurvey() removing the persisted copy
+                // and caching it below would otherwise lose the survey entirely.
+                val recoveredSurvey = withContext(NonCancellable) {
+                    selectedThreadRepository.takeSurvey(handler.get().id)
+                        ?.also { pendingSurveysByThread[currentThreadId] = it }
                 }
+                val popups: Flow<Popup> = if (recoveredSurvey != null) {
+                    merge(flowOf<Popup>(recoveredSurvey), handler.actions().popupFlow)
+                } else {
+                    handler.actions().popupFlow
+                }
+                popups.collect { popup ->
+                    // Captured before publishing below - a handler/session replacement arriving
+                    // while the undo write further down suspends would otherwise cancel this
+                    // collectLatest block before the survey is ever shown.
+                    val wasEndContactShown = popup is Popup.SatisfactionSurvey && EndContact == dialogShown.value
+                    if (popup is Popup.SatisfactionSurvey) {
+                        pendingSurveysByThread[currentThreadId] = popup
+                        if (isDialogHostAttached.value) {
+                            // Set synchronously - the reactive mirror below runs later and a racing
+                            // pre-chat survey check could still see this as false in the gap.
+                            selectedThreadRepository.setSatisfactionSurveyShowing(this@ChatThreadViewModel, true)
+                        }
+                    }
+                    showDialog(ConversationDialog.Popup(popup = popup, currentThreadId))
+                    if (wasEndContactShown) {
+                        // EndContact can win a race and get shown just before the survey arrives
+                        // and overwrites it; undo the mark so dismissSatisfactionSurvey() can
+                        // still show it later. Best-effort now that the survey is already shown.
+                        selectedThreadRepository.withEndContactLock {
+                            selectedThreadRepository.bestEffortEndContactUpdate {
+                                selectedThreadRepository.setEndContactShownForThread(null)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // Mirrors dialogShown and isDialogHostAttached together, so the shared flag self-corrects
+        // on any later transition away from an actually presented survey - a dismissal, a thread
+        // switch, or the dialog host leaving composition - not just the one path that happens to
+        // clear dialogShown explicitly.
+        viewModelScope.launch {
+            combine(dialogShown, isDialogHostAttached) { dialog, attached ->
+                isSatisfactionSurveyShowing(dialog) && attached
+            }.collect { showing ->
+                selectedThreadRepository.setSatisfactionSurveyShowing(this@ChatThreadViewModel, showing)
             }
         }
     }
 
-    private suspend fun getEndContactShownForThread(): String? =
-        valueStorage.getString(EndContactShownForThreadKey).firstOrNull()?.takeIf(String::isNotEmpty)
+    /** Toggled by [ThreadDialogView][com.nice.cxonechat.ui.composable.conversation.ThreadDialogView] as it enters/leaves composition. */
+    internal fun setDialogHostAttached(attached: Boolean) {
+        isDialogHostAttached.value = attached
+    }
 
-    private suspend fun setEndContactShownForThread(shownForThreadId: String?) =
-        valueStorage.setString(EndContactShownForThreadKey, shownForThreadId.orEmpty())
+    /**
+     * If cleared while the survey is showing, the collector above never sees the dialog change
+     * away, leaving the shared flag stuck `true` and blocking every future pre-chat survey wait.
+     */
+    override fun onCleared() {
+        super.onCleared()
+        selectedThreadRepository.setSatisfactionSurveyShowing(this, false)
+    }
+
+    private fun isSatisfactionSurveyShowing(dialog: ConversationDialog = dialogShown.value): Boolean =
+        (dialog as? ConversationDialog.Popup)?.popup is Popup.SatisfactionSurvey
+
+    /**
+     * Dismisses the Satisfaction Survey dialog and, if still archived, shows the End Conversation
+     * Experience that [isArchived]'s auto-show was holding back.
+     */
+    internal fun dismissSatisfactionSurvey() = scope("dismissSatisfactionSurvey") {
+        (dialogShown.value as? ConversationDialog.Popup)?.let { pendingSurveysByThread.remove(it.threadId) }
+        selectedThreadRepository.setSatisfactionSurveyShowing(this@ChatThreadViewModel, false)
+        showDialog.value = None
+        // Reads the handler directly, not isArchived.value: isArchived only updates while
+        // something collects it (e.g. ChatConversation's lifecycle-aware collector), which can
+        // race this dismiss on a background resume and leave isArchived.value stale.
+        if (isLiveChat && !selectedThreadRepository.chatThreadHandler.get().canAddMoreMessages) {
+            viewModelScope.launch { showEndContactAfterDismiss(threadId?.toString()) }
+        }
+    }
+
+    private suspend fun showEndContactAfterDismiss(currentThreadId: String?) {
+        selectedThreadRepository.withEndContactLock {
+            selectedThreadRepository.bestEffortEndContactUpdate {
+                if (selectedThreadRepository.getEndContactShownForThread() != currentThreadId) {
+                    selectedThreadRepository.setEndContactShownForThread(currentThreadId)
+                    // The write above suspends; a survey can arrive, or (this job is activity-scoped
+                    // and outlives the switch) a different thread can become selected, while it's in
+                    // flight. Re-check both - undo the mark instead so it shows later - rather than
+                    // publish EndContact over whichever thread is now on screen.
+                    val stillSelected = selectedThreadRepository.chatThreadHandler.get().id.toString() == currentThreadId
+                    if (isSatisfactionSurveyShowing() || !stillSelected) {
+                        selectedThreadRepository.setEndContactShownForThread(null)
+                    } else {
+                        showDialog.value = EndContact
+                    }
+                }
+            }
+        }
+    }
 
     fun refresh() = timedScope("refresh") {
         viewModelScope.launch {
@@ -413,22 +560,58 @@ internal class ChatThreadViewModel(
         prepareAttachmentsAndTrigger(listOf(attachment)) { contents -> sendAttachments(contents, null) }
     }
 
-    fun addPendingAttachments(attachments: List<Uri>) = timedScope("addPendingAttachments") {
-        prepareAttachmentsAndTrigger(attachments) { contents ->
-            // Combine new attachments with existing ones, avoiding duplicates.
-            val currentAttachments = mutablePendingAttachments.value
-            val newAttachments = contents.filterNot { newAttachment ->
-                currentAttachments.any { existingAttachment -> existingAttachment.url == newAttachment.url }
-            }
-            verbose("New attachments: $newAttachments, existing attachments: $currentAttachments")
+    /**
+     * The session and thread an attachment pick is made for now; pass it to [addPendingAttachments].
+     * The session is read first, so a sign-out between the reads makes the target stale rather than mismatched.
+     */
+    internal fun currentAttachmentTarget(): AttachmentTarget {
+        val generation = selectedThreadRepository.currentSessionGeneration
+        val handler = chatThreadHandler.value.takeUnless { it === NoThreadHandler }
+        return AttachmentTarget(generation, handler, handler?.get()?.id)
+    }
+
+    /**
+     * Whether [target] is still what the composer shows: the session generation is unchanged, and the thread it was
+     * picked for (if one was known yet) is still selected — the same handler (its thread may have been re-assigned an
+     * id) or the same thread under a recreated handler. A re-assigned id followed by a recreated handler matches
+     * neither, so that rare case drops the pick. A failed, cancelled or retried prepare also counts as a new session.
+     */
+    private fun isCurrent(target: AttachmentTarget): Boolean {
+        val selected = chatThreadHandler.value
+        return target.sessionGeneration == selectedThreadRepository.currentSessionGeneration &&
+            (target.handler == null || selected === target.handler || selected.get().id == target.threadId)
+    }
+
+    /**
+     * Adds [attachments] to the composer, unless once they are prepared the composer no longer shows the session
+     * and thread of [target]. A sign-out landing after that check is still covered: the next session's first
+     * thread selection clears the composer.
+     */
+    fun addPendingAttachments(attachments: List<Uri>, target: AttachmentTarget) = timedScope("addPendingAttachments") {
+        prepareAttachmentsAndTrigger(attachments, showErrorsIf = { isCurrent(target) }) { contents ->
             withContext(Dispatchers.Main) { // Assign on main thread to avoid concurrency issues on some devices
+                if (!isCurrent(target)) {
+                    warning("Dropping attachments picked for a session or thread the composer no longer shows")
+                    return@withContext
+                }
+                // Combine new attachments with existing ones, avoiding duplicates.
+                val currentAttachments = mutablePendingAttachments.value
+                val newAttachments = contents.filterNot { newAttachment ->
+                    currentAttachments.any { existingAttachment -> existingAttachment.url == newAttachment.url }
+                }
+                verbose("New attachments: $newAttachments, existing attachments: $currentAttachments")
                 mutablePendingAttachments.value = currentAttachments + newAttachments
             }
         }
     }
 
+    /**
+     * Prepares [attachments], then passes them to [trigger], or shows the preparation errors when [showErrorsIf]
+     * still holds, so a stale pick's errors (which list its file URIs) never reach another session.
+     */
     private fun prepareAttachmentsAndTrigger(
         attachments: List<Uri>,
+        showErrorsIf: () -> Boolean = { true },
         trigger: suspend (List<PreparedAttachment>) -> Unit,
     ) = scope("prepareAttachmentsAndTrigger") {
         viewModelScope.launch(Dispatchers.IO) {
@@ -441,7 +624,14 @@ internal class ChatThreadViewModel(
                     require(result is Error)
                     result.uri to result.cause
                 }
-                showDialog(ConversationDialog.InvalidAttachments(errors))
+                // On Main, so the dialog reset on a thread change cannot land between the check and the show.
+                withContext(Dispatchers.Main) {
+                    if (showErrorsIf()) {
+                        showDialog(ConversationDialog.InvalidAttachments(errors))
+                    } else {
+                        warning("Dropping preparation errors of attachments picked for a session or thread no longer shown")
+                    }
+                }
             } else {
                 verbose("Prepared attachments successfully: $requestResults")
                 val contents = requestResults.map { result: ContentRequestResult ->
@@ -467,16 +657,20 @@ internal class ChatThreadViewModel(
         }
         val contentDescriptors = attachments.map(PreparedAttachment::contentDescriptor)
         viewModelScope.launch(Dispatchers.IO) { // For attachment use IO thread to upload it on server
+            var seeds = emptyList<SentAttachmentSeeder.Seed>()
             try {
                 debug("Sending message with attachments: $attachments")
                 _showMessageProcessing.update { true }
                 try {
+                    seeds = sentAttachmentSeeder.seed(attachments)
                     val id = messageHandler.first().send(
                         OutboundMessage(
                             attachments = contentDescriptors,
                             message = message.orEmpty()
                         ),
                     )
+                    sentAttachmentSeeder.register(UUID.fromString(id), seeds)
+                    seeds = emptyList() // The echo owns them now.
                     val msg = appMessage(UUID.fromString(id))
                     sentMessagesFlow.value = sentMessagesFlow.value.plus(msg.id to msg)
                     verbose("Message sent with id: $id")
@@ -489,6 +683,8 @@ internal class ChatThreadViewModel(
                 throw cancelled
             } catch (logged: Exception) {
                 warning("Failed to send message with attachments", logged)
+            } finally {
+                withContext(NonCancellable) { sentAttachmentSeeder.discard(seeds) }
             }
         }
     }
@@ -654,10 +850,14 @@ internal class ChatThreadViewModel(
 
     internal fun reportReplyButtonClicked(replyButton: SdkReplyButton) = scope("reportReplyButtonClicked") {
         viewModelScope.launch {
+            // Captured before the suspending call below - a survey can arrive while triggerAction()
+            // is in flight and must not be dismissed as if this click had caused it.
+            val dialogBeforeAction = dialogShown.value
             try {
                 eventHandler.first().triggerAction(replyButton)
-                // If the reply button was clicked from a popup, dismiss the popup dialog.
-                if (dialogShown.value is ConversationDialog.Popup) dismissDialog()
+                if (dialogBeforeAction is ConversationDialog.Popup && dialogShown.value === dialogBeforeAction) {
+                    dismissDialog()
+                }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (logged: Exception) {
@@ -749,6 +949,17 @@ private data class TemporarySentMessage(
 
 internal fun isAiAgentMessage(message: SdkMessage): Boolean =
     message.direction == MessageDirection.ToClient && message.isAiGenerated
+
+/**
+ * The session ([SelectedThreadRepository.currentSessionGeneration]) and thread an attachment pick was made for.
+ * [handler] and [threadId] are null when the pick came before any thread was known, e.g. a first open while still
+ * connecting.
+ */
+internal data class AttachmentTarget(
+    val sessionGeneration: Int,
+    val handler: ChatThreadHandler?,
+    val threadId: UUID?,
+)
 
 internal data class PreparedAttachment(
     val contentDescriptor: ContentDescriptor,

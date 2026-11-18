@@ -15,7 +15,6 @@
 
 package com.nice.cxonechat.internal
 
-import com.nice.cxonechat.internal.TokenRefreshCoordinator.Companion.EXPIRY_BUFFER
 import com.nice.cxonechat.util.expiresWithin
 import kotlinx.coroutines.sync.withLock
 import kotlin.time.Duration.Companion.seconds
@@ -51,11 +50,11 @@ internal class TokenRefreshCoordinator {
         chat.guards.tokenRefreshMutex.withLock {
             // Re-check under the lock: a concurrent caller may have just completed a refresh.
             val expiresAt = chat.storage.authTokenExpDate ?: Instant.DISTANT_FUTURE
-            if (expiresAt.expiresWithin(10.seconds)) TokenRefreshHelper.refreshAccessToken(chat)
+            if (expiresAt.expiresWithin(EXPIRY_BUFFER)) TokenRefreshHelper.refreshAccessToken(chat)
         }
     }
 
-    private companion object {
-        val EXPIRY_BUFFER = 10.seconds
+    internal companion object {
+        internal val EXPIRY_BUFFER = 10.seconds
     }
 }

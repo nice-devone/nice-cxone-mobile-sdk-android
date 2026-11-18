@@ -23,8 +23,10 @@ import com.nice.cxonechat.internal.socket.ProxyWebSocketListener
 import com.nice.cxonechat.internal.socket.SocketFactory
 import com.nice.cxonechat.state.Connection
 import io.mockk.clearMocks
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.spyk
 import io.mockk.unmockkAll
 import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
@@ -120,9 +122,42 @@ internal class ChatReconnectWebsocketTest {
         chatReconnect.socketListener.onClosed(webSocket, 1000, "Test disconnect")
         chatReconnect.close()
         advanceUntilIdle()
-        val listener = ChatReconnectWebsocket::class.java.getDeclaredField("reconnectListener").apply { isAccessible = true }.get(chatReconnect)
-        val reconnectJob = ReconnectingListener::class.java.getDeclaredField("reconnectJob").apply { isAccessible = true }.get(listener)
-        assertTrue(reconnectJob == null || (reconnectJob as Job).isCancelled)
+        val listener = chatReconnect.reconnectListener
+        val reconnectJob = listener.reconnectJob
+        assertTrue(reconnectJob == null || reconnectJob.isCancelled)
+    }
+
+    /**
+     * Regression test for the close()/closeSuspending() decorator pattern in
+     * [ChatReconnectWebsocket]. [ChatReconnectWebsocket.closeSuspending] must delegate to
+     * [`origin.closeSuspending`][ChatWithParameters.closeSuspending] rather than to the blocking
+     * [java.lang.AutoCloseable.close]; calling the latter would bypass the coroutine-native drain chain,
+     * turning the call into a nested runBlocking that can deadlock on some dispatchers.
+     *
+     * Uses [spyk] so the real [ChatImpl.closeSuspending] executes (exercising the drain path),
+     * while still letting MockK record the call for verification.
+     */
+    @Test
+    fun `closeSuspending cascades to origin closeSuspending, never origin close`() = runTest(dispatcher) {
+        val origin = spyk(
+            ChatImpl(
+                connection = connection,
+                entrails = entrails,
+                dependencies = ChatImplDependencies(
+                    socketFactory = socketFactory,
+                    callback = callback,
+                    authorization = authorization,
+                ),
+                configuration = configuration,
+                rawChatStateListener = chatStateListener,
+            )
+        )
+        val decorator = ChatReconnectWebsocket(origin)
+
+        decorator.closeSuspending()
+
+        coVerify(exactly = 1) { origin.closeSuspending() }
+        verify(exactly = 0) { origin.close() }
     }
 
     @Test

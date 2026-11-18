@@ -92,7 +92,16 @@ internal class ChatThreadEventTest : AbstractMultiThreadChatTest() {
     fun trigger_ReplyButtonEvent_sendsExpectedMessage() {
         val id = thread.id
         val action = ActionInternal.ReplyButton(text = "test", postback = "test", null, null)
-        assertSendText(ServerRequest.SendMessage(connection, thread, storage, message = action.text, postback = action.postback), id.toString()) {
+        assertSendText(
+            ServerRequest.SendMessage(
+                connection = connection,
+                thread = thread,
+                storage = storage,
+                message = action.text,
+                postback = action.postback
+            ),
+            id.toString()
+        ) {
             events.triggerAction(action)
         }
     }
@@ -102,7 +111,16 @@ internal class ChatThreadEventTest : AbstractMultiThreadChatTest() {
         val id = thread.id
         val timeSlot = TimeSlotInternal(id = "unique-id", duration = 3600L, startTime = Instant.fromEpochMilliseconds(0))
         val localizedText = "Tuesday 4pm - 1 hour"
-        assertSendText(ServerRequest.SendMessage(connection, thread, storage, message = localizedText, postback = timeSlot.id), id.toString()) {
+        assertSendText(
+            ServerRequest.SendMessage(
+                connection = connection,
+                thread = thread,
+                storage = storage,
+                message = localizedText,
+                postback = timeSlot.id
+            ),
+            id.toString()
+        ) {
             events.selectTimeSlot(localizedText, timeSlot)
         }
     }
@@ -110,7 +128,14 @@ internal class ChatThreadEventTest : AbstractMultiThreadChatTest() {
     @Test
     fun trigger_SendTranscriptEvent_sendsExpectedMessage() {
         val id = thread.id
-        assertSendTextLaunched(ServerRequest.SendTranscript(connection, thread, "test@gmail.com"), id.toString()) {
+        assertSendTextLaunched(
+            ServerRequest.SendTranscript(
+                connection = connection,
+                thread = thread,
+                email = "test@gmail.com"
+            ),
+            id.toString()
+        ) {
             events.sendTranscript(email = "test@gmail.com")
         }
     }

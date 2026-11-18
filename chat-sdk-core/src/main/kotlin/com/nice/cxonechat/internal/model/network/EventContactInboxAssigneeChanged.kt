@@ -22,6 +22,7 @@ import com.nice.cxonechat.internal.model.ChannelIdentifier
 import com.nice.cxonechat.internal.model.Contact
 import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.thread.ContactHandler
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -33,6 +34,7 @@ internal data class EventContactInboxAssigneeChanged(
 
     val agent get() = data.inboxAssignee?.toAgent() ?: data.previousInboxAssignee?.toAgent()
     val case get() = data.case
+    val contactHandler get() = ContactHandler.from(case.handler)
 
     fun inThread(thread: ChatThread) = case.threadIdOnExternalPlatform == thread.id
 

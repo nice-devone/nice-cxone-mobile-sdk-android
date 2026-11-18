@@ -88,7 +88,7 @@ e.g.: `NamedScope` with name `ChatSdk` would log message `connect()` as `[ChatSD
 
 The `LoggerScope` also provides two extension functions for creating sub-scopes:
 * `LoggerScope.scope(name: String, body: LoggerScope.() -> T)` - creates a new scope which combines the sub-scope name with parent e.g.: `parentScope/subScope`
-* `LoggerScope.timesScope(name: String, body: () -> T): T` - does the same as `scope` but also measures the time spent executing the `body` lambda
+* `LoggerScope.timedScope(name: String, body: () -> T): T` - does the same as `scope` but also measures the time spent executing the `body` lambda
 
 
 #### Extension methods
@@ -101,7 +101,7 @@ class MyClass(val logger: Logger) {
         logger.verbose("This is a verbose level message")
         logger.debug("This is a debug level message")
         logger.info("This is an info level message")
-        logger.warn("This is a warning level message")
+        logger.warning("This is a warning level message")
         logger.error("This is an error level message")
     }
 }

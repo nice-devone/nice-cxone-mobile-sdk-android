@@ -33,11 +33,12 @@ import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBoxValue.EndToStart
 import androidx.compose.material3.SwipeToDismissBoxValue.StartToEnd
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -76,9 +77,11 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
+import com.nice.cxonechat.ui.composable.theme.SheetAnchors
 import com.nice.cxonechat.ui.composable.theme.SingleChoiceSegmentedButton
 import com.nice.cxonechat.ui.composable.theme.SwipeBackground
 import com.nice.cxonechat.ui.composable.theme.SwipeToDismiss
+import com.nice.cxonechat.ui.composable.theme.wideScreenHorizontalPadding
 import com.nice.cxonechat.ui.domain.model.ChatThreadCopy.Companion.copy
 import com.nice.cxonechat.ui.domain.model.CreateThreadResult.Failure
 import com.nice.cxonechat.ui.domain.model.Thread
@@ -119,7 +122,8 @@ internal fun MultiThreadContent(
                 val archivedThreads = remember(threads) { threads.filter { !it.chatThread.canAddMoreMessages } }
                 ArchivedThreadListView(
                     threads = archivedThreads,
-                    onThreadSelected = onThreadSelected
+                    onThreadSelected = onThreadSelected,
+                    modifier = Modifier.padding(horizontal = wideScreenHorizontalPadding()),
                 )
             } else {
                 val activeThreads = remember(threads) { threads.filter { it.chatThread.canAddMoreMessages } }
@@ -128,6 +132,7 @@ internal fun MultiThreadContent(
                     onThreadSelected = onThreadSelected,
                     onArchiveThread = onArchiveThread,
                     editThreadName = editThreadName,
+                    modifier = Modifier.padding(horizontal = wideScreenHorizontalPadding()),
                 )
             }
         }
@@ -188,7 +193,7 @@ private fun ChatThreadListView(
 
             LazyColumn(
                 state = lazyListState,
-                modifier = modifier,
+                modifier = modifier.testTag("chat_thread_list_content"),
             ) {
                 items(
                     threads,
@@ -200,7 +205,12 @@ private fun ChatThreadListView(
                             onArchiveThread = onArchiveThread,
                             editThreadName = editThreadName,
                         ) {
-                            ChatThreadView(thread = thread, onThreadSelected = onThreadSelected)
+                            ChatThreadView(
+                                thread = thread,
+                                onThreadSelected = onThreadSelected,
+                                onArchiveThread = onArchiveThread,
+                                onRenameThread = editThreadName,
+                            )
                         }
                         HorizontalDivider(
                             color = chatColors.token.border.default,
@@ -272,7 +282,7 @@ private fun ChatThreadsStateAlert(
 
         is ThreadPreChatSurveyRequired -> {
             val coroutineScope = rememberCoroutineScope()
-            val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            val sheetState = rememberBottomSheetState(SheetValue.Hidden, SheetAnchors.FullHeightOnly)
             PreChatSurveyScreen(
                 survey = state.survey,
                 onCancel = resetState,

@@ -40,3 +40,15 @@ internal data class ThirdParty(
     @Transient
     val expiresAt: Instant = createdAt + expiresIn.seconds
 }
+
+/**
+ * Merges a freshly-obtained [ThirdParty] with the previously [cached] one, preserving
+ * [ThirdParty.refreshToken] from [cached] when [fresh] omits it.
+ *
+ * A refresh-grant response's `refresh_token` is optional per RFC 6749 §6 — a backend that doesn't
+ * rotate refresh tokens simply omits it and expects the client to keep the one it already has.
+ * Replacing [ThirdParty] wholesale with [fresh] in that case would silently discard a still-valid
+ * refresh token and force re-authentication on the next refresh cycle.
+ */
+internal fun mergeThirdParty(cached: ThirdParty?, fresh: ThirdParty?): ThirdParty? =
+    fresh?.let { if (it.refreshToken != null) it else it.copy(refreshToken = cached?.refreshToken) }

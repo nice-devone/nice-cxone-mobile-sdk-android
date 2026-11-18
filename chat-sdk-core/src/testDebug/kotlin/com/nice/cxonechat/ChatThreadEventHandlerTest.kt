@@ -17,12 +17,9 @@ package com.nice.cxonechat
 
 import com.nice.cxonechat.event.thread.ChatThreadEvent
 import com.nice.cxonechat.model.makeChatThread
-import com.nice.cxonechat.server.ServerRequest
 import com.nice.cxonechat.thread.ChatThread
-import io.mockk.every
 import kotlinx.serialization.Serializable
 import org.junit.Test
-import kotlin.time.Clock
 
 internal class ChatThreadEventHandlerTest : AbstractMultiThreadChatTest() {
 
@@ -42,10 +39,10 @@ internal class ChatThreadEventHandlerTest : AbstractMultiThreadChatTest() {
         val event = ChatThreadEvent.Custom { TestModel() }
         assertSendText(
             """
-            {
-                "field": 10
-            }
-        """.trimIndent()
+                {
+                    "field": 10
+                }
+            """.trimIndent()
         ) {
             events.trigger(event)
         }

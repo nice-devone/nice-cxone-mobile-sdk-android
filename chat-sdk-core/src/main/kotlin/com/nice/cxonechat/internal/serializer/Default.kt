@@ -75,9 +75,11 @@ internal object Default {
     private val pluginElementModule = SerializersModule {
         polymorphic(PluginElement::class) {
             subclass(PluginElement.StructuredElements.InactivityPlugin::class)
+            subclass(PluginElement.StructuredElements.SatisfactionSurveyPlugin::class)
             subclass(PluginElement.SimpleElement.TitleElement::class)
             subclass(PluginElement.SimpleElement.TextElement::class)
             subclass(PluginElement.SimpleElement.ButtonElement::class)
+            subclass(PluginElement.SimpleElement.IframeButtonElement::class)
             subclass(PluginElement.SimpleElement.CounterElement::class)
             defaultDeserializer { DefaultElementPolyContentSerializer }
         }
@@ -87,6 +89,7 @@ internal object Default {
             subclass(PluginElement.SimpleElement.TitleElement::class)
             subclass(PluginElement.SimpleElement.TextElement::class)
             subclass(PluginElement.SimpleElement.ButtonElement::class)
+            subclass(PluginElement.SimpleElement.IframeButtonElement::class)
             subclass(PluginElement.SimpleElement.CounterElement::class)
             defaultDeserializer { DefaultSimpleElementPolyContentSerializer }
         }

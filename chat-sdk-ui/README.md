@@ -6,17 +6,14 @@ of the chat SDK into the intended target application. This module is designed to
 
 ## Requirements:
 
-Compile SDK version: 36
-Target SDK version: 35
-Min SDK version: 24
+* Android 8.0 (API 26) and newer
+* Kotlin 2.4 or newer — older compilers cannot read this module's Kotlin metadata
+* The `minSdk`, `compileSdk` and `targetSdk` levels are in [Android SDK levels](../README.md#android-sdk-levels)
+* Jetpack Compose, Koin and Firebase Cloud Messaging come in as transitive dependencies; the versions this module is
+  built against are in `gradle/libs.versions.toml`. Firebase arrives whether or not you use push notifications — only
+  its initialization is optional, and [disabling that](#not-using-push-notificationsfcm) is described below
 
-* Kotlin 2.2.10
-* Jetpack Compose BOM 2025.10.00
-* Koin 4.2.1
-* Firebase Cloud Messaging 34.4.0 (unless the push notifications are not used)
-
-This module requires that the integrating application uses Koin during its startup and it is also recommended
-to provide an instance of `Logger` with `UiQualifier`.
+This module requires that the integrating application uses Koin during its startup.
 
 ### Runtime permissions:
 
@@ -54,9 +51,9 @@ You can find focused case studies for following topics also described in [case s
 ## Getting Started
 
 To use the chat-sdk-ui module, you need to add it as a dependency in your project. You can do this by adding the following line to your
-`build.gradle` file:
+`build.gradle.kts` (or `build.gradle`) file:
 
-```groovy
+```kotlin
     implementation("com.nice.cxone:chat-sdk-ui:${chatSdkVersion}")
 ```
 
@@ -66,20 +63,29 @@ To use the chat-sdk-ui module, you need to add it as a dependency in your projec
 
 Before you start using the Chat UI, you need to initialize the CXone Chat SDK in your application using the `ChatInstanceProvider` class.
 Specifically the `ChatInstanceProvider` has to be at least in the `Prepared` state, which means that the `ChatInstanceProvider` has to be
-initialized with the `ChatSdkConfig`.
+initialized with the `SocketFactoryConfiguration`.
 This can be done in the `onCreate` method of your `Application` class or in a dedicated `androidx.startup.Initializer` implementation.
 
 #### Initialize the Chat UI Dependency Injection
 
 If you are not using Koin in your application you can just call
 
-```koin
+```kotlin
+   import org.koin.android.ext.koin.androidContext
+
+   // from Application.onCreate()
    startKoin {
-      UiModule.chatUiModule()
+      androidContext(applicationContext)
+      includes(UiModule.chatUiModule())
    }
 ```
 
-Otherwise add the `UiModule.chatUiModule()` to your Koin modules, which will provide the necessary dependencies for the Chat UI.
+Otherwise call `includes(UiModule.chatUiModule())` inside your existing `startKoin { }` block, alongside your own
+`modules(...)` calls — `chatUiModule()` returns a `KoinConfiguration`, which `includes` accepts, not a `Module`.
+
+Either way the Koin setup has to register `androidContext(...)`. `chatUiModule()` does not register it, and the UI
+resolves `Context` and `Application` from the graph, so without it the chat fails when it is opened rather than when
+Koin starts.
 
 ##### Custom fields
 
@@ -100,7 +106,7 @@ To start the Chat UI call `ChatActivity.startChat(from: Activity)` method.
 
 For the push notifications to work, you need to add the Firebase Cloud Messaging dependency to your project.
 See the [Firebase Cloud Messaging documentation](https://firebase.google.com/docs/cloud-messaging/android/client) for more instructions
-on how to set up FCM in your project.
+on how to set up FCM in your project, and the [store application](../store/) for a working setup.
 
 For more focused information about this topic see the [cs-push-notifications.md].
 
@@ -131,10 +137,10 @@ The default value is "Chat notifications".
 If you are not using push notifications, you should disable the automatic startup of Firebase initialization in order to avoid unnecessary
 overhead.
 
-(see [Take Control of Your Firebase Init on Android]https://firebase.blog/posts/2017/03/take-control-of-your-firebase-init-on/) and disable
+(see [Take Control of Your Firebase Init on Android](https://firebase.blog/posts/2017/03/take-control-of-your-firebase-init-on/)) and disable
 the `PushListenerService` in the merged manifest.
 
-[cs-push-notifications.md]: ../docs/cs-push-notifications.md
+[cs-push-notifications.md]: ../docs/chat-sdk-core/cs-push-notifications.md
 
 ## Features
 

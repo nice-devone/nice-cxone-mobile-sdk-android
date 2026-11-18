@@ -83,8 +83,9 @@ buildscript {
     configurations.configureEach {
         resolutionStrategy {
             eachDependency {
-                if (requested.group == "io.netty" && isOlderThan(requested.version, "4.1.135.Final")) {
-                    useVersion("4.1.135.Final")
+                // AIKIDO-2026-592216 | GHSA-cg2g-fxr4-mg8m
+                if (requested.group == "io.netty" && isOlderThan(requested.version, "4.1.138.Final")) {
+                    useVersion("4.1.138.Final")
                 }
                 if (requested.group == "org.apache.commons" && requested.name == "commons-compress") {
                     val v = requested.version.orEmpty()
@@ -104,14 +105,24 @@ buildscript {
                 if (requested.group == "org.apache.commons" && requested.name == "commons-lang3") {
                     useVersion("3.18.0")
                 }
-                // AGP build tools pull in Bouncy Castle with a covert timing channel vulnerability
-                // affecting FrodoEngine (CVE-2026-5598 / GHSA-p93r-85wp-75v3); fixed in 1.84.
-                if (requested.group == "org.bouncycastle" && isOlderThan(requested.version, "1.84")) {
-                    useVersion("1.84")
+                // AIKIDO-2026-322957
+                if (requested.group == "org.bouncycastle" && isOlderThan(requested.version, "1.86")) {
+                    useVersion("1.86")
                 }
-                // GHSA-5jmj-h7xm-6q6v
-                if (requested.group.startsWith("com.fasterxml.jackson") && isOlderThan(requested.version, "2.18.9")) {
-                    useVersion("2.18.9")
+                // CVE-2026-68497 / GHSA-q4xh-88c3-wmh7
+                if (requested.group.startsWith("com.fasterxml.jackson") && isOlderThan(requested.version, "2.18.10")) {
+                    useVersion("2.18.10")
+                }
+                // AGP build tools pull in a vulnerable httpclient version (CVE-2020-13956)
+                if (requested.group == "org.apache.httpcomponents" && requested.name == "httpclient" && isOlderThan(requested.version, "4.5.13")) {
+                    useVersion("4.5.13")
+                }
+                if (requested.group == "org.jetbrains.kotlin" && requested.name.startsWith("kotlin-stdlib") && isOlderThan(requested.version, "2.1.0")) {
+                    useVersion("2.1.0")
+                }
+                // GHSA-27j2-h3m2-8237
+                if (requested.group == "org.freemarker" && requested.name.startsWith("freemarker") && isOlderThan(requested.version, "2.3.35")) {
+                    useVersion("2.3.35")
                 }
             }
         }
@@ -158,9 +169,9 @@ subprojects {
                 if (requested.group == "io.grpc" && isOlderThan(requested.version, "1.75.0")) {
                     useVersion("1.75.0")
                 }
-                // Android tests are using vulnerable dependency
-                if (requested.group == "io.netty" && isOlderThan(requested.version, "4.1.135.Final")) {
-                    useVersion("4.1.135.Final")
+                // AIKIDO-2026-592216 | GHSA-cg2g-fxr4-mg8m
+                if (requested.group == "io.netty" && isOlderThan(requested.version, "4.1.138.Final")) {
+                    useVersion("4.1.138.Final")
                 }
                 // Android gradle plugin & root coverage plugin are using vulnerable dependency
                 if (requested.group == "org.apache.commons" && requested.name == "commons-compress") {
@@ -173,18 +184,28 @@ subprojects {
                 if (requested.group == "org.apache.commons" && requested.name == "commons-lang3") {
                     useVersion("3.18.0")
                 }
-                // AGP build tools pull in Bouncy Castle with a covert timing channel vulnerability
-                // affecting FrodoEngine (CVE-2026-5598 / GHSA-p93r-85wp-75v3); fixed in 1.84.
-                if (requested.group == "org.bouncycastle" && isOlderThan(requested.version, "1.84")) {
-                    useVersion("1.84")
+                // AIKIDO-2026-322957
+                if (requested.group == "org.bouncycastle" && isOlderThan(requested.version, "1.86")) {
+                    useVersion("1.86")
                 }
-                // GHSA-72hv-8253-57qq — Dokka and test configurations pull in older jackson
-                if (requested.group.startsWith("com.fasterxml.jackson") && isOlderThan(requested.version, "2.18.9")) {
-                    useVersion("2.18.9")
+                // CVE-2026-68497 / GHSA-q4xh-88c3-wmh7
+                if (requested.group.startsWith("com.fasterxml.jackson") && isOlderThan(requested.version, "2.18.10")) {
+                    useVersion("2.18.10")
                 }
-                // AIKIDO-2025-10401 — Dokka pulls in older jsoup
-                if (requested.group == "org.jsoup" && isOlderThan(requested.version, "1.21.1")) {
-                    useVersion("1.21.1")
+                // CVE-2026-71497 — Dokka pulls in older jsoup
+                if (requested.group == "org.jsoup" && isOlderThan(requested.version, "1.23.1")) {
+                    useVersion("1.23.1")
+                }
+                // AGP build tools pull in a vulnerable httpclient version (CVE-2020-13956)
+                if (requested.group == "org.apache.httpcomponents" && requested.name == "httpclient" && isOlderThan(requested.version, "4.5.13")) {
+                    useVersion("4.5.13")
+                }
+                if (requested.group == "org.jetbrains.kotlin" && requested.name.startsWith("kotlin-stdlib") && isOlderThan(requested.version, "2.1.0")) {
+                    useVersion("2.1.0")
+                }
+                // GHSA-27j2-h3m2-8237
+                if (requested.group == "org.freemarker" && requested.name.startsWith("freemarker") && isOlderThan(requested.version, "2.3.35")) {
+                    useVersion("2.3.35")
                 }
             }
         }
@@ -195,23 +216,35 @@ subprojects {
 configurations.configureEach {
     resolutionStrategy {
         eachDependency {
-            if (requested.group == "io.netty" && requested.name == "netty-handler" && isOlderThan(requested.version, "4.1.135.Final")) {
-                useVersion("4.1.135.Final")
+            // AIKIDO-2026-592216 | GHSA-cg2g-fxr4-mg8m
+            if (requested.group == "io.netty" && isOlderThan(requested.version, "4.1.138.Final")) {
+                useVersion("4.1.138.Final")
             }
-            // AIKIDO-2025-10401
-            if (requested.group == "org.jsoup" && isOlderThan(requested.version, "1.21.1")) {
-                useVersion("1.21.1")
+            // CVE-2026-71497 — Dokka pulls in older jsoup
+            if (requested.group == "org.jsoup" && isOlderThan(requested.version, "1.23.1")) {
+                useVersion("1.23.1")
             }
-            // GHSA-5jmj-h7xm-6q6v
-            if (requested.group.startsWith("com.fasterxml.jackson") && isOlderThan(requested.version, "2.18.9")) {
-                useVersion("2.18.9")
+            // CVE-2026-68497 / GHSA-q4xh-88c3-wmh7
+            if (requested.group.startsWith("com.fasterxml.jackson") && isOlderThan(requested.version, "2.18.10")) {
+                useVersion("2.18.10")
+            }
+            // AGP build tools pull in a vulnerable httpclient version (CVE-2020-13956)
+            if (requested.group == "org.apache.httpcomponents" && requested.name == "httpclient" && isOlderThan(requested.version, "4.5.13")) {
+                useVersion("4.5.13")
+            }
+            if (requested.group == "org.jetbrains.kotlin" && requested.name.startsWith("kotlin-stdlib") && isOlderThan(requested.version, "2.1.0")) {
+                useVersion("2.1.0")
+            }
+            // GHSA-27j2-h3m2-8237
+            if (requested.group == "org.freemarker" && requested.name.startsWith("freemarker") && isOlderThan(requested.version, "2.3.35")) {
+                useVersion("2.3.35")
             }
         }
     }
 }
 
 group = property("GROUP") as String
-version = "4.0.1" // Fallback version
+version = "4.1.0" // Fallback version
 
 allprojects {
     group = rootProject.group

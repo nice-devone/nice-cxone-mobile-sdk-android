@@ -27,10 +27,11 @@ internal interface ChatBuilderInternal {
     /**
      * When set to `true`, [com.nice.cxonechat.ChatBuilder.build] reuses the channel configuration
      * cached by a previous build (see [ChannelConfigurationCache]) instead of fetching it from the
-     * backend. Used for per-session Chat instance rebuilds, where the configuration was already
-     * fetched by the preceding [com.nice.cxonechat.ChatInstanceProvider.prepare] — the getChannel
-     * REST call is costly on the backend and its result is fixed for the lifetime of a prepared
-     * provider anyway.
+     * backend, no matter how old that cached entry is — unlike a regular build, which is also
+     * cache-first but only within the cache's TTL. Used for per-session Chat instance rebuilds,
+     * where the configuration was already fetched by the preceding
+     * [com.nice.cxonechat.ChatInstanceProvider.prepare] — the getChannel REST call is costly on the
+     * backend and its result is fixed for the lifetime of a prepared provider anyway.
      */
     fun setPreferCachedConfiguration(prefer: Boolean)
 }

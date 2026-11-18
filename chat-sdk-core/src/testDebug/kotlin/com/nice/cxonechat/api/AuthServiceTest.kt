@@ -25,6 +25,11 @@ import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Test
 import kotlin.test.assertEquals
 
+/**
+ * Happy-path token retrieval and request construction (query params, HTTP method, body/header
+ * serialization) for `AuthService.getTransactionToken`. Response deserialization and error/failure
+ * responses live in [AuthServiceResponseTest].
+ */
 internal class AuthServiceTest {
     private val recorder by lazy { MockInterceptor() }
     private val connection by lazy { makeConnection() }
@@ -176,54 +181,6 @@ internal class AuthServiceTest {
     }
 
     @Test
-    fun getTransactionToken_failureResponse() {
-        val authService = builder.build()
-        val brandId = connection.brandId.toString()
-        val channelId = connection.channelId
-        val visitorId = connection.visitorId.toString()
-
-        recorder.addResponse { _ ->
-            code(401)
-            message("Unauthorized")
-            body("""{"error":"Invalid credentials"}""".toResponseBody())
-        }
-
-        val response = authService.getTransactionToken(
-            brandId = brandId,
-            channelId = channelId,
-            visitorId = visitorId,
-            tokenRequestBody = TokenRequestBody()
-        ).execute()
-
-        response.isSuccessful shouldBe false
-        response.code() shouldBe 401
-    }
-
-    @Test
-    fun getTransactionToken_serverErrorResponse() {
-        val authService = builder.build()
-        val brandId = connection.brandId.toString()
-        val channelId = connection.channelId
-        val visitorId = connection.visitorId.toString()
-
-        recorder.addResponse { _ ->
-            code(500)
-            message("Internal Server Error")
-            body("""{"error":"Server error"}""".toResponseBody())
-        }
-
-        val response = authService.getTransactionToken(
-            brandId = brandId,
-            channelId = channelId,
-            visitorId = visitorId,
-            tokenRequestBody = TokenRequestBody()
-        ).execute()
-
-        response.isSuccessful shouldBe false
-        response.code() shouldBe 500
-    }
-
-    @Test
     fun getTransactionToken_tokenExpiration() {
         val authService = builder.build()
         val brandId = connection.brandId.toString()
@@ -310,75 +267,6 @@ internal class AuthServiceTest {
     }
 
     @Test
-    fun getTransactionToken_responseBodyDeserialization() {
-        val authService = builder.build()
-        val brandId = connection.brandId.toString()
-        val channelId = connection.channelId
-        val visitorId = connection.visitorId.toString()
-        val expectedToken = "deserialized-token-xyz"
-        val expectedExpiry = 9999L
-
-        recorder.addResponse { _ ->
-            code(200)
-            message("")
-            body(
-                """{"accessToken":"$expectedToken","expiresIn":$expectedExpiry,"createdAt":"2026-01-30T12:00:00.000z"}""".toResponseBody()
-            )
-        }
-
-        val response = authService.getTransactionToken(
-            brandId = brandId,
-            channelId = channelId,
-            visitorId = visitorId,
-            tokenRequestBody = TokenRequestBody()
-        ).execute()
-
-        val body = response.body()
-        body?.transactionToken shouldBe expectedToken
-        body?.expiresIn shouldBe expectedExpiry
-    }
-
-    @Test
-    fun getTransactionToken_multipleCallsAreIndependent() {
-        val authService = builder.build()
-        val brandId = connection.brandId.toString()
-        val channelId = connection.channelId
-        val visitorId = connection.visitorId.toString()
-
-        // First call
-        recorder.addResponse { _ ->
-            code(200)
-            message("")
-            body("""{"accessToken":"token1","expiresIn":1000,"createdAt":"2026-01-30T12:00:00.000z"}""".toResponseBody())
-        }
-
-        // Second call
-        recorder.addResponse { _ ->
-            code(200)
-            message("")
-            body("""{"accessToken":"token2","expiresIn":2000,"createdAt":"2026-01-30T12:00:00.000z"}""".toResponseBody())
-        }
-
-        val response1 = authService.getTransactionToken(
-            brandId = brandId,
-            channelId = channelId,
-            visitorId = visitorId,
-            tokenRequestBody = TokenRequestBody()
-        ).execute()
-
-        val response2 = authService.getTransactionToken(
-            brandId = brandId,
-            channelId = channelId,
-            visitorId = visitorId,
-            tokenRequestBody = TokenRequestBody()
-        ).execute()
-
-        response1.body()?.transactionToken shouldBe "token1"
-        response2.body()?.transactionToken shouldBe "token2"
-        recorder.requests.size shouldBe 2
-    }
-
-    @Test
     fun getTransactionToken_requestContentTypeHeader() {
         val authService = builder.build()
         val brandId = connection.brandId.toString()
@@ -403,4 +291,3 @@ internal class AuthServiceTest {
         }
     }
 }
-

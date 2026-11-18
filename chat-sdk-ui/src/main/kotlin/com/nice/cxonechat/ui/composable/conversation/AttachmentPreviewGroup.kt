@@ -18,6 +18,7 @@ package com.nice.cxonechat.ui.composable.conversation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -52,27 +53,34 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
-import com.nice.cxonechat.ui.util.dsm
+import com.nice.cxonechat.ui.util.ofWindowShorterEdge
 import com.nice.cxonechat.ui.util.typeAndName
 import java.util.UUID
 import kotlin.math.max
 
+/**
+ * Up to four attachments in a two-column grid. A tile is a fraction of the window's shorter edge, shrunk when
+ * needed so that both columns and the gap between them fit the width the parent offers.
+ */
 @Composable
 internal fun AttachmentPreviewGroup(
     messageId: UUID,
     attachments: List<Attachment>,
     onAttachmentClicked: (Attachment) -> Unit,
     onMoreClicked: (List<Attachment>) -> Unit,
-) {
+) = BoxWithConstraints {
     val totalCount = attachments.size
     val maxAttachmentsPreview = space.smallAttachmentRowCount * space.smallAttachmentRowSizeCount
     val onMoreAttachments: (Attachment) -> Unit = remember(attachments, onMoreClicked) { { onMoreClicked(attachments) } }
-    val itemSize = space.attachmentPreviewRegularWidthPercentage.dsm
+    val columns = 2
+    val itemSize = minOf(
+        space.attachmentPreviewRegularWidthPercentage.ofWindowShorterEdge(),
+        (maxWidth - space.semiLarge * (columns - 1)) / columns,
+    )
     val sizeMod = Modifier.size(itemSize)
     val displayOverflowBlur = totalCount > maxAttachmentsPreview
     val displayedItems = if (displayOverflowBlur) attachments.subList(0, maxAttachmentsPreview) else attachments
-    val maxSize = itemSize * 2 + space.semiLarge
-    val columns = 2
+    val maxSize = itemSize * columns + space.semiLarge * (columns - 1)
 
     Column(
         modifier = Modifier

@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onSubscription
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.serializer
 import okhttp3.WebSocket
@@ -108,20 +109,26 @@ internal abstract class EventCallback<Event>(
          */
         inline fun <reified Event : Any> ProxyWebSocketListener.eventFlow(
             type: ReceivedEvent<Event>,
-        ): Flow<Pair<WebSocket, Event>> = eventFlow(type.type)
+            noinline onSubscription: suspend () -> Unit = {},
+        ): Flow<Pair<WebSocket, Event>> = eventFlow(type.type, onSubscription)
 
         /**
          * Creates a [Flow] of typed events from the [ProxyWebSocketListener.messageFlow],
          * discriminated by a raw [EventType]. Use this overload when the same Kotlin class
          * is used for multiple event types (e.g. [EventAgentTyping] for both
          * SenderTypingStarted and SenderTypingEnded).
+         *
+         * [onSubscription], if given, runs once [messageFlow] has actually registered the
+         * subscription - unlike [kotlinx.coroutines.flow.onStart], which would run before that and
+         * could race a fast reply sent in response to it.
          */
         inline fun <reified Event : Any> ProxyWebSocketListener.eventFlow(
             type: EventType,
+            noinline onSubscription: suspend () -> Unit = {},
         ): Flow<Pair<WebSocket, Event>> {
             val serializer = Default.serializer.serializersModule.serializer(Event::class.java)
                     as DeserializationStrategy<Event>
-            return messageFlow.mapNotNull { (webSocket, text) ->
+            return messageFlow.onSubscription { onSubscription() }.mapNotNull { (webSocket, text) ->
                 val blueprint = Default.serializer.runCatching {
                     decodeFromString<EventBlueprint>(text)
                 }.getOrNull()

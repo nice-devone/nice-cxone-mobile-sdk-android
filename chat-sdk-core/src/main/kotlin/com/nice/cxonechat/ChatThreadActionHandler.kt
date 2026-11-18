@@ -30,7 +30,8 @@ import kotlinx.coroutines.flow.Flow
 interface ChatThreadActionHandler {
 
     /**
-     * A [Flow] that emits [Popup] events when inactivity popups should be displayed.
+     * A [Flow] that emits [Popup] events - inactivity popups and Satisfaction Surveys - when they
+     * should be displayed.
      *
      * This flow emits popups received as new events or when the conversation was recovered
      * and the popup is the latest event in the conversation. It is a cold flow: each collection

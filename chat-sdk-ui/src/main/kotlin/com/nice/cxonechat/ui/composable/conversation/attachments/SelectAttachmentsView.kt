@@ -15,7 +15,9 @@
 
 package com.nice.cxonechat.ui.composable.conversation.attachments
 
+import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -25,13 +27,15 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -51,26 +55,44 @@ import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.composable.conversation.AttachmentProvider
 import com.nice.cxonechat.ui.composable.conversation.PreviewAttachments
+import com.nice.cxonechat.ui.composable.generic.scrollbar.LocalScrollbarConfig
+import com.nice.cxonechat.ui.composable.generic.scrollbar.rememberScrollbarState
+import com.nice.cxonechat.ui.composable.generic.scrollbar.reservedThickness
+import com.nice.cxonechat.ui.composable.generic.scrollbar.scrollbar
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
+import com.nice.cxonechat.ui.composable.theme.SheetAnchors
+import com.nice.cxonechat.ui.composable.theme.WideScreenModalBottomSheet
+import com.nice.cxonechat.ui.composable.theme.isLandscapeWindow
+import com.nice.cxonechat.ui.composable.theme.wideScreenHorizontalPadding
 import com.nice.cxonechat.ui.util.hideFromAccessibility
 import com.nice.cxonechat.ui.util.typeAndName
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
+ * Columns the grid uses in a window that is taller than it is wide.
+ *
+ * Held apart from the spacing tokens because a column count is a structural choice, not a measurement.
+ */
+private const val GRID_COLUMNS_TALL = 2
+
+/** Columns the grid uses in a window that is wider than it is tall. */
+private const val GRID_COLUMNS_WIDE = 4
+
+/**
  * Present a view to select and display or share from a list of [Attachment].
- * Current implementation utilizes [ModalBottomSheet] to present the view,
- * with enabled sheet gestures and disabled partial expansion.
+ * Current implementation utilizes the SDK's shared wide-screen modal bottom sheet to present the
+ * view, with enabled sheet gestures and disabled partial expansion.
  *
  * @param attachments Available attachments.
  * @param onAttachmentTapped Direct action on an attachment, typically preview a single attachment.
  * @param onShare Share was selected for one or more attachments.  Selected attachments are passed
  * as the sole parameter.
  * @param onCancel The selection user intent was cancelled via back button or a tap outside the view.
- * @param modifier Modifier for the [ModalBottomSheet].
+ * @param modifier Modifier for the underlying bottom sheet.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,12 +104,12 @@ fun SelectAttachmentsView(
     modifier: Modifier = Modifier,
 ) {
     val viewModel = remember { SelectionViewModel(attachments, onAttachmentTapped, onShare) }
-    ModalBottomSheet(
+    ChatTheme.WideScreenModalBottomSheet(
         onDismissRequest = onCancel,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        sheetState = rememberBottomSheetState(SheetValue.Hidden, SheetAnchors.FullHeightOnly),
+        // The band behind the drag handle, title and action bar; the grid paints its own.
+        containerColor = chatColors.token.background.default,
         dragHandle = { BottomSheetDefaults.DragHandle(Modifier.minimumInteractiveComponentSize()) },
-        containerColor = chatColors.token.background.surface.subtle,
-        contentColor = chatColors.token.content.primary,
         modifier = modifier
             .testTag("select_attachments_view")
             .systemBarsPadding()
@@ -102,17 +124,29 @@ fun SelectAttachmentsView(
     }
 }
 
+/**
+ * The sheet's content, separated from [SelectAttachmentsView] so a screenshot test can compose it inside
+ * [WideScreenModalBottomSheet] with a [SelectionViewModel] of its own: the view remembers one internally,
+ * which leaves selecting mode unreachable from a test.
+ */
+@VisibleForTesting
 @Composable
-private fun ColumnScope.AttachmentsView(viewModel: SelectionViewModel) {
+internal fun ColumnScope.AttachmentsView(viewModel: SelectionViewModel) {
     val selection by viewModel.selection.collectAsState()
     val selecting = viewModel.selecting.collectAsState().value
-    Column(
-        modifier = Modifier
-            .padding(horizontal = space.xl)
-            .weight(1f),
+    SelectAttachmentsTopBar(selecting, viewModel::toggleSelecting)
+    HorizontalDivider(color = chatColors.token.border.default)
+    Surface(
+        color = chatColors.token.background.surface.subtle,
+        modifier = Modifier.weight(1f),
     ) {
-        SelectAttachmentsTopBar(selecting, viewModel::toggleSelecting)
-        GridView(viewModel)
+        // The wide inset replaces the compact one rather than adding to it.
+        val horizontalInset = maxOf(space.xl, wideScreenHorizontalPadding())
+        Column(
+            modifier = Modifier.padding(start = horizontalInset, end = horizontalInset, top = space.xl),
+        ) {
+            GridView(viewModel)
+        }
     }
     SelectAttachmentsBottomBar(
         selecting = selecting,
@@ -124,18 +158,37 @@ private fun ColumnScope.AttachmentsView(viewModel: SelectionViewModel) {
     )
 }
 
+/**
+ * The grid of selectable attachments, with a scrollbar in a strip reserved along its trailing edge.
+ *
+ * The column count follows the window's own proportions rather than its width alone: a window taller than
+ * it is wide keeps two columns however wide it is, and a window wider than it is tall takes four. Read from
+ * the window, so it follows a resize or a split-screen change rather than the device's orientation.
+ *
+ * Order in the modifier chain is load-bearing, for the reason spelled out on
+ * `Modifier.scrollbarBelowRow`: `scrollbar` reserves no space of its own, so the padding has to grow the
+ * node from inside it, leaving the bar drawn in the strip the cells were inset out of.
+ *
+ * `scrollbar` publishes its own test tag on this node and the outermost tag wins, so a tag added to the
+ * grid after it is discarded; tag a wrapper instead.
+ */
 @Composable
 private fun ColumnScope.GridView(
     viewModel: SelectionViewModel,
 ) {
     val items = viewModel.attachments.toList()
+    val gridState = rememberLazyGridState()
+    val scrollbarState = rememberScrollbarState()
+    val landscapeWindow = isLandscapeWindow()
     LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        horizontalArrangement = Arrangement.spacedBy(23.dp),
+        columns = GridCells.Fixed(if (landscapeWindow) GRID_COLUMNS_WIDE else GRID_COLUMNS_TALL),
+        state = gridState,
+        horizontalArrangement = Arrangement.spacedBy(if (landscapeWindow) space.semiLarge else space.xl),
         verticalArrangement = Arrangement.spacedBy(space.xl, Alignment.Top),
         modifier = Modifier
             .weight(1f)
-            .testTag("attachments_grid_preview"),
+            .scrollbar(gridState, scrollbarState, Orientation.Vertical)
+            .padding(end = LocalScrollbarConfig.current.reservedThickness),
     ) {
         val itemsTotal = items.size
         itemsIndexed(

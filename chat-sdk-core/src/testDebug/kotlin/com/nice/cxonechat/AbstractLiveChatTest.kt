@@ -15,6 +15,7 @@
 
 package com.nice.cxonechat
 
+import com.nice.cxonechat.internal.ChannelConfigurationCache
 import com.nice.cxonechat.internal.model.AvailabilityStatus.Online
 import com.nice.cxonechat.server.ServerResponse
 import com.nice.cxonechat.tool.SocketFactoryMock
@@ -44,6 +45,9 @@ internal abstract class AbstractLiveChatTest : AbstractChatTest() {
     @Suppress("DEPRECATION")
     fun buildChat(): Chat = runBlocking {
         val factory = SocketFactoryMock(socket, proxyListener)
+        // build() is now cache-first (ChannelConfigurationCache); a test that changes config-driving
+        // state and calls prepare()/buildChat() again expects that new state to actually be fetched.
+        ChannelConfigurationCache.clear()
         chat = ChatBuilder(entrails, factory)
             .setAuthorization(authorization)
             .setDevelopmentMode(true)

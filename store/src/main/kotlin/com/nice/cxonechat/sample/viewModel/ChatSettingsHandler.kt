@@ -26,6 +26,7 @@ import com.nice.cxonechat.log.LoggerScope
 import com.nice.cxonechat.log.error
 import com.nice.cxonechat.log.scope
 import com.nice.cxonechat.sample.data.models.ChatSettings
+import com.nice.cxonechat.sample.data.models.ChatUserName
 import com.nice.cxonechat.sample.data.models.LoginData
 import com.nice.cxonechat.sample.data.models.SdkConfiguration
 import com.nice.cxonechat.sample.data.models.toChatAuthorization
@@ -51,20 +52,38 @@ class ChatSettingsHandler(
     private val settings: ChatSettings?
         get() = flow.value
 
+    /** Name of the signed-in chat user, or null if nobody is signed in. */
+    val userName: ChatUserName?
+        get() = settings?.userName
+
     /**
      * Set the sdk configuration to use for future attempts, if the configuration
      * has changed, a new connection will be established.
      *
      * @param sdkConfiguration new configuration to use.
+     * @param loginData user to sign in as, or null to leave the user unset. Supplied together with
+     * the configuration rather than through [setLoginData] so that both reach the chat provider in a
+     * single reconfiguration -- two calls would restart the connection twice. Note the two fields it
+     * carries are not treated alike: the user name is always replaced, so a null [loginData] clears
+     * it, while the customer id is only replaced when [loginData] is supplied.
      */
-    suspend fun setConfiguration(sdkConfiguration: SdkConfiguration) {
+    suspend fun setConfiguration(sdkConfiguration: SdkConfiguration, loginData: LoginData? = null) {
+        val current = settings
+        val userName = loginData?.userName
+        val customerId = if (loginData == null) current?.customerId else loginData.customerId
         apply(
-            settings?.copy(
+            current?.copy(
                 sdkConfiguration = sdkConfiguration,
                 authorization = null,
-                userName = null,
+                userName = userName,
+                customerId = customerId,
                 connectionToken = null,
-            ) ?: ChatSettings(sdkConfiguration, null, null)
+            ) ?: ChatSettings(
+                sdkConfiguration = sdkConfiguration,
+                authorization = null,
+                userName = userName,
+                customerId = customerId,
+            )
         )
     }
 

@@ -23,13 +23,13 @@ comments:
   UndocumentedPublicClass:
     active: true
     searchInInnerObject: true
-    excludes: [ '**/test/**', '**/**Test**.kt',  '**/testDebug/**', '**/androidTest/**', '**/*.Spec.kt' ]
+    excludes: [ '**/test*/**', '**/**Test**.kt',  '**/testDebug/**', '**/androidTest/**', '**/*.Spec.kt' ]
   UndocumentedPublicFunction:
     active: true
-    excludes: [ '**/test/**', '**/**Test**.kt', '**/testDebug/**', '**/androidTest/**', '**/*.Spec.kt' ]
+    excludes: [ '**/test*/**', '**/**Test**.kt', '**/testDebug/**', '**/androidTest/**', '**/*.Spec.kt' ]
   UndocumentedPublicProperty:
     active: true
-    excludes: [ '**/test/**', '**/**Test**.kt', '**/testDebug/**', '**/androidTest/**', '**/*.Spec.kt' ]
+    excludes: [ '**/test*/**', '**/**Test**.kt', '**/testDebug/**', '**/androidTest/**', '**/*.Spec.kt' ]
 
 complexity:
   CognitiveComplexMethod:
@@ -64,7 +64,7 @@ complexity:
     active: true
   StringLiteralDuplication:
     active: true
-    excludes: [ '**/test/**', '**/androidTest/**', '**/*.Spec.kt' ]
+    excludes: [ '**/test*/**', '**/androidTest/**', '**/*.Spec.kt' ]
     ignoreAnnotated:
       - "androidx.compose.ui.tooling.preview.Preview"
       - "androidx.compose.ui.tooling.preview.PreviewLightDark"
@@ -73,7 +73,7 @@ complexity:
   TooManyFunctions:
     active: true
     thresholdInObjects: 12    # Raised maximum to match current state
-    excludes: [ '**/test/**', '**/androidTest/**', '**/*.Spec.kt' ]
+    excludes: [ '**/test*/**', '**/androidTest/**', '**/*.Spec.kt' ]
 
 empty-blocks:
   EmptyCatchBlock:
@@ -128,15 +128,15 @@ exceptions:
     active: true
   ThrowingExceptionsWithoutMessageOrCause:
     active: true
-    excludes: [ '**/test/**', '**/androidTest/**', '**/*.Spec.kt' ]
+    excludes: [ '**/test*/**', '**/androidTest/**', '**/*.Spec.kt' ]
   ThrowingNewInstanceOfSameException:
     active: true
   TooGenericExceptionCaught:
     active: true
-    excludes: [ '**/test/**', '**/androidTest/**', '**/*.Spec.kt' ]
+    excludes: [ '**/test*/**', '**/androidTest/**', '**/*.Spec.kt' ]
   TooGenericExceptionThrown:
     active: true
-    excludes: [ '**/test/**', '**/androidTest/**', '**/*.Spec.kt' ]
+    excludes: [ '**/test*/**', '**/androidTest/**', '**/*.Spec.kt' ]
 
 formatting:
   AnnotationOnSeparateLine:
@@ -149,7 +149,7 @@ formatting:
     active: true
     autoCorrect: true
     maxLineLength: 140
-    excludes: [ '**/test/**', '**/androidTest/**', '**/*.Spec.kt' ]
+    excludes: [ '**/test*/**', '**/androidTest/**', '**/*.Spec.kt' ]
   BlockCommentInitialStarAlignment:
     active: true
     autoCorrect: true
@@ -322,6 +322,7 @@ formatting:
     autoCorrect: true
   StringTemplateIndent:
     active: true
+    excludes: [ '**/test*/**', '**/androidTest/**', '**/*.Spec.kt' ] # We are using JSON templates for tests and they are non-compliant with this rule.
   TrailingCommaOnCallSite:
     active: false   # Android Kotlin style guide does not include trailing comma usage yet.
   TrailingCommaOnDeclarationSite:
@@ -355,13 +356,13 @@ naming:
     active: true
   FunctionMaxLength:
     active: true
-    excludes: [ '**/test/**', '**/androidTest/**', '**/*.Spec.kt' ]
+    excludes: [ '**/test*/**', '**/androidTest/**', '**/*.Spec.kt' ]
     ignoreAnnotated:
       - "org.junit.Test"
       - "androidx.compose.ui.tooling.preview.Preview"
   FunctionNaming:
     active: true
-    excludes: [ '**/test/**', '**/androidTest/**', '**/*.Spec.kt' ]
+    excludes: [ '**/test*/**', '**/androidTest/**', '**/*.Spec.kt' ]
     ignoreAnnotated:
       - "androidx.compose.runtime.Composable"
       - "org.junit.Test"
@@ -412,7 +413,7 @@ potential-bugs:
     active: true
   Deprecation:
     active: true
-    excludes: [ '**/test/**', '**/**Test**.kt', '**/androidTest/**', '**/*.Spec.kt' ]
+    excludes: [ '**/test*/**', '**/**Test**.kt', '**/androidTest/**', '**/*.Spec.kt' ]
     ignoreAnnotated:
       - "javax.inject.Inject"
       - "org.junit.Test"
@@ -436,7 +437,7 @@ potential-bugs:
     active: true
   ImplicitUnitReturnType:
     active: true
-    excludes: [ '**/test/**', '**/**Test**.kt', '**/androidTest/**', '**/*.Spec.kt' ]
+    excludes: [ '**/test*/**', '**/**Test**.kt', '**/androidTest/**', '**/*.Spec.kt' ]
     ignoreAnnotated:
       - "org.junit.Test"
   InvalidRange:
@@ -447,7 +448,7 @@ potential-bugs:
     active: true
   LateinitUsage:
     active: true
-    excludes: [ '**/test/**', '**/**Test**.kt', '**/androidTest/**', '**/*.Spec.kt' ]
+    excludes: [ '**/test*/**', '**/**Test**.kt', '**/androidTest/**', '**/*.Spec.kt' ]
     ignoreAnnotated:
       - "javax.inject.Inject"
       - "org.junit.Test"
@@ -519,7 +520,7 @@ style:
     active: true
   ExpressionBodySyntax:
     active: true
-    excludes: [ '**/test/**', '**/**Test**.kt', '**/androidTest/**', '**/*.Spec.kt' ]
+    excludes: [ '**/test*/**', '**/**Test**.kt', '**/androidTest/**', '**/*.Spec.kt' ]
     ignoreAnnotated:
       - "org.junit.Test"
   ForbiddenImport:
@@ -528,7 +529,7 @@ style:
     active: true
   ForbiddenVoid:
     active: true
-    excludes: [ '**/test/**', '**/**Test**.kt', '**/androidTest/**', '**/*.Spec.kt' ]
+    excludes: [ '**/test*/**', '**/**Test**.kt', '**/androidTest/**', '**/*.Spec.kt' ]
     ignoreAnnotated:
       - "org.junit.Test"
   FunctionOnlyReturningConstant:

@@ -23,6 +23,7 @@ import com.nice.cxonechat.internal.model.ChatThreadMutable
 import com.nice.cxonechat.internal.model.ChatThreadMutable.Companion.asMutable
 import com.nice.cxonechat.internal.model.MessageModel
 import com.nice.cxonechat.internal.model.network.EventCaseStatusChanged.CaseStatus.Closed
+import com.nice.cxonechat.internal.model.network.EventCaseStatusChanged.CaseStatus.Open
 import com.nice.cxonechat.model.makeAgent
 import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.model.makeCustomField
@@ -31,6 +32,7 @@ import com.nice.cxonechat.server.ServerRequest
 import com.nice.cxonechat.server.ServerResponse
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState
+import com.nice.cxonechat.thread.ContactHandler
 import com.nice.cxonechat.thread.CustomField
 import com.nice.cxonechat.tool.nextString
 import io.mockk.clearMocks
@@ -171,7 +173,10 @@ internal class ChatThreadHandlerLiveChatTest : AbstractLiveChatTest() {
     }
 
     @Test
-    fun livechat_ignored_closed_thread() {
+    fun `livechat ignores a closed recovery for a still-pending thread`() {
+        // A freshly-started, unconfirmed thread must not be polluted by a different,
+        // already-closed conversation's messages that a recovery might return for it.
+        updateChatThread(chatThread.asCopyable().copy(threadState = ChatThreadState.Pending))
         val messages = listOf(
             makeMessageModel(),
             makeMessageModel()
@@ -189,6 +194,50 @@ internal class ChatThreadHandlerLiveChatTest : AbstractLiveChatTest() {
             )
         }
         assertEquals(expected, actual)
+    }
+
+    @Test
+    fun `livechat applies a closed recovery for an already-active thread`() {
+        // An existing, Ready thread genuinely closing (e.g. recovered while the app was
+        // backgrounded) must transition to Closed with its messages - otherwise canAddMoreMessages
+        // never updates and the UI can neither show the missed Satisfaction Survey nor EndContact.
+        updateChatThread(chatThread.asCopyable().copy(threadState = ChatThreadState.Ready))
+        val messages = listOf(
+            makeMessageModel(),
+            makeMessageModel()
+        )
+        val actual = testCallback(::get) {
+            sendServerMessage(
+                ServerResponse.LivechatRecovered(
+                    thread = chatThread.snapshot(),
+                    messages = messages.toTypedArray(),
+                    scrollToken = nextString(),
+                    agent = null,
+                    status = ContactStatus.Closed,
+                )
+            )
+        }
+        assertEquals(ChatThreadState.Closed, actual.threadState)
+        assertEquals(false, actual.canAddMoreMessages)
+        assertEquals(messages.map(MessageModel::idOnExternalPlatform), actual.messages.map { it.id })
+    }
+
+    @Test
+    fun `livechat does not re-enable messaging when the recovered thread reports it unavailable despite an open status`() {
+        // threadState is derived only from contact status, not from the thread's own flag - a
+        // recovery can report canAddMoreMessages = false while the status is not yet Closed.
+        updateChatThread(chatThread.asCopyable().copy(threadState = ChatThreadState.Ready))
+        val recoveredThread = chatThread.asCopyable().copy(canAddMoreMessages = false)
+        val actual = testCallback(::get) {
+            sendServerMessage(
+                ServerResponse.LivechatRecovered(
+                    thread = recoveredThread,
+                    status = ContactStatus.New,
+                )
+            )
+        }
+        assertEquals(ChatThreadState.Ready, actual.threadState)
+        assertEquals(false, actual.canAddMoreMessages)
     }
 
     // --- Begin Conversation init path ---
@@ -237,6 +286,77 @@ internal class ChatThreadHandlerLiveChatTest : AbstractLiveChatTest() {
         verify(exactly = 0) {
             socket.send(text = match { it.contains(BEGIN_CONVERSATION_MESSAGE) })
         }
+    }
+
+    @Test
+    fun `livechatRecovered sets the contact handler`() {
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.LivechatRecovered(thread = chatThread.snapshot(), handler = "cxone"))
+        }
+        assertEquals(ContactHandler.CXone, actual.contactHandler)
+    }
+
+    @Test
+    fun `livechatRecovered without a handler keeps the previous one`() {
+        updateChatThread(chatThread.asCopyable().copy(contactHandler = ContactHandler.Cognigy))
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.LivechatRecovered(thread = chatThread.snapshot()))
+        }
+        assertEquals(ContactHandler.Cognigy, actual.contactHandler)
+    }
+
+    // Two decorators (LiveChat and AgentUpdate) write on this event, one after the other. Each is
+    // enough alone to leave the right handler, so this pins their combined effect, not either one.
+    @Test
+    fun `caseInboxAssigneeChanged sets the contact handler in live chat`() {
+        updateChatThread(chatThread.asCopyable().copy(contactHandler = ContactHandler.Cognigy))
+        val actual = testCallback(::get) {
+            sendServerMessage(
+                ServerResponse.CaseInboxAssigneeChanged(chatThread.snapshot(), makeAgent(), connection, handler = "cxone")
+            )
+        }
+        assertEquals(ContactHandler.CXone, chatThread.contactHandler)
+        assertEquals(ContactHandler.CXone, actual.contactHandler)
+    }
+
+    @Test
+    fun `caseStatusChanged with only a new handler updates the handler`() {
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.CaseStatusChanged(chatThread.snapshot(), Open, handler = "cognigy"))
+        }
+        assertEquals(ContactHandler.Cognigy, actual.contactHandler)
+        assertEquals(true, actual.canAddMoreMessages)
+    }
+
+    @Test
+    fun `caseStatusChanged closing the case also sets the handler`() {
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.CaseStatusChanged(chatThread.snapshot(), Closed, handler = "cxone"))
+        }
+        assertEquals(ChatThreadState.Closed, actual.threadState)
+        assertEquals(ContactHandler.CXone, actual.contactHandler)
+    }
+
+    @Test
+    fun `caseStatusChanged closing the case with a handler never emits the handler on an open thread`() {
+        val emitted = mutableListOf<Pair<ContactHandler?, ChatThreadState>>()
+        val job = testScope.launch {
+            thread.threadFlow.drop(1).collect { emitted.add(Pair(it.contactHandler, it.threadState)) }
+        }
+        socketServer.sendServerMessage(ServerResponse.CaseStatusChanged(chatThread.snapshot(), Closed, handler = "cxone"))
+        job.cancel()
+        assertEquals<List<Pair<ContactHandler?, ChatThreadState>>>(
+            listOf(Pair(ContactHandler.CXone, ChatThreadState.Closed)),
+            emitted
+        )
+    }
+
+    @Test
+    fun `contactHandlerChanged updates the handler in live chat`() {
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.ContactHandlerChanged(chatThread.id.toString(), "cognigy"))
+        }
+        assertEquals(ContactHandler.Cognigy, actual.contactHandler)
     }
 
     // ---

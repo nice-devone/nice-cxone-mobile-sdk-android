@@ -26,6 +26,9 @@ import com.nice.cxonechat.storage.ValueStorage
 import kotlinx.coroutines.test.TestScope
 import okhttp3.OkHttpClient
 
+@Suppress(
+    "LongParameterList", // for testing purposes, we need to pass all dependencies
+)
 internal class ChatEntrailsMock(
     override val sharedClient: OkHttpClient,
     override val storage: ValueStorage,

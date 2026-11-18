@@ -42,10 +42,14 @@ More information about WFA can be found in the [CXone documentation](https://hel
   - Reports time spent on the last page in seconds.
 
 To record analytics events use `com.nice.cxonechat.ChatEventHandlerActions` extension functions for `ChatEventHandler`.
+They are extension members of that object, so import each action you use — importing the object alone does not bring
+them into scope.
 
 Sample:
 
 ```kotlin
+import com.nice.cxonechat.ChatEventHandlerActions.chatWindowOpen
+
 class ChatViewModel : ViewModel() {
 
   private val chat = ChatInstanceProvider.get().chat.let(::requireNotNull)

@@ -17,6 +17,7 @@ package com.nice.cxonechat.internal
 
 import com.nice.cxonechat.ChatThreadActionHandler
 import com.nice.cxonechat.Popup
+import com.nice.cxonechat.event.RecoverLiveChatThreadEvent
 import com.nice.cxonechat.internal.model.network.EventLiveChatThreadRecovered
 import com.nice.cxonechat.internal.socket.EventCallback.Companion.eventFlow
 import com.nice.cxonechat.thread.ChatThreadState
@@ -25,32 +26,47 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
 
 /**
- * Adds inactivity popups carried by [EventLiveChatThreadRecovered] (e.g. after reconnect) on top of
- * the live MessageCreated popups exposed by [handler].
+ * Adds popups (inactivity popups, Satisfaction Survey) carried by [EventLiveChatThreadRecovered]
+ * (e.g. after reconnect, or returning after the app was closed) on top of the live MessageCreated
+ * popups exposed by [handler].
+ *
+ * This is also how a missed Satisfaction Survey (sent after the customer closed the app) reaches
+ * the app: it was never delivered live, so it surfaces here on the next recovery instead.
  */
 internal class ChatThreadActionHandlerLiveChat(
-    private val handler: ChatThreadActionHandlerImpl,
+    private val handler: ChatThreadActionHandler,
     chat: ChatWithParameters,
     chatThread: com.nice.cxonechat.internal.model.ChatThreadMutable,
 ) : ChatThreadActionHandler by handler {
 
     /**
-     * Cold merge of the two popup sources — live MessageCreated popups ([handler]'s popupFlow) and
-     * popups embedded in LiveChatThreadRecovered events. Both are cold, so the merged flow
-     * re-subscribes on every collection and survives a close()/reconnect cycle (DE-172157).
-     * The recovery source is suppressed once the thread is closed / can no longer accept messages.
+     * Cold merge of live MessageCreated popups and LiveChatThreadRecovered popups. The
+     * closed/can't-add-more-messages guard only applies to [Popup.InactivityPopup] - a Satisfaction
+     * Survey is sent precisely when the conversation ends, so gating it the same way would drop it.
      */
     override val popupFlow: Flow<Popup> = merge(
         handler.popupFlow,
-        chat.socketListener.eventFlow(EventLiveChatThreadRecovered)
+        chat.socketListener.eventFlow(EventLiveChatThreadRecovered) {
+            // A Pending thread does not exist on the server yet; recovering it fails and surfaces
+            // as an error banner, matching the guard ChatThreadHandlerLiveChat.refresh() already uses.
+            if (chatThread.threadState !== ChatThreadState.Pending) {
+                chat.triggerRecoveryOrLog(RecoverLiveChatThreadEvent(chatThread.id))
+            }
+        }
             .mapNotNull { (_, event) ->
-                if (event.inThread(chatThread) &&
-                    event.thread?.threadState != ChatThreadState.Closed &&
-                    event.thread?.canAddMoreMessages == true
-                ) {
-                    event.popup as? Popup.InactivityPopup
-                } else {
+                if (!event.inThread(chatThread)) {
                     null
+                } else {
+                    when (val popup = chat.popupOrLogAndDrop { event.popup }) {
+                        is Popup.InactivityPopup ->
+                            popup.takeIf {
+                                event.thread?.threadState != ChatThreadState.Closed &&
+                                        event.thread?.canAddMoreMessages == true
+                            }
+
+                        is Popup.SatisfactionSurvey -> chat.surveyIfUndelivered(chatThread.id, popup)
+                        else -> null
+                    }
                 }
             }
     )

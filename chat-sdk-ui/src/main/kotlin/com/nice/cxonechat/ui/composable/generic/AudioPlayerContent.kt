@@ -79,6 +79,7 @@ import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
+import com.nice.cxonechat.ui.composable.theme.audioCellMaxWidthInWindow
 import com.nice.cxonechat.ui.util.rememberAccessibilityTime
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -198,8 +199,10 @@ private fun RowScope.ProgressIndicator(
     LinearProgressIndicator(
         progress = { animatedProgress },
         modifier = Modifier
-            .padding(10.dp)
-            .height(space.medium)
+            // Horizontal only: the design puts this gap between the bar and the times either side of it, and
+            // nothing above or below, leaving the time text to set the row's height.
+            .padding(horizontal = space.audioPlayerProgressSpacing)
+            .height(space.audioPlayerProgressBarHeight)
             .weight(1f)
             .semantics {
                 testTag = "progress_indicator"
@@ -241,7 +244,11 @@ private fun PlayPauseButton(enabled: Boolean, onPlayPause: () -> Unit, isPlaying
     IconButton(
         enabled = enabled,
         onClick = onPlayPause,
-        modifier = Modifier.testTag("play_pause_button")
+        // Material 3 sizes its container at 40dp and clips to it, so the design's larger glyph needs the container
+        // widened to match. Sized here rather than on the glyph, which the clip would crop instead of following.
+        modifier = Modifier
+            .size(space.audioPlayerPlayIconSize)
+            .testTag("play_pause_button")
     ) {
         AnimatedContent(isPlaying) {
             val iconMod = Modifier.size(space.audioPlayerPlayIconSize)
@@ -330,11 +337,10 @@ private fun PreviewContent(
     remainingTime: String,
 ) {
     BoxWithConstraints {
-        val maxAttachmentWidth = this.maxWidth.times(0.745f)
         Surface(
             color = color,
             shape = ChatTheme.chatShapes.bubbleSoloShape,
-            modifier = Modifier.widthIn(min = space.smallAttachmentSize, max = maxAttachmentWidth)
+            modifier = Modifier.widthIn(max = audioCellMaxWidthInWindow(this.maxWidth))
         ) {
             AudioPlayerContent(
                 currentTime = currentTime,

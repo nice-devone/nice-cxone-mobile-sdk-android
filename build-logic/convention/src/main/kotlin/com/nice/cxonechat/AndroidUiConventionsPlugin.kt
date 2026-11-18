@@ -26,7 +26,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension
 
 /**
  * Convention plugin for Android UI modules. Enables vector drawable support,
- * strict Java interop checks, and Compose navigation dependencies.
+ * strict JSpecify nullness checks, and Compose navigation dependencies.
  */
 abstract class AndroidUiConventionsPlugin : Plugin<Project> {
     override fun apply(target: Project) {
@@ -44,6 +44,7 @@ abstract class AndroidUiConventionsPlugin : Plugin<Project> {
             }
             extensions.configure<KotlinAndroidProjectExtension> {
                 compilerOptions {
+                    // AndroidX pairs this with -Xtype-enhancement-improvements-strict-mode, redundant on Kotlin 2.4.
                     freeCompilerArgs.addAll(
                         listOf(
                             "-Xjspecify-annotations=strict",

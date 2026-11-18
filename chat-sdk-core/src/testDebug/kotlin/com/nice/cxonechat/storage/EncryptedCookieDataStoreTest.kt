@@ -111,7 +111,6 @@ internal class EncryptedCookieDataStoreTest {
         }
     }
 
-
     @Test
     fun saveCookies_handlesEmptyList() {
         runBlocking {

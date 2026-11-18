@@ -23,6 +23,7 @@ import com.nice.cxonechat.enums.EventType.SetPositionInQueue
 import com.nice.cxonechat.event.RecoverLiveChatThreadEvent
 import com.nice.cxonechat.event.thread.EndContactEvent
 import com.nice.cxonechat.exceptions.InvalidStateException
+import com.nice.cxonechat.internal.CaseStatusChangedHandlerActions.staysClosedFor
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.updateWith
 import com.nice.cxonechat.internal.model.ChatThreadMutable
@@ -117,10 +118,13 @@ internal class ChatThreadHandlerLiveChat(
             .mapNotNull { (_, event) ->
                 if (!event.inThread(thread)) return@mapNotNull null
                 try {
+                    // A late assignment for the closed case must not reopen it (iOS parity).
+                    val keepsClosed = thread.staysClosedFor(event.case.id)
                     thread += thread.asCopyable().copy(
-                        contactId = event.case.id,
+                        contactId = if (keepsClosed) thread.contactId else event.case.id,
+                        contactHandler = event.contactHandler ?: thread.contactHandler,
                         positionInQueue = null,
-                        threadState = Ready,
+                        threadState = if (keepsClosed) thread.threadState else Ready,
                         messages = thread.messages.removeConversationStarter(),
                         scrollToken = thread.getScrollTokenForStart(),
                     )
@@ -138,7 +142,13 @@ internal class ChatThreadHandlerLiveChat(
                 try {
                     var updated = false
                     CaseStatusChangedHandlerActions.handleCaseClosed(thread, event) { _ -> updated = true }
-                    if (!updated) return@mapNotNull null
+                    if (!updated) {
+                        // Not an archive change: apply a handler-only change here, in the same step as the status.
+                        val handler = event.contactHandler
+                        if (!event.inThread(thread) || handler == null) return@mapNotNull null
+                        thread += thread.asCopyable().copy(contactHandler = handler)
+                        return@mapNotNull get()
+                    }
                     thread += thread.asCopyable().copy(
                         messages = thread.messages.removeConversationStarter(),
                         scrollToken = thread.getScrollTokenForStart()
@@ -217,7 +227,10 @@ internal class ChatThreadHandlerLiveChat(
     }
 
     private fun updateFromEvent(event: EventLiveChatThreadRecovered) {
-        if (event.threadState === Closed) return
+        // A still-Pending thread must not be polluted by a different, already-closed
+        // conversation's messages a recovery might return for it. An already-active thread
+        // genuinely closing must still be reflected, or canAddMoreMessages/threadState never update.
+        if (event.threadState === Closed && thread.threadState === Pending) return
         val messages = event.messages.sortedBy(Message::createdAt)
         val eventThread = event.thread
         thread += thread.asCopyable().copy(
@@ -229,7 +242,13 @@ internal class ChatThreadHandlerLiveChat(
             fields = thread.fields.updateWith(
                 eventThread?.fields.orEmpty()
             ),
-            threadState = event.threadState
+            threadState = event.threadState,
+            // Mirrors CaseStatusChangedHandlerActions.handleCaseClosed: threadState alone does not
+            // drive canAddMoreMessages, so a recovered Closed thread must set it explicitly here too.
+            // The raw thread's own flag can be false even when the status isn't Closed yet - an
+            // explicit false there must not be overridden back to true.
+            canAddMoreMessages = event.threadState !== Closed && eventThread?.canAddMoreMessages != false,
+            contactHandler = eventThread?.contactHandler ?: thread.contactHandler,
         )
         chat.fields = chat.fields.updateWith(
             event.customerCustomFields

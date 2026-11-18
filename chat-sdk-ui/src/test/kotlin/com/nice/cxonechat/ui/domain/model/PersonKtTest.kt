@@ -97,10 +97,12 @@ class PersonKtTest {
     }
 
     // --- Agent.asPerson with PII hiding ---
+    // The backend can null firstName, lastName and imageUrl when agent PII is hidden;
+    // asPerson must convert null names to "" so the downstream Person model stays consistent.
 
     @Test
     fun `asPerson converts null firstName to empty string when PII is hidden`() {
-        val agent = agentWithNullPii()
+        val agent = agentWith(firstName = null, lastName = null)
 
         val person = agent.asPerson
 
@@ -109,7 +111,7 @@ class PersonKtTest {
 
     @Test
     fun `asPerson converts null lastName to empty string when PII is hidden`() {
-        val agent = agentWithNullPii()
+        val agent = agentWith(firstName = null, lastName = null)
 
         val person = agent.asPerson
 
@@ -118,7 +120,7 @@ class PersonKtTest {
 
     @Test
     fun `asPerson produces null imageUrl when agent imageUrl is null`() {
-        val agent = agentWithNullPii()
+        val agent = agentWith(firstName = null, lastName = null)
 
         val person = agent.asPerson
 
@@ -127,20 +129,66 @@ class PersonKtTest {
 
     @Test
     fun `asPerson produces null monogram when both firstName and lastName are null`() {
-        val agent = agentWithNullPii()
+        val agent = agentWith(firstName = null, lastName = null)
 
         val person = agent.asPerson
 
         assertNull(person.monogram)
+        assertNull(person.fullName)
     }
 
     @Test
     fun `asPerson produces correct monogram from non-null name fields`() {
-        val agent = agentWithName("Alice", "Smith")
+        val agent = agentWith(firstName = "Alice", lastName = "Smith")
 
         val person = agent.asPerson
 
         assertEquals("AS", person.monogram)
+    }
+
+    @Test
+    fun `asPerson with only firstName produces single-letter monogram and firstName as fullName`() {
+        val agent = agentWith(firstName = "Alice", lastName = null)
+
+        val person = agent.asPerson
+
+        assertEquals("A", person.monogram)
+        assertEquals("Alice", person.fullName)
+    }
+
+    @Test
+    fun `asPerson with only lastName produces single-letter monogram and lastName as fullName`() {
+        val agent = agentWith(firstName = null, lastName = "Smith")
+
+        val person = agent.asPerson
+
+        assertEquals("S", person.monogram)
+        assertEquals("Smith", person.fullName)
+    }
+
+    @Test
+    fun `asPerson with non-null names produces the full name`() {
+        val agent = agentWith(firstName = "Alice", lastName = "Smith")
+
+        val person = agent.asPerson
+
+        assertEquals("Alice Smith", person.fullName)
+    }
+
+    @Test
+    fun `asPerson strips default server avatar URL`() {
+        val defaultUrl = "https://assets-qa.brandembassy.com/platform/static/public/img/user/a.png"
+        val agent = agentWith(firstName = "Alice", lastName = "Smith", imageUrl = defaultUrl)
+
+        assertNull(agent.asPerson.imageUrl)
+    }
+
+    @Test
+    fun `asPerson preserves a real custom imageUrl`() {
+        val customUrl = "https://brand-embassy-avatars-qa.s3.eu-west-1.amazonaws.com/avatar.jpg"
+        val agent = agentWith(firstName = "Alice", lastName = "Smith", imageUrl = customUrl)
+
+        assertEquals(customUrl, agent.asPerson.imageUrl)
     }
 
     // --- personFromResolvedName with blank name ---
@@ -154,25 +202,18 @@ class PersonKtTest {
 
     // --- Helpers ---
 
-    private fun agentWithNullPii(): Agent = object : Agent() {
-        override val id = 1
-        override val firstName: String? = null
-        override val lastName: String? = null
-        override val nickname: String? = null
-        override val isBotUser: Boolean? = null
-        override val isSurveyUser: Boolean? = null
-        override val imageUrl: String? = null
-        override val isTyping = false
-    }
-
-    private fun agentWithName(firstName: String, lastName: String): Agent = object : Agent() {
+    private fun agentWith(
+        firstName: String?,
+        lastName: String?,
+        imageUrl: String? = null,
+    ): Agent = object : Agent() {
         override val id = 1
         override val firstName = firstName
         override val lastName = lastName
         override val nickname: String? = null
         override val isBotUser: Boolean? = null
         override val isSurveyUser: Boolean? = null
-        override val imageUrl: String? = null
+        override val imageUrl = imageUrl
         override val isTyping = false
     }
 }

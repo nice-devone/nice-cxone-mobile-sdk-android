@@ -62,4 +62,17 @@ abstract class ChatThread {
 
     /** Id of the current active contact for the thread. Null if no contact has been established yet. */
     abstract val contactId: String?
+
+    /**
+     * Who currently handles the contact: CXone routing or an automated bot.
+     * `null` when the platform reports no handler for this channel.
+     * Treat [ContactHandler.Cognigy] and [ContactHandler.Unknown] as "not handled by CXone".
+     *
+     * Read it from the thread handler ([com.nice.cxonechat.ChatThreadHandler.get] or `threadFlow`); that is the
+     * reliable source. It is updated from thread recovery, message, assignee, case-status and handover events.
+     *
+     * Entries in the thread list may report `null` or lag behind the handler, and a list refresh reports `null`.
+     * Do not read `null` there as "no handler".
+     */
+    open val contactHandler: ContactHandler? = null
 }

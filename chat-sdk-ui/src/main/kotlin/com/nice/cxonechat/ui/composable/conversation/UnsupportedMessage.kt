@@ -22,17 +22,22 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.SnackbarDuration.Short
-import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.TooltipState
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -54,48 +59,85 @@ import com.nice.cxonechat.ui.composable.theme.Shapes
 import com.nice.cxonechat.ui.util.preview.message.UiSdkUnsupportedMessage
 import kotlinx.coroutines.launch
 
+/**
+ * By default [tooltipState] is persistent, so the tooltip stays up until the reader taps outside it
+ * or presses Back. While it is shown, its window swallows every touch, so nothing under it can be
+ * tapped.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun UnsupportedMessage(
     message: Unsupported,
     modifier: Modifier = Modifier,
-    snackBarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    tooltipState: TooltipState = rememberTooltipState(isPersistent = true),
 ) {
     val coroutineScope = rememberCoroutineScope()
     val messageText = message.text()
     val accessibilityDescription = message.getMessageAccessibility(messageText)
-    val unsupportedMessage = stringResource(R.string.unsupported_message)
     val onClickLabel = stringResource(R.string.accessibility_label_onclick_more_information)
     val errorMessage = stringResource(R.string.unsupported_message_error)
-    Column(
-        modifier = modifier
-            .clickable(
-                onClickLabel = onClickLabel
-            ) {
-                coroutineScope.launch {
-                    snackBarHostState.showSnackbar(
-                        message = unsupportedMessage,
-                        duration = Short,
-                        withDismissAction = true
-                    )
+    UnsupportedMessageTooltip(tooltipState) {
+        Column(
+            modifier = modifier
+                .clickable(onClickLabel = onClickLabel) {
+                    coroutineScope.launch { tooltipState.show() }
                 }
-            }
-            .semantics(mergeDescendants = true) {
-                testTag = "unsupported_message"
-                contentDescription = accessibilityDescription
-                error(errorMessage)
-            },
-        verticalArrangement = Arrangement.spacedBy(space.medium)
-    ) {
-        Text(
-            text = messageText,
-            modifier = Modifier.semantics {
-                testTag = "fallback_text"
-                hideFromAccessibility() // The message text is described by the column's content description for accessibility
-            },
-            style = chatTypography.unsupportedMessageText,
-        )
-        UnsupportedMessageStatus()
+                .semantics(mergeDescendants = true) {
+                    testTag = "unsupported_message"
+                    contentDescription = accessibilityDescription
+                    error(errorMessage)
+                },
+            verticalArrangement = Arrangement.spacedBy(space.medium)
+        ) {
+            Text(
+                text = messageText,
+                modifier = Modifier.semantics {
+                    testTag = "fallback_text"
+                    hideFromAccessibility() // The message text is described by the column's content description for accessibility
+                },
+                style = chatTypography.unsupportedMessageText,
+            )
+            UnsupportedMessageStatus()
+        }
     }
+}
+
+/**
+ * Explains, on tap, why the message could not be displayed.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun UnsupportedMessageTooltip(
+    tooltipState: TooltipState,
+    anchor: @Composable () -> Unit,
+) {
+    TooltipBox(
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+        tooltip = {
+            PlainTooltip(
+                // A taller caret would have its tip clipped: the caret is drawn outside the tooltip's bounds.
+                caretShape = TooltipDefaults.caretShape(),
+                shape = RoundedCornerShape(space.semiLarge),
+                containerColor = chatColors.token.background.surface.subtle,
+                contentColor = chatColors.token.content.secondary,
+                // The tooltip's fill can match the surface it appears over, so it needs a shadow to stand out.
+                shadowElevation = space.tooltipShadowElevation,
+            ) {
+                // Adds to the content padding PlainTooltip applies, which it does not let you change.
+                Text(
+                    text = stringResource(R.string.unsupported_message),
+                    style = chatTypography.tooltipText,
+                    modifier = Modifier
+                        .testTag("unsupported_message_tooltip")
+                        .padding(horizontal = space.medium, vertical = space.semiLarge),
+                )
+            }
+        },
+        state = tooltipState,
+        focusable = true,
+        enableUserInput = false,
+        content = anchor,
+    )
 }
 
 @Composable
@@ -125,6 +167,7 @@ internal fun UnsupportedMessageStatus() {
 @Composable
 private fun Unsupported.text() = text ?: stringResource(R.string.text_unsupported_message_type)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @PreviewLightDark
 @Composable
 private fun PreviewUnsupportedMessage() {

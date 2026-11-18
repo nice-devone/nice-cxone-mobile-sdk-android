@@ -15,15 +15,19 @@
 
 package com.nice.cxonechat.ui.composable
 
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -49,8 +53,11 @@ import com.nice.cxonechat.ui.composable.generic.Requirements.email
 import com.nice.cxonechat.ui.composable.generic.Requirements.none
 import com.nice.cxonechat.ui.composable.generic.Requirements.required
 import com.nice.cxonechat.ui.composable.generic.TreeField
+import com.nice.cxonechat.ui.composable.generic.scrollbar.rememberScrollbarState
+import com.nice.cxonechat.ui.composable.generic.scrollbar.scrollbar
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.TextField
 import com.nice.cxonechat.ui.domain.model.CustomValueItem
@@ -60,16 +67,36 @@ import com.nice.cxonechat.ui.util.pathToNode
 import com.nice.cxonechat.ui.util.preview.FieldModelListProvider
 import com.nice.cxonechat.ui.util.toggle
 
+/**
+ * The optional [subtitle] scrolls with the fields rather than staying pinned above them.
+ *
+ * The scrollbar draws over the list's own bounds, so [contentPadding] is what keeps it clear of the fields.
+ */
 @Composable
 internal fun CVFieldList(
     fields: CustomValueItemList,
     modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(),
+    subtitle: String? = null,
     onUpdated: (CustomValueItemList) -> Unit = {},
 ) {
+    val listState = rememberLazyListState()
+    val scrollbarState = rememberScrollbarState()
     LazyColumn(
-        modifier = modifier,
+        state = listState,
+        contentPadding = contentPadding,
+        modifier = modifier.scrollbar(listState, scrollbarState, Orientation.Vertical),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        if (subtitle != null) {
+            item {
+                Text(
+                    text = subtitle,
+                    style = chatTypography.surveySubtitle,
+                    color = chatColors.token.content.secondary,
+                )
+            }
+        }
         items(items = fields) {
             CVField(it) { onUpdated(fields) }
         }

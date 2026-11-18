@@ -16,11 +16,15 @@
 package com.nice.cxonechat.ui.composable.conversation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.R.string.ok
@@ -53,6 +57,25 @@ internal fun ThreadDialogView(
 ) {
     val onDismiss = remember { threadViewModel::dismissDialog }
     val dialog = threadViewModel.dialogShown.collectAsState(None).value
+
+    // Lifecycle-driven, not just composition-driven: a stopped (backgrounded) Activity retains its
+    // composition without disposing it, so relying on onDispose alone would leave this "attached"
+    // while the survey is actually off screen.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(threadViewModel, lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START -> threadViewModel.setDialogHostAttached(true)
+                Lifecycle.Event.ON_STOP -> threadViewModel.setDialogHostAttached(false)
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            threadViewModel.setDialogHostAttached(false)
+        }
+    }
 
     ShowDialog(
         dialog = dialog,

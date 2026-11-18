@@ -30,6 +30,7 @@ import com.nice.cxonechat.ui.composable.conversation.model.Action.ReplyButton
 import com.nice.cxonechat.ui.composable.conversation.model.Message.ListPicker
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.util.preview.message.UiSdkListPicker
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -48,22 +49,22 @@ class ListPickerBottomSheetTest {
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun listPickerBottomSheet_displaysTitleSubtitleAndActions_andHandlesButtonClicks() {
+    fun listPickerBottomSheet_displaysTitleSubtitleAndActions() {
         val listPicker = ListPicker(UiSdkListPicker()) {}
-        var dismissCalled = false
-        var doneCalled = false
 
         composeTestRule.setContent {
             ChatTheme {
-                ListPickerBottomSheetContent(
+                ListPickerBottomSheet(
                     message = listPicker,
-                    onDismiss = { dismissCalled = true },
-                    onDone = { doneCalled = true }
+                    onDismiss = {},
+                    onDone = {}
                 )
             }
         }
 
-        composeTestRule.onNodeWithTag(testTag = "list_picker_title", useUnmergedTree = true).assertIsDisplayed()
+        // The title is now the shared ChatTheme.ModalBottomSheet's own non-scrolling title, which carries
+        // no test tag, so it is asserted by text instead.
+        composeTestRule.onNodeWithText(listPicker.title, useUnmergedTree = true).assertIsDisplayed()
         composeTestRule.onNodeWithTag(testTag = "list_picker_subtitle", useUnmergedTree = true).assertIsDisplayed()
 
         listPicker.actions.forEach { action ->
@@ -72,14 +73,51 @@ class ListPickerBottomSheetTest {
                 composeTestRule.onNodeWithText(it.text).assertIsDisplayed()
             }
         }
+    }
+
+    @Test
+    fun listPickerBottomSheet_cancelButton_invokesOnDismiss() {
+        val listPicker = ListPicker(UiSdkListPicker()) {}
+        var dismissCalled = false
+
+        composeTestRule.setContent {
+            ChatTheme {
+                ListPickerBottomSheet(
+                    message = listPicker,
+                    onDismiss = { dismissCalled = true },
+                    onDone = {}
+                )
+            }
+        }
 
         composeTestRule.onNodeWithText(composeTestRule.activity.getString(R.string.cancel)).performClick()
-        assert(dismissCalled)
+        // Cancel goes through the shared sheet's hideSheet(), which only invokes onDismiss once the
+        // hide animation's coroutine completes; performClick()'s own sync isn't guaranteed to cover that.
+        composeTestRule.waitForIdle()
+        assertTrue(dismissCalled)
+    }
+
+    @Test
+    fun listPickerBottomSheet_selectOptionAndSubmit_invokesOnDone() {
+        val listPicker = ListPicker(UiSdkListPicker()) {}
+        var doneCalled = false
+
+        composeTestRule.setContent {
+            ChatTheme {
+                ListPickerBottomSheet(
+                    message = listPicker,
+                    onDismiss = {},
+                    onDone = { doneCalled = true }
+                )
+            }
+        }
 
         val firstReplyButton = listPicker.actions.first() as ReplyButton
         composeTestRule.onNodeWithText(firstReplyButton.text).performClick()
         composeTestRule.onNodeWithText(composeTestRule.activity.getString(R.string.submit)).performClick()
-        assert(doneCalled)
+        // Submit goes through the shared sheet's hideSheet() too; see the Cancel test above.
+        composeTestRule.waitForIdle()
+        assertTrue(doneCalled)
     }
 
     @Test

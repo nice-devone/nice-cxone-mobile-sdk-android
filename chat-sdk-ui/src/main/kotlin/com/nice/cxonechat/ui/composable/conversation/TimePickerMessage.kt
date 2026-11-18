@@ -21,15 +21,20 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.TooltipState
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -56,17 +61,18 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.util.preview.message.UiSdkTimePicker
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun TimePickerMessage(
     message: TimePicker,
     messageStatusState: MessageStatusState,
     modifier: Modifier = Modifier,
     onMessageClick: () -> Unit,
-    snackBarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     val status = messageStatusState.asTriple()
     val messageAccessibility = message.getMessageAccessibility()
     val coroutineScope = rememberCoroutineScope()
+    val tooltipState = rememberTooltipState()
     val disableMessage = stringResource(string.rich_content_disable_message)
     val clickLabel = if (messageStatusState == SELECTABLE) {
         status.second
@@ -82,13 +88,7 @@ internal fun TimePickerMessage(
                 if (messageStatusState == SELECTABLE) {
                     onMessageClick()
                 } else {
-                    coroutineScope.launch {
-                        snackBarHostState.showSnackbar(
-                            message = disableMessage,
-                            duration = SnackbarDuration.Short,
-                            withDismissAction = true
-                        )
-                    }
+                    coroutineScope.launch { tooltipState.show() }
                 }
             }
             .semantics(true) {
@@ -110,6 +110,42 @@ internal fun TimePickerMessage(
                 style = chatTypography.timePickerText
             )
         }
+        TimePickerMessageStatusTooltip(status, tooltipState, disableMessage)
+    }
+}
+
+/**
+ * Explains why the status is disabled/selected, on tap - a tooltip rather than a snackbar, matching
+ * the design, since it points at the row it explains instead of floating at the bottom of the screen.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TimePickerMessageStatusTooltip(
+    status: Triple<ImageVector, String, Color>,
+    tooltipState: TooltipState,
+    disableMessage: String,
+) {
+    TooltipBox(
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Below),
+        tooltip = {
+            PlainTooltip(
+                caretShape = TooltipDefaults.caretShape(),
+                shape = RoundedCornerShape(space.semiLarge),
+                containerColor = chatColors.token.background.surface.subtle,
+                contentColor = chatColors.token.content.secondary,
+                shadowElevation = space.tooltipShadowElevation,
+            ) {
+                Text(
+                    text = disableMessage,
+                    style = chatTypography.tooltipText,
+                    modifier = Modifier.padding(space.tooltipTextPadding),
+                )
+            }
+        },
+        state = tooltipState,
+        focusable = true,
+        enableUserInput = false,
+    ) {
         TimePickerMessageStatus(status)
     }
 }

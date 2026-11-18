@@ -26,6 +26,7 @@ import com.nice.cxonechat.server.ServerResponse
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState
 import io.mockk.verify
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.last
@@ -38,6 +39,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 
+@OptIn(ExperimentalCoroutinesApi::class)
 internal class ChatThreadHandlerLiveChatTest : AbstractLiveChatTest() {
     private lateinit var chatThread: ChatThread
     private lateinit var thread: ChatThreadHandler
@@ -62,7 +64,13 @@ internal class ChatThreadHandlerLiveChatTest : AbstractLiveChatTest() {
         val job = testScope.launch {
             actual = thread.threadFlow.drop(1).first()
         }
-        socketServer.sendServerMessage(ServerResponse.SetPositionInQueue(position = 10, isAgentAvailable = true, threadId = chatThread.id))
+        socketServer.sendServerMessage(
+            ServerResponse.SetPositionInQueue(
+                position = 10,
+                isAgentAvailable = true,
+                threadId = chatThread.id
+            )
+        )
         testScope.advanceUntilIdle()
         job.cancel()
 
@@ -85,7 +93,13 @@ internal class ChatThreadHandlerLiveChatTest : AbstractLiveChatTest() {
             actual = thread.threadFlow.drop(1).take(2).last()
         }
         socketServer.sendServerMessage(ServerResponse.CaseInboxAssigneeChanged(chatThread, agent, connection))
-        socketServer.sendServerMessage(ServerResponse.SetPositionInQueue(position = expectedPosition, isAgentAvailable = true, threadId = chatThread.id))
+        socketServer.sendServerMessage(
+            ServerResponse.SetPositionInQueue(
+                position = expectedPosition,
+                isAgentAvailable = true,
+                threadId = chatThread.id
+            )
+        )
         testScope.advanceUntilIdle()
         job.cancel()
 

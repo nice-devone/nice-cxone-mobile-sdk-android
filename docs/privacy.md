@@ -45,14 +45,15 @@ but the SDK only ever *receives* it from the backend for rendering an agent's or
 
 | Data | Location | Encrypted? |
 |---|---|---|
-| Auth token, transaction token, customer ID, visitor ID (persistent UUID), visit details, welcome message, push token | `secure_store.preferences_pb` (Jetpack DataStore, `chat-sdk-core`) | Yes — AES-256-GCM via Tink + Android Keystore |
-| Tink keyset wrapping the store above | `cxonechat_tink_keyset.xml` (SharedPreferences, `chat-sdk-core`) | N/A — key material itself; wrapped by a non-exportable Android Keystore key |
+| Auth token, transaction token, customer ID, visitor ID (persistent UUID), visit details, welcome message, push token, delivered Satisfaction Survey thread ids (last 50) | `secure_store.preferences_pb` (Jetpack DataStore, `chat-sdk-core`) | Yes — AES-256-GCM via Tink + Android Keystore |
+| Tink keyset wrapping the store above | `cxonechat_master_key.xml` (SharedPreferences, `chat-sdk-core`) | N/A — key material itself; wrapped by a non-exportable Android Keystore key |
 | Session cookies | `persistent_cookies.pb` (Jetpack DataStore, `chat-sdk-core`) | Yes — AES-256-GCM via Tink + Android Keystore |
-| Tink keyset wrapping the cookie store | `cookie_datastore_keyset.xml` (SharedPreferences, `chat-sdk-core`) | N/A — key material itself; wrapped by a non-exportable Android Keystore key |
+| Tink keyset wrapping the cookie store | `cookie_master_key.xml` (SharedPreferences, `chat-sdk-core`) | N/A — key material itself; wrapped by a non-exportable Android Keystore key |
 | Channel/brand configuration cache | In-memory only | N/A — cleared on sign-out, never written to disk |
 | Pending camera-capture URI (transient, during camera round-trip) | `cxone_chat_attachment_prefs.xml` (SharedPreferences, `chat-sdk-ui`) | No |
 | Captured photo/video temp files | App cache dir (`cacheDir/tmp/`, `cacheDir/capture/`), shared only via `FileProvider` | No |
 | UI state: permissions already requested, notifications dismissed, "end contact" prompts already shown per thread | `datastore/com.nice.cxonechat.ui.settings.preferences_pb` (Jetpack DataStore, `chat-sdk-ui`) | No |
+| Pending Satisfaction Survey stash (prompt text, survey URL) awaiting a background notification tap, keyed by thread id; cleared once opened or on sign-out | `datastore/com.nice.cxonechat.ui.secure_settings.preferences_pb` (Jetpack DataStore, `chat-sdk-ui`) | Yes — AES-256-GCM via Android Keystore |
 
 There is no Room/SQLite database and no on-device chat history cache — message history is fetched from the
 backend on demand.
@@ -61,19 +62,26 @@ backend on demand.
 
 Android Auto Backup is on by default for any app (`android:allowBackup` defaults to `true`); `chat-sdk-core`
 declares `android:fullBackupContent="@xml/backup_rules"`, which configures — but does not itself enable — the
-scope of what's included. The bundled `backup_rules.xml` excludes only:
+scope of what's included. The bundled `backup_rules.xml` excludes:
 
 - `secure_store.preferences_pb` (file)
-- `cxonechat_tink_keyset.xml` (sharedpref)
+- `cxonechat_master_key.xml` (sharedpref)
 - `com.nice.cxonechat.secure.xml` (sharedpref)
+- `datastore/com.nice.cxonechat.ui.secure_settings.preferences_pb` (file)
+- `persistent_cookies.pb` (file) — the encrypted cookie DataStore
+- `cookie_master_key.xml` (sharedpref) — the Tink keyset protecting the cookie store
 
 Everything else under the app's `sharedpref`/`file` domains is included by default. That means
-**`persistent_cookies.pb` (session cookies), its `cookie_datastore_keyset.xml` Tink keyset, `cxone_chat_attachment_prefs.xml`,
-and the `datastore/com.nice.cxonechat.ui.settings.preferences_pb` DataStore are backup-eligible** and may be uploaded to Google's backup
-servers as part of a device backup, even though they are listed as "stored on-device" above. This is not a
-confidentiality break: the cookie keyset is wrapped by a non-exportable Android Keystore key, so a restored blob
-cannot be decrypted on a different device — the SDK detects the failure and resets to an empty cookie list rather
-than crashing.
+**`cxone_chat_attachment_prefs.xml` and the `datastore/com.nice.cxonechat.ui.settings.preferences_pb` DataStore are
+backup-eligible** and may be uploaded to Google's backup servers as part of a device backup, even though they are
+listed as "stored on-device" above — but they hold no secrets (a transient capture URI and UI-only flags), so
+there is no confidentiality concern. For the stores that do hold secrets (the auth-token store and the cookie
+store), this would not have been a confidentiality break either: both keysets are wrapped by a non-exportable
+Android Keystore key, so a restored blob cannot be decrypted on a different device. What happens next depends on
+which part fails: if the keyset itself loads but the *payload* it decrypts is unreadable, both stores catch that
+and reset to an empty store. Keyset creation happens earlier, before any payload is read, and neither store
+currently catches a failure there — a keyset restored onto a device whose Keystore can't decrypt it makes store
+initialization throw instead of resetting.
 
 **Whether these exclusions take effect depends on your app's `targetSdk`, not just the device's OS version.**
 Android only switches from `fullBackupContent` to `android:dataExtractionRules` when *both* conditions hold: the
@@ -84,7 +92,7 @@ still governs backup, regardless of the other condition.
 `chat-sdk-core` ships no `dataExtractionRules`. So for an app that targets API 31+ and runs on an Android 12+
 device, `backup_rules.xml`'s exclusions are ignored entirely, and unless that app supplies its own
 `dataExtractionRules`, the platform default applies: **everything is backed up**, including the encrypted store
-(`secure_store.preferences_pb`) and the Tink keyset that decrypts it (`cxonechat_tink_keyset.xml`).
+(`secure_store.preferences_pb`) and the Tink keyset that decrypts it (`cxonechat_master_key.xml`).
 
 Google Play has a rolling minimum `targetSdk` requirement for new/updated apps that is well past API 31, so
 virtually every actively-maintained Play-distributed app meets the `targetSdk` half of that condition — in

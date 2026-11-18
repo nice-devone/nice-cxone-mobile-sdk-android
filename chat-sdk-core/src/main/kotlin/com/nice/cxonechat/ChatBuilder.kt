@@ -106,7 +106,7 @@ interface ChatBuilder {
      * - **Proactive expiry** ([TokenRequestReason.TOKEN_EXPIRED]): called when the stored token
      *   is about to expire during an active session.
      * - **Backend rejection** ([TokenRequestReason.TOKEN_INVALID]): called when the backend
-     *   rejects the stored JWT via HTTP 401.
+     *   rejects the stored JWT via HTTP 400.
      *
      * The call blocks until the integrator returns a token or throws.
      * Returning a JWT string resumes the pending operation; throwing causes the SDK to report a
@@ -133,7 +133,7 @@ interface ChatBuilder {
      * outage or your instance is misconfigured. In all of these cases, consult
      * a representative.
      *
-     * This is a suspend function \u2014 call it from a coroutine context.
+     * This is a suspend function — call it from a coroutine context.
      *
      * @return A [Chat] instance ready for use.
      */

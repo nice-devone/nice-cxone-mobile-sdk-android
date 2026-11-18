@@ -48,12 +48,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
@@ -143,6 +145,9 @@ internal fun SendButton(
     enabled: Boolean = true,
     onMessageSent: () -> Unit,
 ) {
+    // The plane flies along the reading direction: `AutoMirrored` flips the glyph for RTL, and mirroring a
+    // rotation negates it, so the nose-up tilt has to flip too. A fixed -45f leaves RTL pointing down-left.
+    val tiltDegrees = if (LocalLayoutDirection.current == LayoutDirection.Rtl) 45f else -45f
     ChatIconButton(
         enabled = enabled,
         icon = AutoMirrored.Default.Send,
@@ -150,7 +155,7 @@ internal fun SendButton(
         modifier = Modifier.testTag("send_button"),
         iconModifier = Modifier
             .padding(10.dp)
-            .rotate(-45f)
+            .rotate(tiltDegrees)
             .offset(2.5.dp),
         colors = IconButtonDefaults.filledIconButtonColors(
             contentColor = colorScheme.onPrimary,

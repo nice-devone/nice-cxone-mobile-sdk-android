@@ -16,6 +16,7 @@
 package com.nice.cxonechat.ui.composable.conversation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import com.nice.cxonechat.Popup
 import com.nice.cxonechat.message.Action
 import com.nice.cxonechat.ui.util.Ignored
@@ -27,6 +28,7 @@ internal fun Popup(dialog: ConversationDialog.Popup, threadViewModel: ChatThread
     Popup(
         popup = dialog.popup,
         closeChat = closeChat,
+        onDismiss = remember { threadViewModel::dismissSatisfactionSurvey },
     ) { action ->
         if (action is Action.ReplyButton) threadViewModel.reportReplyButtonClicked(action)
     }
@@ -36,10 +38,12 @@ internal fun Popup(dialog: ConversationDialog.Popup, threadViewModel: ChatThread
 internal fun Popup(
     popup: Popup,
     closeChat: () -> Unit,
+    onDismiss: () -> Unit,
     onClickAction: (Action) -> Unit,
 ) {
     when (popup) {
         is Popup.InactivityPopup -> InactivityPopup(popup, onClickAction, closeChat)
+        is Popup.SatisfactionSurvey -> SatisfactionSurveyPopup(popup, onDismiss)
         else -> Ignored
     }
 }

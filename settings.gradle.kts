@@ -32,7 +32,7 @@ pluginManagement {
 
 plugins {
     // Keep this AGP version in sync with `android-gradle-plugin` in `gradle/libs.versions.toml`.
-    id("com.android.settings") version "9.2.1"
+    id("com.android.settings") version "9.4.1"
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 

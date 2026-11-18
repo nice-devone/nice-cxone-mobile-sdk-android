@@ -18,6 +18,7 @@ package com.nice.cxonechat.ui.composable.conversation
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons.Default
+import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
@@ -67,6 +68,12 @@ internal fun EditIcon(contentDescription: String? = stringResource(string.change
 @NonRestartableComposable
 internal fun MenuIcon(contentDescription: String? = stringResource(string.livechat_conversation_options)) {
     Icon(Default.Menu, contentDescription)
+}
+
+@Composable
+@NonRestartableComposable
+internal fun ArchiveIcon(contentDescription: String? = stringResource(string.archive_thread_menu_item)) {
+    Icon(Default.Archive, contentDescription)
 }
 
 @Composable

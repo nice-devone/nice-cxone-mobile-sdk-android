@@ -21,6 +21,7 @@ import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.thread.Agent
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState
+import com.nice.cxonechat.thread.ContactHandler
 import com.nice.cxonechat.thread.CustomField
 import java.util.UUID
 
@@ -52,6 +53,8 @@ internal class ChatThreadMutable private constructor(
         get() = thread.hasOnlineAgent
     override val contactId: String?
         get() = thread.contactId
+    override val contactHandler: ContactHandler?
+        get() = thread.contactHandler
 
     val resultCallbacks = mutableMapOf<UUID, Cancellable>()
 

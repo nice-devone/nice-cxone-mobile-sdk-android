@@ -284,7 +284,7 @@ internal class ChatThreadHandlerWelcomeLiveChatTest : AbstractLiveChatTest() {
         assertEquals(1, recoverSends, "thread() must build a single LiveChat handler chain (no duplicate cache-watcher stack)")
     }
 
-    // --- DE-182612: the welcome monitor must not take new messages from threadFlow ---
+    // --- DE-182612: threadFlow must deliver every new message of a LiveChat thread ---
 
     @Test
     fun `threadFlow delivers the echo of the first customer message to a new LiveChat thread`() {
@@ -373,9 +373,9 @@ internal class ChatThreadHandlerWelcomeLiveChatTest : AbstractLiveChatTest() {
     }
 
     /**
-     * An empty thread starts the welcome monitor, which keeps collecting the handler chain below the shared flow
-     * for the thread's lifetime. Each message arrives only as a server [ServerResponse.MessageCreated] — sending
-     * does not append locally — so the collector must observe every one of them.
+     * An empty thread runs the welcome check inside the handler's shared chain, which runs from the moment the
+     * handler is built. Each message arrives only as a server [ServerResponse.MessageCreated] — sending does not
+     * append locally — so the collector must observe every one of them.
      */
     private fun assertMessagesObserved(vararg messages: MessageModel) {
         ignoreSends()

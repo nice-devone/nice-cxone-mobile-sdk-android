@@ -75,10 +75,9 @@ dependencies {
 configurations.configureEach {
     resolutionStrategy {
         eachDependency {
-            // AGP build tools pull in Bouncy Castle with a covert timing channel vulnerability
-            // affecting FrodoEngine (CVE-2026-5598 / GHSA-p93r-85wp-75v3); fixed in 1.84.
-            if (requested.group == "org.bouncycastle" && isOlderThan(requested.version, "1.84")) {
-                useVersion("1.84")
+            // AIKIDO-2026-322957
+            if (requested.group == "org.bouncycastle" && isOlderThan(requested.version, "1.86")) {
+                useVersion("1.86")
             }
             // Update commons-lang3 to secure version
             if (requested.group == "org.apache.commons" && requested.name == "commons-lang3" && isOlderThan(requested.version, "3.18.0")) {
@@ -88,11 +87,9 @@ configurations.configureEach {
             if (requested.group == "org.apache.httpcomponents" && requested.name == "httpclient" && isOlderThan(requested.version, "4.5.13")) {
                 useVersion("4.5.13")
             }
-            // AGP lint tooling pulls in older Jackson (GHSA-5jmj-h7xm-6q6v); fixed in 2.18.9.
-            // Mirrors the root build's fix — this is a separate included build and does not
-            // inherit resolutionStrategy from the root project.
-            if (requested.group.startsWith("com.fasterxml.jackson") && isOlderThan(requested.version, "2.18.9")) {
-                useVersion("2.18.9")
+            // CVE-2026-68497 / GHSA-q4xh-88c3-wmh7
+            if (requested.group.startsWith("com.fasterxml.jackson") && isOlderThan(requested.version, "2.18.10")) {
+                useVersion("2.18.10")
             }
             // AGP bundletool is using a vulnerable jose4j version (CVE-2024-29371); fixed in 0.9.6.
             // Mirrors the root build's fix — see the Jackson rule above for why this is needed here too.
@@ -103,9 +100,6 @@ configurations.configureEach {
             // Mirrors the root build's fix — see the Jackson rule above for why this is needed here too.
             if (requested.group == "org.jdom" && requested.name == "jdom2" && isOlderThan(requested.version, "2.0.6.1")) {
                 useVersion("2.0.6.1")
-            }
-            if (requested.group.startsWith("com.fasterxml.jackson") && (requested.version ?: "") < "2.18.9") {
-                useVersion("2.18.9")
             }
         }
     }

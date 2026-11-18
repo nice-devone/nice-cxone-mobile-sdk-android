@@ -28,7 +28,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import okhttp3.OkHttpClient.Builder
-import org.koin.core.KoinApplication
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Factory
 import org.koin.core.annotation.Module
@@ -83,16 +82,20 @@ class UiModule internal constructor() {
          * This method sets up the required dependencies for the UI layer, including
          * notification management, logging, and chat-related services.
          *
+         * The caller has to register `androidContext(...)` as well. This configuration does not register it, and the UI
+         * resolves [android.content.Context] and [android.app.Application] from the Koin graph, so without it the first
+         * injection inside [com.nice.cxonechat.ui.screen.ChatActivity] fails rather than the call to `startKoin`.
+         *
          * Example usage:
          * ```
          *    startKoin {
-         *      UiModule.chatUiModule()
+         *      androidContext(applicationContext)
+         *      includes(UiModule.chatUiModule())
          *    }
          * ```
          *
          * @note Must be called before [com.nice.cxonechat.ui.screen.ChatActivity] is created.
          *
-         * @receiver The [KoinApplication] instance to configure.
          * @param logger The [Logger] to use for logging. Defaults to [LoggerNoop].
          * @param customerFieldsProvider [UiCustomFieldsProvider] for extra customer field definitions, default is [NoExtraCustomFields].
          * @param contactFieldsProvider [UiCustomFieldsProvider] for extra contact field definitions, default is [NoExtraCustomFields].

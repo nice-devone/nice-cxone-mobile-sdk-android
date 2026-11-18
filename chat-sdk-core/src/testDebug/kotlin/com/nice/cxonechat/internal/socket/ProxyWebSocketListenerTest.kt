@@ -167,12 +167,11 @@ internal class ProxyWebSocketListenerTest {
         verify { child.onClosing(webSocket, 1001, "going away") }
     }
 
-    private fun stateListener(onStateChanged: (SocketState) -> Unit): WebSocketListener = object : WebSocketListener(),
-        SocketStateListener {
-        override fun onStateChanged(state: SocketState) {
-            onStateChanged.invoke(state)
-        }
-    }
-
     // endregion
+    private fun stateListener(onStateChanged: (SocketState) -> Unit): WebSocketListener =
+        object : WebSocketListener(), SocketStateListener {
+            override fun onStateChanged(state: SocketState) {
+                onStateChanged.invoke(state)
+            }
+        }
 }

@@ -52,7 +52,10 @@ internal class SocketConnectionListenerTest {
         val listener = SocketConnectionListener(
             onConnected = { throw AssertionError("onConnected should not be called") },
             onFailed = { throw AssertionError("onFailed should not be called") },
-            onDisconnected = { code, reason -> closedCode = code; closedReason = reason },
+            onDisconnected = { code, reason ->
+                closedCode = code
+                closedReason = reason
+            },
         )
         listener.onClosing(mockk(), 1001, "going away")
         assertEquals(1001, closedCode)
@@ -66,7 +69,10 @@ internal class SocketConnectionListenerTest {
         val listener = SocketConnectionListener(
             onConnected = { throw AssertionError("onConnected should not be called") },
             onFailed = { throw AssertionError("onFailed should not be called") },
-            onDisconnected = { code, reason -> closedCode = code; closedReason = reason },
+            onDisconnected = { code, reason ->
+                closedCode = code
+                closedReason = reason
+            },
         )
         listener.onClosed(mockk(), 1000, "normal closure")
         assertEquals(1000, closedCode)

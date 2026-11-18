@@ -24,8 +24,10 @@ Agent console also needs to have your application registered, which might involv
 credentials file.
 
 ```kotlin
-  val chat = MyChatInstanceProvide.chat ?: return
-  chat.setDeviceToken(yourDeviceToken)
+fun registerPushToken(yourDeviceToken: String) {
+    val chat = ChatInstanceProvider.get().chat ?: return
+    chat.setDeviceToken(yourDeviceToken)
+}
 ```
 
 [Case Study Push Notifications](chat-sdk-core/cs-push-notifications.md) offers more detail about this topic.
@@ -89,15 +91,20 @@ Use a thread list to fetch the first instance in the list OR create a new thread
 
     fun onThreadListUpdate(threads: List<ChatThread>) {
       val thread = threads.firstOrNull()
-      val threadHandler = when (thread) {
-        null -> displayPreChatSurvey(::threadsHandler.create)
-        else -> threadsHandler.thread(thread)
+      if (thread == null) {
+        // The survey is answered later, so the handler only exists once the callback fires.
+        displayPreChatSurvey { responses ->
+          val threadHandler = threadsHandler.create(responses)
+          // Use `threadHandler` to interact with the new thread
+        }
+      } else {
+        val threadHandler = threadsHandler.thread(thread)
+        // Use `threadHandler` to interact with the existing thread
       }
-      // Use the `threadHandler` to interact with the thread
     }
     
     fun displayPreChatSurvey(
-        onSurveySubmit: (responses: List<PreChatSurveyResponse>) -> Unit
+        onSurveySubmit: (responses: Sequence<PreChatSurveyResponse<out FieldDefinition, out Any>>) -> Unit
     ) {
         // Display a dialog window with survey questions
         // See [Pre-chat dynamic surveys](#pre-chat-dynamic-surveys) for more information
@@ -140,8 +147,8 @@ questions which are flagged as required has to be answered before a new thread c
 
 ```kotlin
   // Naive sample assuming single survey question of type Text
-  fun onThreadCreateClick(question: PreChatSurveyType.Text, answer: String) {
-    val responses = listOf(
+  fun onThreadCreateClick(question: FieldDefinition.Text, answer: String) {
+    val responses = sequenceOf(
       PreChatSurveyResponse.Text(question, answer)
     )
     val threadHandler = threadsHandler.create(responses)
@@ -324,10 +331,8 @@ least once.
     }
     .launchIn(scope)
 
-  // The handler starts internal listeners on construction; cancelling the collection scope does
-  // NOT stop them. Call close() from your lifecycle teardown (e.g. ViewModel.onCleared() /
-  // Activity.onDestroy()) to release them:
-  //     actionHandler.close()
+  // popupFlow is a cold Flow and the handler holds no resources of its own — cancelling the
+  // collecting scope (e.g. viewModelScope) is all the cleanup required.
   ```
 
 > Java consumers use `ChatThreadActionHandlerJavaInterop.onPopup(...)` (or
@@ -341,32 +346,41 @@ actions are `suspend` functions — call them from a coroutine. Check the Availa
 below or browse object `com.nice.cxonechat.ChatThreadEventHandlerActions` for more info.
 
   ```kotlin
+  import com.nice.cxonechat.ChatThreadEventHandlerActions.markThreadRead
+
   fun markRead(threadHandler: ChatThreadHandler, scope: CoroutineScope) {
     val eventHandler = threadHandler.events()
     scope.launch { eventHandler.markThreadRead() }
   }
   ```
 
-> To archive a thread, use the `suspend fun ChatThreadHandler.archive()` directly:
+> To archive a thread, use `ChatThreadHandler`'s own `suspend fun archive()` directly:
 > `scope.launch { threadHandler.archive() }`. Java consumers wrap the handler in
 > `ChatThreadEventHandlerCoroutineWrapper` for events, or use
 > `ChatThreadHandlerJavaInterop.archiveAsync(...)` to archive.
 
 #### Available Events
 
-- **TypingStartEvent**
+- **typingStart**
     - The user has started typing,
       typically has a keyboard opened and has issued any form of input to the
       text field within a reasonable time frame (say 5 seconds)
-- **TypingEndEvent**
+- **typingEnd**
     - The user has stopped typing, typically has no keyboard visible or stopped issuing any form
       of text within a reasonable time frame.
-- **ArchiveThreadEvent**
-    - Archive current thread, may disallow users to interact with it
-- **MarkThreadReadEvent**
+- **markThreadRead**
     - Notifies backend that messages up to >this< point have been read by the user
-- **LoadThreadMetadataEvent**
+- **loadMetadata**
     - Make a request to backend for additional information about the thread. E.g.: last message in thread.
+- **selectTimeSlot**
+    - Answers a scheduling request by picking one of the offered `TimeSlot`s
+- **sendTranscript**
+    - Requests a transcript of the conversation, delivered to the supplied email address
+- **triggerAction**
+    - Reports that the user acted on an `Action` from a rich message. Only `Action.ReplyButton` is
+      supported; anything else throws `InvalidParameterException`
+
+Archiving is not an event — use `ChatThreadHandler.archive()` as described above.
 
 ---
 

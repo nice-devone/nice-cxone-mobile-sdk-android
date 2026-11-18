@@ -44,7 +44,27 @@ internal class ActionLoadMoreMessagesTest {
         assertEquals("2026-07-01T12:34:56Z", action.oldestMessageDatetime())
     }
 
+    @Test
+    fun `oldestMessageDatetime uses oldest (first) message when thread has multiple messages`() {
+        // Messages are sorted ascending by createdAt; first() is the oldest, last() is the newest.
+        val oldestCreatedAt = Instant.parse("2026-07-01T10:00:00.000Z")
+        val newestCreatedAt = Instant.parse("2026-07-01T11:00:00.000Z")
+        val action = ActionLoadMoreMessages(
+            connection = makeConnection(),
+            thread = makeChatThread(
+                scrollToken = "token",
+                messages = listOf(
+                    makeMessage(makeMessageModel(createdAt = oldestCreatedAt)),
+                    makeMessage(makeMessageModel(createdAt = newestCreatedAt)),
+                ),
+            ),
+        )
+
+        assertEquals("2026-07-01T10:00:00Z", action.oldestMessageDatetime())
+    }
+
     private fun ActionLoadMoreMessages.oldestMessageDatetime(): String =
+        @Suppress("CascadingCallWrapping") // For improved readability, we allow cascading calls here.
         Default.serializer.parseToJsonElement(serialize())
             .jsonObject.getValue("payload")
             .jsonObject.getValue("data")

@@ -22,7 +22,8 @@ The UI module handles all UI aspects of the chat experience, including:
 
 - Properly set up your CXone brand and channel configuration for Mobile SDK usage.
 - Configured and initialized the CXone Chat SDK core module in your application.
-- Jetpack Compose BOM 2025.10.00 (included as transitive dependency with the UI module).
+- Jetpack Compose, via the BOM the UI module builds against (`androidx-compose-bom` in `gradle/libs.versions.toml`);
+  included as a transitive dependency with the UI module.
 - Added the CXOne Chat UI package to your project.
 - Familiarity with Gradle and Android project structure
 

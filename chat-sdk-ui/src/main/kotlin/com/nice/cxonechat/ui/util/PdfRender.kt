@@ -54,13 +54,13 @@ internal class PdfRender private constructor(
     private val pdfRenderer: PdfRenderer,
     private val maxPages: Int? = null,
     logger: Logger = LoggerNoop,
-) : AutoCloseable, LoggerScope by LoggerScope("PdfRender", logger) {
+) : PdfPageSource, AutoCloseable, LoggerScope by LoggerScope("PdfRender", logger) {
     private val mutex: Mutex = Mutex()
     private val isClosed = AtomicBoolean(false)
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     val pageCount: Int = maxPages?.let { minOf(it, pdfRenderer.pageCount) } ?: pdfRenderer.pageCount
 
-    val pageList: List<Page> = List(pageCount) {
+    override val pageList: List<Page> = List(pageCount) {
         Page(
             mutex = mutex,
             index = it,
@@ -155,7 +155,7 @@ internal class PdfRender private constructor(
         val pdfRenderer: PdfRenderer,
         val coroutineScope: CoroutineScope,
         parentScope: LoggerScope,
-    ) : AutoCloseable, LoggerScope by LoggerScope("Page_$index", parentScope) {
+    ) : PdfPageSource.Page, AutoCloseable, LoggerScope by LoggerScope("Page_$index", parentScope) {
 
         /**
          * State machine for page lifecycle.
@@ -176,52 +176,14 @@ internal class PdfRender private constructor(
         @Volatile
         private var loadingJob: Job? = null
 
-        private val dimensionResult: Result<Dimension> = scope("dimensionResult") {
-            runCatching {
-                pdfRenderer.openPage(index).use { currentPage ->
-                    Dimension(
-                        width = currentPage.width,
-                        height = currentPage.height
-                    )
-                }
-            }.onFailure { exception ->
-                warning("Failed to initialize page dimensions for page $index: ${exception.message}", exception)
-            }
-        }
-
-        private val dimension: Dimension
-            get() = dimensionResult.getOrElse { Dimension.ZERO }
-
         private val _pageContent = MutableStateFlow<Bitmap?>(null)
 
         /**
          * A [StateFlow] holding the bitmap content of the page.
          * Initially, this is `null` until the page is loaded.
          */
-        val pageContent: StateFlow<Bitmap?>
+        override val pageContent: StateFlow<Bitmap?>
             get() = _pageContent.asStateFlow()
-
-        /**
-         * Calculates the height of the page based on a given width, preserving the aspect ratio.
-         *
-         * @param width The desired width of the page.
-         * @return The calculated height of the page, or 0 if page is closed or has invalid dimensions.
-         */
-        fun heightByWidth(width: Int): Int {
-            // Early validation - return 0 for any invalid state
-            if (state.get() == PageState.CLOSED || dimensionResult.isFailure) {
-                return 0
-            }
-
-            val dim = dimension
-            return when {
-                dim.width == 0 || dim.height == 0 -> 0
-                else -> {
-                    val ratio = dim.width.toFloat() / dim.height
-                    (width / ratio).toInt()
-                }
-            }
-        }
 
         /**
          * Loads the page content into a bitmap asynchronously.
@@ -236,7 +198,7 @@ internal class PdfRender private constructor(
          *
          * @throws IllegalStateException if called after close()
          */
-        fun load() {
+        override fun load() {
             // Synchronized check-and-transition for state machine
             synchronized(this) {
                 when (val currentState = state.get()) {
@@ -310,7 +272,7 @@ internal class PdfRender private constructor(
          * - LOADED → INITIAL (allowed, clear bitmap)
          * - Other states → no-op (nothing to recycle)
          */
-        fun recycle() {
+        override fun recycle() {
             // Cancel any in-flight load operation
             loadingJob?.cancel("Recycling page for memory management")
 
@@ -363,15 +325,6 @@ internal class PdfRender private constructor(
             val canvas = Canvas(this)
             canvas.drawColor(color)
             canvas.drawBitmap(this, 0f, 0f, null)
-        }
-    }
-
-    data class Dimension(
-        val width: Int,
-        val height: Int,
-    ) {
-        companion object {
-            val ZERO = Dimension(0, 0)
         }
     }
 }

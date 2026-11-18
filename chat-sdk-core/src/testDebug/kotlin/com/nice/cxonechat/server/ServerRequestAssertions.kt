@@ -27,15 +27,9 @@ import strucut.verifyStructureOf
  * Fixing these tests is permitted only in circumstances where the API
  * actually changes, not when this fails. Be warned.
  * */
-@Suppress(
-    "StringLiteralDuplication",
-    "FunctionMaxLength",
-    "TooManyFunctions",
-)
 internal object ServerRequestAssertions {
 
     private const val ChatWindowEvent = "chatWindowEvent"
-    private const val Register = "register"
 
     fun String.verifyLoadMore() = apply {
         verifyStructureOf(this) {
@@ -79,7 +73,6 @@ internal object ServerRequestAssertions {
             }
         }
     }
-
 
     fun String.verifyMarkThreadRead() = apply {
         verifyStructureOf(this) {

@@ -28,7 +28,6 @@ import com.nice.cxonechat.TokenRequestReason.TOKEN_EXPIRED
 import com.nice.cxonechat.TokenRequestReason.TOKEN_INVALID
 import com.nice.cxonechat.TokenRequestReason.UNSPECIFIED
 import com.nice.cxonechat.exceptions.RuntimeChatException
-import com.nice.cxonechat.exceptions.RuntimeChatException.FeatureUnavailableException
 import com.nice.cxonechat.exceptions.RuntimeChatException.TokenDelegationFailedException
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerScope
@@ -39,18 +38,20 @@ import com.nice.cxonechat.log.verbose
 import com.nice.cxonechat.sample.data.models.ChatSettings
 import com.nice.cxonechat.sample.data.models.LoginData
 import com.nice.cxonechat.sample.data.models.SdkConfiguration
+import com.nice.cxonechat.sample.data.models.StoreLaunchRequest
 import com.nice.cxonechat.sample.data.repository.ChatSettingsRepository
 import com.nice.cxonechat.sample.data.repository.ExtraCustomFieldRepository
+import com.nice.cxonechat.sample.data.repository.LaunchEnvironments
 import com.nice.cxonechat.sample.data.repository.SdkConfigurationListRepository
 import com.nice.cxonechat.sample.data.repository.StoreRepository
 import com.nice.cxonechat.sample.data.repository.UISettingsRepository
 import com.nice.cxonechat.sample.extensions.Ignored
 import com.nice.cxonechat.sample.viewModel.UiState.Configuration
-import com.nice.cxonechat.sample.viewModel.UiState.ExplicitOAuthUnavailable
 import com.nice.cxonechat.sample.viewModel.UiState.ImplicitOAuth
 import com.nice.cxonechat.sample.viewModel.UiState.Initial
 import com.nice.cxonechat.sample.viewModel.UiState.Login
 import com.nice.cxonechat.sample.viewModel.UiState.OAuth
+import com.nice.cxonechat.sample.viewModel.UiState.OpeningChat
 import com.nice.cxonechat.sample.viewModel.UiState.Prepared
 import com.nice.cxonechat.sample.viewModel.UiState.Preparing
 import com.nice.cxonechat.sample.viewModel.UiState.SdkNotSupported
@@ -84,6 +85,10 @@ class StoreViewModel(
     private val extraCustomFieldRepository: ExtraCustomFieldRepository,
     /** chat repository containing current chat. */
     val chatProvider: ChatInstanceProvider,
+    /** environments a launch intent may name. */
+    launchEnvironments: LaunchEnvironments,
+    /** configuration supplied by a launch intent, if any. */
+    private val pendingLaunchConfiguration: PendingLaunchConfiguration,
     /** logger for store messages. */
     logger: Logger,
 ) : AndroidViewModel(application), LoggerScope by LoggerScope(TAG, logger) {
@@ -92,12 +97,11 @@ class StoreViewModel(
     private val uiStateStore = MutableStateFlow<UiState>(Initial)
 
     /**
-     * Chains logout()/setLoginData()/setConfiguration() into a FIFO sequence: each launches
-     * independently on viewModelScope, so without chaining through the previously-launched
-     * session job, a rapid call to one right after another could let the second call's
-     * chatProvider.signOut()/configure()/prepare() start before the first one's suspend call has
-     * actually returned. Always called from the main thread (UI actions), so plain
-     * read-then-reassign here is race-free.
+     * Chains every writer of this field into a FIFO sequence, with init at the head: each launches
+     * independently on viewModelScope, so without joining the previously-launched session job a
+     * rapid second call could let its chatProvider.signOut()/configure()/prepare() start before the
+     * first one's suspend call has returned. Written only from the main thread — the constructor and
+     * UI actions — so plain read-then-reassign here is race-free.
      */
     private var sessionJob: Job? = null
 
@@ -122,6 +126,20 @@ class StoreViewModel(
     /** Chat settings handler to manage settings updates into provider. */
     val chatSettingsHandler = ChatSettingsHandler(context, chatProvider, chatSettingsRepository, this)
 
+    /** What the automated launch path is currently showing. */
+    val launchPresentation = LaunchPresentation(pendingLaunchConfiguration)
+
+    /** Handler driving a chat which was configured by a launch intent rather than through the dialogs. */
+    val automatedSetupHandler = AutomatedSetupHandler(
+        chatProvider,
+        chatSettingsHandler,
+        launchEnvironments,
+        launchPresentation,
+        ::setUiState,
+        viewModelScope,
+        this,
+    )
+
     /** Current UI State. */
     @Stable
     val uiState = uiStateStore.asStateFlow()
@@ -140,14 +158,6 @@ class StoreViewModel(
      * not yet been delivered. Prevents onResume() from re-showing the OAuth sheet.
      */
     private val implicitAuthInProgress = AtomicBoolean(false)
-
-    /**
-     * True while the ExplicitOAuthUnavailable error dialog is being shown.
-     * Derived exclusively from [setUiState] — set when transitioning TO [ExplicitOAuthUnavailable],
-     * cleared on any other transition. Prevents [onResume] and [Listener.onChatStateChanged] from
-     * overwriting the dialog state while it is visible.
-     */
-    private val explicitOAuthUnavailable = AtomicBoolean(false)
 
     init {
         chatProvider.setTokenDelegateListener { reason ->
@@ -185,6 +195,9 @@ class StoreViewModel(
                 // one on concurrent delegate calls so neither SDK thread is orphaned.
                 pendingTokenFuture.compareAndSet(null, newFuture)
                 val future = pendingTokenFuture.get() ?: newFuture
+                // Browser sign-in can't be supplied on an intent, so an automated setup can't drive
+                // an authorization-enabled channel any further -- hand over to the OAuth flow.
+                automatedSetupHandler.abandon("the channel requires interactive authorization")
                 setUiState(ImplicitOAuth)
                 try {
                     val oauthToken = future.get()
@@ -212,36 +225,84 @@ class StoreViewModel(
     private var pendingListener = AtomicBoolean(false)
 
     init {
-        viewModelScope.launch(Dispatchers.IO) {
-            val chatSettings = chatSettingsRepository.load()
-            val chatConfig = chatSettings?.sdkConfiguration?.asSocketFactoryConfiguration
-            if (chatConfig == null) {
-                setUiState(Configuration)
-            } else if (chatProvider.chatState == ChatState.Initial) {
-                verbose("Preparing chat with settings, detected state: ${chatProvider.chatState}")
-                chatProvider.prepare(context, chatConfig)
-            } else {
-                val currentConfiguration = chatProvider.configuration
-                if (currentConfiguration != chatConfig) {
-                    debug(
-                        "Updating chat configuration," +
-                                " detected state: ${chatProvider.chatState}," +
-                                " configuration: $currentConfiguration," +
-                                " new configuration: $chatConfig"
-                    )
-                    chatProvider.configure(context) { configuration = chatConfig }
-                } else {
-                    verbose("Chat is configured")
-                }
-            }
-            uiSettingsRepository.load()
+        // Assigned, so that a launch intent arriving mid-initialisation queues behind these loads
+        // instead of resolving a bundled environment name against a list that has yet to load, and
+        // so that two starts never apply a configuration at once.
+        sessionJob = viewModelScope.launch(Dispatchers.IO) {
+            // Loaded before the launch request is acted on: an intent naming an environment can only
+            // be resolved once the bundled definitions are available.
             sdkConfigurationListRepository.load()
+            val storedConfiguration = chatSettingsRepository.load()?.sdkConfiguration
+            val launchRequest = pendingLaunchConfiguration.consume()
+
+            // A supplied configuration replaces the stored one, so preparing that first is wasted.
+            val suppliesConfiguration = launchRequest?.configuration != null
+            if (!suppliesConfiguration) {
+                prepareStoredConfiguration(storedConfiguration)
+            }
+
+            val drivenAutomatically = launchRequest != null &&
+                    automatedSetupHandler.start(launchRequest, storedConfiguration)
+
+            // Refused, so the startup it displaced still has to happen.
+            if (suppliesConfiguration && !drivenAutomatically) {
+                prepareStoredConfiguration(storedConfiguration)
+            }
+
+            uiSettingsRepository.load()
             isLoaded.set(true)
 
             // If onResume() was called during initialization, start chat now
             if (pendingListener.get()) {
                 startChat()
                 pendingListener.set(false)
+            }
+        }
+    }
+
+    /**
+     * Bring the chat provider in line with the persisted configuration, requesting one from the user
+     * if none has been stored yet.
+     *
+     * @param storedConfiguration Configuration loaded from storage, or null if there is none.
+     */
+    private suspend fun prepareStoredConfiguration(storedConfiguration: SdkConfiguration?) {
+        val chatConfig = storedConfiguration?.asSocketFactoryConfiguration
+        if (chatConfig == null) {
+            setUiState(Configuration)
+        } else if (chatProvider.chatState == ChatState.Initial) {
+            verbose("Preparing chat with settings, detected state: ${chatProvider.chatState}")
+            chatProvider.prepare(context, chatConfig)
+        } else {
+            val currentConfiguration = chatProvider.configuration
+            if (currentConfiguration != chatConfig) {
+                debug(
+                    "Updating chat configuration," +
+                            " detected state: ${chatProvider.chatState}," +
+                            " configuration: $currentConfiguration," +
+                            " new configuration: $chatConfig"
+                )
+                chatProvider.configure(context) { configuration = chatConfig }
+            } else {
+                verbose("Chat is configured")
+            }
+        }
+    }
+
+    /**
+     * Apply a configuration supplied by a launch intent to an app which is already running.
+     *
+     * @param request What the launch intent asked for.
+     */
+    fun applyLaunchRequest(request: StoreLaunchRequest) {
+        val previous = sessionJob
+        sessionJob = viewModelScope.launch {
+            previous?.join()
+            val storedConfiguration = chatSettingsRepository.settings.value?.sdkConfiguration
+            // A refused request changes nothing about the chat, so the app is left needing whatever
+            // the stored configuration implies -- the same recovery a cold start performs.
+            if (!automatedSetupHandler.start(request, storedConfiguration)) {
+                prepareStoredConfiguration(storedConfiguration)
             }
         }
     }
@@ -265,7 +326,6 @@ class StoreViewModel(
         if (state == ImplicitOAuth) {
             implicitAuthInProgress.set(true)
         }
-        explicitOAuthUnavailable.set(state == ExplicitOAuthUnavailable)
         uiStateStore.value = state
     }
 
@@ -435,12 +495,20 @@ class StoreViewModel(
      * the application is resumed and to restart the chat sdk and enable analytics.
      */
     fun onResume() {
+        // Being resumed while the chat was being opened means the chat has been left again, which is
+        // the point at which the store becomes worth building. Skipped while the request is still
+        // pending: the state was published while the activity was stopped, so the effect which opens
+        // the chat has not run yet and clearing it here would drop the launch on the floor.
+        if (uiState.value === OpeningChat && !launchPresentation.isOpenChatPending) {
+            launchPresentation.showStorefront()
+            setUiState(Prepared)
+        }
         if (isLoaded.get()) {
             // Skip reconnect while a token request is in-flight (SDK background thread blocked)
             // or while the user is in the middle of the initial implicit OAuth sign-in flow.
             // In both cases onResume fires before the JWT is delivered; calling startChat() here
             // would trigger a second connect() and cause an infinite loop.
-            if (pendingTokenFuture.get() != null || implicitAuthInProgress.get() || explicitOAuthUnavailable.get()) return
+            if (pendingTokenFuture.get() != null || implicitAuthInProgress.get()) return
             startChat()
             return
         }
@@ -452,10 +520,10 @@ class StoreViewModel(
          * Send a pending page view if chat is just now established.
          */
         override fun onChatStateChanged(chatState: ChatState) {
-            // While the ExplicitOAuthUnavailable dialog is showing, suppress reconnect-path
-            // transitions (Preparing/Prepared) that would overwrite it. Allow Initial through
-            // so that logout() → signOut() → Initial can dismiss the dialog via setUiState(Configuration).
-            if (explicitOAuthUnavailable.get() && chatState != ChatState.Initial) return
+            // An automated setup owns the states it can drive, so the configuration and login dialogs
+            // don't interrupt an unattended run. States it can't -- a failed prepare, an unsupported
+            // SDK -- are handed back here and answered exactly as they always were.
+            if (automatedSetupHandler.onChatStateChanged(chatState)) return
             // If the chat has now connected, see if we need to send authorization
             when (chatState) {
                 ChatState.Initial -> setUiState(Configuration)
@@ -468,7 +536,6 @@ class StoreViewModel(
 
         override fun onChatRuntimeException(exception: RuntimeChatException) = scope("onChatRuntimeException") {
             when (exception) {
-                is FeatureUnavailableException -> setUiState(ExplicitOAuthUnavailable)
                 is RuntimeChatException.ConnectionTokenFailed -> {
                     val isAuthorizationEnabled = chatProvider.chat?.configuration?.isAuthorizationEnabled
                     val state = currentUiState(this, null, isAuthorizationEnabled) ?: return@scope

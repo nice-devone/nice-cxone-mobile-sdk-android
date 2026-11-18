@@ -52,7 +52,6 @@ internal class RetryParamsTest {
         assertEquals(response, result.second)
     }
 
-
     @Test
     fun `action returns Pair on 4xx error`() = runTest {
         val call = mockk<Call<Void>> {

@@ -79,4 +79,24 @@ interface Popup {
             val startedAt: Instant
         }
     }
+
+    /**
+     * A popup used to display a Satisfaction Survey to the user in a blocking WebView.
+     *
+     * The survey page, generated and controlled by the backend, owns response collection and submission. The SDK
+     * does not read survey answers, does not add a JavaScript-to-native bridge, cannot detect submission, and does
+     * not automatically dismiss the popup — the user dismisses it with an explicit close control.
+     */
+    @Public
+    interface SatisfactionSurvey : Popup {
+        /**
+         * The prompt text to display alongside the survey.
+         */
+        val text: String
+
+        /**
+         * The HTTPS address of the survey page to load in a WebView.
+         */
+        val surveyUrl: String
+    }
 }

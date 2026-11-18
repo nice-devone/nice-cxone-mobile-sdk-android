@@ -23,6 +23,7 @@ import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
+import com.nice.cxonechat.ui.composable.generic.scrollbar.LocalScrollbarConfig
 import com.nice.cxonechat.ui.composable.theme.ThemeColorTokens.Companion.toDarkColorScheme
 import com.nice.cxonechat.ui.composable.theme.ThemeColorTokens.Companion.toLightColorScheme
 
@@ -39,11 +40,13 @@ internal fun ChatTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Com
         theme.toLightColorScheme()
     }
     val chatColors = ChatColors(theme)
+    val space = Space()
 
     CompositionLocalProvider(
         LocalChatColors provides chatColors,
         LocalChatShapes provides ChatShapes(),
-        LocalSpace provides Space(),
+        LocalSpace provides space,
+        LocalScrollbarConfig provides chatScrollbarConfig(theme, space),
     ) {
         MaterialTheme(
             colorScheme = colors,

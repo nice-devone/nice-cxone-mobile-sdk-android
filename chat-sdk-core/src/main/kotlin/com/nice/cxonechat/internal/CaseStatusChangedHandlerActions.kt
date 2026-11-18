@@ -28,18 +28,36 @@ internal object CaseStatusChangedHandlerActions {
         event: EventCaseStatusChanged,
         crossinline onThreadUpdate: (ChatThread) -> Unit,
     ) {
-        if (event.inThread(thread)) {
-            val notArchived = event.status !== Closed
-            val canAddMoreMessagesChanged = notArchived != thread.canAddMoreMessages
-            if (canAddMoreMessagesChanged) {
-                thread.update(
-                    thread.asCopyable().copy(
-                        canAddMoreMessages = notArchived,
-                        threadState = if (!notArchived) ChatThreadState.Closed else thread.threadState
-                    )
+        val closes = event.status === Closed
+        if (!event.inThread(thread) || !closes && thread.staysClosedFor(event.contactId)) return
+        val canAddMoreMessagesChanged = closes == thread.canAddMoreMessages
+        // archive() disables sending but leaves the state, so a later Closed must still close the thread.
+        val closesThread = closes && thread.threadState !== ChatThreadState.Closed
+        // A closed thread still records which case closed, so that case's late events keep it closed.
+        val learnsCase = closes && event.contactId != null && event.contactId != thread.contactId
+        if (!canAddMoreMessagesChanged && !closesThread && !learnsCase) return
+        thread.update(
+            if (closes) {
+                thread.asCopyable().copy(
+                    canAddMoreMessages = false,
+                    threadState = ChatThreadState.Closed,
+                    contactId = event.contactId ?: thread.contactId,
+                    contactHandler = event.contactHandler ?: thread.contactHandler,
                 )
-                onThreadUpdate(thread)
+            } else {
+                thread.asCopyable().copy(
+                    canAddMoreMessages = true,
+                    contactHandler = event.contactHandler ?: thread.contactHandler,
+                )
             }
-        }
+        )
+        onThreadUpdate(thread)
     }
+
+    /**
+     * A closed thread ignores the status of its own case: only an event for a different, known case reopens it.
+     */
+    fun ChatThread.staysClosedFor(eventContactId: String?): Boolean =
+        threadState === ChatThreadState.Closed &&
+            (contactId == null || eventContactId == null || contactId == eventContactId)
 }
