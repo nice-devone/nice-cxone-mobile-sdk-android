@@ -62,9 +62,14 @@ internal fun PresetAsyncImage(
     alignment: Alignment = Alignment.Center,
     contentScale: ContentScale = ContentScale.Fit,
     painters: AsyncImagePainters = asyncImagePainters(),
+    onImageLoaded: (width: Int, height: Int) -> Unit = { _, _ -> },
 ) {
     val tint = ColorFilter.tint(LocalContentColor.current)
     var imageLoaded by remember(model) { mutableStateOf(false) }
+    // onSuccess fires again whenever the request is re-resolved (e.g. a caller that changes the
+    // ContentScale/constraints in response to onImageLoaded). Report the loaded size only once per
+    // model so callers can't drive a recomposition loop through this callback.
+    var imageSizeReported by remember(model) { mutableStateOf(false) }
     val fallback = remember(tint, painters.fallback) {
         forwardingPainter(
             painter = painters.fallback,
@@ -92,7 +97,14 @@ internal fun PresetAsyncImage(
             contentDescription = contentDescription,
             fallback = fallback,
             error = error,
-            onSuccess = { imageLoaded = true },
+            onSuccess = { state ->
+                imageLoaded = true
+                if (!imageSizeReported) {
+                    imageSizeReported = true
+                    val image = state.result.image
+                    onImageLoaded(image.width, image.height)
+                }
+            },
             modifier = modifier,
             alignment = alignment,
             contentScale = contentScale,

@@ -19,7 +19,6 @@ import androidx.lifecycle.ViewModel
 import com.nice.cxonechat.ChatInstanceProvider
 import com.nice.cxonechat.ChatState
 import com.nice.cxonechat.exceptions.RuntimeChatException
-import com.nice.cxonechat.exceptions.RuntimeChatException.FeatureUnavailableException
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerScope
 import com.nice.cxonechat.log.scope
@@ -83,19 +82,27 @@ internal class ChatStateViewModel(
      * Maps a [RuntimeChatException] to an [ErrorGroup] and publishes the resulting [ChatErrorState].
      *
      * Mapping rationale:
-     * - [RuntimeChatException.AuthorizationError]: unrecoverable auth failure — show a blocking dialog ([ErrorGroup.HIGH]).
+     * - [RuntimeChatException.AuthorizationError], [RuntimeChatException.InvalidRefreshTokenException]:
+     *   auth failure the SDK itself cannot recover from — show a blocking, non-dismissible dialog
+     *   ([ErrorGroup.HIGH]) with the confirm action ending the chat session. Host apps should **not**
+     *   also show their own re-authentication prompt for these two on top of this dialog — a listener
+     *   registered via [ChatInstanceProvider.addListener] is added to the broadcast, not substituted
+     *   for this one, so it cannot suppress the dialog. Integrations that want to own the recovery UI
+     *   need a custom UI over `chat-sdk-core` rather than the built-in `ChatActivity`.
      * - [RuntimeChatException.ServerCommunicationError]: transient server error — show a dismissable banner ([ErrorGroup.LOW]).
-     * - [RuntimeChatException.ConnectionTokenFailed], [FeatureUnavailableException]: the session cannot continue
-     *   (token refresh failed or explicit OAuth is unsupported on the backend) — exit the chat screen silently
-     *   ([ErrorGroup.SILENT_EXIT]). The host app's [ChatInstanceProvider.Listener] is responsible for showing
-     *   any relevant recovery UI (e.g. re-authentication dialog) at the activity level.
+     * - [RuntimeChatException.ConnectionTokenFailed]: the session cannot continue (token refresh failed) —
+     *   exit the chat screen silently ([ErrorGroup.SILENT_EXIT]). The host app's [ChatInstanceProvider.Listener]
+     *   is responsible for showing any relevant recovery UI (e.g. re-authentication dialog) at the activity level.
      * - All other exceptions: log only, no UI ([ErrorGroup.DO_NOTHING]).
      */
     private fun handleChatRuntimeException(exception: RuntimeChatException) {
         val errorGroup = when (exception) {
-            is RuntimeChatException.AuthorizationError -> ErrorGroup.HIGH
+            is RuntimeChatException.AuthorizationError,
+            is RuntimeChatException.InvalidRefreshTokenException
+                -> ErrorGroup.HIGH
+
             is RuntimeChatException.ServerCommunicationError -> ErrorGroup.LOW
-            is RuntimeChatException.ConnectionTokenFailed, is FeatureUnavailableException -> ErrorGroup.SILENT_EXIT
+            is RuntimeChatException.ConnectionTokenFailed -> ErrorGroup.SILENT_EXIT
             else -> DO_NOTHING
         }
         // HIGH errors are terminal and non-dismissible; suppress internal exception text so the

@@ -48,7 +48,12 @@ internal class ChatThreadHandlerMessagesResolveTest {
     @Test
     fun resolveMessageToAdd_keeps_read_status_over_incoming_delivered() {
         val id = UUID.randomUUID()
-        val readMessage = makeMessage(makeMessageModel(idOnExternalPlatform = id, userStatistics = makeUserStatistics(readAt = Instant.fromEpochMilliseconds(0))))
+        val readMessage = makeMessage(
+            makeMessageModel(
+                idOnExternalPlatform = id,
+                userStatistics = makeUserStatistics(readAt = Instant.fromEpochMilliseconds(0))
+            )
+        )
         val deliveredMessage = makeMessage(makeMessageModel(idOnExternalPlatform = id))
         val result = ChatThreadHandlerMessages.resolveMessageToAdd(deliveredMessage, listOf(readMessage))
         assertEquals(MessageStatus.Read, result?.metadata?.status)

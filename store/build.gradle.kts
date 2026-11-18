@@ -74,7 +74,7 @@ android {
 
     sourceSets {
         getByName("main") {
-            assets.srcDir(rootProject.file("shared/assets"))
+            assets.directories.add(rootProject.file("shared/assets").absolutePath)
         }
     }
     packaging {

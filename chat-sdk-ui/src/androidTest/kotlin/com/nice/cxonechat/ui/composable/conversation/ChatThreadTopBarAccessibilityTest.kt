@@ -22,6 +22,7 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.tryPerformAccessibilityChecks
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -271,11 +272,22 @@ class ChatThreadTopBarAccessibilityTest : AbstractComponentActivityUiTest() {
     }
 
     @Test
+    fun aiBadge_hasAiMessages_exposesTestTag() {
+        setTopBar(buildState(hasAiMessages = MutableStateFlow(true)))
+
+        // Stable, locale-independent hook for UI automation — one node per title slot.
+        composeTestRule.onAllNodesWithTag("chat_thread_top_bar_ai_assistant_badge", useUnmergedTree = true)
+            .assertCountEquals(2)
+    }
+
+    @Test
     fun aiBadge_noAiMessages_isAbsent() {
         setTopBar(buildState(hasAiMessages = MutableStateFlow(false)))
 
         val aiLabel = getString(string.ai_assistant_label)
         composeTestRule.onAllNodesWithContentDescription(aiLabel, useUnmergedTree = true)
+            .assertCountEquals(0)
+        composeTestRule.onAllNodesWithTag("chat_thread_top_bar_ai_assistant_badge", useUnmergedTree = true)
             .assertCountEquals(0)
     }
 }

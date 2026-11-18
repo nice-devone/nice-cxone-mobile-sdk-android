@@ -23,7 +23,7 @@ This example uses AndroidX ViewModel libraries to demonstrate the projected usag
 
 ```groovy
 dependencies {
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.6"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:<latest-version>"
 }
 ```
 

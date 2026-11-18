@@ -37,7 +37,8 @@ abstract class LibraryStyleConventionsPlugin : Plugin<Project> {
                 ignoredBuildTypes = listOf("release")
                 source.from(
                     fileTree("src/androidTest") { include("**/*.kt") },
-                    fileTree("src/test") { include("**/*.kt") }
+                    fileTree("src/test") { include("**/*.kt") },
+                    fileTree("src/testDebug") { include("**/*.kt") }
                 )
             }
             dependencies {

@@ -19,6 +19,7 @@ import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.thread.Agent
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState
+import com.nice.cxonechat.thread.ContactHandler
 import com.nice.cxonechat.thread.CustomField
 import java.util.UUID
 
@@ -37,6 +38,7 @@ internal data class ChatThreadCopy(
     override val positionInQueue: Int?,
     override val hasOnlineAgent: Boolean,
     override val contactId: String?,
+    override val contactHandler: ContactHandler?,
 ) : ChatThread() {
     companion object {
         @Suppress("LongParameterList")
@@ -52,6 +54,7 @@ internal data class ChatThreadCopy(
             positionInQueue: Int? = this.positionInQueue,
             hasOnlineAgent: Boolean = this.hasOnlineAgent,
             contactId: String? = this.contactId,
+            contactHandler: ContactHandler? = this.contactHandler,
         ): ChatThreadCopy = ChatThreadCopy(
             canAddMoreMessages = canAddMoreMessages,
             fields = fields,
@@ -64,6 +67,7 @@ internal data class ChatThreadCopy(
             positionInQueue = positionInQueue,
             hasOnlineAgent = hasOnlineAgent,
             contactId = contactId,
+            contactHandler = contactHandler,
         )
     }
 }

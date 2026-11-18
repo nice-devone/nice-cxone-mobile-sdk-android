@@ -17,17 +17,25 @@ package com.nice.cxonechat.ui.composable
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.tryPerformAccessibilityChecks
+import androidx.compose.ui.unit.LayoutDirection
 import com.nice.cxonechat.ui.AbstractComponentActivityUiTest
 import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.domain.model.Thread
 import com.nice.cxonechat.ui.viewmodel.ChatThreadsViewModel.State
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -135,6 +143,100 @@ class MultiThreadContentTest : AbstractComponentActivityUiTest() {
     }
 
     @Test
+    fun chatThreadView_longPress_showsContextMenuWithRenameAndArchive() {
+        val thread = createThread("Active Thread", canAddMoreMessages = true)
+
+        setThreadContent(thread, onArchiveThread = {}, onRenameThread = {})
+
+        // Menu is not shown until the cell is long-pressed. A closed DropdownMenu is not composed at
+        // all, so the item is absent from the semantics tree (assertDoesNotExist), not merely hidden.
+        composeTestRule.onNodeWithTag("archive_thread_menu_item").assertDoesNotExist()
+
+        composeTestRule.onNodeWithTag("chat_thread_view_${thread.id}")
+            .performTouchInput { longClick() }
+
+        composeTestRule.onNodeWithTag("change_thread_name_menu_item").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("archive_thread_menu_item").assertIsDisplayed()
+    }
+
+    @Test
+    fun chatThreadView_longPress_archiveMenuItem_invokesArchiveCallback() {
+        val thread = createThread("Active Thread", canAddMoreMessages = true)
+        var archived: Thread? = null
+
+        setThreadContent(thread, onArchiveThread = { archived = it }, onRenameThread = {})
+
+        composeTestRule.onNodeWithTag("chat_thread_view_${thread.id}")
+            .performTouchInput { longClick() }
+        composeTestRule.onNodeWithTag("archive_thread_menu_item").performClick()
+
+        assertEquals(thread.id, archived?.id)
+    }
+
+    @Test
+    fun chatThreadView_longPress_renameMenuItem_invokesRenameCallback() {
+        val thread = createThread("Active Thread", canAddMoreMessages = true)
+        var renamed: Thread? = null
+
+        setThreadContent(thread, onArchiveThread = {}, onRenameThread = { renamed = it })
+
+        composeTestRule.onNodeWithTag("chat_thread_view_${thread.id}")
+            .performTouchInput { longClick() }
+        composeTestRule.onNodeWithTag("change_thread_name_menu_item").performClick()
+
+        assertEquals(thread.id, renamed?.id)
+    }
+
+    @Test
+    fun chatThreadView_archivedThread_longPress_doesNotShowArchiveAction() {
+        val thread = createThread("Archived Thread", canAddMoreMessages = false)
+
+        // Even when an archive callback is provided, an already-archived thread must not offer Archive.
+        setThreadContent(thread, onArchiveThread = {}, onRenameThread = {})
+
+        composeTestRule.onNodeWithTag("chat_thread_view_${thread.id}")
+            .performTouchInput { longClick() }
+
+        // Rename is still offered, Archive is not. A suppressed menu item is never composed, so it is
+        // absent from the tree rather than present-but-hidden.
+        composeTestRule.onNodeWithTag("change_thread_name_menu_item").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("archive_thread_menu_item").assertDoesNotExist()
+    }
+
+    @Test
+    fun chatThreadView_rtl_longPress_opensMenuUnderTouchPoint() {
+        assertMenuOpensUnderTouchPoint(LayoutDirection.Rtl)
+    }
+
+    @Test
+    fun chatThreadView_ltr_longPress_opensMenuUnderTouchPoint() {
+        assertMenuOpensUnderTouchPoint(LayoutDirection.Ltr)
+    }
+
+    /**
+     * Long-presses near the cell's left edge and asserts the menu spans the press point horizontally,
+     * whatever the layout direction. The menu is a popup in its own window, so both are compared in
+     * screen coordinates.
+     */
+    private fun assertMenuOpensUnderTouchPoint(layoutDirection: LayoutDirection) {
+        val thread = createThread("Active Thread", canAddMoreMessages = true)
+        setThreadContent(thread, onArchiveThread = {}, onRenameThread = {}, layoutDirection = layoutDirection)
+
+        val cell = composeTestRule.onNodeWithTag("chat_thread_view_${thread.id}")
+        cell.performTouchInput { longClick(Offset(left + TOUCH_INSET_PX, centerY)) }
+
+        val touchOnScreenX = cell.fetchSemanticsNode().positionOnScreen.x + TOUCH_INSET_PX
+        val menu = composeTestRule.onNodeWithTag("chat_thread_context_menu_${thread.id}").fetchSemanticsNode()
+        val menuLeft = menu.positionOnScreen.x
+        val menuRight = menuLeft + menu.size.width
+        // The offset makes a px -> dp -> px round trip, so allow a pixel of rounding on either edge.
+        assertTrue(
+            "touch at $touchOnScreenX should lie within the menu [$menuLeft, $menuRight]",
+            touchOnScreenX in menuLeft - 1f..menuRight + 1f,
+        )
+    }
+
+    @Test
     fun noThreadView_isDisplayed_andPassesAccessibilityChecks_whenThreadListIsEmpty() {
         setMultiThreadContent(emptyList())
 
@@ -169,13 +271,29 @@ class MultiThreadContentTest : AbstractComponentActivityUiTest() {
         }
     }
 
-    private fun setThreadContent(thread: Thread) {
+    private fun setThreadContent(
+        thread: Thread,
+        onArchiveThread: ((Thread) -> Unit)? = null,
+        onRenameThread: ((Thread) -> Unit)? = null,
+        layoutDirection: LayoutDirection = LayoutDirection.Ltr,
+    ) {
         composeTestRule.setContent {
-            ChatTheme {
-                Box(modifier = Modifier.systemBarsPadding()) {
-                    ChatThreadView(thread) {}
+            CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
+                ChatTheme {
+                    Box(modifier = Modifier.systemBarsPadding()) {
+                        ChatThreadView(
+                            thread = thread,
+                            onThreadSelected = {},
+                            onArchiveThread = onArchiveThread,
+                            onRenameThread = onRenameThread,
+                        )
+                    }
                 }
             }
         }
+    }
+
+    private companion object {
+        const val TOUCH_INSET_PX = 40f
     }
 }

@@ -65,7 +65,7 @@ internal data class ChatShapes(
     val actionButtonShape: Shape = DefaultChatShapes.actionButton,
     val popupShape: Shape = DefaultChatShapes.popupShape,
     val popupButtonShape: Shape = DefaultChatShapes.largeButtonShape,
-    val headerBarShape: Shape = DefaultChatShapes.headerBarShape,
+    val headerBarInsetShape: Shape = DefaultChatShapes.headerBarInsetShape,
     val menuActionsBoxShape: Shape = DefaultChatShapes.menuActionsBoxShape,
     val documentTypeLabelShape: Shape = DefaultChatShapes.documentTypeLabelShape,
 )
@@ -94,12 +94,8 @@ internal object DefaultChatShapes {
     val largeButtonShape = RoundedCornerShape(9.dp)
     val menuActionsBoxShape = RoundedCornerShape(16.dp)
 
-    val headerBarShape = RoundedCornerShape(
-        topStart = 0.dp,
-        topEnd = 0.dp,
-        bottomEnd = 15.dp,
-        bottomStart = 15.dp
-    )
+    /** Used when a header bar is inset from the window edges and all four of its corners are visible. */
+    val headerBarInsetShape = RoundedCornerShape(12.dp)
 
     val documentTypeLabelShape = RoundedCornerShape(6.dp)
 }

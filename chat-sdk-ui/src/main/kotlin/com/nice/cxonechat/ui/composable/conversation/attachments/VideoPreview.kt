@@ -44,7 +44,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import androidx.compose.ui.unit.DpSize
 import androidx.media3.common.util.UnstableApi
 import coil3.ImageLoader
 import coil3.compose.AsyncImage
@@ -69,7 +68,7 @@ import com.nice.cxonechat.ui.composable.icons.filled.PlayCircle
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
-import com.nice.cxonechat.ui.util.dsm
+import com.nice.cxonechat.ui.util.ofWindowShorterEdge
 import java.util.UUID
 
 /**
@@ -83,13 +82,14 @@ import java.util.UUID
  * @param isGroupAttachment Whether the attachment belongs to a group or not, used for styling decisions.
  * @param painters A set of painters for placeholder, fallback, and error states,
  * the default is [asyncImagePainters].
+ * @param imageLoader The loader used to decode the thumbnail,
+ * the default is [rememberVideoFrameImageLoader].
  * @param thumbnailSize The size of the video thumbnail (e.g., LARGE, REGULAR, or SMALL),
  * the default is [ThumbnailSize.REGULAR].
  * @param contentDescription The content description for accessibility,
  * defaults to the attachment's content description.
  */
 @Composable
-@OptIn(UnstableApi::class)
 internal fun VideoPreview(
     attachment: Attachment,
     messageId: UUID?,
@@ -97,6 +97,7 @@ internal fun VideoPreview(
     modifier: Modifier = Modifier,
     isGroupAttachment: Boolean,
     painters: AsyncImagePainters = asyncImagePainters(),
+    imageLoader: ImageLoader = rememberVideoFrameImageLoader(),
     thumbnailSize: ThumbnailSize = ThumbnailSize.REGULAR,
     contentDescription: String? = null,
 ) {
@@ -107,16 +108,6 @@ internal fun VideoPreview(
     // identity used by the Coil request so it resets when the cache key changes.
     var imageLoaded by remember(cacheKey) { mutableStateOf(false) }
     val tint = ColorFilter.tint(LocalContentColor.current)
-    // Configure the image loader with video frame decoding and crossfade support
-    val context = LocalContext.current
-    val imageLoader = remember(context) {
-        ImageLoader.Builder(context)
-            .components {
-                add(VideoFrameDecoder.Factory())
-            }
-            .crossfade(true)
-            .build()
-    }
     val fallback = remember(tint, painters.fallback) {
         forwardingPainter(
             painter = painters.fallback,
@@ -134,8 +125,6 @@ internal fun VideoPreview(
     Box(
         contentAlignment = Alignment.Center,
     ) {
-        // Determine the size of the thumbnail based on the provided size
-        val thumbnailDpSize: DpSize = getThumbnailDpSize(thumbnailSize)
         // Build the image request for the video thumbnail and caching
         val model = ImageRequest.Builder(LocalContext.current)
             .data(attachment.url)
@@ -152,8 +141,7 @@ internal fun VideoPreview(
             error = error,
             onSuccess = { imageLoaded = true },
             contentScale = ContentScale.Crop,
-            modifier = modifier
-                .requiredSize(thumbnailDpSize.width, thumbnailDpSize.height),
+            modifier = modifier.thumbnailSize(thumbnailSize),
         )
         // Animated visibility for the play icon
         AnimatedVisibility(
@@ -168,14 +156,31 @@ internal fun VideoPreview(
     }
 }
 
+/**
+ * The loader used for video thumbnails, which need [VideoFrameDecoder] to pull a still frame out of the
+ * video itself. The singleton loader carries no video component, so it cannot decode one.
+ */
 @Composable
-private fun getThumbnailDpSize(thumbnailSize: ThumbnailSize): DpSize = when (thumbnailSize) {
-    ThumbnailSize.LARGE -> space.attachmentPreviewLargeSize
-    ThumbnailSize.SMALL -> space.attachmentPreviewSmallSize
-    ThumbnailSize.REGULAR -> {
-        val size = space.attachmentPreviewRegularWidthPercentage.dsm
-        DpSize(size, size)
+@OptIn(UnstableApi::class)
+private fun rememberVideoFrameImageLoader(): ImageLoader {
+    val context = LocalContext.current
+    return remember(context) {
+        ImageLoader.Builder(context)
+            .components {
+                add(VideoFrameDecoder.Factory())
+            }
+            .crossfade(true)
+            .build()
     }
+}
+
+@Composable
+private fun Modifier.thumbnailSize(thumbnailSize: ThumbnailSize): Modifier = when (thumbnailSize) {
+    ThumbnailSize.LARGE -> requiredSize(space.attachmentPreviewLargeSize)
+    ThumbnailSize.SMALL -> requiredSize(space.attachmentPreviewSmallSize)
+    // Its host animates the tile between sizes, so the thumbnail follows whatever size it is given.
+    ThumbnailSize.COMPACT -> fillMaxSize()
+    ThumbnailSize.REGULAR -> requiredSize(space.attachmentPreviewRegularWidthPercentage.ofWindowShorterEdge())
 }
 
 /**

@@ -2,6 +2,154 @@
 
 ## [Unreleased]
 
+<a name="4.1.0"></a>
+
+## [4.1.0] - 2026-11-17
+
+### Added
+
+- Cognigy AI bot support: while a Cognigy bot handles the contact, the Chat UI hides the position-in-queue overlay. `ChatThread.contactHandler` tells who is handling it; treat `ContactHandler.Unknown` the same as `Cognigy`
+- `docs/privacy.md` — data collection & privacy disclosure, to support Google Play "Data safety" declarations
+- `RuntimeChatException.InvalidRefreshTokenException` — reported when the explicit OAuth flow's `refresh_token` is rejected by the backend while the SDK tries to exchange it for a new access token (e.g. expired or revoked). Previously surfaced as the generic `AuthorizationError`; integrators can now distinguish this case to trigger full re-authentication. `RuntimeChatException` is sealed, so a Kotlin `when` over it without an `else` branch needs a case for it
+- Long-pressing a conversation in the thread list opens a menu with Archive and Rename. Archive is offered only for conversations that can still receive messages. The labels are the new string resources `archive_thread_menu_item` and `rename_thread_menu_item`
+- Landscape and large-screen layouts. The Chat UI now adapts to the window it is drawn into rather than to the device, so it stays correct in split screen, in a freeform window and on foldables. A window counts as wide when it reaches the Material 3 expanded width class (840dp) or whenever it is in landscape, which covers rotated phones, landscape-native tablets and side-by-side multi-window panes
+  - Navigation bars now inset their content on wide and foldable screens instead of stretching it edge to edge
+  - The conversation navigation bar keeps its title on a single row in landscape, instead of using the taller two-row layout which only collapsed once the conversation was scrolled
+  - The status bar is hidden while the chat is shown on a wide screen, and can be revealed by swiping from the edge
+  - Messages sit on the conversation's wide-screen column: the wider margin replaces the message list's own 16dp inset
+    rather than adding to it, and agent messages reserve room for the avatar that overlaps their bubble's corner, so it
+    sits on the edge of the column. Narrower windows are unchanged
+  - Message bubbles are now at most 60% of the window width (excluding the wide-screen side padding). A rich link message takes the full width of its bubble instead of a narrower share of it.
+  - A quick reply's options no longer spread across the full window width in landscape; they are now capped at the same maximum width as the message bubble above them there, instead of stretching past it. Unchanged in portrait
+  - The audio player now fills its message bubble in every window. It is never narrower than its playback controls need, so on a very narrow window its bubble grows past the usual width limit rather than cutting a control off
+  - The message input bar lines its controls up with the conversation on wide and foldable screens: the text field, the microphone and the voice message recording controls sit on the same column as the messages above them
+  - The bar of attachments waiting to be sent has been redesigned: it keeps a fixed height, shows a scrollbar under the attachments once there are more than fit, and fades them out at the edge they scroll past. On wide and foldable screens its attachments line up with the rest of the conversation instead of starting at the window edge
+  - While the keyboard is open on a window less than 480dp tall, such as a phone in landscape, the bar of attachments waiting to be sent shrinks so the message input stays in view: its attachments are drawn smaller and without their file names, and it returns to its full size when the keyboard closes. Taller windows, including tablets in landscape, are unchanged
+  - Bottom sheets now span the window when it is wider than it is tall, instead of stopping at the Material 3 640dp width. Any window taller than it is wide keeps the centred sheet it had, including a large tablet held upright, since there the cap is what keeps sheet content readable. The attachment picker, the end conversation sheet and the inactivity prompt are exceptions, keeping the centred card in landscape too, because that is what their own design draws
+  - The attachment selection sheet now lays its attachments out in four columns when the window is wider than it is tall, keeping two columns when it is taller, and shows a scrollbar beside them. Its title, grid and action bar line up with the rest of the conversation on wide and foldable screens instead of starting at the window edge
+  - The attachment picker sheet stays centred in a landscape window on a device using three-button navigation, without reserving space for a side navigation bar its centred card never reaches
+  - The list picker sheet now shares the same modal bottom sheet chrome as the pre-chat survey and inactivity sheets instead of building its own header and footer. Its title, options and Cancel/Submit buttons keep the design's 16dp portrait margin and widen to the shared 64dp inset in a landscape window, instead of staying at 16dp in every window. The subtitle now scrolls with the options rather than sitting in the fixed header, matching the design
+  - The time picker sheet now shares the same modal bottom sheet as the list picker and pre-chat survey: its title, date groups and slot grid line up with the rest of the conversation on wide and foldable screens instead of starting at the window edge, and the slot grid shows a scrollbar once there are more slots than fit on screen
+  - The send transcript sheet follows the pre-chat survey's layout on wide and foldable screens: its title, email fields and Cancel/Submit buttons line up on the shared 64dp inset instead of sitting 16dp from the window edge. On a wide screen the sheet also hides the status bar, and in landscape it keeps clear of a navigation bar on the side of the window. In every window its title now sits in a fixed header on the sheet's own background, separated from the body by a divider and lined up with the email fields instead of 16dp further in, and the subtitle scrolls with the fields
+  - The send transcript sheet scrolls its content in a short window, such as a phone in landscape, so the confirmation field stays reachable and the keyboard no longer covers the focused field
+  - The full screen image and video viewers' headers now use the native Material 3 top app bar and are separated from the media by a divider, so their back and share buttons line up with the rest of the conversation on wide and foldable screens instead of sitting against the window edge
+  - The video in the full screen viewer is capped at 640dp wide and centred, instead of being stretched across a window wider than that
+  - Attachment previews in a message take their size from the window the chat is drawn into rather than from the device screen, so they shrink with the window in split screen, in a freeform window or on a foldable folded shut, and follow it across a resize. They are unchanged in a window which fills the display
+- `Popup.SatisfactionSurvey` — a survey delivered through `ChatThreadActionHandler.popupFlow`. The survey page collects the answers; nothing needs to be reported back to the SDK. The Chat UI shows it as a blocking in-app dialog with a WebView, once per thread. In Live Chat, a survey sent while the app was closed or in the background is still shown: the closed conversation is kept and its survey displayed, followed by the usual "close chat" options once the survey is dismissed. In Live Chat, `ChatThreadsHandler.threadsFlow` now reports such a closed conversation, instead of a new one, until its survey has been delivered through `popupFlow` and the list is refreshed; an integrator using only `chat-sdk-core` should collect `popupFlow` for it, or create a new thread
+- Chat UI now posts a local notification titled "Satisfaction Survey" when a survey arrives for a background thread in a multi-thread channel, showing the backend-provided prompt text. Opening that thread afterward still shows the in-app survey dialog. The survey is stashed (AES-256-GCM, Android Keystore) until then; integrators with their own backup rules should add `datastore/com.nice.cxonechat.ui.secure_settings.preferences_pb` to their exclusions (see the [Integration](README.md#integration) section)
+
+### Changed
+- Tapping a message whose format the SDK cannot display now shows the explanation in a tooltip anchored to that message, instead of a snackbar at the bottom of the screen. The tooltip stays open until it is dismissed — by tapping outside it or pressing Back — rather than hiding itself on a timer; while it is shown it takes over touch, so that dismissing tap is consumed rather than reaching what is under it, and the conversation cannot be scrolled until the tooltip is closed.
+- Building or re-preparing chat no longer always calls the backend to fetch the channel configuration: the result is now cached in memory for up to 5 minutes, so repeated builds/prepares within that window reuse it instead of making a new network call. The cache is cleared on sign-out, including for a fetch that was still in progress when sign-out happened
+- In Live Chat, `ChatThreadsHandler.threadsFlow` no longer always replaces a recovered closed conversation with a new one: a closed conversation whose Satisfaction Survey has not been delivered yet is reported until the survey is delivered through `ChatThreadActionHandler.popupFlow` and the list is refreshed. An integrator using only `chat-sdk-core` should collect `popupFlow` for that conversation, or create a new thread
+- Bump `com.google.crypto.tink:tink-android` from 1.22.0 to 1.23.0
+- Bump `androidx.navigation` from 2.9.8 to 2.10.1
+- Bump Kotlin from 2.4.0 to 2.4.10
+- Bump `com.squareup.okhttp3:okhttp` from 5.4.0 to 5.5.0
+- Bump `androidx.core:core-ktx` from 1.19.0 to 1.19.1
+- Bump `androidx.annotation:annotation` from 1.9.1 to 1.11.0
+- Bump `androidx.compose:compose-bom` from 2026.06.00 to 2026.09.00
+- Bump `androidx.constraintlayout:constraintlayout-compose` from 1.1.1 to 1.1.2
+- Bump `io.coil-kt.coil3:coil-bom` from 3.4.0 to 3.6.3
+- Bump `androidx.emoji2` from 1.6.0 to 1.7.0
+- Bump `com.google.firebase:firebase-bom` from 34.15.0 to 34.19.0
+- Bump `androidx.appcompat:appcompat` from 1.7.1 to 1.8.0. AppCompat now ships JSpecify nullness annotations; Kotlin integrators can enforce them by adding `-Xjspecify-annotations=strict` to their own module's `freeCompilerArgs`.
+- Explicit OAuth flow token-exchange errors that previously triggered a silent `ChatActivity` exit now show the standard blocking auth-error dialog, matching how other hard authorization failures are already presented. See **Deprecated** below.
+- The time picker sheet header now uses the native Material 3 top app bar
+- Bump androidx.compose.material3 from 1.4.0 to 1.5.0-beta01. This is a pre-release version, required because the app bar components used here are not public in a stable one
+- The attachment selection sheet's title and action bar now sit on the sheet's own background with the attachments on a subtler one between them, each separated by a full-width divider
+- The attachment picker sheet no longer draws a drag handle, and its title now has clearance above and below it instead. The title reads "Select Attachment" and the options "Camera - Photo", "Camera - Video" and "Media Gallery", correcting their capitalisation; the resource names are unchanged, so an integrator already overriding them keeps their own wording. Its options no longer carry a trailing arrow, and its title lines up with them instead of sitting further in. In a landscape window the sheet stays a centred card rather than spanning the window, with its options and their dividers inset to match its design. The sheet is still dismissed by swiping it down or tapping outside it
+- Share buttons on attachments now use the standard Material share icon in place of the SDK's own, so they match the icon used elsewhere in the chat. On an attachment in the conversation the glyph is 16dp inside its 34dp button, the size its design draws, rather than the 24dp an icon takes by default, which crowded the button's outline
+- Audio attachment messages match their current design more closely: a thinner progress bar with its spacing beside it rather than above and below, playback controls spaced further apart, slightly smaller seek icons, and a larger play/pause icon so it stands out as the main control. The player's side padding is tighter, while its top and bottom insets grow a little. The cell is shorter overall, because dropping the gap above and below the bar takes off more than those insets add back
+- Tapping a disabled or already-selected time picker message now shows a tooltip anchored to it, explaining why its options are unavailable, instead of a snackbar at the bottom of the screen
+- Tapping a disabled quick reply message now shows a tooltip anchored to it, matching the time picker message's own treatment, instead of a snackbar at the bottom of the screen
+- A quick reply option whose text does not fit on one line at the normal chip width now fills its row instead of wrapping across multiple lines inside a narrow chip, matching the Figma design
+- The offline screen no longer has a top app bar with a title and back button. Its notice and the position-in-queue header are now a card inset from the window edges, with 12dp rounded corners and a 640dp maximum width. The `position_in_queue_supporting_text` string no longer contains a line break
+- The archived-conversation notice above the input is redesigned: a divider and a 52dp bar on the default background, with an outlined archive icon and tertiary-colour text
+- The preparing overlay's close button uses the string resource `loading_close_button_text` instead of `close_chat`. If you override `close_chat` to change this button, override `loading_close_button_text` too
+- A PDF you send is previewed from your local file after it is sent, instead of being downloaded again
+- The pre-chat survey's title and fields now sit 16dp from the sheet edge in portrait instead of 24dp, matching the list picker and time picker sheets
+- The time picker's slots now share each row equally and fill the sheet's width, as many to a row as fit (for example three on a phone in portrait and six on a wide phone in landscape), with no gap at the row's end
+- The list picker's options now follow the design's row layout: 12dp inside the row's left and right edges instead of 16dp, a 64dp image instead of 32dp, supporting text directly under the label, a 12dp gap before the selection check, and a minimum height of 48dp instead of 55dp
+
+### Deprecated
+
+- `RuntimeChatException.FeatureUnavailableException` is deprecated — the backend issue that caused explicit OAuth flow token-exchange failures is fixed, so the SDK no longer throws this exception. These errors now surface as `RuntimeChatException.AuthorizationError`, same as any other flow's token-exchange failure. The class is retained for source/binary compatibility and will be removed in a future major version.
+
+### Removed
+
+- The `ic_share` drawable, now that the SDK's share buttons draw the standard Material share icon instead
+
+### Fixed
+
+- Fix `persistent_cookies.pb` (the encrypted cookie DataStore) and its Tink keyset not being excluded from Android Auto Backup. `backup_rules.xml` now excludes `persistent_cookies.pb` and the keyset's actual SharedPreferences file, `cookie_master_key.xml`
+- Fix the auth-token store's Tink keyset also not being excluded from Android Auto Backup. `backup_rules.xml` excluded `cxonechat_tink_keyset.xml`, a path that matched no file; the keyset's actual SharedPreferences file, `cxonechat_master_key.xml`, is now excluded instead
+- Fix an open thread in multi-thread mode staying open after its case was closed: its `ChatThreadHandler` now reports `ChatThreadState.Closed` and no longer allows new messages, as the thread list already did, and a thread reopened by a recovery or by a message on a new case accepts messages again and shows as open again in `ChatThreadsHandler.threadsFlow`, also after the list is refreshed
+- Fix an open Live Chat conversation staying open after a thread recovery reported it closed, for example when it was closed while the app was in the background: its `ChatThreadHandler` now reports `ChatThreadState.Closed` and no longer allows new messages, so the "close chat" options are shown for it
+- Fix a thread archived with `ChatThreadHandler.archive()` not becoming `ChatThreadState.Closed` when its case was closed afterwards
+- Fix a closed conversation being treated as open again when a late case status change for its already-closed case arrived, which let new messages be sent into it, or when a late message, or in Live Chat a late agent assignment, for that case arrived, which reported it as `ChatThreadState.Ready`. A closed thread now keeps its closed state for such events for its own case, or for an event or thread without a case id, though a late message is still added to it; it is reopened by a message for a new case or by a recovery that reports it open
+- Fix `chat-sdk-ui` adding the customer custom fields only after reporting `chatWindowOpen()`, so a message sent while that report was in flight could go out without them; the fields are now added as soon as the chat is `Ready`, before the report
+- Fix `chat-sdk-ui` crashing the app when the customer `UiCustomFieldsProvider` throws as the chat screen opens; the error is now logged and `chatWindowOpen()` is still reported
+- Fix an access-token refresh that was still in flight during `signOut()` writing the signed-out user's credentials back to storage, or reporting its failure to the next session; with a `TokenDelegateListener`, a token the delegate returns after `signOut()` is no longer sent for the signed-out visitor
+- Fix `chat-sdk-ui` adding an attachment picked before the chat was prepared to the composer of a different conversation, when the chat screen stayed open across a `signOut()` and the next session, or the user moved to another thread meanwhile; such an attachment is now dropped, even when the same user signs in again, and its error dialog is no longer shown in the next session. An attachment picked while the chat is still being prepared is also dropped when that preparation fails or is cancelled, as is one picked after a failed preparation once the chat is prepared again; such an attachment has to be picked again
+- Fix `ChatActivity` repeatedly retrying to reconnect with an already-rejected credential while its blocking authorization-error dialog is shown, wasting network/battery and risking backend rate limiting until the user dismisses the dialog. Auto-reconnect now pauses for as long as that dialog stays on screen
+- Fix the remove button on attachments waiting to be sent having a touch target no larger than its 32dp circle. It now has a 48dp tall target that covers the circle up to the gap before the next attachment and reaches over its own attachment to just short of its centre, where a tap still opens the attachment.
+- Fix the full screen video viewer drawing each clip in the proportions of the area it reserves rather than the clip's own. A clip shaped differently from that area — a recording made with the phone held upright, watched in landscape — had its edges cropped away, and on some devices was distorted instead. The clip is now fitted inside that area, and the playback controls span the clip rather than the area around it
+- Fix the send button's icon pointing downwards in right-to-left layouts. The paper plane is mirrored for right-to-left
+  reading, but the tilt drawn on top of it was not, which composed the two into a half turn and left the plane pointing
+  down and away from the edge a message travels to. Both the message input bar's send button and the voice message
+  recording bar's are corrected, since they draw the same control
+- Fix "load more messages" pagination sending the newest message's timestamp as the cursor instead of the oldest, which could prevent older messages from loading; the request now uses the oldest message in the thread as the pagination cursor
+- Correct the backup-exclusion guidance in the README integration notes: the encrypted preferences file path was listed incorrectly and would not have matched anything, the `com.nice.cxonechat.secure.xml` and cookie-store files were missing from the exclusion list entirely, and no guidance existed for `android:dataExtractionRules`, which apps targeting API 31+ need instead of `fullBackupContent`. Integrators who applied the previous guidance should update their backup rules
+- Correct the integration guides and case studies against the 4.0 API. Examples that call `suspend` functions now show the surrounding coroutine — including `ChatBuilder(...)` and `ChatInstanceProvider.configure(...)`, which are themselves `suspend` and previously appeared at top level; Koin setup uses `includes(UiModule.chatUiModule())` with the current `customerFieldsProvider` and `contactFieldsProvider` parameter names; `closeSuspending()` replaces the removed `stop()` and is shown from `onStop()` in a coroutine that outlives the lifecycle scope starting it, rather than blocking a lifecycle callback — closing in `onPause()` also ended sessions the user was about to return to, and a close cut short at `ON_DESTROY` leaves the provider holding a `Chat` that no later `connect()` restores; that close is now guarded on the provider's state, because `closeSuspending()` arrives at `Prepared` whether or not it found a `Chat` to close, so closing while the provider is `Initial` or `Preparing` cancels the build in flight and strands it where both `connect()` and `prepare()` do nothing, and closing on `SdkNotSupported` discards the record that the backend refused this SDK version — `cancel()` is the call for all three, and the listener example now handles `SdkNotSupported` as well, without which its `when` over `ChatState` did not compile; the provider listener is registered in `onStart()` to pair with that, because `addListener` does not de-duplicate and a resumed activity would otherwise register twice; that same `onStart` now calls `prepare()` when it finds the provider `Initial`, because `addListener` does not replay the current state and a freshly started process would otherwise sit in `Initial` with no callback ever arriving; custom-field definitions are read from `chat.threads().preChatSurvey?.fields`; and the logging case study names `timedScope` and `logger.warning`
+- Publish a resolvable Koin version to consumers of `chat-sdk-ui`. The module exposes `koin-android` and
+  `koin-annotations` as `api` dependencies, but the Koin BOM that versions them was declared as `implementation`, so it
+  was published into the runtime variant only. The compile variant listed both artifacts with no version at all, and an
+  integrator who did not declare Koin themselves could not build — resolution failed with
+  `Could not find io.insert-koin:koin-android:`. The BOM is now an `api` dependency, so the compile variant carries the
+  version. Anyone who worked around this by adding a Koin dependency of their own can drop it
+- Document that the Chat UI Koin setup has to register `androidContext(...)`. `UiModule.chatUiModule()` does not register
+  it and the UI resolves `Context` and `Application` from the graph, so every previous `startKoin` example — in the
+  guides and in the published `chatUiModule()` reference — produced a setup that started cleanly and then failed on the
+  first injection inside `ChatActivity`, which reads as an SDK fault rather than a missing setup line. The UI
+  configuration guide also no longer asks for a `koin-core` dependency: `chat-sdk-ui` exposes `koin-android` as an `api`
+  dependency, so Koin needs no declaration of your own, and `androidContext(...)` ships in `koin-android` rather than
+  `koin-core`
+- Replace documented names that are absent from the public API: `ChatSdkConfig` becomes `SocketFactoryConfiguration`, `PreChatSurveyType` becomes `FieldDefinition`, the removed `RefreshToken` event is documented as SDK-managed token refresh, `ArchiveThreadEvent` becomes `ChatThreadHandler.archive()`, and the thread event list names the public `ChatThreadEventHandlerActions` functions rather than internal event classes
+- Document the import that analytics and thread-event actions require: they are extension members of `ChatEventHandlerActions` and `ChatThreadEventHandlerActions`, so the actions must be imported from the object, as in `import com.nice.cxonechat.ChatEventHandlerActions.pageView`. Importing the object itself leaves the call unresolved, and the previous examples showed no import at all
+- Correct the `chat-sdk-ui` integration requirements, which stated the wrong minimum supported Android version and pinned library versions the module no longer ships. The `minSdk`, `compileSdk` and `targetSdk` levels are stated in the root `README.md` under *Android SDK levels*, and the module requirements link there
+- Dependency snippets presented as `build.gradle.kts` now use valid Kotlin DSL rather than Groovy-only syntax, and the published API reference for `ChatBuilder.build()` no longer shows a literal escape sequence in place of a dash
+- Fix source links in the localization, theming and UI-configuration guides that led nowhere. A markdown target beginning with `/` is resolved from the host root rather than the repository, so links written that way pointed at pages that do not exist; they are now relative paths that open the file they name
+- Correct the `SocketFactoryConfiguration` example, which selected the environment through a `CXoneEnvironment.YourRegion` constant that does not exist. It now uses a real region and names the ones available
+- Fix the repository setup step, which declared the Maven repository at the top level of `settings.gradle.kts`. A settings script has no top-level `repositories`, so the snippet did not evaluate; it is now nested in `dependencyResolutionManagement { repositories { … } }`
+- Fix explicit OAuth flow reconnecting with the refresh token even when the underlying access token was still valid; it now reuses the still-valid access token to obtain a new transaction token, only falling back to the refresh token once the access token itself has expired
+- Detect OAuth token rejection via the backend's actual HTTP 400 response instead of HTTP 401, so the implicit flow now calls `TokenDelegateListener.onNewTokenRequested(TOKEN_INVALID)` and reports `InvalidAccessTokenException` when the backend rejects its token
+- Fix drag handle of the list picker and send transcript sheets being announced in English regardless of locale
+- Fix the share button beside an attachment message sitting closer to the bubble than its design draws it: the gap was 8dp where the design calls for 12dp. Only a message which carries an action moves
+- Fix the tile for an attachment with no preview of its own — a document or other file — being drawn without the outline and background its design gives it, which left its icon hard to see wherever the customer's brand-coloured bubble was not behind it. The tile now paints the brand colour for the customer and a neutral surface for the agent, with an outline in the icon's tone. The larger icon the picker sheet draws takes a neutral tone against the sheet instead
+- Fix a PDF attachment in a message not being drawn inside its bubble while its first page is still rendering. Until the page arrived the message stood in with the tile the attachment picker draws, which takes a fixed size and paints no background of its own: on a message carrying a single attachment, whose bubble is drawn transparent, that left the attachment looking as though it had no bubble at all, and on a message carrying several the tiles overflowed the cells they sit in. A PDF still rendering now shows the same tile as any other file, filling the space the page will take and carrying the same outline and backdrop, so the arriving page replaces it without the attachment changing size or position. The picker sheet's own tile is unchanged
+- Fix a PDF attachment leaking its renderer and the open file it reads from when the attachment leaves the screen while its document is still being opened, such as scrolling a conversation quickly past a large document or leaving the chat while one opens. Opening runs off the main thread, and the document was taken ownership of only once that work handed its result back, so work cancelled after it had already opened the document handed nothing back and left the renderer and its file with no owner, held open until the garbage collector eventually reclaimed them. The thumbnail now takes ownership as the document is opened, and a file whose open finishes after the work asking for it was cancelled is closed rather than dropped — including a file already on the device, which was handed back through a path that discarded it in that same window
+- Fix PDF attachments that share a file name showing the same preview. Each attachment's preview is now cached separately, so every PDF shows its own first page
+- Fix a destroyed `ChatActivity` being kept in memory after a device rotation until the chat was closed; the voice-message recorder held a reference to it
+- Fix closing the chat while a voice message is being recorded leaving the microphone recorder and its file open; they are now released when the chat closes
+- Fix the options of a list field in the pre-chat survey and in the "Edit pre-chat survey custom fields" sheet opening under the keyboard. With the keyboard shown, the list now opens above the field when there is no room below it
+
+### Security
+
+- Enforce minimum `io.netty` 4.1.138.Final in buildscript resolutionStrategy to address AIKIDO-2026-592216 | GHSA-cg2g-fxr4-mg8m (build-time
+  only, no SDK artifact impact)
+- Enforce minimum `org.jsoup` 1.23.1 via Gradle resolutionStrategy to address CVE-2026-71497 / GHSA-pmhh-3w7g-xqp8 (build-time only, no SDK artifact impact)
+- Enforce minimum `org.freemarker:freemarker` 2.3.35 via Gradle resolutionStrategy to address GHSA-27j2-h3m2-8237 (documentation generation
+  only, no SDK artifact impact)
+- Enforce minimum `com.fasterxml.jackson` 2.18.10 via Gradle resolutionStrategy to address CVE-2026-68497 / GHSA-q4xh-88c3-wmh7 (build-time
+  only, no SDK artifact impact)
+- Enforce minimum `org.bouncycastle` 1.86 in buildscript resolutionStrategy to address AIKIDO-2026-322957 (build-time only,
+  no SDK artifact impact)
+- Enforce minimum `org.apache.httpcomponents:httpclient` 4.5.13 via Gradle resolutionStrategy to address CVE-2020-13956
+  (build-time only, no SDK artifact impact)
+- Enforce minimum `org.jetbrains.kotlin:kotlin-stdlib` 2.1.0 via Gradle resolutionStrategy to address AIKIDO-2026-550292
+  (build-time only, no SDK artifact impact)
+
 <a name="4.0.1"></a>
 
 ## [4.0.1] - 2026-10-30
@@ -780,7 +928,9 @@
         - failure
     - typing start/end
 
-[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/4.0.1...HEAD
+[Unreleased]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/4.1.0...HEAD
+
+[4.1.0]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/4.0.1...4.1.0
 
 [4.0.1]: https://github.com/nice-devone/nice-cxone-mobile-sdk-android/compare/4.0.0...4.0.1
 

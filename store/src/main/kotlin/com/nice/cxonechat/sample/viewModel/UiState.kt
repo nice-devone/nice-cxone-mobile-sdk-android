@@ -16,9 +16,7 @@
 package com.nice.cxonechat.sample.viewModel
 
 import androidx.activity.compose.LocalActivity
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -27,7 +25,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.window.DialogProperties
 import com.nice.cxonechat.sample.R.string
 import com.nice.cxonechat.sample.data.repository.UISettings
 import com.nice.cxonechat.sample.ui.ErrorDialog
@@ -74,6 +71,16 @@ sealed class UiState(val isInDialog: Boolean) {
          * On failure, log the error — this flow does not use the token-delegate future.
          */
         fun requestExplicitToken()
+
+        /**
+         * Invoke to open the chat.
+         *
+         * Used by the automated launch path, which brings the chat all the way to
+         * [com.nice.cxonechat.ChatState.Ready] before showing it. The chat cannot be started from
+         * outside the app -- it is protected by a signature-level permission -- so the sample app
+         * has to make this hop itself.
+         */
+        fun openChat()
     }
 
     /**
@@ -236,31 +243,52 @@ sealed class UiState(val isInDialog: Boolean) {
     }
 
     /**
-     * Displaying an error dialog when the explicit OAuth flow is unavailable on the current
-     * server version. The user must log out to restart authentication.
+     * Preparing a chat from a configuration supplied on the launch intent.
+     *
+     * Replaces the configuration and login dialogs on that path, reporting progress instead. It
+     * stays cancellable so that a person using the same entry point by hand isn't trapped behind a
+     * spinner if the chat never becomes ready.
+     *
+     * @property step Stage the setup has reached.
      */
-    data object ExplicitOAuthUnavailable : UiState(isInDialog = true) {
+    data class AutomatedSetup(val step: Step) : UiState(isInDialog = true) {
+        /**
+         * Stages of an automated setup, in the order they are reported.
+         *
+         * @property label Message shown while the setup is at this stage.
+         */
+        enum class Step(@StringRes val label: Int) {
+            /** Applying the supplied configuration. */
+            SettingUp(string.automated_setup_setting_up),
+
+            /** Fetching the channel configuration from the backend. */
+            LoadingConfiguration(string.automated_setup_loading_configuration),
+
+            /** Opening the chat connection. */
+            PreparingChat(string.automated_setup_preparing_chat),
+        }
+
         @Composable
         override fun Content(context: UiStateContext) {
             val viewModel: StoreViewModel = koinViewModel<StoreViewModel>()
-            AlertDialog(
-                modifier = Modifier.testTag("explicit_oauth_unavailable_dialog"),
-                onDismissRequest = { viewModel.logout() },
-                title = { Text(text = stringResource(string.explicit_oauth_unavailable_title)) },
-                text = { Text(text = stringResource(string.explicit_oauth_unavailable_message)) },
-                confirmButton = {
-                    TextButton(
-                        onClick = { viewModel.logout() },
-                        modifier = Modifier.testTag("explicit_oauth_unavailable_close_button"),
-                    ) {
-                        Text(stringResource(string.logout))
-                    }
-                },
-                properties = DialogProperties(
-                    dismissOnBackPress = false,
-                    dismissOnClickOutside = false,
-                )
+            BusySpinner(
+                message = stringResource(step.label),
+                onCancel = viewModel.automatedSetupHandler::cancel,
             )
+        }
+    }
+
+    /** Opening the chat, once an automated setup has brought it all the way to ready. */
+    data object OpeningChat : UiState(isInDialog = false) {
+        @Composable
+        override fun Content(context: UiStateContext) {
+            val viewModel: StoreViewModel = koinViewModel<StoreViewModel>()
+            // The state is deliberately held until the activity is resumed again, so the storefront
+            // stays unbuilt while the chat is in front. The request is one-shot, so recreating the
+            // activity meanwhile doesn't open a second chat.
+            LaunchedEffect(Unit) {
+                if (viewModel.launchPresentation.consumeOpenChatRequest()) context.openChat()
+            }
         }
     }
 

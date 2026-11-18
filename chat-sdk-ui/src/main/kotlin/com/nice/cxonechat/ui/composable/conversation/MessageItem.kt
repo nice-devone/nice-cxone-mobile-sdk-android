@@ -23,8 +23,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -64,6 +66,7 @@ import com.nice.cxonechat.ui.composable.theme.ChatColors.ColorPair
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
+import com.nice.cxonechat.ui.composable.theme.LocalMessageColors
 import com.nice.cxonechat.ui.composable.theme.Scaffold
 import com.nice.cxonechat.ui.domain.model.Person
 import com.nice.cxonechat.ui.domain.model.asPerson
@@ -86,7 +89,6 @@ internal fun MessageItem(
     onAttachmentClicked: (Attachment) -> Unit,
     onMoreClicked: (List<Attachment>) -> Unit,
     onShare: (Collection<Attachment>) -> Unit,
-    snackBarHostState: SnackbarHostState,
 ) {
     val toAgent = message.direction === ToAgent
     val alignment = if (toAgent) Alignment.End else Alignment.Start
@@ -114,7 +116,6 @@ internal fun MessageItem(
                     onAttachmentClicked = onAttachmentClicked,
                     onMoreClicked = onMoreClicked,
                     onShare = onShare,
-                    snackBarHostState = snackBarHostState
                 )
 
                 when (showStatus) {
@@ -175,44 +176,43 @@ private fun MessageContent(
     onAttachmentClicked: (Attachment) -> Unit,
     onMoreClicked: (List<Attachment>) -> Unit,
     onShare: (Collection<Attachment>) -> Unit,
-    snackBarHostState: SnackbarHostState,
 ) = Column(modifier) {
     val padding = Modifier.padding(space.messagePadding)
     val toAgent = message.direction == ToAgent
-    val chatColor = bubbleColor(
-        toAgent = toAgent,
-        transparentBackground =
-            (message as? WithAttachments)?.attachments?.toList()?.size == 1 ||
-                    message is EmojiText
-    )
+    val senderColors = if (toAgent) chatColors.customer else chatColors.agent
+    val transparentBackground = (message as? WithAttachments)?.attachments?.toList()?.size == 1 || message is EmojiText
+    val chatColor = if (transparentBackground) senderColors.copy(background = Color.Transparent) else senderColors
     val avatar = remember { if (!toAgent && position in listOf(LAST, SOLO)) message.sender?.asPerson else null }
     var showFrame by rememberSaveable { mutableStateOf(true) }
     var showListPickerDialog by rememberSaveable { mutableStateOf(false) }
     var showTimePickerDialog by rememberSaveable { mutableStateOf(false) }
 
-    MessageFrameContent(
-        message = message,
-        position = position,
-        chatColor = chatColor,
-        avatar = avatar,
-        showFrame = showFrame,
-        setShowFrame = { showFrame = it },
-        modifier = padding,
-        messageStatusState = messageStatusState,
-        onQuickReplyOptionSelected = onQuickReplyOptionSelected,
-        onListPickerSelected = onListPickerSelected,
-        onTimePickerSelected = onTimePickerSelected,
-        onAttachmentClicked = onAttachmentClicked,
-        onMoreClicked = onMoreClicked,
-        onShare = onShare,
-        snackBarHostState = snackBarHostState,
-        showListPickerDialog = showListPickerDialog,
-        showTimePickerDialog = showTimePickerDialog,
-        setShowListPickerDialog = { showListPickerDialog = it },
-        setShowTimePickerDialog = { showTimePickerDialog = it }
-    )
+    CompositionLocalProvider(LocalMessageColors provides senderColors) {
+        MessageFrameContent(
+            message = message,
+            position = position,
+            chatColor = chatColor,
+            avatar = avatar,
+            showFrame = showFrame,
+            setShowFrame = { showFrame = it },
+            modifier = padding,
+            messageStatusState = messageStatusState,
+            onQuickReplyOptionSelected = onQuickReplyOptionSelected,
+            onListPickerSelected = onListPickerSelected,
+            onTimePickerSelected = onTimePickerSelected,
+            onAttachmentClicked = onAttachmentClicked,
+            onMoreClicked = onMoreClicked,
+            onShare = onShare,
+            showListPickerDialog = showListPickerDialog,
+            showTimePickerDialog = showTimePickerDialog,
+            setShowListPickerDialog = { showListPickerDialog = it },
+            setShowTimePickerDialog = { showTimePickerDialog = it }
+        )
+    }
 }
 
+// Omitting the unsupported message's tooltip state makes this a user of its experimental default.
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MessageContentBody(
     message: Message,
@@ -225,10 +225,9 @@ private fun MessageContentBody(
     setShowTimePickerDialog: (Boolean) -> Unit,
     messageStatusState: MessageStatusState,
     setShowFrame: (Boolean) -> Unit,
-    snackBarHostState: SnackbarHostState,
 ) {
     when (message) {
-        is Unsupported -> UnsupportedMessage(message, Modifier.padding(space.messagePadding), snackBarHostState)
+        is Unsupported -> UnsupportedMessage(message, Modifier.padding(space.messagePadding))
         is Text -> TextMessage(message, modifier)
         is EmojiText -> EmojiMessage(message, space.emojiPadding)
         is AudioAttachment -> AudioAttachment(
@@ -252,11 +251,10 @@ private fun MessageContentBody(
         is TimePicker -> TimePickerMessage(
             message = message,
             messageStatusState = messageStatusState,
-            snackBarHostState = snackBarHostState,
             onMessageClick = { if (messageStatusState == SELECTABLE) setShowTimePickerDialog(true) }
         )
         is RichLink -> RichLinkMessage(message, chatColor)
-        is QuickReply -> QuickReplyMessage(message, messageStatusState, Modifier.padding(space.messagePadding), snackBarHostState)
+        is QuickReply -> QuickReplyMessage(message, messageStatusState, Modifier.padding(space.messagePadding))
     }
 }
 
@@ -276,7 +274,6 @@ private fun MessageFrameContent(
     onAttachmentClicked: (Attachment) -> Unit,
     onMoreClicked: (List<Attachment>) -> Unit,
     onShare: (Collection<Attachment>) -> Unit,
-    snackBarHostState: SnackbarHostState,
     showListPickerDialog: Boolean,
     showTimePickerDialog: Boolean,
     setShowListPickerDialog: (Boolean) -> Unit,
@@ -311,7 +308,6 @@ private fun MessageFrameContent(
             setShowTimePickerDialog = setShowTimePickerDialog,
             messageStatusState = messageStatusState,
             setShowFrame = setShowFrame,
-            snackBarHostState = snackBarHostState,
         )
     }
 
@@ -358,20 +354,6 @@ private fun PickerBottomSheets(
                 setShowTimePickerDialog(false)
             },
         )
-    }
-}
-
-@Composable
-private fun bubbleColor(toAgent: Boolean, transparentBackground: Boolean): ColorPair {
-    val colors = if (toAgent) {
-        chatColors.customer
-    } else {
-        chatColors.agent
-    }
-    return if (transparentBackground) {
-        colors.copy(background = Color.Transparent)
-    } else {
-        colors
     }
 }
 
@@ -486,13 +468,11 @@ private fun PreviewContentTextMessage() {
                 item {
                     PreviewMessageItem(
                         message = QuickReply(UiSdkQuickReply()) {},
-                        snackBarHostState = snackBarHostState,
                     )
                 }
                 item {
                     PreviewMessageItem(
                         message = Unsupported(UiSdkUnsupportedMessage()),
-                        snackBarHostState = snackBarHostState,
                     )
                 }
             }

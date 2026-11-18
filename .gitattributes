@@ -1,3 +1,6 @@
 # Git LFS tracking for store sample app product images
 store/src/main/assets/store/images/** filter=lfs diff=lfs merge=lfs -text
 chat-sdk-ui/src/test/assets/screenshots/**/*.png filter=lfs diff=lfs merge=lfs -text
+
+# Video, wherever it lives — unlike an image, none of it is small enough to belong in a commit
+*.mp4 filter=lfs diff=lfs merge=lfs -text

@@ -15,12 +15,10 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -31,7 +29,8 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.nice.cxonechat.thread.Agent
 import com.nice.cxonechat.ui.composable.PreviewAgent
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
-import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
+import com.nice.cxonechat.ui.composable.theme.SheetAnchors
+import com.nice.cxonechat.ui.composable.theme.WideScreenModalBottomSheet
 import com.nice.cxonechat.ui.domain.model.EndConversationChoice
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,15 +42,17 @@ internal fun EndConversationBottomSheet(
     onUserSelection: (EndConversationChoice) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true) {
+    val sheetState = rememberBottomSheetState(SheetValue.Hidden, SheetAnchors.FullHeightOnly) {
         it === SheetValue.Expanded
     }
-    ModalBottomSheet(
+    ChatTheme.WideScreenModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        dragHandle = { Spacer(Modifier.height(space.xl)) },
-        containerColor = ChatTheme.chatColors.token.background.surface.subtle,
-        contentColor = ChatTheme.chatColors.token.content.primary,
+        // This sheet's design keeps a centred card in landscape, so it opts out of the wide-screen rule.
+        sheetMaxWidth = BottomSheetDefaults.SheetMaxWidth,
+        // No handle in the design, and Material 3 makes any handle it is given clickable and focusable,
+        // so a spacer here would read to screen readers as an unlabelled control. Content pads instead.
+        dragHandle = null,
         modifier = modifier
             .testTag("end_conversation_bottom_sheet")
     ) {

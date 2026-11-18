@@ -24,14 +24,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.composable.AddFab
 import com.nice.cxonechat.ui.composable.ThreadListContentView
 import com.nice.cxonechat.ui.composable.theme.BackButton
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.Scaffold
 import com.nice.cxonechat.ui.composable.theme.TopBar
+import com.nice.cxonechat.ui.composable.theme.wideScreenHorizontalPadding
 import com.nice.cxonechat.ui.util.koinActivityViewModel
 import com.nice.cxonechat.ui.viewmodel.ChatThreadsViewModel
 
@@ -48,6 +51,12 @@ internal fun ThreadListScreen(snackbarHostState: SnackbarHostState, navControlle
     val chatThreadsViewModel = koinActivityViewModel<ChatThreadsViewModel>()
     val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
     val onBack: () -> Unit = { backDispatcher?.onBackPressed() }
+    // On wide/foldable screens, inset the FAB so its trailing edge aligns with the content column
+    // (and each cell's divider), matching the design. The Scaffold already applies a built-in 16dp
+    // margin to a FabPosition.End FAB, so we add only the remainder of the content inset on top of
+    // it. On compact/portrait widths the content inset is 0dp, leaving the layout unchanged.
+    val contentInset = wideScreenHorizontalPadding()
+    val fabHorizontalPadding = (contentInset - space.scaffoldFabEndMargin).coerceAtLeast(0.dp)
     ChatTheme.Scaffold(
         modifier = Modifier
             .testTag("thread_list_view")
@@ -59,8 +68,15 @@ internal fun ThreadListScreen(snackbarHostState: SnackbarHostState, navControlle
                 navigationIcon = { BackButton(onBack) },
             )
         },
-        floatingActionButton = { AddFab(remember { { chatThreadsViewModel.createThread() } }) }
+        floatingActionButton = {
+            AddFab(
+                onClick = remember { { chatThreadsViewModel.createThread() } },
+                modifier = Modifier.padding(end = fabHorizontalPadding),
+            )
+        }
     ) { paddingValues ->
+        // MultiThreadContent already insets its rows by wideScreenHorizontalPadding() to align them
+        // with the title, so the box itself only needs the Scaffold's own padding.
         Box(modifier = Modifier.padding(paddingValues)) {
             ThreadListContentView(chatThreadsViewModel) {
                 navController.navigate(Screen.ThreadScreen)

@@ -21,13 +21,19 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ButtonDefaults.buttonColors
 import androidx.compose.material3.Icon
@@ -36,12 +42,12 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.currentWindowDpSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.paneTitle
@@ -52,9 +58,10 @@ import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import coil3.compose.AsyncImage
 import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.R.string
+import com.nice.cxonechat.ui.composable.headerBarContentPadding
+import com.nice.cxonechat.ui.composable.headerBarLeadingGap
 import com.nice.cxonechat.ui.composable.icons.ChatIcons
 import com.nice.cxonechat.ui.composable.icons.filled.Offline
-import com.nice.cxonechat.ui.composable.theme.BackButton
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatShapes
@@ -62,7 +69,6 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.PopupButton
 import com.nice.cxonechat.ui.composable.theme.Scaffold
-import com.nice.cxonechat.ui.composable.theme.TopBar
 
 /**
  * Displays an offline screen when the chat is not connected to the server.
@@ -81,24 +87,29 @@ internal fun OfflineScreen(
     BackHandler(onBack = onBackPress)
     val panelTitle = stringResource(id = string.panel_title_offline)
     ChatTheme.Scaffold(
-        modifier = modifier.testTag("offline_view").semantics {
-            paneTitle = panelTitle
-        },
+        modifier = modifier
+            .testTag("offline_view")
+            .semantics {
+                paneTitle = panelTitle
+            },
         snackbarHostState = snackbarHostState,
-        topBar = {
-            ChatTheme.TopBar(
-                title = stringResource(id = string.offline),
-                navigationIcon = { BackButton(onBackPress) }
-            )
-        }
     ) {
-        Box(
-            contentAlignment = Alignment.TopCenter,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(it)
-        ) {
-            OfflineView(onDismiss = onBackPress)
+        // Two Boxes are needed: one paints the status bar/cutout area, the other holds the inset-padded content.
+        Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .windowInsetsTopHeight(WindowInsets.statusBars.union(WindowInsets.displayCutout))
+                    .background(chatColors.token.brand.primary)
+            )
+            Box(
+                contentAlignment = Alignment.TopCenter,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(it)
+            ) {
+                OfflineView(onDismiss = onBackPress)
+            }
         }
     }
 }
@@ -109,7 +120,6 @@ internal fun OfflineScreen(
  * @param modifier [Modifier] to be applied to the offline view.
  * @param onDismiss Callback to be invoked when the user dismisses the offline view.
  */
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 internal fun OfflineView(
     modifier: Modifier = Modifier,
@@ -120,12 +130,11 @@ internal fun OfflineView(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .testTag("offline_content_view")
-            .width(IntrinsicSize.Max)
-            .fillMaxHeight()
+            .fillMaxSize()
     ) {
         HeaderBar()
-        // Decide whether to show the top app bar based on window size.
-        val showImage = currentWindowDpSize().height >= space.offlineImageMinimumScreenHeight
+        // Decide whether to show the illustration based on window size.
+        val showImage = LocalWindowInfo.current.containerDpSize.height >= space.offlineImageMinimumScreenHeight
         AnimatedVisibility(
             visible = showImage,
             modifier = Modifier.weight(1f)
@@ -133,15 +142,17 @@ internal fun OfflineView(
             AsyncImage(
                 R.drawable.offline,
                 contentDescription = null, // Decorative image
+                contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .testTag("offline_image")
+                    .fillMaxHeight()
                     .padding(horizontal = space.offlineImageHorizontalPadding)
             )
         }
         PopupButton(
             modifier = Modifier
                 .testTag("offline_close_button")
-                .padding(space.xxl)
+                .padding(start = space.xxl, top = space.xxl, end = space.xxl, bottom = space.offlineCloseButtonBottomPadding)
                 .requiredHeight(space.clickableSize),
             text = stringResource(string.chat_offline_action_close),
             colors = buttonColors(
@@ -155,30 +166,48 @@ internal fun OfflineView(
 
 @Composable
 internal fun HeaderBar() {
-    Surface(
-        color = Color.Unspecified,
-        shape = chatShapes.headerBarShape,
-        modifier = Modifier.padding(bottom = space.xxl)
+    // The bar floats inside a horizontal margin and is capped at componentMaxWidth, so it never touches the
+    // window edges and all four of its corners stay visible - hence the inset shape rather than the edge-to-edge one.
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(space.large)
     ) {
-        ListItem(
-            modifier = Modifier
-                .testTag("offline_header_bar")
-                .semantics(mergeDescendants = true) { },
-            colors = ListItemDefaults.colors(
-                containerColor = chatColors.token.status.errorContainer,
-                headlineColor = chatColors.token.content.primary,
-                supportingColor = chatColors.token.content.secondary,
-            ),
-            headlineContent = {
-                Text(stringResource(string.offline_banner), style = chatTypography.offlineBannerText)
-            },
-            supportingContent = {
-                Text(stringResource(string.offline_message), style = chatTypography.offlineSupportingText)
-            },
-            leadingContent = {
-                OfflineIcon()
+        Surface(
+            color = Color.Unspecified,
+            shape = chatShapes.headerBarInsetShape,
+            modifier = Modifier.widthIn(max = space.componentMaxWidth)
+        ) {
+            ListItem(
+                // Geometry is stated rather than inherited; see headerBarContentPadding for why.
+                modifier = Modifier
+                    .testTag("offline_header_bar")
+                    .semantics(mergeDescendants = true) { }
+                    .heightIn(min = space.headerBarMinHeight),
+                verticalAlignment = Alignment.CenterVertically,
+                contentPadding = headerBarContentPadding(),
+                colors = ListItemDefaults.colors(
+                    containerColor = chatColors.token.status.errorContainer,
+                ),
+                leadingContent = {
+                    Box(headerBarLeadingGap()) { OfflineIcon() }
+                },
+            ) {
+                Column {
+                    Text(
+                        stringResource(string.offline_banner),
+                        color = chatColors.token.content.primary,
+                        style = chatTypography.offlineBannerText,
+                    )
+                    Text(
+                        stringResource(string.offline_message),
+                        color = chatColors.token.content.secondary,
+                        style = chatTypography.offlineSupportingText,
+                    )
+                }
             }
-        )
+        }
     }
 }
 
@@ -203,15 +232,12 @@ private fun OfflineIcon() {
 }
 
 @PreviewLightDark
+@PreviewScreenSizes
 @Composable
 private fun PreviewOfflineContent() {
     ChatTheme {
-        ChatTheme.Scaffold(
-            topBar = { ChatTheme.TopBar(title = stringResource(id = string.offline)) },
-        ) {
-            Column {
-                OfflineView(modifier = Modifier.padding(it)) {}
-            }
+        ChatTheme.Scaffold {
+            OfflineView(modifier = Modifier.padding(it)) {}
         }
     }
 }

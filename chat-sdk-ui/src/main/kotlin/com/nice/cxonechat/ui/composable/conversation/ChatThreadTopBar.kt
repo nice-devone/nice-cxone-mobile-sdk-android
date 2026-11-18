@@ -15,19 +15,14 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons.Default
@@ -37,10 +32,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults.enterAlwaysScrollBehavior
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -53,6 +47,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -63,6 +58,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -77,9 +73,19 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.MediumTopBar
 import com.nice.cxonechat.ui.composable.theme.Scaffold
 import com.nice.cxonechat.ui.composable.theme.TextField
+import com.nice.cxonechat.ui.composable.theme.TopBar
+import com.nice.cxonechat.ui.composable.theme.isWideScreen
+import com.nice.cxonechat.ui.composable.theme.rememberTopBarScrollBehavior
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 
+/**
+ * Top bar of a conversation: two rows on a compact window, a single pinned row on a wide one.
+ *
+ * The wide row is pinned and ignores [scrollBehavior]. Source that from `rememberTopBarScrollBehavior`, not
+ * from an enter-always behavior of the caller's own: the same behavior drives the scaffold's nested-scroll
+ * connection, which would go on consuming scroll deltas for a collapse the wide bar never draws.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ChatThreadTopBar(
@@ -90,20 +96,59 @@ internal fun ChatThreadTopBar(
     onEndContact: () -> Unit,
     displayEndConversation: () -> Unit,
     onSendTranscript: () -> Unit,
+    horizontalPadding: Dp = 0.dp,
     navigationIcon: @Composable () -> Unit = {},
 ) {
+    val hasAiMessages by conversationState.hasAiMessages.collectAsStateWithLifecycle()
+    val (resolvedTitle, topBarContentDescription) = resolveTopBarStrings(conversationState)
+    val horizontalInsetPx = with(LocalDensity.current) { horizontalPadding.roundToPx() }
+    val windowInsets = TopAppBarDefaults.windowInsets.add(
+        WindowInsets(left = horizontalInsetPx, right = horizontalInsetPx)
+    )
+    val titleModifier = Modifier.semantics {
+        liveRegion = LiveRegionMode.Polite
+        contentDescription = topBarContentDescription
+    }
+    val topBarActions: @Composable RowScope.() -> Unit = {
+        Actions(
+            conversationState = conversationState,
+            onEditThreadName = onEditThreadName,
+            onEditThreadValues = onEditThreadValues,
+            onEndContact = onEndContact,
+            displayEndConversation = displayEndConversation,
+            onSendTranscript = onSendTranscript
+        )
+    }
+    // A wide window has the least height to spare, so the title stays on a single row there instead
+    // of using the two-row bar, which only collapses once the conversation is scrolled.
+    if (isWideScreen()) {
+        ChatTheme.TopBar(
+            modifier = Modifier.testTag("chat_thread_top_bar"),
+            windowInsets = windowInsets,
+            titleModifier = titleModifier,
+            title = resolvedTitle,
+            subtitle = { AiAuthorshipBadgeSlot(hasAiMessages = hasAiMessages, singleRow = true) },
+            navigationIcon = navigationIcon,
+            actions = topBarActions,
+        )
+    } else {
+        ChatTheme.MediumTopBar(
+            modifier = Modifier.testTag("chat_thread_top_bar"),
+            windowInsets = windowInsets,
+            titleModifier = titleModifier,
+            title = resolvedTitle,
+            subtitle = { AiAuthorshipBadgeSlot(hasAiMessages = hasAiMessages, singleRow = false) },
+            scrollBehavior = scrollBehavior,
+            navigationIcon = navigationIcon,
+            actions = topBarActions,
+        )
+    }
+}
+
+@Composable
+private fun resolveTopBarStrings(conversationState: ConversationTopBarState): Pair<String, String> {
     val threadName: ThreadName? by conversationState.threadName.collectAsStateWithLifecycle(null)
     val agentName: String? by conversationState.agentName.collectAsStateWithLifecycle(null)
-    val hasAiMessages by conversationState.hasAiMessages.collectAsStateWithLifecycle()
-    val aiSubtitle: @Composable () -> Unit = {
-        AnimatedVisibility(
-            visible = hasAiMessages,
-            enter = fadeIn() + expandVertically(expandFrom = Alignment.Top),
-            exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Top),
-        ) {
-            AiAuthorshipBadge(modifier = Modifier.padding(bottom = space.large))
-        }
-    }
     val hasAgent: Boolean by conversationState.hasAgent.collectAsStateWithLifecycle(false)
     val agentNameValue = agentName?.ifBlank { null }
         ?: if (hasAgent) stringResource(string.agent_default_name) else null
@@ -113,10 +158,8 @@ internal fun ChatThreadTopBar(
     val threadDescription = when {
         conversationState.isMultiThreaded && agentNameValue != null ->
             stringResource(string.content_description_conversation_with_agent, resolvedTitle, agentNameValue)
-
         !conversationState.isLiveChat ->
             stringResource(string.content_description_conversation_name, resolvedTitle)
-
         else -> resolvedTitle
     }
     val stateDescriptionString = if (hasAgent) {
@@ -129,48 +172,7 @@ internal fun ChatThreadTopBar(
     } else {
         threadDescription
     }
-    ChatTheme.MediumTopBar(
-        modifier = Modifier.testTag("chat_thread_top_bar"),
-        titleModifier = Modifier.semantics {
-            liveRegion = LiveRegionMode.Polite
-            contentDescription = topBarContentDescription
-        },
-        title = resolvedTitle,
-        subtitle = aiSubtitle,
-        scrollBehavior = scrollBehavior,
-        navigationIcon = navigationIcon,
-        actions = {
-            Actions(
-                conversationState = conversationState,
-                onEditThreadName = onEditThreadName,
-                onEditThreadValues = onEditThreadValues,
-                onEndContact = onEndContact,
-                displayEndConversation = displayEndConversation,
-                onSendTranscript = onSendTranscript
-            )
-        },
-    )
-}
-
-@Composable
-private fun AiAuthorshipBadge(modifier: Modifier = Modifier) {
-    val label = stringResource(string.ai_assistant_label)
-    Box(
-        modifier = modifier
-            .background(
-                color = MaterialTheme.colorScheme.primaryContainer,
-                shape = RoundedCornerShape(space.small),
-            )
-            .padding(horizontal = space.small)
-            .semantics(mergeDescendants = true) { contentDescription = label },
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-            modifier = Modifier.semantics { hideFromAccessibility() },
-        )
-    }
+    return resolvedTitle to topBarContentDescription
 }
 
 @Composable
@@ -255,7 +257,7 @@ private fun PreviewChatThreadTopBar(
     val liveChatAllowTranscript = remember { mutableStateOf(true) }
     val hasAiMessagesFlow: MutableStateFlow<Boolean> = remember { MutableStateFlow(true) }
     val hasAiMessages by hasAiMessagesFlow.collectAsState()
-    val scrollBehavior = enterAlwaysScrollBehavior()
+    val scrollBehavior = rememberTopBarScrollBehavior()
     ChatTheme {
         ChatTheme.Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),

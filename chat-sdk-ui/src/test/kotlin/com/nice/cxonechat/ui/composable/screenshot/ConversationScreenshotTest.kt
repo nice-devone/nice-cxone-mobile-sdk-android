@@ -53,7 +53,10 @@ import org.robolectric.annotation.GraphicsMode.Mode
 import com.nice.cxonechat.ui.util.preview.message.Text as MessageText
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [33], qualifiers = "w411dp-h891dp-normal-notlong-notround-notnight-mdpi-finger")
+@Config(
+    sdk = [33],
+    qualifiers = "w411dp-h891dp-normal-notlong-notround-notnight-xhdpi-finger"
+)
 @GraphicsMode(Mode.NATIVE)
 class ConversationScreenshotTest {
 
@@ -72,7 +75,7 @@ class ConversationScreenshotTest {
                 )
             )
         }
-        composeTestRule.onRoot().captureRoboImage()
+        composeTestRule.onRoot().captureRoboImage(roborazziOptions = screenshotRoborazziOptions)
     }
 
     @Test
@@ -87,7 +90,7 @@ class ConversationScreenshotTest {
                 )
             )
         }
-        composeTestRule.onRoot().captureRoboImage()
+        composeTestRule.onRoot().captureRoboImage(roborazziOptions = screenshotRoborazziOptions)
     }
 
     @Test
@@ -115,7 +118,7 @@ class ConversationScreenshotTest {
                 }
             }
         }
-        composeTestRule.onRoot().captureRoboImage()
+        composeTestRule.onRoot().captureRoboImage(roborazziOptions = screenshotRoborazziOptions)
     }
 
     @Test
@@ -131,7 +134,7 @@ class ConversationScreenshotTest {
                 }
             }
         }
-        composeTestRule.onRoot().captureRoboImage()
+        composeTestRule.onRoot().captureRoboImage(roborazziOptions = screenshotRoborazziOptions)
     }
 
     @Test
@@ -147,6 +150,6 @@ class ConversationScreenshotTest {
                 }
             }
         }
-        composeTestRule.onRoot().captureRoboImage()
+        composeTestRule.onRoot().captureRoboImage(roborazziOptions = screenshotRoborazziOptions)
     }
 }

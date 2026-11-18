@@ -180,6 +180,27 @@ internal class WelcomeMessageTest : AbstractMultiThreadChatTest() {
         )
     }
 
+    /**
+     * Regression test: [com.nice.cxonechat.internal.ChatWelcomeMessageUpdate.connect] must cancel
+     * the previous `listenerJob` before registering a new one. Without this cancellation a
+     * reconnect accumulates an extra listener per cycle: each `WelcomeMessage` proactive-action
+     * event would then update [com.nice.cxonechat.storage.ValueStorage.welcomeMessage] once for
+     * every accumulated (non-cancelled) listener instead of just once.
+     */
+    @Test
+    fun `reconnect cancels previous listenerJob so welcome message update is not duplicated`() {
+        setupWelcomeMessagePersistence()
+
+        // Reconnect — ChatWelcomeMessageUpdate.connect() must cancel the old listenerJob
+        reconnect()
+
+        // Post-reconnect proactive action event: only the NEW listener must process it
+        this serverResponds ServerResponse.WelcomeMessage("Post-reconnect", emptyMap())
+
+        // If the old listener was not cancelled, the setter would be called twice
+        verify(exactly = 1) { storage.welcomeMessage = "Post-reconnect" }
+    }
+
     @Test
     fun threadFlow_does_not_emit_welcome_when_task_fails_silently() {
         // Simulate safeLaunch swallowing a storage exception: the job completes

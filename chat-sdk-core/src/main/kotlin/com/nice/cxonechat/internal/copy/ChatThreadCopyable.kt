@@ -21,6 +21,7 @@ import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.thread.Agent
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState
+import com.nice.cxonechat.thread.ContactHandler
 import com.nice.cxonechat.thread.CustomField
 import java.util.UUID
 
@@ -41,6 +42,7 @@ internal class ChatThreadCopyable(
         positionInQueue: Int? = model.positionInQueue,
         hasOnlineAgent: Boolean = model.hasOnlineAgent,
         contactId: String? = model.contactId,
+        contactHandler: ContactHandler? = model.contactHandler,
     ) = ChatThreadInternal(
         id = id,
         threadName = threadName,
@@ -53,6 +55,7 @@ internal class ChatThreadCopyable(
         positionInQueue = positionInQueue,
         hasOnlineAgent = hasOnlineAgent,
         contactId = contactId,
+        contactHandler = contactHandler,
     )
 
     companion object {

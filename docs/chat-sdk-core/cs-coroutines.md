@@ -13,13 +13,12 @@ found [here](../../chat-sdk-ui/src/main/kotlin/com/nice/cxonechat/ui/viewmodel).
 
 ## Libraries
 
-Additional dependencies required to run these samples. All samples are validated for version
-described in the `dependencies` block, Major update revisions may vary in syntax.
+Additional dependencies required to run these samples. Major update revisions may vary in syntax.
 
 ```groovy
 dependencies {
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2"
-    runtimeOnly "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:<latest-version>"
+    runtimeOnly "org.jetbrains.kotlinx:kotlinx-coroutines-android:<latest-version>"
 }
 ```
 

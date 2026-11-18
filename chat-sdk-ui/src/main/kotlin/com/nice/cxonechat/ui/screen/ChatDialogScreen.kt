@@ -75,7 +75,7 @@ internal fun ChatDialogScreen(
         Preparing -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             LoadingOverlayFullScreen(
                 modifier = modifier,
-                closeButtonText = stringResource(string.close_chat),
+                closeButtonText = stringResource(string.loading_close_button_text),
                 onClose = cancelAction
             )
         } else {
@@ -134,7 +134,7 @@ private fun PreparingDialog(
             contentAlignment = Alignment.Center
         ) {
             LoadingContent(
-                closeButtonText = stringResource(string.close_chat),
+                closeButtonText = stringResource(string.loading_close_button_text),
                 onClose = cancelAction
             )
         }

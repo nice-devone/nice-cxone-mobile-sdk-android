@@ -15,7 +15,6 @@
 
 package com.nice.cxonechat.ui.composable
 
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -60,7 +59,6 @@ internal fun ThreadContentView(
     onError: (String) -> Unit,
     audioViewModel: AudioRecordingViewModel,
     onAttachmentTypeSelection: (attachmentType: AttachmentType) -> Unit,
-    snackBarHostState: SnackbarHostState,
 ) {
     val owner = LocalLifecycleOwner.current
     LaunchedEffect(chatThreadViewModel, owner) {
@@ -89,7 +87,6 @@ internal fun ThreadContentView(
             },
         showMessageProcessing = showMessageProcessing,
         onError = onError,
-        snackBarHostState = snackBarHostState
     )
     ThreadDialogView(
         onAttachmentClicked = onAttachmentClicked,

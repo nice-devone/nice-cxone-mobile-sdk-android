@@ -35,7 +35,7 @@ If you use the `chat-sdk-ui` module, this migration is handled for you — no co
 | `Chat.signOut()` *(fire-and-forget persistence)* | `suspend fun signOut()` | *(no wrapper yet — call from a coroutine)* |
 | — *(new)* | `suspend fun closeSuspending()` — coroutine-native equivalent of `close()`; suspends until storage/cookie persistence and socket teardown complete instead of blocking the calling thread | — |
 
-> Note: `ChatInstanceProvider.Listener` (the 8-state `ChatState` provider callback) is **unchanged**
+> Note: `ChatInstanceProvider.Listener` (the `ChatState` provider callback) is **unchanged**
 > and remains the recommended way to observe chat lifecycle across process transitions. Only the
 > per-`Chat` `ChatStateListener` callbacks were superseded by `Chat.stateFlow`. See
 > [Instance Holder](../chat-sdk-core/cs-instance-holder.md).
@@ -135,7 +135,7 @@ viewModelScope.launch {
 
 Add the interop artifact:
 
-```groovy
+```kotlin
 implementation("com.nice.cxone:chat-sdk-core-java:${chatSdkVersion}")
 ```
 

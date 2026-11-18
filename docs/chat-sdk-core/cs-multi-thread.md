@@ -51,13 +51,15 @@ bookkeeping to do.
 
 > Keep long-lived handlers on the ViewModel and avoid recreating them unnecessarily. Collect
 > `Flow`s with `viewModelScope` so collection is cancelled automatically when the ViewModel is
-> cleared, and close any handler that implements `AutoCloseable` from `onCleared()` (shown below
-> with `handlerAction.close()`).
+> cleared. `ChatThreadActionHandler` exposes only `popupFlow`, a cold `Flow`, and holds no
+> resources of its own — cancelling the collecting scope is all the cleanup there is.
 
 Extending `AndroidViewModel` gives us a safe `Application` context for building
 `ContentDescriptor`s without leaking an `Activity`/`Fragment`.
 
 ```kotlin
+import com.nice.cxonechat.ChatThreadEventHandlerActions.markThreadRead
+
 class ChatConversationDetailViewModel(
     thread: ChatThread,
     application: Application,
@@ -75,8 +77,10 @@ class ChatConversationDetailViewModel(
         .onStart { handlerThread.refresh() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), handlerThread.get())
 
+    // replay = 0 - a Satisfaction Survey must not be replayed to a late subscriber (e.g. after a
+    // recomposition) once it has already been delivered and dismissed.
     val popups: SharedFlow<Popup> = handlerAction.popupFlow
-        .shareIn(viewModelScope, SharingStarted.WhileSubscribed(), replay = 1)
+        .shareIn(viewModelScope, SharingStarted.WhileSubscribed(), replay = 0)
 
     val messagesSent = mutableSetOf<String>()
     var isInForeground = true
@@ -120,10 +124,6 @@ class ChatConversationDetailViewModel(
             val id = handlerMessage.send(OutboundMessage(listOf(descriptor)))
             messagesSent.add(id)
         }
-    }
-
-    override fun onCleared() {
-        handlerAction.close()
     }
 
 }

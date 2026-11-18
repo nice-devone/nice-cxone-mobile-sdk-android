@@ -15,7 +15,6 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.onNodeWithTag
@@ -24,10 +23,8 @@ import androidx.compose.ui.test.performClick
 import com.nice.cxonechat.ui.AbstractComponentActivityUiTest
 import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.composable.conversation.model.Message.QuickReply
+import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.util.preview.message.UiSdkQuickReply
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.mockk
 import org.junit.Test
 
 /**
@@ -35,7 +32,8 @@ import org.junit.Test
  *
  * Tests verify:
  * - Status displays correct text for SELECTED, DISABLED, and SELECTABLE states
- * - Click handling for DISABLED state shows snackbar via parent component
+ * - Click handling for DISABLED state shows a tooltip anchored to the status row, matching the time
+ *   picker message's own tooltip treatment (DE-163607), instead of a snackbar
  * - Quick reply options are displayed and selectable
  * - Parent component handles accessibility interactions (post-refactoring architecture)
  */
@@ -59,19 +57,13 @@ class QuickReplyMessageStatusTest : AbstractComponentActivityUiTest() {
 
     @Test
     fun showsDisabledState_andTriggersOnClick() {
-        // Setup: Mock SnackbarHostState to verify click handling
-        val snackBarHostState = mockk<SnackbarHostState> {
-            coEvery { showSnackbar(any(), any(), any(), any()) } returns mockk()
-        }
-
         composeTestRule.setContent {
-            PreviewMessageItemBase {
+            ChatTheme {
                 // Test parent QuickReplyMessage component (not just status)
                 // After refactoring, parent handles click interactions for accessibility
                 QuickReplyMessage(
                     message = QuickReply(UiSdkQuickReply()) {},
                     messageStatusState = MessageStatusState.DISABLED,
-                    snackBarHostState = snackBarHostState
                 )
             }
         }
@@ -81,18 +73,14 @@ class QuickReplyMessageStatusTest : AbstractComponentActivityUiTest() {
             .assertExists()
             .assertTextContains(getString(R.string.options_unavailable))
 
+        // Precondition: the tooltip is not shown before the message is tapped
+        composeTestRule.onNodeWithText(getString(R.string.rich_content_disable_message)).assertDoesNotExist()
+
         // Action: Click on the parent message (which handles clicks when DISABLED)
         composeTestRule.onNodeWithTag("quick_reply_message").performClick()
 
-        // Verify: Snackbar was triggered with detailed disable message
-        coVerify {
-            snackBarHostState.showSnackbar(
-                message = any(),
-                duration = any(),
-                withDismissAction = any(),
-                actionLabel = any()
-            )
-        }
+        // Verify: a tooltip with the detailed disable message is shown, anchored to the status row
+        composeTestRule.onNodeWithText(getString(R.string.rich_content_disable_message)).assertIsDisplayed()
     }
 
     @Test

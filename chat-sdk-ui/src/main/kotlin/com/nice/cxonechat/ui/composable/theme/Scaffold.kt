@@ -20,6 +20,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CornerSize
@@ -38,6 +39,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
@@ -48,6 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -90,21 +93,43 @@ internal fun ChatTheme.Scaffold(
     )
 }
 
+/**
+ * Small top app bar which insets its content on wide screens.
+ *
+ * @param modifier Modifier for the app bar. Applied before the default test tag, and the first tag in a
+ * chain wins, so a caller-supplied test tag replaces `chat_top_bar` rather than adding to it.
+ * @param title Optional title of the app bar.
+ * @param titleModifier Modifier for the title, for semantics overrides.
+ * @param subtitle Optional content shown below the title, within the same fixed bar height.
+ * @param navigationIcon Navigation icon displayed at the start of the app bar.
+ * @param actions Actions displayed at the end of the app bar.
+ * @param containerColor Background color of the app bar.
+ * @param contentColor Color of the title, navigation icon and actions.
+ * @param scrollBehavior Optional scroll behavior, to collapse the app bar as content scrolls.
+ * @param windowInsets Insets the app bar respects, wide-screen aware by default.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ChatTheme.TopBar(
     modifier: Modifier = Modifier,
     title: String? = null,
+    titleModifier: Modifier = Modifier,
+    subtitle: @Composable (() -> Unit)? = null,
     navigationIcon: @Composable () -> Unit = { },
+    actions: @Composable RowScope.() -> Unit = {},
     containerColor: Color = colorScheme.primary,
     contentColor: Color = colorScheme.onPrimary,
+    scrollBehavior: TopAppBarScrollBehavior? = null,
+    windowInsets: WindowInsets = wideScreenTopAppBarInsets(),
 ) {
     TopAppBar(
         title = {
-            TopBarTitle(title)
+            TopBarTitle(title, titleModifier)
         },
-        modifier = modifier,
+        subtitle = { subtitle?.invoke() },
+        modifier = modifier.testTag("chat_top_bar"),
         navigationIcon = navigationIcon,
+        actions = actions,
         colors = topAppBarColors(
             containerColor = containerColor,
             scrolledContainerColor = containerColor,
@@ -112,6 +137,8 @@ internal fun ChatTheme.TopBar(
             titleContentColor = contentColor,
             actionIconContentColor = contentColor
         ),
+        scrollBehavior = scrollBehavior,
+        windowInsets = windowInsets,
     )
 }
 
@@ -127,6 +154,7 @@ internal fun ChatTheme.MediumTopBar(
     contentColor: Color = colorScheme.onPrimary,
     navigationIcon: @Composable () -> Unit = { },
     actions: @Composable RowScope.() -> Unit = {},
+    windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
 ) {
     MediumTopAppBar(
         title = {
@@ -145,7 +173,8 @@ internal fun ChatTheme.MediumTopBar(
             titleContentColor = contentColor,
             actionIconContentColor = contentColor
         ),
-        scrollBehavior = scrollBehavior
+        scrollBehavior = scrollBehavior,
+        windowInsets = windowInsets,
     )
 }
 

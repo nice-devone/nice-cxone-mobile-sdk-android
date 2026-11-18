@@ -112,5 +112,28 @@ internal interface ValueStorage {
      */
     var deviceToken: String?
 
+    /**
+     * Atomically checks whether a Satisfaction Survey has already been delivered (emitted to the
+     * app) for the thread identified by [threadId] and, if not, records it as delivered. Mode-agnostic
+     * - applies to `SingleThread`, `MultiThread`, and `LiveChat` alike. Returns `true` if this call is
+     * the one that recorded the delivery, `false` if it was already recorded (by this or a concurrent
+     * call).
+     *
+     * Delivery is tracked per thread rather than per survey message: a session only ever produces one
+     * survey, so the thread id alone is a sufficient dedup key. Bounded in size — the oldest recorded
+     * thread is evicted first.
+     *
+     * The check-and-record must happen atomically: [popupFlow][com.nice.cxonechat.ChatThreadActionHandler.popupFlow]
+     * is a cold flow that re-subscribes to the socket on every collection, so more than one collector
+     * can race to deliver the same survey.
+     */
+    fun markSurveyDeliveredIfAbsent(threadId: UUID): Boolean
+
+    /**
+     * Non-mutating check for whether a Satisfaction Survey was already delivered for [threadId].
+     * Unlike [markSurveyDeliveredIfAbsent], never records a delivery itself.
+     */
+    fun isSurveyDelivered(threadId: UUID): Boolean
+
     suspend fun clearStorage()
 }

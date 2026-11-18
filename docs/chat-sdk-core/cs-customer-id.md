@@ -14,7 +14,7 @@ However, in some cases, you might want to set your own customer id
 To set your own customer id, you just need to specify it either in the `ChatBuilder`
 e.g:
 ```kotlin
-// build() is a suspend function — call it from a coroutine.
+// ChatBuilder(...) and build() are both suspend functions — call them from a coroutine.
 scope.launch {
     val chat = ChatBuilder(context, config)
         // other setup steps
@@ -22,23 +22,24 @@ scope.launch {
         .build()
 }
 ```
-or in the ChatInstanceProvider instance before configure is called
-e.g:
-```kotlin
-val instance: ChatInstanceProvider = ChatInstanceProvider.get()
-instance.customerId = "myCustomerId"
-instance.configure(context) {
-    // other setup steps
-}
-```
 or during the configuration step
 e.g.:
 ```kotlin
-ChatInstanceProvider.instance.configure(context) {
-    // other setup steps
-    customerId = "myCustomerId"
+// configure() is a suspend function — call it from a coroutine.
+scope.launch {
+    ChatInstanceProvider.get().configure(context) {
+        // other setup steps
+        customerId = "myCustomerId"
+    }
 }
 ```
+
+`ChatInstanceProvider.customerId` is read-only; it can only be set inside the `configure` lambda, which receives a
+`ConfigurationScope`.
+
+From Java, use the wrappers in `com.nice.cxonechat.api.ChatInstanceProviderJavaInterop` — `configureAsync(...)` for a
+callback-based call, or `configureBlocking(...)` when blocking the calling thread is acceptable.
+
 `ChatInstanceProvider` will deliver a new instance of `Chat` to the registered `ChatInstanceProvider.Listener`s,
 or it will be available via `ChatInstanceProvider.get().chat` field once it is prepared.
 

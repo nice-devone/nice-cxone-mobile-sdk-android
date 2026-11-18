@@ -17,6 +17,7 @@ package com.nice.cxonechat.sample
 
 import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -38,6 +39,10 @@ import com.nice.cxonechat.log.debug
 import com.nice.cxonechat.log.error
 import com.nice.cxonechat.log.scope
 import com.nice.cxonechat.sample.data.models.ChatAuthorization
+import com.nice.cxonechat.sample.data.models.StoreLaunchRequest
+import com.nice.cxonechat.sample.data.models.StoreLaunchRequestResult.Malformed
+import com.nice.cxonechat.sample.data.models.StoreLaunchRequestResult.None
+import com.nice.cxonechat.sample.data.models.StoreLaunchRequestResult.Supplied
 import com.nice.cxonechat.sample.ui.CartScreen
 import com.nice.cxonechat.sample.ui.ConfirmationScreen
 import com.nice.cxonechat.sample.ui.PaymentScreen
@@ -46,9 +51,12 @@ import com.nice.cxonechat.sample.ui.ProductScreen
 import com.nice.cxonechat.sample.ui.Screen
 import com.nice.cxonechat.sample.ui.theme.AppTheme
 import com.nice.cxonechat.sample.utilities.AuthConfiguration
+import com.nice.cxonechat.sample.utilities.toStoreLaunchRequestResult
+import com.nice.cxonechat.sample.viewModel.PendingLaunchConfiguration
 import com.nice.cxonechat.sample.viewModel.StoreViewModel
 import com.nice.cxonechat.sample.viewModel.UiState
 import com.nice.cxonechat.sample.viewModel.UiState.UiStateContext
+import com.nice.cxonechat.ui.screen.ChatActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -99,11 +107,50 @@ class StoreActivity : ComponentActivity(), UiStateContext {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Deposited before the first access to storeViewModel, which is what creates it -- the
+        // ViewModel picks the request up exactly where it decides between a stored configuration and
+        // the configuration dialog. Skipped on a restore, so a recreated activity doesn't reapply a
+        // configuration the user has since changed.
+        if (savedInstanceState == null) {
+            readLaunchRequest(intent)?.let(get<PendingLaunchConfiguration>()::offer)
+        }
+
         setContent {
             enableEdgeToEdge()
             AppTheme {
                 Screen()
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+
+        // The ViewModel already exists on this path, so the request goes straight to it. Validation
+        // is deliberately the same as in onCreate -- a warm start must not be the weaker door.
+        readLaunchRequest(intent)?.let(storeViewModel::applyLaunchRequest)
+    }
+
+    /**
+     * Read the automated launch instructions carried by [intent], if any.
+     *
+     * A malformed request is reported and dropped rather than partially applied, so that a mistyped
+     * `adb shell am start` fails visibly instead of quietly connecting somewhere unexpected.
+     *
+     * @param intent Intent which started or restarted this activity.
+     * @return What the intent asked for, or null if it asked for nothing usable.
+     */
+    private fun readLaunchRequest(intent: Intent): StoreLaunchRequest? = logger.scope("readLaunchRequest") {
+        when (val result = intent.toStoreLaunchRequestResult()) {
+            None -> null
+
+            is Malformed -> {
+                error("Ignoring launch intent: ${result.reason}")
+                null
+            }
+
+            is Supplied -> result.request
         }
     }
 
@@ -128,7 +175,12 @@ class StoreActivity : ComponentActivity(), UiStateContext {
 
     @Composable
     private fun Screen() {
-        NavScreen()
+        // The storefront is skipped while a launch intent is driving the app to the chat: building
+        // it would load the product list and its images for a screen nobody is going to look at. It
+        // appears when the chat is left again, or when the setup ends without opening the chat.
+        if (storeViewModel.launchPresentation.isStorefrontVisible.collectAsState().value) {
+            NavScreen()
+        }
         PresentDialogs(storeViewModel.uiState.collectAsState().value)
     }
 
@@ -167,6 +219,8 @@ class StoreActivity : ComponentActivity(), UiStateContext {
         // Launch the photo picker and let the user choose only images.
         pickMedia.launch(PickVisualMediaRequest(ImageOnly))
     }
+
+    override fun openChat() = ChatActivity.startChat(this)
 
     override fun requestImplicitToken() = logger.scope("requestImplicitToken") {
         debug("requestImplicitToken — launching AppAuth authorization")

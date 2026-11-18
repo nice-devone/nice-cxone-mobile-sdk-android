@@ -33,7 +33,10 @@ import org.robolectric.annotation.GraphicsMode
 import org.robolectric.annotation.GraphicsMode.Mode
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [33], qualifiers = "w411dp-h891dp-normal-notlong-notround-notnight-mdpi-finger")
+@Config(
+    sdk = [33],
+    qualifiers = "w411dp-h891dp-normal-notlong-notround-notnight-xhdpi-finger"
+)
 @GraphicsMode(Mode.NATIVE)
 class AgentPiiHidingScreenshotTest {
 
@@ -54,7 +57,7 @@ class AgentPiiHidingScreenshotTest {
                 }
             }
         }
-        composeTestRule.onRoot().captureRoboImage()
+        composeTestRule.onRoot().captureRoboImage(roborazziOptions = screenshotRoborazziOptions)
     }
 
     @Test
@@ -71,7 +74,7 @@ class AgentPiiHidingScreenshotTest {
                 }
             }
         }
-        composeTestRule.onRoot().captureRoboImage()
+        composeTestRule.onRoot().captureRoboImage(roborazziOptions = screenshotRoborazziOptions)
     }
 
     @Test
@@ -88,7 +91,7 @@ class AgentPiiHidingScreenshotTest {
                 }
             }
         }
-        composeTestRule.onRoot().captureRoboImage()
+        composeTestRule.onRoot().captureRoboImage(roborazziOptions = screenshotRoborazziOptions)
     }
 
     @Test
@@ -105,7 +108,7 @@ class AgentPiiHidingScreenshotTest {
                 }
             }
         }
-        composeTestRule.onRoot().captureRoboImage()
+        composeTestRule.onRoot().captureRoboImage(roborazziOptions = screenshotRoborazziOptions)
     }
 
     @Test
@@ -122,7 +125,7 @@ class AgentPiiHidingScreenshotTest {
                 }
             }
         }
-        composeTestRule.onRoot().captureRoboImage()
+        composeTestRule.onRoot().captureRoboImage(roborazziOptions = screenshotRoborazziOptions)
     }
 
     private fun hiddenPiiAgent(): Agent = object : Agent() {

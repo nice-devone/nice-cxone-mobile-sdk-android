@@ -210,5 +210,4 @@ internal class ChatTest : AbstractMultiThreadChatTest() {
         val result = chat.getChannelAvailability()
         assertTrue("Messaging mode should report channel available when in messaging mode", result)
     }
-
 }

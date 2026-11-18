@@ -81,7 +81,7 @@ internal class ChatImpl(
     @get:VisibleForTesting @set:VisibleForTesting internal var dependencies: ChatImplDependencies,
     override val configuration: ConfigurationInternal,
     private val rawChatStateListener: ChatStateListener?,
-    override val tokenDelegateListener: TokenDelegateListener? = null,
+    @set:VisibleForTesting override var tokenDelegateListener: TokenDelegateListener? = null,
 ) : ChatWithParameters,
     LoggerScope by LoggerScope<Chat>(entrails.logger),
     AutoCloseable {
@@ -323,11 +323,13 @@ internal class ChatImpl(
                     Result.failure(t)
                 }
                 .mapFailure { t ->
-                    // ConnectionTokenFailed means ThirdPartyOAuth token expired — not retriable.
-                    // All other errors (e.g. 5xx outages) are transient.
+                    // ConnectionTokenFailed/InvalidRefreshTokenException mean the ThirdPartyOAuth token
+                    // expired or was rejected — not retriable. All other errors (e.g. 5xx outages) are transient.
                     when (t) {
-                        is RuntimeChatException.ConnectionTokenFailed ->
-                            PermanentConnectionFailureException("Expired token requires re-authentication", t)
+                        is RuntimeChatException.ConnectionTokenFailed,
+                        is RuntimeChatException.InvalidRefreshTokenException,
+                            ->
+                            PermanentConnectionFailureException("Token rejected; re-authentication required", t)
 
                         else ->
                             TransientConnectFailureException("Connection failed", t)

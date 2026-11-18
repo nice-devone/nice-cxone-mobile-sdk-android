@@ -20,8 +20,8 @@ import com.nice.cxonechat.ChatState
 import com.nice.cxonechat.exceptions.RuntimeChatException
 import com.nice.cxonechat.exceptions.RuntimeChatException.AuthorizationError
 import com.nice.cxonechat.exceptions.RuntimeChatException.ConnectionTokenFailed
-import com.nice.cxonechat.exceptions.RuntimeChatException.FeatureUnavailableException
 import com.nice.cxonechat.exceptions.RuntimeChatException.InvalidAccessTokenException
+import com.nice.cxonechat.exceptions.RuntimeChatException.InvalidRefreshTokenException
 import com.nice.cxonechat.exceptions.RuntimeChatException.ServerCommunicationError
 import com.nice.cxonechat.exceptions.RuntimeChatException.TokenDelegationFailedException
 import com.nice.cxonechat.log.Logger
@@ -75,8 +75,8 @@ internal class ChatStateViewModelExceptionMappingTest {
         return viewModel.chatErrorState.value
     }
 
-    // AuthorizationError, ServerCommunicationError, ConnectionTokenFailed, FeatureUnavailableException,
-    // and InvalidAccessTokenException have `internal constructor` in chat-sdk-core; use mockk so they
+    // AuthorizationError, ServerCommunicationError, ConnectionTokenFailed, InvalidAccessTokenException,
+    // and InvalidRefreshTokenException have `internal constructor` in chat-sdk-core; use mockk so they
     // can be instantiated from this module while still satisfying the `is` type checks.
     private inline fun <reified T : RuntimeChatException> mockException(message: String? = null): T =
         mockk<T>(relaxed = true).also { if (message != null) every { it.message } returns message }
@@ -97,6 +97,11 @@ internal class ChatStateViewModelExceptionMappingTest {
         assertErrorGroup<AuthorizationError>(HIGH)
     }
 
+    @Test
+    fun `InvalidRefreshTokenException maps to HIGH`() {
+        assertErrorGroup<InvalidRefreshTokenException>(HIGH)
+    }
+
     // ── ServerCommunicationError → LOW (dismissible banner) ──────────────────
 
     @Test
@@ -109,13 +114,6 @@ internal class ChatStateViewModelExceptionMappingTest {
     @Test
     fun `ConnectionTokenFailed maps to SILENT_EXIT`() {
         assertErrorGroup<ConnectionTokenFailed>(SILENT_EXIT)
-    }
-
-    // ── FeatureUnavailableException → SILENT_EXIT ─────────────────────────────
-
-    @Test
-    fun `FeatureUnavailableException maps to SILENT_EXIT`() {
-        assertErrorGroup<FeatureUnavailableException>(SILENT_EXIT)
     }
 
     // ── Other new exceptions → DO_NOTHING (log only, no UI) ──────────────────

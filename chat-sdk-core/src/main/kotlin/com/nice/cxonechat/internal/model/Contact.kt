@@ -43,4 +43,7 @@ internal data class Contact(
 
     @SerialName("createdAt")
     val createdAt: InstantAsString,
+
+    @SerialName("handler")
+    val handler: String? = null,
 )

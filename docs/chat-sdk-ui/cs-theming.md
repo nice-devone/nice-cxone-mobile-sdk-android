@@ -25,14 +25,16 @@ application.
 ## 2. Overriding Colors in the Application
 
 To override the default colors, the application should set the desired values to the token variables in
-[ChatThemeDetails](/com/nice/cxonechat/ui/composable/theme/ChatThemeDetails.kt) before starting `ChatActivity`.
-[ThemeColorTokens](/com/nice/cxonechat/ui/composable/theme/ThemeColorTokens.kt) contains
+[ChatThemeDetails](../../chat-sdk-ui/src/main/kotlin/com/nice/cxonechat/ui/composable/theme/ChatThemeDetails.kt) before starting `ChatActivity`.
+[ThemeColorTokens](../../chat-sdk-ui/src/main/kotlin/com/nice/cxonechat/ui/composable/theme/ThemeColorTokens.kt) contains
 nested data classes for different token groups (background, content, brand, border, status) and it's respective companion
 objects offer helper functions to create instances of these interfaces (implementations are not exposed to avoid breaking API changes).
 
 Example:
 
 ```kotlin
+import com.nice.cxonechat.ui.composable.theme.ThemeColorTokens.Content.Companion.copy
+
 // Set custom color tokens before launching ChatActivity
 
 // You can use existing tokens as templates and only replace parts you want to customize
@@ -83,28 +85,40 @@ or [Color Contrast Checker](https://webaim.org/resources/contrastchecker/) to va
 
 ## 4. Usage of Tokens for Overriding
 
-When overriding, always use the standard Material3 color tokens and the invoke operator on companion objects:
+`ThemeColorTokens` is an interface whose members are read-only, so individual token groups cannot be assigned. Override by
+replacing the whole `lightTokens` / `darkTokens` value, building it with the invoke operator on the companion objects.
 
-- `primary`, `onPrimary`, `secondary`, `onSecondary`, `background`, `onBackground`, `surface`, `onSurface`, `error`, `onError`, etc.
+The five token groups are `background`, `content`, `brand`, `border` and `status`. Their grouping is the SDK's own; some
+members reuse Material3 names (`brand.primary`, `brand.onPrimary`, `brand.secondaryContainer`, `status.onError`) while
+others do not (`background.surface.emphasis`, `content.tertiary`). The SDK maps the groups onto Material3 internally, so
+`ThemeColorTokens` has no top-level `onBackground` or `onSurface`. The deprecated `ChatThemeDetails.lightColors` /
+`darkColors` properties still take a `ThemeColors`, which does carry `onBackground` and `onSurface`; values assigned
+there are converted to tokens on a best-effort basis.
 
 Example:
 
 ```kotlin
-ChatThemeDetails.lightTokens.background = ThemeColorTokens.Background(
-    default = Color(0xFFF6F6F6),
-    inverse = Color(0xFF222222),
-    surface = ThemeColorTokens.Background.Surface(
-        default = Color.White,
-        variant = Color(0xFFE0E0E0),
-        container = Color(0xFFFAFAFA),
-        subtle = Color(0xFFF0F0F0),
-        emphasis = Color(0xFF6200EE) // Emphasis is CXone Chat extension over Material3 tokens
+import com.nice.cxonechat.ui.composable.theme.ThemeColorTokens.Companion.copy
+
+// copy() is declared in the token companions, so import it to use the shorthand below.
+ChatThemeDetails.lightTokens = ChatThemeDetails.lightTokens.copy(
+    background = ThemeColorTokens.Background(
+        default = Color(0xFFF6F6F6),
+        inverse = Color(0xFF222222),
+        surface = ThemeColorTokens.Background.Surface(
+            default = Color.White,
+            variant = Color(0xFFE0E0E0),
+            container = Color(0xFFFAFAFA),
+            subtle = Color(0xFFF0F0F0),
+            emphasis = Color(0xFF6200EE) // Emphasis is a CXone Chat extension over Material3 tokens
+        )
     )
 )
 ```
 
-These Material3 color tokens are set for Chat UI internal override of Material3 Theme colors which is applied to elements
-like buttons, text fields, etc. from Material3 library used by the Chat UI.
+`copy()` is declared once per token group, each in that group's companion, so every group's shorthand needs its own
+import — section 2 imports `ThemeColorTokens.Content.Companion.copy` for exactly that reason. Constructing the value
+outright with `ThemeColorTokens(background = …, content = …, brand = …, border = …, status = …)` needs no import at all.
 
 ---
 
@@ -112,7 +126,7 @@ like buttons, text fields, etc. from Material3 library used by the Chat UI.
 
 - The UI module provides default theming, but applications can override color tokens via `ChatThemeDetails` by setting its token variables.
 - Always supply color tokens with sufficient contrast for accessibility.
-- Use the standard Material color tokens for overriding.
+- Override whole token groups (`background`, `content`, `brand`, `border`, `status`), not the Material3 color scheme.
 - Set custom tokens in `ChatThemeDetails` before launching `ChatActivity`.
 
 For more details, see the sample implementation in your project and

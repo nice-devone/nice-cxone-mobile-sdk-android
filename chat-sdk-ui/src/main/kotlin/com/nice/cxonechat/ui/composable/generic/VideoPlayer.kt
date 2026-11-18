@@ -17,12 +17,14 @@ package com.nice.cxonechat.ui.composable.generic
 
 import android.net.Uri
 import androidx.annotation.OptIn
+import androidx.annotation.VisibleForTesting
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -60,8 +62,10 @@ import androidx.compose.ui.R.string
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -74,7 +78,9 @@ import androidx.media3.common.C.VideoScalingMode
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.compose.PlayerSurface
+import androidx.media3.ui.compose.modifiers.resizeWithContentScale
 import androidx.media3.ui.compose.state.rememberPlayPauseButtonState
+import androidx.media3.ui.compose.state.rememberPresentationState
 import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.composable.conversation.PreviewAttachments
 import com.nice.cxonechat.ui.composable.generic.VideoPlayerState.Error
@@ -110,6 +116,12 @@ internal fun VideoPlayer(
         ErrorIcon(iconModifier)
         return
     }
+    // Neither a preview nor a screenshot test can decode video, so preparing a player would only leave a
+    // blank surface behind. Draw the placeholder before building one rather than after.
+    if (LocalInspectionMode.current) {
+        LocalInspectionPlaceholder(modifier)
+        return
+    }
     val context = LocalContext.current
     val playerResult by produceState<VideoPlayerState>(
         initialValue = Loading,
@@ -138,17 +150,24 @@ internal fun VideoPlayer(
             modifier = iconModifier.semantics { contentDescription = loadingDescription }
         )
         is Error -> ErrorIcon(iconModifier)
-        is Ready -> if (LocalInspectionMode.current) {
-            LocalInspectionPlaceholder()
-        } else {
-            VideoPlayerContent(player = result.player, modifier = modifier)
-        }
+        is Ready -> VideoPlayerContent(player = result.player, modifier = modifier)
     }
 }
 
+/**
+ * The video surface and the playback controls over it, for a player that is already prepared.
+ *
+ * Visible beyond [VideoPlayer] so a screenshot test can supply its own [Player]. [VideoPlayer] builds a real
+ * [androidx.media3.exoplayer.ExoPlayer], which decodes nothing under Robolectric, and its position and
+ * duration would then be whatever playback had reached.
+ *
+ * @param player A prepared player to draw and drive the controls from.
+ * @param modifier A [Modifier] applied to the box holding the surface and the controls.
+ */
 @Composable
+@VisibleForTesting
 @OptIn(UnstableApi::class)
-private fun VideoPlayerContent(
+internal fun VideoPlayerContent(
     player: Player,
     modifier: Modifier = Modifier,
 ) {
@@ -178,6 +197,7 @@ private fun VideoPlayerContent(
             showControls = true
         }
     }
+    val presentationState = rememberPresentationState(player)
     Box(
         modifier = modifier.clickable(
             interactionSource = remember { MutableInteractionSource() },
@@ -185,19 +205,31 @@ private fun VideoPlayerContent(
         ) { showControls = true },
         contentAlignment = Alignment.Center,
     ) {
-        PlayerSurface(player = player, modifier = Modifier.fillMaxSize())
-        VideoControlsOverlay(
-            showControls = showControls,
-            showPlay = playPauseState.showPlay,
-            isPlayEnabled = playPauseState.isEnabled,
-            onPlayPause = { playPauseState.onClick() },
-            currentTime = currentTime,
-            remainingTime = remainingTime,
-            animatedProgress = animatedProgress,
+        Box(
+            // A SurfaceView scales its buffer to its own bounds, so the bounds are the only thing that can
+            // hold the clip's proportions. The controls share the scaled box rather than the container, so
+            // they span the frame being watched instead of the bars around it. The modifier leaves the box
+            // filling its container until the clip's size is known, which arrives with the decoder's output
+            // format rather than with the first frame drawn from it.
             modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth(),
-        )
+                .resizeWithContentScale(ContentScale.Fit, presentationState.videoSizeDp)
+                .testTag("video_frame"),
+        ) {
+            PlayerSurface(player = player, modifier = Modifier.fillMaxSize())
+            VideoControlsOverlay(
+                showControls = showControls,
+                showPlay = playPauseState.showPlay,
+                isPlayEnabled = playPauseState.isEnabled,
+                onPlayPause = { playPauseState.onClick() },
+                currentTime = currentTime,
+                remainingTime = remainingTime,
+                animatedProgress = animatedProgress,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .testTag("video_controls"),
+            )
+        }
     }
 }
 
@@ -293,14 +325,22 @@ private sealed interface VideoPlayerState {
     data class Error(val throwable: Throwable) : VideoPlayerState
 }
 
+/**
+ * Stands in for the video where none can be decoded: in a preview, and under a screenshot test.
+ *
+ * The border marks out the area the video is given. The icon inside it is centred and keeps its own
+ * proportions, so without it a capped media area and one spanning the whole window draw alike, and no golden
+ * could tell the two apart.
+ */
 @Composable
-private fun LocalInspectionPlaceholder() {
+private fun LocalInspectionPlaceholder(modifier: Modifier = Modifier) {
     Image(
         imageVector = Outlined.VideoFile,
         contentDescription = "Preview replacement for video",
-        modifier = Modifier
-            .fillMaxSize()
-            .defaultMinSize(LocalSpace.current.clickableSize, LocalSpace.current.clickableSize), // Presume that video is large
+        modifier = modifier
+            .fillMaxSize() // Presume that video is large
+            .defaultMinSize(LocalSpace.current.clickableSize, LocalSpace.current.clickableSize)
+            .border(4.dp, color = Color.Cyan),
         colorFilter = ColorFilter.tint(LocalContentColor.current)
     )
 }

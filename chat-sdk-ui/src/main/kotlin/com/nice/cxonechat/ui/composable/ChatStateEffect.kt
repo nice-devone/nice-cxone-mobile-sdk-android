@@ -57,6 +57,14 @@ import kotlinx.coroutines.launch
  * Perform action based on the current chat state and lifecycle state.
  *
  * @param chatStateFlow The [StateFlow] of the current chat state.
+ * @param isAutoReconnectBlocked Whether a non-dismissible terminal error dialog (see
+ * [com.nice.cxonechat.ui.util.ErrorGroup.HIGH]/[com.nice.cxonechat.ui.util.ErrorGroup.HIGH_SPECIFIC]) is currently
+ * displayed. While true, auto-reconnect is suppressed — otherwise the SDK would keep resubmitting the same
+ * already-rejected credential on every recomposition for as long as the dialog stays open (DE-178452). This is a
+ * [LaunchedEffect] key of the connect-only effect below, but not of the one-shot [onReadyAction]/[onOfflineAction]
+ * effect: a terminal error can clear (e.g. a later, lower-severity error overwrites the single-slot error state)
+ * without [ChatState] or lifecycle changing, and the connect attempt skipped while it was showing must resume then
+ * — but [Ready]/[Offline] must not re-fire their one-shot actions purely because this flag flipped.
  * @param onConnectChatAction The action to invoke when chat should attempt to connect.
  * @param onReadyAction The action to invoke when chat is ready.
  * @param onOfflineAction The action to invoke when chat is offline.
@@ -64,39 +72,47 @@ import kotlinx.coroutines.launch
 @Composable
 internal fun ChatStateEffect(
     chatStateFlow: StateFlow<ChatState>,
+    isAutoReconnectBlocked: Boolean,
     onConnectChatAction: () -> Unit,
     onReadyAction: () -> Unit,
     onOfflineAction: () -> Unit,
 ) {
     val state by chatStateFlow.collectAsStateWithLifecycle(null)
     val lifecycleState by LocalLifecycleOwner.current.lifecycle.currentStateAsState()
+
+    // One-shot actions: keyed on state + lifecycle only, so they never re-fire from the error flag alone.
     LaunchedEffect(state, lifecycleState) {
         when (state) {
-            // These states not require any action, so we ignore them
-            null, Initial, Preparing, Connected, SdkNotSupported -> Ignored
-
-            /*
-             * If the chat is (or becomes) prepared/disconnected, then start a connect attempt,
-             * but this shouldn't happen when the ui is not visible.
-             * Connecting is also included here to show the loading overlay when the SDK is
-             * autonomously reconnecting after a network drop.
-             */
-            Prepared, ConnectionLost, Connecting -> if (lifecycleState.isAtLeast(State.RESUMED)) {
-                onConnectChatAction()
-            }
-
             Ready -> if (lifecycleState.isAtLeast(State.RESUMED)) {
                 onReadyAction()
             }
 
             // TODO DE-87750: Figure out how to handle this properly.
-            Offline -> {
-                onOfflineAction()
-                if (lifecycleState.isAtLeast(State.RESUMED)) {
-                    // Automatically refresh the chat state when the UI is visible
-                    onConnectChatAction()
-                }
-            }
+            Offline -> onOfflineAction()
+
+            else -> Ignored
+        }
+    }
+
+    /*
+     * Auto-connect: keyed on the error flag too, so it resumes as soon as a terminal error dialog clears,
+     * even if state and lifecycle stay unchanged in the meantime.
+     */
+    LaunchedEffect(state, lifecycleState, isAutoReconnectBlocked) {
+        if (!lifecycleState.isAtLeast(State.RESUMED) || isAutoReconnectBlocked) return@LaunchedEffect
+        when (state) {
+            /*
+             * If the chat is (or becomes) prepared/disconnected, then start a connect attempt,
+             * but this shouldn't happen when the ui is not visible, nor while a terminal error
+             * dialog is blocking the screen (the credential that caused it was already rejected).
+             * Connecting is also included here to show the loading overlay when the SDK is
+             * autonomously reconnecting after a network drop. Offline is included so the chat state
+             * gets automatically refreshed when the UI is visible.
+             */
+            Prepared, ConnectionLost, Connecting, Offline -> onConnectChatAction()
+
+            // These states do not require any action, so we ignore them
+            null, Initial, Preparing, Connected, Ready, SdkNotSupported -> Ignored
         }
     }
 }
@@ -128,6 +144,7 @@ private fun PreviewHandleChatState() {
             }
             ChatStateEffect(
                 chatStateFlow = chatStateFlow,
+                isAutoReconnectBlocked = false,
                 onConnectChatAction = { showSnackbar(lifecycleOwner, snackbarHostState, "onConnectChatAction") },
                 onReadyAction = { showSnackbar(lifecycleOwner, snackbarHostState, "onReadyAction") },
             ) { showSnackbar(lifecycleOwner, snackbarHostState, "onOfflineAction") }

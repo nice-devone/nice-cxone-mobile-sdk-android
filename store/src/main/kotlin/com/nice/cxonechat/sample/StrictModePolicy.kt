@@ -261,17 +261,6 @@ internal object StrictModePolicy {
         } else {
             null
         },
-        // FCM is launching an unsafe intent on Android 16
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
-            allow(
-                allOf(
-                    violation(UnsafeIntentLaunchViolation::class),
-                    classNamed("com.google.android.gms.common.api.internal.GoogleApiManager", "handleMessage")
-                )
-            )
-        } else {
-            null
-        },
         @Suppress("KotlinConstantConditions", "RedundantSuppression") // Build time variant
         if (!BuildConfig.DEBUG) {
             // For QA (Non-debug) build only log DiskReadViolation (because it occurs too often due to the Manufacturer modifications)
@@ -295,6 +284,18 @@ internal object StrictModePolicy {
                 allOf(
                     violation(UnsafeIntentLaunchViolation::class),
                     classNamed("net.openid.appauth.AuthorizationManagementActivity", "onResume")
+                )
+            )
+        } else {
+            null
+        },
+        // Play services binds its own chimera service on startup; nothing in the app is on that stack.
+        // Belongs here, not in threadPolicy: detectUnsafeIntentLaunch is a VmPolicy option.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+            allow(
+                allOf(
+                    violation(UnsafeIntentLaunchViolation::class),
+                    classNamed("com.google.android.gms.common.api.internal.GoogleApiManager", "handleMessage")
                 )
             )
         } else {

@@ -16,6 +16,7 @@
 package com.nice.cxonechat.ui.data.source
 
 import android.Manifest
+import android.app.Application
 import android.content.ContentValues
 import android.content.Context
 import android.media.MediaRecorder
@@ -25,6 +26,7 @@ import android.os.Environment
 import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
 import androidx.annotation.RequiresPermission
+import androidx.annotation.VisibleForTesting
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerScope
 import com.nice.cxonechat.log.error
@@ -51,12 +53,14 @@ import kotlin.time.Clock
  * Handles starting, stopping, and deleting audio recordings, as well as managing file descriptors and URIs through the
  * [MediaStore].
  *
- * @param context The application context.
+ * @param context The application context. Typed [Application] so that the activity scope cannot satisfy it with the
+ * Activity.
  * @param logger A parent [Logger] scope/instance for logging of events and errors.
  */
 @Factory
 internal class AudioRecordingDataSource(
-    private val context: Context,
+    @get:VisibleForTesting
+    internal val context: Application,
     @Provided
     @Named(UiModule.LOGGER_NAME)
     logger: Logger,
@@ -126,6 +130,15 @@ internal class AudioRecordingDataSource(
      */
     suspend fun deleteRecording() {
         session?.let { context.deleteRecording(it, this) }
+    }
+
+    /**
+     * Releases the recorder and its file descriptor, ending any recording in progress; no-op without a session.
+     * Not suspending, so it can be called from [androidx.lifecycle.ViewModel.onCleared], where `viewModelScope` is
+     * already cancelled. It does not call [MediaRecorder.stop], which throws on a recorder that was already stopped.
+     */
+    fun release() {
+        session = null
     }
 
     private suspend fun getFileDescriptorAndSetUri(context: Context, file: String): Pair<Uri, ParcelFileDescriptor> =

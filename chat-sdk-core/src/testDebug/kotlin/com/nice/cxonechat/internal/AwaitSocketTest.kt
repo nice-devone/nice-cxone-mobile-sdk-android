@@ -16,6 +16,7 @@
 package com.nice.cxonechat.internal
 
 import com.nice.cxonechat.ChatStateEvent
+import com.nice.cxonechat.ChatStateEvent.Ready
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -67,8 +68,8 @@ internal class AwaitSocketTest {
     @Test
     fun `suspends and returns socket when state is Ready and socket arrives`() = runTest {
         val socketFlow = MutableStateFlow<WebSocket?>(null)
-        val stateFlow = MutableSharedFlow<ChatStateEvent>(replay = 1).also {
-            it.tryEmit(ChatStateEvent.Ready)
+        val stateFlow = MutableSharedFlow<ChatStateEvent>(replay = 1).apply {
+            tryEmit(Ready)
         }
         val chat = mockk<ChatWithParameters>(relaxed = true) {
             every { socket } returns null
@@ -89,8 +90,8 @@ internal class AwaitSocketTest {
         // Simulates reconnection exhaustion: chat was Connecting (socket null),
         // auto-retry gave up, and the stateFlow emits UnexpectedDisconnect.
         val socketFlow = MutableStateFlow<WebSocket?>(null)
-        val stateFlow = MutableSharedFlow<ChatStateEvent>(replay = 1).also {
-            it.tryEmit(ChatStateEvent.Connecting)
+        val stateFlow = MutableSharedFlow<ChatStateEvent>(replay = 1).apply {
+            tryEmit(ChatStateEvent.Connecting)
         }
         val chat = mockk<ChatWithParameters>(relaxed = true) {
             every { socket } returns null

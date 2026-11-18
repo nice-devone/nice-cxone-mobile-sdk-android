@@ -126,20 +126,21 @@ internal class ChatThreadsHandlerReplayLastEmptyTest {
     }
 
     @Test
-    fun `threadsFlow prepends latest thread when created via custom fields and pre-chat survey response`() = runTest(UnconfinedTestDispatcher()) {
-        val created = makeChatThread(threadState = Pending)
-        val mockHandler = mockk<ChatThreadHandler> { every { get() } returns created }
-        every { mockOrigin.create(any(), any()) } returns mockHandler
-        handler.create(
-            customFields = emptyMap(),
-            preChatSurveyResponse = emptySequence<PreChatSurveyResponse<out FieldDefinition, out Any>>(),
-        )
+    fun `threadsFlow prepends latest thread when created via custom fields and pre-chat survey response`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val created = makeChatThread(threadState = Pending)
+            val mockHandler = mockk<ChatThreadHandler> { every { get() } returns created }
+            every { mockOrigin.create(any(), any()) } returns mockHandler
+            handler.create(
+                customFields = emptyMap(),
+                preChatSurveyResponse = emptySequence<PreChatSurveyResponse<out FieldDefinition, out Any>>(),
+            )
 
-        val results = mutableListOf<List<ChatThread>>()
-        val job = launch { handler.threadsFlow.collect { results.add(it) } }
-        threadsSource.emit(listOf(makeChatThread()))
-        job.cancel()
-        assertEquals(2, results[0].size)
-        assertEquals(created.id, results[0].first().id)
-    }
+            val results = mutableListOf<List<ChatThread>>()
+            val job = launch { handler.threadsFlow.collect { results.add(it) } }
+            threadsSource.emit(listOf(makeChatThread()))
+            job.cancel()
+            assertEquals(2, results[0].size)
+            assertEquals(created.id, results[0].first().id)
+        }
 }

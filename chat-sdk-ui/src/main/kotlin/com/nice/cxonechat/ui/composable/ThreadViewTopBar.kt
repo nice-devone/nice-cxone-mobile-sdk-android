@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import com.nice.cxonechat.ui.composable.conversation.ChatThreadTopBar
 import com.nice.cxonechat.ui.composable.conversation.model.ConversationTopBarState
 import com.nice.cxonechat.ui.composable.theme.BackButton
+import com.nice.cxonechat.ui.composable.theme.wideScreenHorizontalPadding
 import com.nice.cxonechat.ui.util.koinActivityViewModel
 import com.nice.cxonechat.ui.viewmodel.ChatThreadViewModel
 import com.nice.cxonechat.ui.viewmodel.SendTranscriptDialog
@@ -32,8 +33,10 @@ internal fun ThreadViewTopBar(isMultiThread: Boolean, isLiveChat: Boolean, scrol
     val chatThreadViewModel = koinActivityViewModel<ChatThreadViewModel>()
     val threadNameFlow = remember { chatThreadViewModel.threadNameFlow }
     val hasQuestions = remember { chatThreadViewModel.hasQuestions }
+    val horizontalPadding = wideScreenHorizontalPadding()
     ChatThreadTopBar(
         scrollBehavior = scrollBehavior,
+        horizontalPadding = horizontalPadding,
         conversationState = ConversationTopBarState(
             threadName = threadNameFlow,
             isMultiThreaded = isMultiThread,

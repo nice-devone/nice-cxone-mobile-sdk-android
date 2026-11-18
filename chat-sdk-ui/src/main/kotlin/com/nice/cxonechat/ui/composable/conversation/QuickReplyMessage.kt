@@ -21,14 +21,22 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.SnackbarDuration.Short
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.TooltipState
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
@@ -61,20 +69,22 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 import com.nice.cxonechat.ui.composable.theme.Scaffold
+import com.nice.cxonechat.ui.composable.theme.isLandscapeWindow
 import com.nice.cxonechat.ui.util.preview.message.UiSdkQuickReply
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun QuickReplyMessage(
     message: QuickReply,
     messageStatusState: MessageStatusState,
     modifier: Modifier = Modifier,
-    snackBarHostState: SnackbarHostState = SnackbarHostState(),
 ) {
     val accessibilityDescription = message.getMessageAccessibility()
     val quickReplyDisableMessage = stringResource(R.string.rich_content_disable_message)
     val clickLabel = stringResource(R.string.accessibility_label_onclick_more_information)
     val coroutineScope = rememberCoroutineScope()
+    val tooltipState = rememberTooltipState()
     Column(
         verticalArrangement = Arrangement.spacedBy(space.medium),
         modifier = modifier
@@ -82,13 +92,7 @@ internal fun QuickReplyMessage(
                 enabled = messageStatusState == DISABLED, // Only clickable when disabled, to show detailed status message
                 onClickLabel = clickLabel
             ) {
-                coroutineScope.launch {
-                    snackBarHostState.showSnackbar(
-                        message = quickReplyDisableMessage,
-                        duration = Short,
-                        withDismissAction = true
-                    )
-                }
+                coroutineScope.launch { tooltipState.show() }
             }
             .semantics {
                 testTag = "quick_reply_message"
@@ -102,6 +106,43 @@ internal fun QuickReplyMessage(
                 hideFromAccessibility() // The title is already included in the overall content description of the message.
             }
         )
+        QuickReplyMessageStatusTooltip(messageStatusState, tooltipState, quickReplyDisableMessage)
+    }
+}
+
+/**
+ * Explains why the status is disabled, on tap - a tooltip rather than a snackbar, matching the design,
+ * since it points at the row it explains instead of floating at the bottom of the screen. Reuses the
+ * time picker message's own tooltip treatment so the two rich content types stay consistent.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun QuickReplyMessageStatusTooltip(
+    messageStatusState: MessageStatusState,
+    tooltipState: TooltipState,
+    disableMessage: String,
+) {
+    TooltipBox(
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Below),
+        tooltip = {
+            PlainTooltip(
+                caretShape = TooltipDefaults.caretShape(),
+                shape = RoundedCornerShape(space.semiLarge),
+                containerColor = chatColors.token.background.surface.subtle,
+                contentColor = chatColors.token.content.secondary,
+                shadowElevation = space.tooltipShadowElevation,
+            ) {
+                Text(
+                    text = disableMessage,
+                    style = chatTypography.tooltipText,
+                    modifier = Modifier.padding(space.tooltipTextPadding),
+                )
+            }
+        },
+        state = tooltipState,
+        focusable = true,
+        enableUserInput = false,
+    ) {
         QuickReplyMessageStatus(messageStatusState)
     }
 }
@@ -112,9 +153,25 @@ internal fun QuickReplyOptionSubFrame(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier.padding(top = space.small)) {
+    Column(
+        modifier
+            .padding(top = space.small)
+            .then(landscapeOptionsWidthCap())
+    ) {
         QuickReplyOptions(message, onOptionSelected = onClick)
     }
+}
+
+/**
+ * Caps the options row at the same maximum width as the message bubble above it in a landscape window,
+ * so the two line up instead of the options row using a different share of the window.
+ *
+ * No-op in a portrait window, including a wide portrait tablet, which keeps the layout it already had.
+ */
+@Composable
+private fun landscapeOptionsWidthCap(): Modifier {
+    if (!isLandscapeWindow()) return Modifier
+    return Modifier.widthIn(max = messageBubbleMaxWidth())
 }
 
 @Composable
@@ -214,7 +271,6 @@ private fun QuickReplyMessagePreview() {
                 PreviewMessageItem(
                     message = QuickReply(UiSdkQuickReply()) {},
                     messageStatusState = DISABLED,
-                    snackBarHostState = snackbarHostState,
                 )
                 PreviewMessageItem(
                     message = QuickReply(UiSdkQuickReply()) {},

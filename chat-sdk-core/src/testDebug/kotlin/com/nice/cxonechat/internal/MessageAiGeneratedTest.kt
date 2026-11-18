@@ -22,8 +22,8 @@ import com.nice.cxonechat.internal.model.network.MediaModel
 import com.nice.cxonechat.internal.model.network.MessagePolyContent
 import com.nice.cxonechat.internal.model.network.WrappedText
 import com.nice.cxonechat.internal.serializer.Default
-import com.nice.cxonechat.model.makeMessageModel
 import com.nice.cxonechat.model.makeMessageContent
+import com.nice.cxonechat.model.makeMessageModel
 import com.nice.cxonechat.model.makeUnsupportedMessageContent
 import com.nice.cxonechat.tool.serialize
 import org.junit.Test

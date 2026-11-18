@@ -132,14 +132,16 @@ internal data class MessageModel(
     }
 
     fun toPopup(): Popup? = when (messageContent) {
-        is MessagePolyContent.Plugin -> {
-            val rootElement = messageContent.payload?.elements.orEmpty().firstOrNull()
-            if (rootElement is MessagePolyContent.Plugin.PluginElement.StructuredElements.InactivityPlugin) {
-                InactivityPopupInternal(this, rootElement)
-            } else {
-                null
+        is MessagePolyContent.Plugin ->
+            when (val rootElement = messageContent.payload?.elements.orEmpty().firstOrNull()) {
+                is MessagePolyContent.Plugin.PluginElement.StructuredElements.InactivityPlugin ->
+                    InactivityPopupInternal(this, rootElement)
+
+                is MessagePolyContent.Plugin.PluginElement.StructuredElements.SatisfactionSurveyPlugin ->
+                    SatisfactionSurveyInternal(this, rootElement)
+
+                else -> null
             }
-        }
 
         else -> null
     }
@@ -163,7 +165,7 @@ internal data class MessageModel(
                     payload = Unsupported.Payload(listOf(Unsupported.SubElement(type = rootElement.type)))
                 )
             )
-            // Only currently supported plugin element - inactivity popup - is converted to action
+            // Only currently supported plugin elements - inactivity popup and satisfaction survey - are converted to popups
             else -> null
         }
 }

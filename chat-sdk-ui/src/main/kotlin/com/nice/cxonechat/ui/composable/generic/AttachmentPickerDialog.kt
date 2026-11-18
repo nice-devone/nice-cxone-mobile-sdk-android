@@ -18,21 +18,24 @@ package com.nice.cxonechat.ui.composable.generic
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize.Max
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowRight
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
-import androidx.compose.material3.minimumInteractiveComponentSize
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -53,6 +56,9 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
+import com.nice.cxonechat.ui.composable.theme.SheetAnchors
+import com.nice.cxonechat.ui.composable.theme.WideScreenModalBottomSheet
+import com.nice.cxonechat.ui.composable.theme.wideScreenHorizontalPadding
 import com.nice.cxonechat.ui.data.source.AllowedFileType
 import com.nice.cxonechat.ui.data.source.AllowedFileTypeSource
 import com.nice.cxonechat.ui.domain.AttachmentOption.CameraPhoto
@@ -84,9 +90,14 @@ internal fun AttachmentPickerDialog(
         content = {
             BottomSheetTitle(
                 message = title,
-                modifier = Modifier.semantics {
-                    contentDescription = title
-                }
+                modifier = Modifier
+                    .semantics { contentDescription = title }
+                    // The sheet draws no handle, so the title's clearance from the sheet's own top edge
+                    // has to come from here.
+                    .padding(top = space.sheetContentTopPadding, bottom = space.large)
+                    .padding(horizontal = wideScreenHorizontalPadding()),
+                // This sheet's design insets its title by 16dp, not the shared default of 24dp.
+                horizontalPadding = space.large,
             )
             AttachmentPickerDialogContent(
                 allowedFileTypes = allowedFileTypes,
@@ -106,20 +117,18 @@ private fun AttachmentPickerBottomSheet(
     modifier: Modifier = Modifier,
     content: @Composable (ColumnScope.() -> Unit),
 ) {
-    ModalBottomSheet(
+    ChatTheme.WideScreenModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(),
-        dragHandle = {
-            BottomSheetDefaults.DragHandle(
-                modifier = Modifier.minimumInteractiveComponentSize(),
-                color = chatColors.token.content.tertiary,
-            )
-        },
-        containerColor = chatColors.token.background.surface.subtle,
-        contentColor = chatColors.token.content.primary,
+        sheetState = rememberBottomSheetState(SheetValue.Hidden, SheetAnchors.FullHeightOnly),
+        // Unlike the module's other sheets, this one's design stays a centred card in landscape.
+        sheetMaxWidth = BottomSheetDefaults.SheetMaxWidth,
+        dragHandle = null,
         modifier = modifier
             .testTag("attachment_picker_bottom_sheet")
-            .systemBarsPadding(),
+            // Vertical only: the capped card stops short of the window's sides, so a rotated nav bar's
+            // inset would shift it off centre rather than clear it, and the options are already inset
+            // further than any such bar is wide.
+            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Vertical)),
         content = content,
     )
 }
@@ -139,6 +148,8 @@ private fun AttachmentPickerDialogContent(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
             .height(Max)
+            // Inside the scroll viewport, so the rows and the dividers between them share one column.
+            .padding(horizontal = wideScreenHorizontalPadding())
     ) {
         val attachmentOptions = EnumMap(
             mapOf(
@@ -164,7 +175,6 @@ private fun AttachmentPickerDialogContent(
                 onClick = { onOptionSelected(option) },
                 testTag = "option_$i",
                 leadingContent = { LeadingIcon(remember { icons[option] }) },
-                trailingContent = { TrailingArrow() }
             )
         }
     }
@@ -179,16 +189,6 @@ private fun LeadingIcon(icon: ImageVector?) {
             modifier = Modifier.size(space.bottomSheetActionItemSize)
         )
     }
-}
-
-@Composable
-private fun TrailingArrow() {
-    Icon(
-        imageVector = Icons.AutoMirrored.Default.ArrowRight,
-        contentDescription = stringResource(string.select),
-        tint = chatColors.token.content.primary,
-        modifier = Modifier.size(space.xl)
-    )
 }
 
 private fun List<MimeTypeGroup>.prepareIcons() = associate {

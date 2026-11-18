@@ -107,6 +107,7 @@ internal class ChatThreadHandlerImpl(
             .sortedBy(Message::createdAt)
         thread += thread.asCopyable().copy(
             threadName = event.thread.threadName,
+            contactId = event.thread.contactId ?: thread.contactId,
             messages = thread.messages.updateWith(messages),
             scrollToken = event.scrollToken,
             /*
@@ -118,6 +119,9 @@ internal class ChatThreadHandlerImpl(
                 event.thread.fields
             ),
             threadState = Ready,
+            // A recovery can reopen a closed case, so it restores whether the thread accepts messages.
+            canAddMoreMessages = event.thread.canAddMoreMessages,
+            contactHandler = event.thread.contactHandler ?: thread.contactHandler,
         )
         chat.fields = chat.fields.updateWith(
             event.customerCustomFields
@@ -161,9 +165,9 @@ internal class ChatThreadHandlerImpl(
     override fun actions(): ChatThreadActionHandler {
         var handler: ChatThreadActionHandler = ChatThreadActionHandlerImpl(chat, thread)
         handler = if (chat.chatMode === ChatMode.LiveChat) {
-            ChatThreadActionHandlerLiveChat(ChatThreadActionHandlerImpl(chat, thread), chat, thread)
+            ChatThreadActionHandlerLiveChat(handler, chat, thread)
         } else {
-            handler
+            ChatThreadActionHandlerRecovery(handler, chat, thread)
         }
         handler = ChatThreadActionHandlerThreading(handler, chat)
         return handler

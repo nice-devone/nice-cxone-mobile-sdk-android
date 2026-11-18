@@ -157,7 +157,11 @@ internal class CoroutineExtTest {
         val scope = LoggerScope("Test", logger)
         val received = mutableListOf<Int>()
 
-        flow { emit(1); emit(2); emit(3) }.safeCollect(scope) { received.add(it) }
+        flow {
+            emit(1)
+            emit(2)
+            emit(3)
+        }.safeCollect(scope) { received.add(it) }
 
         assertEquals(listOf(1, 2, 3), received)
         assertTrue(logger.records.isEmpty())
@@ -169,7 +173,11 @@ internal class CoroutineExtTest {
         val scope = LoggerScope("Test", logger)
         val received = mutableListOf<Int>()
 
-        flow { emit(1); emit(2); emit(3) }.safeCollect(scope) { value ->
+        flow {
+            emit(1)
+            emit(2)
+            emit(3)
+        }.safeCollect(scope) { value ->
             if (value == 2) throw RuntimeException("bad value")
             received.add(value)
         }

@@ -60,12 +60,14 @@ internal class ChatAttachmentHandler(
 
     suspend fun addAttachment(attachments: List<android.net.Uri>) = scope("addAttachment") {
         debug("Adding attachments: $attachments")
+        // Before the wait: the pick belongs to the session it was made in.
+        val target = chatThreadViewModel.currentAttachmentTarget()
         withContext(Dispatchers.Default) {
             verbose("Checking chat state before adding attachments")
             duration {
                 chatStateViewModel.state.first { it.isAtLeastPrepared() }
                 verbose("Adding attachments to chat thread")
-                chatThreadViewModel.addPendingAttachments(attachments)
+                chatThreadViewModel.addPendingAttachments(attachments, target)
             }
         }
     }

@@ -37,11 +37,6 @@ android {
         }
     }
 
-    sourceSets {
-        getByName("main").java.srcDir("../utilities/src/main/java")
-        getByName("test").resources.srcDir("src/test/assets")
-    }
-
     publishing {
         singleVariant("release") {
             withSourcesJar()

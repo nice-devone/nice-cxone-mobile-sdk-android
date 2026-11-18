@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ButtonDefaults.textButtonColors
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
@@ -42,6 +43,7 @@ import com.nice.cxonechat.ui.composable.conversation.ShareIcon
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatTypography
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.colorScheme
+import com.nice.cxonechat.ui.composable.theme.wideScreenHorizontalPadding
 
 @Composable
 internal fun SelectAttachmentsBottomBar(
@@ -57,8 +59,10 @@ internal fun SelectAttachmentsBottomBar(
     Column(
         modifier = Modifier.testTag("select_attachments_bottom_bar")
     ) {
-        HorizontalDivider()
-        Crossfade(selecting) { isSelecting ->
+        HorizontalDivider(color = ChatTheme.chatColors.token.border.default)
+        // Inset below the divider, not around it, so the divider keeps spanning the sheet. The inset is
+        // wide windows only, resolving to zero on a compact one, which keeps the flush edge it shipped with.
+        Crossfade(selecting, modifier = Modifier.padding(horizontal = wideScreenHorizontalPadding())) { isSelecting ->
             if (isSelecting) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),

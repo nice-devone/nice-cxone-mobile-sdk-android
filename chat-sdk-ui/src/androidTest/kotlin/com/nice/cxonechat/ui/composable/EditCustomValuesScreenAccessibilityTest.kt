@@ -16,7 +16,8 @@
 package com.nice.cxonechat.ui.composable
 
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -28,6 +29,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.nice.cxonechat.state.FieldDefinition
 import com.nice.cxonechat.ui.AbstractComponentActivityUiTest
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.composable.theme.SheetAnchors
 import com.nice.cxonechat.ui.domain.model.CustomValueItem
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -48,7 +50,7 @@ internal class EditCustomValuesScreenAccessibilityTest : AbstractComponentActivi
                 EditCustomValuesScreen(
                     title = "Test Form",
                     fields = fields,
-                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                    sheetState = rememberBottomSheetState(SheetValue.Hidden, SheetAnchors.FullHeightOnly),
                     onCancel = {},
                     onConfirm = {}
                 )
@@ -74,7 +76,7 @@ internal class EditCustomValuesScreenAccessibilityTest : AbstractComponentActivi
                 EditCustomValuesScreen(
                     title = "Email Form",
                     fields = fields,
-                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                    sheetState = rememberBottomSheetState(SheetValue.Hidden, SheetAnchors.FullHeightOnly),
                     onCancel = {},
                     onConfirm = {}
                 )
@@ -101,7 +103,7 @@ internal class EditCustomValuesScreenAccessibilityTest : AbstractComponentActivi
                 EditCustomValuesScreen(
                     title = "Test Form",
                     fields = fields,
-                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                    sheetState = rememberBottomSheetState(SheetValue.Hidden, SheetAnchors.FullHeightOnly),
                     onCancel = { cancelCalled = true },
                     onConfirm = {}
                 )
@@ -133,7 +135,7 @@ internal class EditCustomValuesScreenAccessibilityTest : AbstractComponentActivi
                 EditCustomValuesScreen(
                     title = "Form",
                     fields = fields,
-                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                    sheetState = rememberBottomSheetState(SheetValue.Hidden, SheetAnchors.FullHeightOnly),
                     canSubmit = false,
                     onCancel = {},
                     onConfirm = {}
@@ -157,7 +159,7 @@ internal class EditCustomValuesScreenAccessibilityTest : AbstractComponentActivi
                 EditCustomValuesScreen(
                     title = "Form",
                     fields = fields,
-                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                    sheetState = rememberBottomSheetState(SheetValue.Hidden, SheetAnchors.FullHeightOnly),
                     canSubmit = true,
                     onCancel = {},
                     onConfirm = {}
@@ -186,7 +188,7 @@ internal class EditCustomValuesScreenAccessibilityTest : AbstractComponentActivi
                 EditCustomValuesScreen(
                     title = "Registration Form",
                     fields = fields,
-                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                    sheetState = rememberBottomSheetState(SheetValue.Hidden, SheetAnchors.FullHeightOnly),
                     onCancel = {},
                     onConfirm = {}
                 )
@@ -218,7 +220,7 @@ internal class EditCustomValuesScreenAccessibilityTest : AbstractComponentActivi
                 EditCustomValuesScreen(
                     title = "Business Form",
                     fields = fields,
-                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                    sheetState = rememberBottomSheetState(SheetValue.Hidden, SheetAnchors.FullHeightOnly),
                     onCancel = {},
                     onConfirm = {}
                 )
@@ -244,7 +246,7 @@ internal class EditCustomValuesScreenAccessibilityTest : AbstractComponentActivi
                 EditCustomValuesScreen(
                     title = "Email Form",
                     fields = fields,
-                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                    sheetState = rememberBottomSheetState(SheetValue.Hidden, SheetAnchors.FullHeightOnly),
                     onCancel = {},
                     onConfirm = {}
                 )

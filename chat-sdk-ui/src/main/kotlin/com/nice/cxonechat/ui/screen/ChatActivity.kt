@@ -33,7 +33,6 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Composer
 import androidx.compose.runtime.LaunchedEffect
@@ -54,7 +53,6 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.createGraph
 import com.nice.cxonechat.ChatMode.LiveChat
 import com.nice.cxonechat.ChatMode.MultiThread
 import com.nice.cxonechat.ChatState
@@ -78,6 +76,7 @@ import com.nice.cxonechat.ui.composable.ThreadContentView
 import com.nice.cxonechat.ui.composable.ThreadViewTopBar
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.Scaffold
+import com.nice.cxonechat.ui.composable.theme.rememberTopBarScrollBehavior
 import com.nice.cxonechat.ui.data.AudioRecordingManager
 import com.nice.cxonechat.ui.data.ChatAttachmentHandler
 import com.nice.cxonechat.ui.data.ChatDeeplinkHandler
@@ -228,6 +227,12 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
         }
     }
 
+    /**
+     * Posts new-message notifications for background threads. Satisfaction Survey notifications
+     * are posted directly by [ChatThreadsViewModel] instead, since a background collector here is
+     * not guaranteed to be composed when the survey arrives - see
+     * `ChatThreadsViewModel.reconcileBackgroundSurveys` KDoc.
+     */
     @Composable
     private fun BackgroundThreadUpdates() {
         val notifyUpdateUseCase: NotifyUpdateUseCase = koinInject()
@@ -250,6 +255,7 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
             enableEdgeToEdge()
             setContent {
                 ChatTheme {
+                    HideStatusBarOnWideScreen()
                     val snackbarHostState = remember { SnackbarHostState() }
                     HandleEarlyChatState { chatState ->
                         ChatUi(chatState, snackbarHostState)
@@ -284,18 +290,6 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
         val testMod = Modifier.semantics {
             testTagsAsResourceId = true // Enabled for UI test automation
         }
-        val screenGraph = navController.createGraph(startDestination = initialScreen) {
-            composable<Offline> {
-                OfflineScreen(::finish, snackbarHostState, testMod)
-            }
-            composable<ThreadList> {
-                ThreadListScreen(snackbarHostState, navController, testMod)
-            }
-            composable<ThreadScreen> {
-                val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
-                ThreadScreen(snackbarHostState, isMultiThread, isLiveChat, testMod, onBack = { backDispatcher?.onBackPressed() })
-            }
-        }
         ThreadNotFoundEffect(navController)
         ChatDialogScreen(
             dialogShownFlow = chatViewModel.dialogShown,
@@ -311,7 +305,18 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
         )
         ChatStateNavEffect(navController)
         ChatErrorScreen(onTerminalError = ::finish)
-        NavHost(navController, screenGraph, modifier = testMod)
+        NavHost(navController, startDestination = initialScreen, modifier = testMod) {
+            composable<Offline> {
+                OfflineScreen(::finish, snackbarHostState, testMod)
+            }
+            composable<ThreadList> {
+                ThreadListScreen(snackbarHostState, navController, testMod)
+            }
+            composable<ThreadScreen> {
+                val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+                ThreadScreen(snackbarHostState, isMultiThread, isLiveChat, testMod, onBack = { backDispatcher?.onBackPressed() })
+            }
+        }
     }
 
     @Composable
@@ -333,8 +338,10 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
 
     @Composable
     private fun ChatStateNavEffect(navController: NavController) {
+        val chatErrorState by chatStateViewModel.chatErrorState.collectAsState()
         ChatStateEffect(
             chatStateFlow = chatStateViewModel.state,
+            isAutoReconnectBlocked = chatErrorState.errorGroup.blocksAutoReconnect,
             onConnectChatAction = remember { { chatViewModel.connect() } },
             onReadyAction = {
                 navController.navigate(if (chatViewModel.chatMode === MultiThread) ThreadList else ThreadScreen) {
@@ -360,7 +367,7 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
         onBack: () -> Unit,
     ) {
         val chatThreadViewModel: ChatThreadViewModel = koinActivityViewModel<ChatThreadViewModel>()
-        val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+        val scrollBehavior = rememberTopBarScrollBehavior()
         ChatTheme.Scaffold(
             modifier = modifier
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
@@ -375,7 +382,7 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
             },
         ) { padding ->
             Box(modifier = Modifier.padding(padding)) {
-                ThreadView(snackbarHostState = snackbarHostState)
+                ThreadView()
                 if (isMultiThread) BackgroundThreadUpdates()
             }
         }
@@ -419,7 +426,7 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
     companion object {
 
         @Composable
-        private fun ChatActivity.ThreadView(snackbarHostState: SnackbarHostState) {
+        private fun ChatActivity.ThreadView() {
             val chatThreadViewModel: ChatThreadViewModel = koinActivityViewModel()
             val onAttachmentSelection: (AttachmentType) -> Unit = { attachmentType ->
                 // Check if camera permission is needed for this attachment type
@@ -463,7 +470,6 @@ class ChatActivity : ComponentActivity(), AndroidScopeComponent {
                 chatViewModel = chatViewModel,
                 audioViewModel = audioViewModel,
                 onAttachmentTypeSelection = remember { { onAttachmentSelection(it) } },
-                snackBarHostState = snackbarHostState
             )
             LaunchedEffect(chatThreadViewModel) {
                 chatThreadViewModel.errorEvents.collect { message ->

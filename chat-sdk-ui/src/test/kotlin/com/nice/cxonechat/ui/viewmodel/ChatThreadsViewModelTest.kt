@@ -28,6 +28,7 @@ import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.ui.UiModule
 import com.nice.cxonechat.ui.data.repository.SelectedThreadRepository
 import com.nice.cxonechat.ui.domain.model.Thread
+import com.nice.cxonechat.ui.storage.ValueStorage
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -103,11 +104,7 @@ internal class ChatThreadsViewModelTest {
             every { chat } returns chat1
         }
 
-        val viewModel = ChatThreadsViewModel(
-            chatProvider,
-            SelectedThreadRepository(chatProvider),
-            chatStateViewModel,
-        )
+        val viewModel = newViewModel(chatProvider, chatStateViewModel)
 
         val scope = TestScope(testDispatcher)
         val results = mutableListOf<List<Thread>>()
@@ -203,11 +200,7 @@ internal class ChatThreadsViewModelTest {
             every { this@mockk.chat } returns session.chat
         }
 
-        val viewModel = ChatThreadsViewModel(
-            chatProvider,
-            SelectedThreadRepository(chatProvider),
-            chatStateViewModel,
-        )
+        val viewModel = newViewModel(chatProvider, chatStateViewModel)
 
         val scope = TestScope(testDispatcher)
         val results = mutableListOf<List<Thread>>()
@@ -260,11 +253,7 @@ internal class ChatThreadsViewModelTest {
             every { this@mockk.chat } returns session1.chat
         }
 
-        val viewModel = ChatThreadsViewModel(
-            chatProvider,
-            SelectedThreadRepository(chatProvider),
-            chatStateViewModel,
-        )
+        val viewModel = newViewModel(chatProvider, chatStateViewModel)
 
         val scope = TestScope(testDispatcher)
         val results = mutableListOf<List<Thread>>()
@@ -303,4 +292,12 @@ internal class ChatThreadsViewModelTest {
         collectJob.cancel()
         scope.cancel()
     }
+
+    private fun newViewModel(chatProvider: ChatInstanceProvider, chatStateViewModel: ChatStateViewModel) =
+        ChatThreadsViewModel(
+            chatProvider,
+            SelectedThreadRepository(chatProvider, valueStorage = mockk<ValueStorage>(relaxed = true), logger = LoggerNoop),
+            chatStateViewModel,
+            mockk(relaxed = true),
+        )
 }

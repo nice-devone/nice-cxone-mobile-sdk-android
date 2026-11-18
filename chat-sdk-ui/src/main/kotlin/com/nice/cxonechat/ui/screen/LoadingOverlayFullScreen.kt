@@ -25,6 +25,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -45,10 +48,9 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.zIndex
 import com.nice.cxonechat.ui.R.integer
 import com.nice.cxonechat.ui.R.string
@@ -79,9 +81,7 @@ internal fun LoadingOverlayFullScreen(
             .fillMaxSize()
             .background(overlayBackground)
             .zIndex(1f)
-            .semantics {
-                testTag = "preparing_dialog"
-            }
+            .testTag("preparing_dialog")
             .pointerInput(true) { // Unlike clickable doesn't cause accessibility action to be announced
                 // Consume all touch events to prevent interaction with underlying UI
                 detectTapGestures {}
@@ -122,9 +122,12 @@ internal fun LoadingContent(closeButtonText: String, onClose: () -> Unit = {}) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
-        modifier = Modifier.semantics {
-            paneTitle = loading
-        }
+        modifier = Modifier
+            .widthIn(max = space.loadingOverlayMaxWidth)
+            .verticalScroll(rememberScrollState())
+            .semantics {
+                paneTitle = loading
+            }
     ) {
         CircularProgressIndicator(
             color = colorScheme.primary,
@@ -161,7 +164,7 @@ private fun LoadingDelayView(
         verticalArrangement = Arrangement.Center,
     ) {
         Text(
-            modifier = Modifier.padding(top = space.large, bottom = space.large, start = 50.dp, end = 50.dp),
+            modifier = Modifier.padding(space.large),
             text = stringResource(string.loading_delay_message),
             color = chatColors.token.content.secondary,
             style = chatTypography.loadingScreenText,
@@ -184,11 +187,12 @@ private fun LoadingDelayView(
 }
 
 @PreviewLightDark
+@PreviewScreenSizes
 @Composable
 private fun LoadingOverlayFullPreview() {
     ChatTheme {
         LoadingOverlayFullScreen(
-            closeButtonText = stringResource(string.close_chat),
+            closeButtonText = stringResource(string.loading_close_button_text),
             onClose = { /* No action needed for preview */ }
         )
     }

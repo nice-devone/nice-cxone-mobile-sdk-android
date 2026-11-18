@@ -32,6 +32,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuBoxScope
@@ -199,7 +200,7 @@ private fun ExposedDropdownMenuBoxScope.DropdownFieldTextField(
             }
         },
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-        labelPosition = TextFieldLabelPosition.Attached(alwaysMinimize = true),
+        labelPosition = TextFieldLabelPosition.Cutout(isAlwaysMinimized = true),
         placeholder = { Text(placeholder) },
         supportingText = { errorState.value?.let { Text(it) } },
         modifier = Modifier

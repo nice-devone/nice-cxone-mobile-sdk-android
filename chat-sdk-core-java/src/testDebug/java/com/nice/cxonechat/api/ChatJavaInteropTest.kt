@@ -294,7 +294,9 @@ internal class ChatJavaInteropTest {
         // Replace the default uncaught-exception handler so the `safeAccept` re-route doesn't
         // crash the test JVM when the listener throws.
         val originalHandler = Thread.getDefaultUncaughtExceptionHandler()
-        Thread.setDefaultUncaughtExceptionHandler { _, _ -> /* swallow for the test */ }
+        Thread.setDefaultUncaughtExceptionHandler { _, _ ->
+            // swallow for the test
+        }
         try {
             val job = launch {
                 collectStateFlow(chat, listener = { event ->
@@ -457,14 +459,14 @@ internal class ChatJavaInteropTest {
         // constructor bridge that is NOT Java-callable; filter those out and assert the
         // remaining surface contains no CoroutineScope parameter.
         val classes = listOf(
-            com.nice.cxonechat.api.ChatEventHandlerCoroutineWrapper::class.java,
-            com.nice.cxonechat.api.ChatThreadEventHandlerCoroutineWrapper::class.java,
-            com.nice.cxonechat.api.ChatThreadMessageHandlerCoroutineWrapper::class.java,
+            ChatEventHandlerCoroutineWrapper::class.java,
+            ChatThreadEventHandlerCoroutineWrapper::class.java,
+            ChatThreadMessageHandlerCoroutineWrapper::class.java,
         )
         classes.forEach { cls ->
             val leak = cls.constructors.any { ctor ->
                 !ctor.isSynthetic &&
-                    ctor.parameterTypes.any { it == kotlinx.coroutines.CoroutineScope::class.java }
+                        ctor.parameterTypes.any { it == kotlinx.coroutines.CoroutineScope::class.java }
             }
             assertFalse(leak, "${cls.simpleName}: CoroutineScope leaked to Java-visible constructor")
         }

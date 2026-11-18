@@ -19,6 +19,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nice.cxonechat.ChatInstanceProvider
 import com.nice.cxonechat.ChatState
+import com.nice.cxonechat.ChatThreadHandler
+import com.nice.cxonechat.Popup
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerScope
 import com.nice.cxonechat.log.scope
@@ -39,11 +41,14 @@ import com.nice.cxonechat.ui.domain.model.Thread
 import com.nice.cxonechat.ui.domain.model.foldToCreateThreadResult
 import com.nice.cxonechat.ui.domain.model.prechat.PreChatResponse
 import com.nice.cxonechat.ui.domain.model.threadOrAgentName
+import com.nice.cxonechat.ui.domain.usecase.NotifyUpdateUseCase
 import com.nice.cxonechat.ui.viewmodel.ChatThreadsViewModel.State.Initial
 import com.nice.cxonechat.ui.viewmodel.ChatThreadsViewModel.State.ThreadPreChatSurveyRequired
 import com.nice.cxonechat.ui.viewmodel.ChatThreadsViewModel.State.ThreadSelected
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -55,6 +60,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flatMapMerge
@@ -71,6 +77,7 @@ import org.koin.core.qualifier.named
 import org.koin.java.KoinJavaComponent.get
 import org.koin.java.KoinJavaComponent.inject
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 
 @KoinViewModel
 @Suppress(
@@ -80,6 +87,7 @@ internal class ChatThreadsViewModel(
     private val chatProvider: ChatInstanceProvider,
     private val selectedThreadRepository: SelectedThreadRepository,
     private val chatStateViewModel: ChatStateViewModel,
+    private val notifyUpdateUseCase: NotifyUpdateUseCase,
 ) : ViewModel() {
     private val logger = LoggerScope(TAG, get(Logger::class.java, named(UiModule.LOGGER_NAME)))
     private val uiCustomerFieldsProvider: UiCustomFieldsProvider by inject(
@@ -157,6 +165,24 @@ internal class ChatThreadsViewModel(
         MutableStateFlow(null).asSharedFlow()
     }
 
+    /** Background thread popupFlow subscriptions, keyed by thread id. Reconciled by [reconcileBackgroundSurveys]. */
+    private val backgroundSurveyJobs = ConcurrentHashMap<UUID, Job>()
+
+    init {
+        if (isMultiThreadEnabled) {
+            viewModelScope.launch {
+                combine(
+                    chatStateViewModel.state,
+                    threadList,
+                    selectedThreadRepository.chatThreadHandlerFlow,
+                ) { chatState, threads, selectedHandler -> Triple(chatState, threads, selectedHandler) }
+                    .collect { (chatState, threads, selectedHandler) ->
+                        reconcileBackgroundSurveys(chatState, threads, selectedHandler)
+                    }
+            }
+        }
+    }
+
     private val showDialog = MutableStateFlow<Dialog>(Dialog.None)
 
     val dialogShown: StateFlow<Dialog> = showDialog.asStateFlow()
@@ -183,23 +209,108 @@ internal class ChatThreadsViewModel(
                 }
             }
 
+    /**
+     * Keeps exactly one long-lived `popupFlow` subscription per background thread — added once a
+     * thread enters the background set, cancelled once it leaves it (selected, archived, or chat
+     * stops being Ready) — instead of tearing all of them down and resubscribing on every emission.
+     *
+     * Re-subscribing to `popupFlow` isn't free: in multi-thread mode it's backed by
+     * [ChatThreadActionHandlerRecovery], which sends a `RecoverThreadEvent` to the backend as a
+     * subscription side effect. [threadList] re-emits on every incoming message to any thread, so
+     * rebuilding every background subscription on each emission would fire a recovery request per
+     * background thread for every unrelated message, and could lose a survey arriving right as a
+     * about-to-be-rebuilt subscription is cancelled mid-delivery (survey delivery is a one-shot,
+     * cross-collector gate — see `ChatThreadActionHandlerImpl.surveyIfUndelivered`).
+     *
+     * [selectedHandler] is also used to exclude the currently selected thread: `ChatThreadViewModel`
+     * already owns `popupFlow` for it to show the in-app dialog, and subscribing to the same thread
+     * here too would race it for that one delivery.
+     *
+     * The notification is posted directly from this job rather than handed off through a `SharedFlow`
+     * to a Compose collector: a default `MutableSharedFlow.emit()` with no active subscriber (e.g.
+     * `ChatActivity`'s `BackgroundThreadUpdates()` isn't composed because the user is on the thread
+     * list) returns immediately and silently discards the value, so the notification would never be
+     * posted even though the survey was correctly stashed.
+     */
+    private fun reconcileBackgroundSurveys(
+        chatState: ChatState,
+        threads: List<Thread>,
+        selectedHandler: ChatThreadHandler,
+    ) {
+        // signOut() nulls chatProvider.chat before advancing chatState to Initial (it must persist
+        // storage first), so this can run with chatState still Ready but chat already null. Read
+        // chat once and treat null the same as "not Ready" instead of reaching for the chat getter
+        // (which throws) once a job below actually runs.
+        val chat = chatProvider.chat
+        if (chat == null) {
+            backgroundSurveyJobs.keys.forEach { staleId -> backgroundSurveyJobs.remove(staleId)?.cancel() }
+            return
+        }
+        val desired: Map<UUID, Thread> = if (chatState !== ChatState.Ready) {
+            emptyMap()
+        } else {
+            threads
+                .filter { thread -> selectedHandler === NoThreadHandler || thread.id != selectedHandler.get().id }
+                .associateBy(Thread::id)
+        }
+        backgroundSurveyJobs.keys.minus(desired.keys).forEach { staleId ->
+            backgroundSurveyJobs.remove(staleId)?.cancel()
+        }
+        for ((id, thread) in desired) {
+            // Resolved synchronously from the chat captured above, not lazily inside the launched
+            // coroutine, so a later signOut() can't race this with a null chat.
+            val handler = chat.threads().thread(thread.chatThread)
+            // Capture the job created for a new entry outside computeIfAbsent, mirroring
+            // ChatThreadsHandlerMessages.thread(): registering invokeOnCompletion inside would
+            // crash on a synchronous completion (e.g. UnconfinedTestDispatcher) by re-entering this
+            // same ConcurrentHashMap update.
+            var newJob: Job? = null
+            backgroundSurveyJobs.computeIfAbsent(id) {
+                viewModelScope.launch {
+                    handler
+                        .actions()
+                        .popupFlow
+                        .filterIsInstance<Popup.SatisfactionSurvey>()
+                        .collect { survey ->
+                            // Once received, the survey is already marked delivered upstream (one-shot,
+                            // cross-collector gate) - a cancellation racing in from this thread being
+                            // selected must not interrupt stashing it, or it would be lost for good.
+                            withContext(NonCancellable) {
+                                selectedThreadRepository.stashSurvey(id, survey)
+                                notifyUpdateUseCase.notifySatisfactionSurvey(thread, survey)
+                            }
+                        }
+                }.also { newJob = it }
+            }
+            newJob?.let { capturedJob ->
+                capturedJob.invokeOnCompletion { backgroundSurveyJobs.remove(id, capturedJob) }
+            }
+        }
+    }
+
     private fun Flow<Thread>.updateLocalThreadCopy(): Flow<Thread> = onEach { thread ->
         threadUpdates.value = threadList.value.map { existingThread ->
             if (existingThread.id != thread.id) existingThread else thread
         }
     }
 
+    /**
+     * Whether [threadId] belongs to a thread other than the one currently displayed on screen.
+     * `false` when no thread is selected at all (e.g. the thread list is shown).
+     */
+    private fun isThreadInBackground(threadId: UUID): Boolean {
+        val chatThreadHandler = selectedThreadRepository.chatThreadHandler
+        return chatThreadHandler !== NoThreadHandler && threadId != chatThreadHandler.get().id
+    }
+
     private fun isThreadUpdated(chatThread: Thread): Boolean = logger.timedScope("isThreadUpdated(${chatThread.id})") {
         val previousThreadsValue = threads.value
-        val chatThreadHandler = selectedThreadRepository.chatThreadHandler
         if (
-            chatThreadHandler === NoThreadHandler || // No thread is selected
+            !isThreadInBackground(chatThread.id) || // No thread is selected, or it's the currently displayed thread
             previousThreadsValue.isEmpty() // Previous threads state was not yet loaded - unable to compare
         ) {
             return false
         }
-        // Flag to ignore updates from currently displayed thread
-        val isThreadInBackground = chatThread.id != chatThreadHandler.get().id
         val previousThread = previousThreadsValue.firstOrNull { chatThread.id == it.id }
         // Flag to ignore metadata changes when threads are undergoing initial loading
         val previousThreadState = previousThread?.chatThread?.threadState ?: ChatThreadState.Pending
@@ -208,7 +319,7 @@ internal class ChatThreadsViewModel(
         val lastMessageChanged = chatThread.messages.firstOrNull()?.id != previousThread?.messages?.firstOrNull()?.id
         // Flag indicating if the thread was be archived
         val archiveChanged = chatThread.chatThread.canAddMoreMessages != previousThread?.chatThread?.canAddMoreMessages
-        return isThreadInBackground && isPreviousThreadLoaded && (lastMessageChanged || archiveChanged)
+        return isPreviousThreadLoaded && (lastMessageChanged || archiveChanged)
     }
 
     private fun toUiThread(chatThread: ChatThread) = Thread(
@@ -230,7 +341,12 @@ internal class ChatThreadsViewModel(
         viewModelScope.launch {
             when (val preChatSurvey = threadsHandler.preChatSurvey) {
                 null -> createThreadWorker(emptySequence())
-                else -> internalState.value = ThreadPreChatSurveyRequired(preChatSurvey)
+                else -> {
+                    // Let a satisfaction survey recovered for a previous thread be seen first,
+                    // instead of covering it with the new thread's own pre-chat survey.
+                    selectedThreadRepository.satisfactionSurveyShowingFlow.first { !it }
+                    internalState.value = ThreadPreChatSurveyRequired(preChatSurvey)
+                }
             }
         }
     }

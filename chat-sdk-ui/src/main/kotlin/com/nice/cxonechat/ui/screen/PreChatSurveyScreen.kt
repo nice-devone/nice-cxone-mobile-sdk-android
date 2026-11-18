@@ -19,7 +19,8 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SheetState
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +32,7 @@ import androidx.compose.ui.platform.testTag
 import com.nice.cxonechat.prechat.PreChatSurvey
 import com.nice.cxonechat.ui.R.string
 import com.nice.cxonechat.ui.composable.EditCustomValuesScreen
+import com.nice.cxonechat.ui.composable.theme.SheetAnchors
 import com.nice.cxonechat.ui.domain.model.CustomValueItem
 import com.nice.cxonechat.ui.domain.model.CustomValueItemList
 import com.nice.cxonechat.ui.domain.model.prechat.PreChatResponse
@@ -52,7 +54,7 @@ import com.nice.cxonechat.ui.util.showToast
 internal fun PreChatSurveyScreen(
     survey: PreChatSurvey,
     modifier: Modifier = Modifier,
-    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    sheetState: SheetState = rememberBottomSheetState(SheetValue.Hidden, SheetAnchors.FullHeightOnly),
     onCancel: () -> Unit,
     onValidSurveySubmission: (Sequence<PreChatResponse>) -> Unit,
 ) {

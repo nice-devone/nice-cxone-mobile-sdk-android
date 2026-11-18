@@ -107,6 +107,9 @@
     <string name="sdk_settings">SDK Settings</string>
     <string name="loading">Loading…</string>
     <string name="connecting">Connecting…</string>
+    <string name="automated_setup_setting_up">Setting up chat…</string>
+    <string name="automated_setup_loading_configuration">Loading chat channel configuration…</string>
+    <string name="automated_setup_preparing_chat">Preparing chat…</string>
     <string name="logout">Logout</string>
     <string name="name">Name</string>
     <string name="card_number">Card Number</string>
@@ -130,10 +133,6 @@
     <!-- SDK not supported Dialog string -->
     <string name="sdk_not_supported_title">SDK not supported</string>
     <string name="sdk_not_supported_message">Your version of SDK is not supported anymore, please do upgrade.</string>
-
-    <!-- Explicit OAuth Unavailable Dialog strings -->
-    <string name="explicit_oauth_unavailable_title">Explicit OAuth Not Available</string>
-    <string name="explicit_oauth_unavailable_message">The explicit OAuth flow is not available on the current server version. Please use the Implicit JWT flow instead.</string>
 
     <!-- Google Sign-In Bottom Sheet -->
     <string name="sign_in_with_google">Sign in with Google</string>

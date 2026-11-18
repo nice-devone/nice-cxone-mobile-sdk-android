@@ -50,7 +50,9 @@ internal class ChannelsConfigurationTests {
             preContactForm = it.preContactForm?.let { preContactFormModel ->
                 if (channelId != null) {
                     preContactFormModel.copy(channels = preContactFormModel.channels + listOf(ChannelIdentifier(channelId)))
-                } else preContactFormModel
+                } else {
+                    preContactFormModel
+                }
             }
         )
     }

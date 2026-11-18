@@ -25,6 +25,7 @@ import com.nice.cxonechat.log.LoggerScope
 import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState
+import com.nice.cxonechat.thread.ContactHandler
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -34,7 +35,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.flow.update
 import java.lang.ref.WeakReference
 import java.util.UUID
@@ -50,15 +50,17 @@ internal class ChatThreadsHandlerMessages(
     LoggerScope by LoggerScope("ChatThreadsHandlerMessages", identity) {
 
     // A metadata value and the tick at which it last changed. The thread list and the cache watcher both update a
-    // thread's contactId and threadState, and either one can be the newer: EventMessageCreated reaches only the
-    // watcher, while a SingleThread recovery (new contact, case reopened) reaches only the list. A value at tick
+    // thread's contactId, contactHandler, threadState and canAddMoreMessages, and either one can be the newer: EventMessageCreated
+    // reaches only the watcher, while a SingleThread recovery (new contact, case reopened) reaches only the list. A value at tick
     // UNKNOWN is one its source did not learn from the server, so it never outranks the other source.
     private data class Stamped<T>(val value: T, val changedAt: Long)
 
     // The contact metadata of a thread, as the list or the cache watcher last reported it.
     private data class Metadata(
         val contactId: Stamped<String?>,
+        val contactHandler: Stamped<ContactHandler?>,
         val threadState: Stamped<ChatThreadState>,
+        val canAddMoreMessages: Stamped<Boolean>,
     )
 
     // What the cache watcher last saw for a thread: its messages, which origin.threadsFlow does not observe, and
@@ -68,10 +70,12 @@ internal class ChatThreadsHandlerMessages(
         val metadata: Metadata,
     )
 
-    // A thread instance the list delivered, with its metadata. Held weakly: an instance no collector or replay
-    // still holds can never be delivered again.
+    // A thread instance the list delivered, with the metadata it reported itself, which tells a later in-place change,
+    // and the metadata the merge reads, where a placeholder takes what the list knew before. Held weakly: an instance
+    // no collector or replay still holds can never be delivered again.
     private class ListedThread(
         val source: WeakReference<ChatThread>,
+        val reported: Metadata,
         val metadata: Metadata,
     ) {
         fun inThread(thread: ChatThread) = source.get() === thread
@@ -84,6 +88,10 @@ internal class ChatThreadsHandlerMessages(
     // first arrived. A collector that lags behind would otherwise stamp older snapshots newer than what the cache
     // watcher saw since.
     private val listed = ConcurrentHashMap<UUID, List<ListedThread>>()
+
+    // The newest stamp of each value the list learned for a thread, kept apart from the weakly held instances so it
+    // outlives the instance that carried it. Written only inside listed.compute for the same thread.
+    private val listedKnown = ConcurrentHashMap<UUID, Metadata>()
     private val watcherJobs = ConcurrentHashMap<UUID, Job>()
 
     // Bumped by the cache watcher whenever it changes an entry in `cache`. The cache watcher observes
@@ -111,6 +119,7 @@ internal class ChatThreadsHandlerMessages(
             }
             cache.keys.removeIf { it !in currentIds }
             listed.keys.removeIf { it !in currentIds }
+            listedKnown.keys.removeIf { it !in currentIds }
             stampList(threads)
         },
         cacheVersion,
@@ -137,7 +146,17 @@ internal class ChatThreadsHandlerMessages(
                         },
                         // Whichever source changed a value last holds the newer one.
                         contactId = newer(listedMetadata?.contactId, cached.metadata.contactId, thread.contactId),
+                        contactHandler = newer(
+                            listedMetadata?.contactHandler,
+                            cached.metadata.contactHandler,
+                            thread.contactHandler,
+                        ),
                         threadState = newer(listedMetadata?.threadState, cached.metadata.threadState, thread.threadState),
+                        canAddMoreMessages = newer(
+                            listedMetadata?.canAddMoreMessages,
+                            cached.metadata.canAddMoreMessages,
+                            thread.canAddMoreMessages,
+                        ),
                     )
                     thread.messages.isEmpty() -> thread.asCopyable().copy(messages = emptyList())
                     else -> thread
@@ -159,12 +178,9 @@ internal class ChatThreadsHandlerMessages(
             val cacheWatcher = origin.thread(thread.asCopyable().copy())
             val watcherScope = childScope("cacheWatcher")
             coroutineScope.safeLaunch(watcherScope) {
+                // Keeps collecting after the thread closes: a later recovery can reopen it, and the list hears
+                // neither the close from EventMessageCreated nor that recovery.
                 cacheWatcher.threadFlow
-                    // Keep the emission that closes the thread, so the list shows it closed, then stop.
-                    .transformWhile { updatedThread ->
-                        emit(updatedThread)
-                        updatedThread.threadState !== ChatThreadState.Closed
-                    }
                     .safeCollect(watcherScope.childScope("collect")) { updatedThread ->
                         var changed = false
                         cache.compute(updatedThread.id) { _, previous ->
@@ -194,18 +210,43 @@ internal class ChatThreadsHandlerMessages(
         listed.compute(thread.id) { _, previous ->
             val retained = previous.orEmpty().filter { it.source.get() != null }
             val stamped = retained.find { it.inThread(thread) }
-            val metadata = thread.listedMetadata(stamped?.metadata)
-            retained - listOfNotNull(stamped) + ListedThread(WeakReference(thread), metadata)
+            val reported = thread.listedMetadata(stamped?.reported)
+            val known = listedKnown[thread.id]
+            listedKnown[thread.id] = known?.let { reported.latest(it) } ?: reported
+            retained - listOfNotNull(stamped) + ListedThread(WeakReference(thread), reported, reported.orKnown(known))
         }
     }
+
+    // A placeholder in a fetched list does not undo what the list learned before, such as a Closed from
+    // CaseStatusChanged: it keeps the newest value the list knew for the thread.
+    private fun Metadata.orKnown(known: Metadata?) = if (known == null) {
+        this
+    } else {
+        Metadata(
+            contactId = contactId.orKnown(known.contactId),
+            contactHandler = contactHandler.orKnown(known.contactHandler),
+            threadState = threadState.orKnown(known.threadState),
+            canAddMoreMessages = canAddMoreMessages.orKnown(known.canAddMoreMessages),
+        )
+    }
+
+    private fun Metadata.latest(other: Metadata) = Metadata(
+        contactId = maxOf(contactId, other.contactId, compareBy { it.changedAt }),
+        contactHandler = maxOf(contactHandler, other.contactHandler, compareBy { it.changedAt }),
+        threadState = maxOf(threadState, other.threadState, compareBy { it.changedAt }),
+        canAddMoreMessages = maxOf(canAddMoreMessages, other.canAddMoreMessages, compareBy { it.changedAt }),
+    )
 
     // A new instance is a new server snapshot (a fetched list, a SingleThread recovery), so each value it knows is
     // newer than the cache, even one that did not change (recovery always reports Ready). An instance already
     // stamped only counts as newer where a value changed in place. A fetched list knows neither the contact nor the
-    // case state: it has no contactId and reports Received, then Loaded once the metadata loads.
+    // case state: it has no contactId or contactHandler and reports Received, then Loaded once the metadata loads. It
+    // does carry the server's canAddMoreMessages.
     private fun ChatThread.listedMetadata(previous: Metadata?) = Metadata(
         contactId = previous?.contactId.listed(contactId, known = contactId != null),
+        contactHandler = previous?.contactHandler.listed(contactHandler, known = contactHandler != null),
         threadState = previous?.threadState.listed(threadState, known = threadState !in PLACEHOLDER_STATES),
+        canAddMoreMessages = previous?.canAddMoreMessages.listed(canAddMoreMessages, known = true),
     )
 
     private fun <T> Stamped<T>?.listed(value: T, known: Boolean): Stamped<T> = when {
@@ -217,22 +258,34 @@ internal class ChatThreadsHandlerMessages(
     // The thread passed to thread() is not a server event, so the watcher starts from its values at UNKNOWN.
     private fun ChatThread.snapshotMetadata() = Metadata(
         contactId = Stamped(contactId, UNKNOWN),
+        contactHandler = Stamped(contactHandler, UNKNOWN),
         threadState = Stamped(threadState, UNKNOWN),
+        canAddMoreMessages = Stamped(canAddMoreMessages, UNKNOWN),
     )
 
-    // A value is newer only when it changes, so re-reporting an old value does not make it newer.
+    // A value is newer only when it changes, so re-reporting an old value does not make it newer. Like the list, the
+    // watcher learns no case state from Received or Loaded, which only say how far the thread has loaded.
     private fun Metadata.watched(thread: ChatThread) = Metadata(
         contactId = contactId.watched(thread.contactId),
-        threadState = threadState.watched(thread.threadState),
+        contactHandler = contactHandler.watched(thread.contactHandler),
+        threadState = threadState.watched(thread.threadState, known = thread.threadState !in PLACEHOLDER_STATES),
+        canAddMoreMessages = canAddMoreMessages.watched(thread.canAddMoreMessages),
     )
 
-    private fun <T> Stamped<T>.watched(value: T): Stamped<T> =
-        if (this.value == value) this else Stamped(value, clock.incrementAndGet())
+    private fun <T> Stamped<T>.watched(value: T, known: Boolean = true): Stamped<T> = when {
+        this.value == value -> this
+        known -> Stamped(value, clock.incrementAndGet())
+        else -> Stamped(value, UNKNOWN)
+    }
 
     private companion object {
         private const val UNKNOWN = 0L
 
         private val PLACEHOLDER_STATES = setOf(ChatThreadState.Received, ChatThreadState.Loaded)
+
+        @JvmStatic
+        private fun <T> Stamped<T>.orKnown(known: Stamped<T>): Stamped<T> =
+            if (changedAt == UNKNOWN && known.changedAt != UNKNOWN) known else this
 
         @JvmStatic
         private fun <T> newer(listed: Stamped<T>?, cached: Stamped<T>, fallback: T): T = when {

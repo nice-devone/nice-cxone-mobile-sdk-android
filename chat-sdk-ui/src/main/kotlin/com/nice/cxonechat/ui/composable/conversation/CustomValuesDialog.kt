@@ -16,7 +16,8 @@
 package com.nice.cxonechat.ui.composable.conversation
 
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,6 +28,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.composable.EditCustomValuesScreen
+import com.nice.cxonechat.ui.composable.theme.SheetAnchors
 import com.nice.cxonechat.ui.domain.model.mergeWithCustomField
 import com.nice.cxonechat.ui.screen.isResponseValid
 import com.nice.cxonechat.ui.viewmodel.ChatThreadViewModel
@@ -46,7 +48,7 @@ internal fun CustomValuesDialog(
             .mergeWithCustomField(
                 chatViewModel.customValues
             ),
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        sheetState = rememberBottomSheetState(SheetValue.Hidden, SheetAnchors.FullHeightOnly),
         onCancel = chatViewModel::cancelEditingCustomValues,
         onConfirm = chatViewModel::confirmEditingCustomValues,
         canSubmit = canSubmit,

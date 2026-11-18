@@ -23,6 +23,7 @@ import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState
+import com.nice.cxonechat.thread.ContactHandler
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -39,14 +40,18 @@ internal class ChatThreadsHandlerMessagesTest {
 
     /**
      * Thread handlers share their chain from the moment they are built, so the handler behind the cache watcher can
-     * apply a MessageCreated before the watcher subscribes. Its first emission then already carries the new contact
-     * and state, which the thread list (no contact, Received) does not know.
+     * apply a MessageCreated before the watcher subscribes. Its first emission then already carries the new contact,
+     * handler and state, which the thread list (no contact, Received) does not know.
      */
     @Test
     fun `threadsFlow keeps a MessageCreated the handler applied before the cache watcher subscribed`() =
         runTest(UnconfinedTestDispatcher()) {
             val listedThread = makeChatThread(contactId = null, threadState = ChatThreadState.Received)
-            val updatedThread = listedThread.asCopyable().copy(contactId = CONTACT_ID, threadState = ChatThreadState.Ready)
+            val updatedThread = listedThread.asCopyable().copy(
+                contactId = CONTACT_ID,
+                contactHandler = ContactHandler.Cognigy,
+                threadState = ChatThreadState.Ready,
+            )
             val mockHandler: ChatThreadHandler = mockk(relaxed = true) {
                 every { threadFlow } returns MutableStateFlow(updatedThread)
             }
@@ -62,6 +67,7 @@ internal class ChatThreadsHandlerMessagesTest {
 
             val shown = assertNotNull(listed.lastOrNull()?.singleOrNull(), "threadsFlow must list the thread")
             assertEquals(CONTACT_ID, shown.contactId)
+            assertEquals(ContactHandler.Cognigy, shown.contactHandler)
             assertEquals(ChatThreadState.Ready, shown.threadState)
         }
 

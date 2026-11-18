@@ -15,6 +15,7 @@
 
 package com.nice.cxonechat.internal
 
+import com.nice.cxonechat.exceptions.RuntimeChatException
 import com.nice.cxonechat.internal.model.ApiErrorModel
 import com.nice.cxonechat.internal.model.TokenRequestBody
 import com.nice.cxonechat.internal.model.TransactionTokenModel
@@ -77,8 +78,28 @@ internal object TransactionTokenHelper {
     internal sealed class TransactionTokenResult {
         data class Success(val transactionTokenModel: TransactionTokenModel) : TransactionTokenResult()
         data class Error(val message: String, val httpStatusCode: Int = -1) : TransactionTokenResult() {
-            /** True when the backend explicitly rejected the token (HTTP 401), not an operational failure. */
-            val isTokenRejection: Boolean get() = httpStatusCode == 401
+            /**
+             * True when the backend explicitly rejected the token (HTTP 400), not an operational failure.
+             *
+             * Confirmed with the backend team: this endpoint reports a rejected token exclusively via
+             * HTTP 400, never 401 — a generic 401 (e.g. from a gateway/proxy in front of the endpoint)
+             * is not expected here and is intentionally excluded so it does not get misread as a rejection.
+             */
+            val isTokenRejection: Boolean get() = httpStatusCode == 400
         }
     }
 }
+
+/**
+ * Maps a failed refresh-token-grant call (spending the refresh token to mint a new access token)
+ * to the appropriate [RuntimeChatException]. A backend rejection (HTTP 400) means the refresh
+ * token itself is no longer usable — no fallback remains, so it surfaces as
+ * [RuntimeChatException.InvalidRefreshTokenException] rather than the generic
+ * [RuntimeChatException.AuthorizationError] used for operational failures (network error, 5xx).
+ */
+internal fun TransactionTokenHelper.TransactionTokenResult.Error.toRefreshTokenGrantException(): RuntimeChatException =
+    if (isTokenRejection) {
+        RuntimeChatException.InvalidRefreshTokenException(message)
+    } else {
+        RuntimeChatException.AuthorizationError(message)
+    }

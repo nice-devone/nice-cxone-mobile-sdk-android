@@ -18,18 +18,33 @@ package com.nice.cxonechat.ui.data.repository
 import com.nice.cxonechat.Chat
 import com.nice.cxonechat.ChatInstanceProvider
 import com.nice.cxonechat.ChatThreadHandler
+import com.nice.cxonechat.Popup
+import com.nice.cxonechat.log.LoggerNoop
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.ui.domain.model.NoThreadHandler
+import com.nice.cxonechat.ui.storage.ValueStorage
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import java.io.IOException
+import java.util.UUID
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertSame
+import kotlin.test.assertTrue
 
 internal class SelectedThreadRepositoryTest {
 
     private val chatProvider = mockk<ChatInstanceProvider>(relaxed = true)
-    private val repository = SelectedThreadRepository(chatProvider)
+    private val repository = SelectedThreadRepository(
+        chatProvider,
+        valueStorage = mockk<ValueStorage>(relaxed = true),
+        logger = LoggerNoop,
+    )
 
     @Test
     fun `repository registers itself as a provider listener`() {
@@ -78,5 +93,91 @@ internal class SelectedThreadRepositoryTest {
         repository.onChatChanged(null)
 
         assertSame(NoThreadHandler, repository.chatThreadHandler)
+    }
+
+    @Test
+    fun `isSatisfactionSurveyShowing stays true until every owner has cleared it`() {
+        val ownerA = Any()
+        val ownerB = Any()
+
+        repository.setSatisfactionSurveyShowing(ownerA, true)
+        repository.setSatisfactionSurveyShowing(ownerB, true)
+        assertTrue(repository.isSatisfactionSurveyShowing)
+
+        // A regression to last-writer-wins would make this clear the flag even though B is still showing.
+        repository.setSatisfactionSurveyShowing(ownerA, false)
+        assertTrue(repository.isSatisfactionSurveyShowing)
+
+        repository.setSatisfactionSurveyShowing(ownerB, false)
+        assertFalse(repository.isSatisfactionSurveyShowing)
+    }
+
+    @Test
+    fun `a survey that fails to persist is still returned by takeSurvey via an in-memory fallback`() = runTest {
+        val threadId = UUID.randomUUID()
+        val survey = mockk<Popup.SatisfactionSurvey>(relaxed = true)
+        val failingValueStorage = mockk<ValueStorage>(relaxed = true) {
+            coEvery { updateEncryptedPendingSurvey(any()) } throws IOException("disk full")
+        }
+        val repositoryWithFailingStorage = SelectedThreadRepository(chatProvider, valueStorage = failingValueStorage, logger = LoggerNoop)
+
+        repositoryWithFailingStorage.stashSurvey(threadId, survey)
+
+        assertSame(survey, repositoryWithFailingStorage.takeSurvey(threadId))
+    }
+
+    @Test
+    fun `a stash write failing after a concurrent sign-out does not resurrect the survey in the fallback`() = runTest {
+        val threadId = UUID.randomUUID()
+        val survey = mockk<Popup.SatisfactionSurvey>(relaxed = true)
+        lateinit var repositoryUnderTest: SelectedThreadRepository
+        val failingValueStorage = mockk<ValueStorage>(relaxed = true) {
+            coEvery { updateEncryptedPendingSurvey(any()) } coAnswers {
+                // Sign-out races in while this write is in flight, before it fails.
+                repositoryUnderTest.onChatChanged(null)
+                throw IOException("disk full")
+            }
+        }
+        repositoryUnderTest = SelectedThreadRepository(chatProvider, valueStorage = failingValueStorage, logger = LoggerNoop)
+
+        repositoryUnderTest.stashSurvey(threadId, survey)
+
+        assertNull(repositoryUnderTest.takeSurvey(threadId))
+    }
+
+    @Test
+    fun `takeSurvey returns null, not the survey, when the commit removing it fails`() = runTest {
+        val threadId = UUID.randomUUID()
+        val survey = mockk<Popup.SatisfactionSurvey>(relaxed = true) {
+            every { text } returns "How was it?"
+            every { surveyUrl } returns "https://example.test/survey"
+        }
+        var stored = ""
+        var failNextCommit = false
+        val flakyValueStorage = mockk<ValueStorage>(relaxed = true) {
+            coEvery { updateEncryptedPendingSurvey(any()) } coAnswers {
+                // The transform runs (and can capture a value) before this simulated commit
+                // failure, mirroring a DataStore write that fails after reading the current value.
+                val newValue = firstArg<(String) -> String>()(stored)
+                if (failNextCommit) {
+                    failNextCommit = false
+                    throw IOException("disk full")
+                }
+                stored = newValue
+            }
+        }
+        val repositoryWithFlakyStorage = SelectedThreadRepository(chatProvider, valueStorage = flakyValueStorage, logger = LoggerNoop)
+        repositoryWithFlakyStorage.stashSurvey(threadId, survey)
+
+        failNextCommit = true
+        assertNull(repositoryWithFlakyStorage.takeSurvey(threadId))
+
+        // The failed commit never removed the entry, so a later successful call still recovers it.
+        val recovered = repositoryWithFlakyStorage.takeSurvey(threadId)
+        assertEquals(survey.text, recovered?.text)
+        assertEquals(survey.surveyUrl, recovered?.surveyUrl)
+
+        // Now actually removed - a third call finds nothing left to take.
+        assertNull(repositoryWithFlakyStorage.takeSurvey(threadId))
     }
 }

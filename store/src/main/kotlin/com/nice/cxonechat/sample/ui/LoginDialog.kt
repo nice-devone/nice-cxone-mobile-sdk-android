@@ -25,9 +25,10 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -77,7 +78,12 @@ fun LoginDialog(
     @SuppressLint("ComposableLambdaParameterNaming") // This is not intended for actual content.
     analytics: (@Composable () -> Unit)? = null,
 ) {
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        // Matches the other store sheets. With PartiallyExpanded the sheet opens into that state instead,
+        // and a dismiss then collapses it to the same offset rather than closing it.
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
+    )
     val coroutineScope = rememberCoroutineScope()
     var firstName by rememberSaveable { mutableStateOf(userName?.firstName ?: "") }
     var lastName by rememberSaveable { mutableStateOf(userName?.lastName ?: "") }

@@ -39,7 +39,10 @@ import org.robolectric.annotation.GraphicsMode.Mode
  * fallback chain used for message avatars in the conversation ([com.nice.cxonechat.ui.composable.generic.MessageAvatar]).
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [33], qualifiers = "w411dp-h891dp-normal-notlong-notround-notnight-mdpi-finger")
+@Config(
+    sdk = [33],
+    qualifiers = "w411dp-h891dp-normal-notlong-notround-notnight-xhdpi-finger"
+)
 @GraphicsMode(Mode.NATIVE)
 class ThreadListAvatarScreenshotTest {
 
@@ -65,7 +68,7 @@ class ThreadListAvatarScreenshotTest {
                 }
             }
         }
-        composeTestRule.onRoot().captureRoboImage()
+        composeTestRule.onRoot().captureRoboImage(roborazziOptions = screenshotRoborazziOptions)
     }
 
     private fun agent(firstName: String?, lastName: String?, imageUrl: String?): Agent = object : Agent() {

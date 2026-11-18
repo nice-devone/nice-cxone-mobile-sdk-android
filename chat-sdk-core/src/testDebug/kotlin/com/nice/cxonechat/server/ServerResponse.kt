@@ -196,6 +196,7 @@ internal object ServerResponse {
         thread: ChatThread = makeChatThread(),
         agent: AgentModel = makeAgent(),
         customerCustomFields: List<CustomField> = emptyList(),
+        handler: String? = null,
         vararg messages: Any,
     ) = object {
         val eventId = TestUUID
@@ -208,6 +209,7 @@ internal object ServerResponse {
                     val status = "new"
                     val createdAt = Instant.fromEpochMilliseconds(0)
                     val customFields = thread.fields.map(::CustomFieldModel)
+                    val handler = handler
                 }
                 val customer = object {
                     val customFields = customerCustomFields.map(::CustomFieldModel)
@@ -275,17 +277,20 @@ internal object ServerResponse {
     fun MessageCreated(
         thread: ChatThread,
         message: Any,
+        handler: String? = null,
         status: String = "new",
+        contactId: String = TestContactId,
     ) = object {
         val eventId = TestUUID
         val eventType = "MessageCreated"
         val data = object {
             val message = message
             val case = object {
-                val id = TestContactId
+                val id = contactId
                 val threadIdOnExternalPlatform = thread.id
                 val status = status
                 val createdAt = Instant.fromEpochMilliseconds(0)
+                val handler = handler
             }
             val thread = object {
                 val idOnExternalPlatform = thread.id
@@ -331,15 +336,38 @@ internal object ServerResponse {
     fun CaseStatusChanged(
         thread: ChatThread,
         status: CaseStatus,
+        handler: String? = null,
+        contactId: String? = TestContactId,
     ) = object {
         val eventId = TestUUID
         val eventType = "CaseStatusChanged".also { assert(it == EventType.CaseStatusChanged.value) }
         val createdAt = Instant.fromEpochMilliseconds(0)
         val data = object {
             val case = object {
+                val id = contactId
                 val threadIdOnExternalPlatform = thread.id
                 val status = status
                 val statusUpdatedAt = Instant.fromEpochMilliseconds(0)
+                val handler = handler
+            }
+        }
+    }.serialize()
+
+    fun ContactHandlerChanged(
+        threadId: String,
+        handler: String?,
+    ) = object {
+        val eventId = TestUUID
+        val eventObject = "Contact"
+        val eventType = "ContactHandlerChanged"
+        val createdAt = Instant.fromEpochMilliseconds(0)
+        val data = object {
+            val contact = object {
+                val id = TestContactId
+                val threadIdOnExternalPlatform = threadId
+                val status = "open"
+                val customFields = emptyList<Any>()
+                val handler = handler
             }
         }
     }.serialize()
@@ -370,6 +398,7 @@ internal object ServerResponse {
         ownerAssignee: AgentModel? = null,
         customerCustomFields: List<CustomField> = emptyList(),
         status: ContactStatus = New,
+        handler: String? = null,
         vararg messages: Any,
     ) = object {
         val eventId = TestUUID
@@ -382,6 +411,7 @@ internal object ServerResponse {
                     val status = status
                     val createdAt = Instant.fromEpochMilliseconds(0)
                     val customFields = thread.fields.map(::CustomFieldModel)
+                    val handler = handler
                 }
                 val customer = object {
                     val customFields = customerCustomFields.map(::CustomFieldModel)
@@ -400,6 +430,8 @@ internal object ServerResponse {
         thread: ChatThread,
         agent: AgentModel?,
         connection: Connection,
+        handler: String? = null,
+        contactId: String = thread.contactId ?: TestContactId,
     ) = object {
         val eventId = TestUUID
         val eventType = "CaseInboxAssigneeChanged".also { assert(it == EventType.CaseInboxAssigneeChanged.value) }
@@ -412,11 +444,12 @@ internal object ServerResponse {
                 val id = connection.brandId
             }
             val case = object {
-                val id = thread.contactId ?: TestContactId
+                val id = contactId
                 val threadIdOnExternalPlatform = thread.id
                 val status = New.value
                 val createdAt = Instant.fromEpochMilliseconds(0)
                 val statusUpdatedAt = Instant.fromEpochMilliseconds(0)
+                val handler = handler
             }
             val inboxAssignee = agent
         }
@@ -690,6 +723,38 @@ internal object ServerResponse {
                                 val type = "BUTTON"
                                 val text = "No"
                                 val postback = """{"type":"sessionExpiration", "isExpired":true, "workflowJobId":"40180433-4438-4ef7-af4e-d6f69d3bda25"}"""
+                            },
+                        )
+                    })
+                }
+            }
+        )
+
+        fun SatisfactionSurvey(
+            threadId: UUID,
+            text: String = "How satisfied are you with our service?",
+            surveyUrl: String = "https://survey.example.com/s/abc123",
+        ) = Message(
+            threadId = threadId,
+            content = object {
+                val type = "PLUGIN"
+                val fallbackText = "Unsupported message content"
+                val payload = object {
+                    val postback = ""
+                    val elements = listOf(object {
+                        val id = UUID.randomUUID().toString()
+                        val type = StructuredElements.SatisfactionSurveyPlugin.TYPE
+                        val elements = listOf(
+                            object {
+                                val id = UUID.randomUUID().toString()
+                                val type = "TEXT"
+                                val text = text
+                            },
+                            object {
+                                val id = UUID.randomUUID().toString()
+                                val type = "IFRAME_BUTTON"
+                                val text = "Take survey"
+                                val url = surveyUrl
                             },
                         )
                     })

@@ -18,6 +18,7 @@ package com.nice.cxonechat.internal.model.network
 import com.nice.cxonechat.enums.EventType.CaseStatusChanged
 import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.thread.ContactHandler
 import com.nice.cxonechat.util.UUIDProvider
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
@@ -41,6 +42,12 @@ internal data class EventCaseStatusChanged(
     val status
         get() = data.case.status
 
+    val contactHandler
+        get() = ContactHandler.from(data.case.handler)
+
+    val contactId
+        get() = data.case.id
+
     fun inThread(thread: ChatThread) =
         data.case.threadIdOnExternalPlatform == thread.id.toString()
 
@@ -52,6 +59,8 @@ internal data class EventCaseStatusChanged(
 
     @Serializable
     internal data class Case(
+        @SerialName("id")
+        val id: String? = null,
         @SerialName("threadIdOnExternalPlatform")
         val threadIdOnExternalPlatform: String,
         @SerialName("status")
@@ -59,6 +68,8 @@ internal data class EventCaseStatusChanged(
         @SerialName("statusUpdatedAt")
         @Contextual
         val statusUpdatedAt: Instant,
+        @SerialName("handler")
+        val handler: String? = null,
     )
 
     @Serializable

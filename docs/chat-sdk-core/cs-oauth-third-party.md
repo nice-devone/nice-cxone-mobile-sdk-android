@@ -4,11 +4,6 @@ This case study explains how to integrate third-party OAuth authentication with 
 The SDK supports two distinct flows — **Explicit** and **Implicit** — and this document covers both in
 detail, including token lifecycle, re-authentication, and error handling.
 
-> [!WARNING]
-> The **Explicit OAuth flow is currently not supported by the backend in the latest SDK version**.
-> For new integrations, use the **Implicit flow**.
-> If your app depends on explicit flow, do not upgrade to the latest SDK yet.
-
 ## Table of Contents
 
 1. [Overview](#overview)
@@ -30,8 +25,10 @@ detail, including token lifecycle, re-authentication, and error handling.
 
 ## Overview
 
-The CXone Chat SDK supports third-party OAuth authentication via `AuthenticationType.ThirdPartyOAuth`.
-In this mode, user identity is managed by an external OAuth provider of your choice.
+The CXone Chat SDK supports third-party OAuth authentication, configured on the channel. In this mode, user identity is
+managed by an external OAuth provider of your choice. Whether the channel requires it is reported by the public
+`Chat.configuration.isAuthorizationEnabled` (`com.nice.cxonechat.state.Configuration`); the authentication type itself is
+an SDK-internal detail and is not part of the public API.
 
 Two distinct flows are supported:
 
@@ -60,10 +57,6 @@ Use the **Explicit flow** when:
 - You prefer the backend to own the token exchange step (PKCE authorization-code flow).
 - You supply the SDK with a one-time authorization code and the corresponding PKCE code verifier.
 
-> [!WARNING]
-> **Known issue for this release:** explicit flow is currently not supported by the backend in the latest SDK version.
-> For this release, use implicit flow, or stay on your previous SDK version until explicit flow is supported.
-
 Use the **Implicit flow** when:
 - Your application already performs the full OAuth exchange and holds the JWT access token.
 - You need fine-grained control over token refresh (silent refresh, biometric re-authentication, etc.).
@@ -72,10 +65,6 @@ Use the **Implicit flow** when:
 ---
 
 ## Explicit OAuth Flow
-
-> [!WARNING]
-> This flow is currently not supported by the backend in the latest SDK version.
-> Use [Implicit OAuth Flow](#implicit-oauth-flow), or do not update to the latest SDK if you require explicit flow.
 
 ### How It Works (Explicit)
 
@@ -134,48 +123,71 @@ Once you have both the authorization code and the code verifier, hand them to th
 
 ```kotlin
 // Build with ChatBuilder:
-val chatBuilder = ChatBuilder(context, socketFactoryConfiguration)
-    .setDevelopmentMode(BuildConfig.DEBUG)
-    .setAuthorization(Authorization(code = authorizationCode, verifier = codeVerifier))
-    .setChatStateListener(chatStateListener)
-
-chatBuilder.build { result ->
-    result
-        .onSuccess { chat -> chat.connect() }
-        .onFailure { throwable -> /* handle build failure */ }
+// ChatBuilder(...), build() and connect() are all suspend functions — call them from a coroutine.
+scope.launch {
+    try {
+        val chat = ChatBuilder(context, socketFactoryConfiguration)
+            .setDevelopmentMode(BuildConfig.DEBUG)
+            .setAuthorization(Authorization(code = authorizationCode, verifier = codeVerifier))
+            .setChatStateListener(chatStateListener)
+            .build()
+        chat.connect()
+    } catch (expected: CancellationException) {
+        throw expected // Never swallow cancellation — it would break structured concurrency.
+    } catch (logged: Exception) {
+        // Handle build/connect failure.
+    }
 }
 ```
 
 When using `ChatInstanceProvider`:
 
 ```kotlin
-chatProvider.configure(context) {
-    configuration = socketFactoryConfiguration
-    authorization = Authorization(code = authorizationCode, verifier = codeVerifier)
+// configure() is a suspend function — call it from a coroutine.
+scope.launch {
+    chatProvider.configure(context) {
+        configuration = socketFactoryConfiguration
+        authorization = Authorization(code = authorizationCode, verifier = codeVerifier)
+    }
 }
 ```
 
 ### Token Expiration and Re-Authentication
 
 The transaction token issued by the CXone backend expires after a configured period. For explicit flow,
-the SDK first attempts background recovery using the stored `refresh_token` (no user interaction).
-If this recovery cannot proceed (for example, refresh token is missing), your app must re-run the PKCE
-authorization-code flow to obtain a new code + verifier.
+the SDK attempts background recovery with no user interaction, in two steps depending on whether the
+underlying OAuth access token is also still valid:
+
+1. **Access token still valid:** the SDK reuses it directly to obtain a new transaction token — the
+   stored `refresh_token` is not spent.
+2. **Access token also expired:** the SDK spends the stored `refresh_token` to mint a new access token,
+   then uses that new access token to obtain a new transaction token.
+
+If neither recovery path can proceed — no `refresh_token` is available, the refresh exchange does not
+return a usable access token, or the backend rejects the `refresh_token` itself — your app must re-run
+the PKCE authorization-code flow to obtain a new code + verifier.
 
 **What happens when the token expires:**
 
-1. On expiry, the SDK attempts refresh using `refresh_token` in the background.
-2. If refresh succeeds, the session continues without prompting the user.
-3. If refresh cannot proceed, the SDK reports `RuntimeChatException.ConnectionTokenFailed`.
+1. On expiry, the SDK attempts background recovery as described above (access-token reuse, or
+   refresh-token exchange followed by access-token reuse).
+2. If recovery succeeds, the session continues without prompting the user.
+3. If recovery cannot proceed because no usable credential is available, the SDK reports
+   `RuntimeChatException.ConnectionTokenFailed`. If the backend explicitly rejects the `refresh_token`
+   while attempting the exchange, the SDK reports `RuntimeChatException.InvalidRefreshTokenException` instead.
 4. The integrating app re-runs PKCE OAuth, supplies new code + verifier via `setAuthorization()` (or `configure { authorization = ... }`), and reconnects.
 
 ```kotlin
 // In your ViewModel or ChatInstanceProvider.Listener:
 override fun onChatRuntimeException(exception: RuntimeChatException) {
-    if (exception is RuntimeChatException.ConnectionTokenFailed) {
-        // SDK could not refresh via refresh_token — re-run OAuth to get a new code + verifier,
-        // then call setAuthorization() and reconnect.
-        triggerOAuthReAuthentication()
+    when (exception) {
+        is RuntimeChatException.ConnectionTokenFailed,
+        is RuntimeChatException.InvalidRefreshTokenException -> {
+            // SDK could not recover the session in the background — re-run OAuth to get a new
+            // code + verifier, then call setAuthorization() and reconnect.
+            triggerOAuthReAuthentication()
+        }
+        else -> { /* handle other exceptions */ }
     }
 }
 ```
@@ -184,9 +196,19 @@ override fun onChatRuntimeException(exception: RuntimeChatException) {
 
 | Exception | Cause | Required action |
 |-----------|-------|-----------------|
-| `RuntimeChatException.FeatureUnavailableException` | The backend returned an error when attempting to exchange the authorization code for a transaction token — explicit flow is not functioning on the current backend version | Switch to the implicit flow via `setTokenDelegateListener(...)`, or stay on a previous SDK version until explicit flow is restored. **If using `ChatActivity` (chat-sdk-ui), it exits silently — show recovery UI in your own `ChatInstanceProvider.Listener`.** |
-| `RuntimeChatException.ConnectionTokenFailed` | SDK could not recover an expired explicit-flow session via `refresh_token` (for example, token missing) | Re-run PKCE flow → call `setAuthorization()` with new code + verifier → reconnect |
-| `RuntimeChatException.AuthorizationError` | Backend rejected the authorization code or configuration error (non-explicit-flow paths) | Verify OAuth provider setup and backend configuration |
+| `RuntimeChatException.ConnectionTokenFailed` | SDK could not recover an expired explicit-flow session in the background — either no `refresh_token` was available, or the refresh-token exchange did not return a usable access token | Re-run PKCE flow → call `setAuthorization()` with new code + verifier → reconnect |
+| `RuntimeChatException.InvalidRefreshTokenException` | Backend rejected the `refresh_token` itself while the SDK tried to exchange it for a new access token — no fallback remains | Re-run PKCE flow → call `setAuthorization()` with new code + verifier → reconnect |
+| `RuntimeChatException.AuthorizationError` | Backend rejected the authorization code, or returned an error while exchanging it for a transaction token (e.g. explicit flow not enabled/misconfigured for this channel) | Verify OAuth provider setup and backend explicit-flow configuration (`isAuthorizationEnabled`) |
+
+> [!NOTE]
+> **If you use `chat-sdk-ui`'s built-in `ChatActivity`/`ChatErrorScreen`:** it already shows its own
+> non-dismissible dialog for `AuthorizationError` and `InvalidRefreshTokenException` (confirming ends the
+> chat session), since the SDK itself cannot recover from either. Don't also trigger your own
+> re-authentication UI for these two from a separate `ChatInstanceProvider.Listener` — that would show two
+> competing prompts. `ConnectionTokenFailed` is different: `chat-sdk-ui` exits the chat screen silently and
+> expects your app to drive re-authentication, which is exactly the pattern shown above.
+> This distinction only matters if you're using `chat-sdk-ui`; headless integrations against `chat-sdk-core`
+> alone should follow the table and code sample above for all three exceptions.
 
 ---
 
@@ -280,25 +302,32 @@ non-`TokenDelegationFailedException` causes and reports them via `onChatRuntimeE
 
 ```kotlin
 // Via ChatBuilder:
-val chatBuilder = ChatBuilder(context, socketFactoryConfiguration)
-    .setDevelopmentMode(BuildConfig.DEBUG)
-    .setTokenDelegateListener(tokenDelegate)
-    .setChatStateListener(chatStateListener)
-
-chatBuilder.build { result ->
-    result
-        .onSuccess { chat -> chat.connect() }
-        .onFailure { /* handle */ }
+// ChatBuilder(...), build() and connect() are all suspend functions — call them from a coroutine.
+scope.launch {
+    try {
+        val chat = ChatBuilder(context, socketFactoryConfiguration)
+            .setDevelopmentMode(BuildConfig.DEBUG)
+            .setTokenDelegateListener(tokenDelegate)
+            .setChatStateListener(chatStateListener)
+            .build()
+        chat.connect()
+    } catch (expected: CancellationException) {
+        throw expected // Never swallow cancellation — it would break structured concurrency.
+    } catch (logged: Exception) {
+        // Handle build/connect failure.
+    }
 }
 
 // Via ChatInstanceProvider at runtime:
 chatProvider.setTokenDelegateListener(tokenDelegate)
 
-// Or inside configure() to apply immediately:
-chatProvider.configure(context) {
-    configuration = socketFactoryConfiguration
-    tokenDelegateListener = tokenDelegate
-    authorization = null // Required when switching from explicit to implicit.
+// Or inside configure() to apply immediately — configure() is a suspend function:
+scope.launch {
+    chatProvider.configure(context) {
+        configuration = socketFactoryConfiguration
+        tokenDelegateListener = tokenDelegate
+        authorization = null // Required when switching from explicit to implicit.
+    }
 }
 ```
 
@@ -351,7 +380,7 @@ The SDK triggers `onNewTokenRequested` based on three reasons:
 |----------------------|----------------|--------------------|
 | `UNSPECIFIED` | First `connect()` call | Return cached token if available; otherwise fetch a fresh one |
 | `TOKEN_EXPIRED` | Proactive refresh before `expiryDateMillis` is reached | Attempt a silent refresh using your stored refresh token; fall back to interactive if needed |
-| `TOKEN_INVALID` | Backend returned HTTP 401 for the current JWT | Attempt a silent refresh; fall back to interactive if needed |
+| `TOKEN_INVALID` | Backend returned HTTP 400 for the current JWT | Attempt a silent refresh; fall back to interactive if needed |
 
 #### OAuthToken
 
@@ -425,9 +454,9 @@ override fun onChatRuntimeException(exception: RuntimeChatException) {
 
 | Exception class | Flow | Description |
 |-----------------|------|-------------|
-| `RuntimeChatException.FeatureUnavailableException` | Explicit | Backend returned an error when exchanging the authorization code for a transaction token; explicit flow is not functioning on the current backend version |
-| `RuntimeChatException.ConnectionTokenFailed` | Explicit | SDK could not recover an expired session via `refresh_token`; re-authentication with a new code + verifier required |
-| `RuntimeChatException.AuthorizationError` | Explicit | Backend rejected the authorization code or backend misconfigured (non-explicit-flow paths) |
+| `RuntimeChatException.ConnectionTokenFailed` | Explicit | SDK could not recover an expired session in the background (no `refresh_token` available, or the refresh exchange did not return a usable access token); re-authentication with a new code + verifier required |
+| `RuntimeChatException.AuthorizationError` | Explicit | Backend rejected the authorization code, or returned an error while exchanging it for a transaction token (e.g. explicit flow not enabled/misconfigured for this channel) |
+| `RuntimeChatException.InvalidRefreshTokenException` | Explicit | Backend rejected the `refresh_token` while the SDK tried to exchange it for a new access token (e.g. expired/revoked); full re-authentication with a new code + verifier is required — no fallback remains |
 | `RuntimeChatException.InvalidAccessTokenException` | Implicit | Backend rejected JWT; automatic recovery also failed |
 | `RuntimeChatException.TokenDelegationFailedException` | Implicit | `onNewTokenRequested` threw; SDK cannot proceed |
 
@@ -441,17 +470,18 @@ All exceptions are reported via `ChatStateListener.onChatRuntimeException()` on 
 
 | Component | Explicit Flow | Implicit Flow |
 |-----------|--------------|---------------|
-| **Integrating App** | Run PKCE OAuth flow; pass code + verifier to SDK; handle `ConnectionTokenFailed` as fallback re-auth path | Perform full OAuth exchange; implement `TokenDelegateListener` with caching and refresh logic |
+| **Integrating App** | Run PKCE OAuth flow; pass code + verifier to SDK; handle `ConnectionTokenFailed`/`InvalidRefreshTokenException` as fallback re-auth path | Perform full OAuth exchange; implement `TokenDelegateListener` with caching and refresh logic |
 | **Chat SDK** | Forward code + verifier to backend; establish WebSocket with transaction token | Call `onNewTokenRequested` at the right time; schedule proactive refresh using `expiryDateMillis` |
-| **CXone Backend** | Exchange auth code for tokens; issue transaction token | Validate JWT; return 401 on rejection |
+| **CXone Backend** | Exchange auth code for tokens; issue transaction token | Validate JWT; return 400 on rejection |
 
 ### Quick Setup Checklist
 
 **Explicit flow:**
 - [ ] Implement PKCE authorization-code flow with your OAuth provider
 - [ ] Call `ChatBuilder.setAuthorization(Authorization(code, verifier))` after obtaining credentials
-- [ ] Verify expiry path: background refresh succeeds when `refresh_token` is available
+- [ ] Verify expiry path: session recovers in the background when the access token is still valid (no `refresh_token` spent) or when a valid `refresh_token` is available
 - [ ] Handle `RuntimeChatException.ConnectionTokenFailed` fallback by re-running OAuth when refresh cannot proceed
+- [ ] Handle `RuntimeChatException.InvalidRefreshTokenException` by re-running OAuth when the backend rejects the `refresh_token`
 
 **Implicit flow:**
 - [ ] Implement `TokenDelegateListener` with caching, silent refresh, and interactive fallback

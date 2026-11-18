@@ -96,7 +96,8 @@ internal fun EndConversationContent(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
             .fillMaxWidth()
-            .padding(top = space.medium, bottom = space.xl),
+            // Stands in for the drag handle's spacing, which the sheet no longer has.
+            .padding(top = space.sheetContentTopPadding, bottom = space.xl),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(space.large, Alignment.CenterVertically)
     ) {

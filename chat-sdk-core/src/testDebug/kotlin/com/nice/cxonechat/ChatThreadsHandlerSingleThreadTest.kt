@@ -29,6 +29,7 @@ import com.nice.cxonechat.server.ServerRequest
 import com.nice.cxonechat.server.ServerResponse
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState
+import com.nice.cxonechat.thread.ContactHandler
 import com.nice.cxonechat.tool.nextStringMap
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
@@ -42,6 +43,7 @@ import kotlin.test.assertTrue
 internal class ChatThreadsHandlerSingleThreadTest : AbstractSingleThreadChatTest() {
 
     private lateinit var threads: ChatThreadsHandler
+    private val listed = mutableListOf<List<ChatThread>>()
 
     override fun prepare() {
         super.prepare()
@@ -283,20 +285,34 @@ internal class ChatThreadsHandlerSingleThreadTest : AbstractSingleThreadChatTest
         laggingCollector.cancel()
     }
 
-    private val listed = mutableListOf<List<ChatThread>>()
+    @Test
+    fun `threadsFlow shows the contactHandler of a later recovery over the one cached from MessageCreated`() {
+        val recovered = recoverOpenAndCloseThread(handler = "cognigy")
+
+        socketServer.sendServerMessage(
+            ServerResponse.ThreadRecovered(thread = recovered.copyWithContact(NEW_CONTACT_ID), handler = "cxone")
+        )
+
+        assertEquals(ContactHandler.CXone, lastListed(recovered).contactHandler)
+    }
 
     /**
      * Recovers a thread with contact A, opens its handler so the cache watcher starts, then closes the case with a
-     * MessageCreated, which carries [TestContactId]. Both values land in the threadsFlow cache.
+     * MessageCreated, which carries [TestContactId] and [handler]. These values land in the threadsFlow cache.
      */
-    private fun recoverOpenAndCloseThread(): ChatThread {
+    private fun recoverOpenAndCloseThread(handler: String? = null): ChatThread {
         connect()
         val thread = makeChatThread(contactId = "contact-a")
         testScope.launch { threads.threadsFlow.collect { listed += it } }
         socketServer.sendServerMessage(ServerResponse.ThreadRecovered(thread = thread))
         threads.thread(thread)
         socketServer.sendServerMessage(
-            ServerResponse.MessageCreated(thread, makeMessageModel(threadIdOnExternalPlatform = thread.id), status = "closed")
+            ServerResponse.MessageCreated(
+                thread,
+                makeMessageModel(threadIdOnExternalPlatform = thread.id),
+                handler = handler,
+                status = "closed",
+            )
         )
         val closed = lastListed(thread)
         assertEquals(ChatThreadState.Closed, closed.threadState, "Precondition: MessageCreated closes the listed thread")

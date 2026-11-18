@@ -16,19 +16,20 @@
 package com.nice.cxonechat.ui.composable.theme
 
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,18 +37,27 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 internal fun ChatTheme.SubtleModalBottomSheet(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
-    dragHandler: @Composable (() -> Unit)? = { Spacer(Modifier.height(space.xl)) },
-    sheetState: SheetState = rememberModalBottomSheetState(),
+    dragHandler: @Composable (() -> Unit)? = null,
+    // No half height stop: these sheets ask for a choice, not for scrolling.
+    sheetState: SheetState = rememberBottomSheetState(SheetValue.Hidden, SheetAnchors.FullHeightOnly),
+    // Default keeps a centred card in landscape; a caller (e.g. the Satisfaction Survey) can opt
+    // back into the wide-screen rule by passing its own sheetMaxWidth.
+    sheetMaxWidth: Dp = BottomSheetDefaults.SheetMaxWidth,
+    containerColor: Color = chatColors.token.background.surface.subtle,
+    sheetGesturesEnabled: Boolean = true,
+    bottomSheetTag: String = "inactivity_popup_bottom_sheet",
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    ModalBottomSheet(
+    WideScreenModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
+        sheetMaxWidth = sheetMaxWidth,
         dragHandle = dragHandler,
-        containerColor = chatColors.token.background.surface.subtle,
+        containerColor = containerColor,
         contentColor = chatColors.token.content.primary,
+        sheetGesturesEnabled = sheetGesturesEnabled,
         modifier = modifier
-            .testTag("inactivity_popup_bottom_sheet"),
+            .testTag(bottomSheetTag),
         content = content,
     )
 }

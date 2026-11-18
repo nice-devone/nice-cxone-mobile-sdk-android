@@ -20,9 +20,11 @@ import com.nice.cxonechat.internal.TransactionTokenHelper.TransactionTokenResult
 import com.nice.cxonechat.internal.model.CustomerIdentityModel
 import com.nice.cxonechat.internal.model.TokenRequestBody
 import com.nice.cxonechat.internal.model.TransactionTokenModel
+import com.nice.cxonechat.internal.serializer.Default
 import com.nice.cxonechat.storage.ValueStorage
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.serialization.decodeFromString
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Before
 import org.junit.Test
@@ -32,6 +34,8 @@ import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
@@ -97,29 +101,10 @@ internal class TransactionTokenHelperTest {
         assertFalse(result.isTokenRejection)
     }
 
-    // ── HTTP 401 → isTokenRejection ───────────────────────────────────────────
+    // ── HTTP 400 → isTokenRejection ───────────────────────────────────────────
 
     @Test
-    fun `returns Error with isTokenRejection true when server responds 401`() {
-        val response = Response.error<TransactionTokenModel>(
-            401,
-            "".toResponseBody(null)
-        )
-        every { authService.getTransactionToken(brandId, channelId, visitorId, tokenBody) } returns mockk {
-            every { execute() } returns response
-        }
-
-        val result = TransactionTokenHelper.getTransactionToken(entrails, brandId, channelId, visitorId, tokenBody)
-
-        assertIs<TransactionTokenResult.Error>(result)
-        assertEquals(401, result.httpStatusCode)
-        assertTrue(result.isTokenRejection, "HTTP 401 must set isTokenRejection = true")
-    }
-
-    // ── HTTP 400 → not a token rejection ─────────────────────────────────────
-
-    @Test
-    fun `returns Error with isTokenRejection false when server responds 400`() {
+    fun `returns Error with isTokenRejection true when server responds 400`() {
         val response = Response.error<TransactionTokenModel>(
             400,
             "".toResponseBody(null)
@@ -132,7 +117,26 @@ internal class TransactionTokenHelperTest {
 
         assertIs<TransactionTokenResult.Error>(result)
         assertEquals(400, result.httpStatusCode)
-        assertFalse(result.isTokenRejection, "HTTP 400 must NOT set isTokenRejection")
+        assertTrue(result.isTokenRejection, "HTTP 400 must set isTokenRejection = true")
+    }
+
+    // ── HTTP 401 → not a token rejection ─────────────────────────────────────
+
+    @Test
+    fun `returns Error with isTokenRejection false when server responds 401`() {
+        val response = Response.error<TransactionTokenModel>(
+            401,
+            "".toResponseBody(null)
+        )
+        every { authService.getTransactionToken(brandId, channelId, visitorId, tokenBody) } returns mockk {
+            every { execute() } returns response
+        }
+
+        val result = TransactionTokenHelper.getTransactionToken(entrails, brandId, channelId, visitorId, tokenBody)
+
+        assertIs<TransactionTokenResult.Error>(result)
+        assertEquals(401, result.httpStatusCode)
+        assertFalse(result.isTokenRejection, "HTTP 401 must NOT set isTokenRejection")
     }
 
     // ── HTTP 403 → not a token rejection ─────────────────────────────────────
@@ -197,6 +201,35 @@ internal class TransactionTokenHelperTest {
     }
 
     // ── error body JSON parsing ───────────────────────────────────────────────
+
+    @Test
+    fun `extracts errorMessage even when error body contains unknown fields`() {
+        // DE-172450: error body now parsed with Default.serializer (ignoreUnknownKeys = true).
+        // Previously used bare Json which threw on unknown fields, causing runCatching to return
+        // null and losing the errorMessage from the body — callers got a generic fallback message
+        // instead of the server-provided reason.
+        val errorJson = """
+            {
+                "error": {
+                    "errorCode": "TOKEN_EXPIRED",
+                    "errorMessage": "Access token has expired",
+                    "transactionId": "txn-123",
+                    "newBackendFieldUnknownToSdk": "some-value",
+                    "anotherFutureField": 42
+                }
+            }
+        """.trimIndent()
+        val response = Response.error<TransactionTokenModel>(401, errorJson.toResponseBody(null))
+        every { authService.getTransactionToken(brandId, channelId, visitorId, tokenBody) } returns mockk {
+            every { execute() } returns response
+        }
+
+        val result = TransactionTokenHelper.getTransactionToken(entrails, brandId, channelId, visitorId, tokenBody)
+
+        assertIs<TransactionTokenResult.Error>(result)
+        assertEquals("Access token has expired", result.message)
+        assertEquals(401, result.httpStatusCode)
+    }
 
     @Test
     fun `uses errorMessage from JSON error body when present`() {
@@ -293,5 +326,31 @@ internal class TransactionTokenHelperTest {
 
         assertIs<TransactionTokenResult.Error>(result)
         assertTrue(result.message.contains("empty response body"), "Expected empty-body message, got: ${result.message}")
+    }
+
+    // ── refresh-token-grant response shape ────────────────────────────────────
+
+    @Test
+    fun `decodes refresh-token-grant response that only populates thirdParty`() {
+        // A refresh_token grant response only returns the thirdParty object — no top-level
+        // accessToken/expiresIn (those belong to the transaction token, not the OAuth token).
+        val json = """
+            {
+                "thirdParty": {
+                    "access_token": "fresh-access-token",
+                    "refresh_token": "fresh-refresh-token",
+                    "expires_in": 3600
+                }
+            }
+        """.trimIndent()
+
+        val model = Default.serializer.decodeFromString<TransactionTokenModel>(json)
+
+        assertNull(model.transactionToken)
+        assertNull(model.expiresIn)
+        assertNull(model.expiresAt)
+        assertTrue(model.isExpired, "A response with no transaction token must be treated as expired")
+        assertNotNull(model.thirdParty)
+        assertEquals("fresh-access-token", model.thirdParty.accessToken)
     }
 }

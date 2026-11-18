@@ -17,15 +17,9 @@
 
 package com.nice.cxonechat
 
-import com.nice.cxonechat.event.thread.ArchiveThreadEvent
 import com.nice.cxonechat.exceptions.SdkVersionNotSupported
-import com.nice.cxonechat.internal.ChannelConfigurationCache
-import com.nice.cxonechat.internal.ChatBuilderInternal
 import com.nice.cxonechat.internal.ChatWithParameters
-import com.nice.cxonechat.internal.copy.ConnectionCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.model.ChannelConfiguration
-import com.nice.cxonechat.model.makeChatThread
-import com.nice.cxonechat.server.ServerRequest
 import com.nice.cxonechat.server.ServerResponse
 import com.nice.cxonechat.state.Connection
 import com.nice.cxonechat.tool.SocketFactoryMock
@@ -114,14 +108,15 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
 
     @Test
     fun build_handlesSdkVersionNotSupported() {
-        val errorJson = """
-        {
-            "error": {
-             "errorCode": "SdkVersionNotSupported",
-             "errorMessage": "Your version of SDK is not supported anymore, please do upgrade."
-             }
-         }
-    """.trimIndent()
+        val errorJson =
+            """
+                {
+                    "error": {
+                     "errorCode": "SdkVersionNotSupported",
+                     "errorMessage": "Your version of SDK is not supported anymore, please do upgrade."
+                     }
+                 }
+            """.trimIndent()
         val call = mockk<Call<ChannelConfiguration?>> {
             every { execute() } answers {
                 Response.error(403, errorJson.toResponseBody())
@@ -136,16 +131,17 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
 
     @Test
     fun build_handles_unknown_field_in_error_response_without_parsing_exception() {
-        val errorJson = """
-        {
-            "error": {
-             "errorCode": "InternalError",
-             "errorMessage": "This is a new error",
-             "transactionId": "${UUID.randomUUID()}",
-             "unknownField": "This is a new backend field that the SDK doesn't know about"
-             }
-         }
-    """.trimIndent()
+        val errorJson =
+            """
+                {
+                    "error": {
+                     "errorCode": "InternalError",
+                     "errorMessage": "This is a new error",
+                     "transactionId": "${UUID.randomUUID()}",
+                     "unknownField": "This is a new backend field that the SDK doesn't know about"
+                     }
+                }
+            """.trimIndent()
         val call = mockk<Call<ChannelConfiguration?>> {
             every { execute() } answers {
                 Response.error(403, errorJson.toResponseBody())
@@ -293,39 +289,6 @@ internal class ChatBuilderTest : AbstractChatTestSubstrate() {
         val factory = SocketFactoryMock(socket, proxyListener)
         val connection = factory.getConfiguration(storage)
         return connection to ChatBuilder(entrails, factory)
-    }
-
-    @Test
-    fun build_reusesCachedChannelConfiguration_whenPreferred() {
-        ChannelConfigurationCache.clear()
-        val call = mockk<Call<ChannelConfiguration?>> {
-            every { execute() } returns Response.success(config)
-        }
-        every { service.getChannel(any(), any()) } returns call
-
-        // First build fetches the configuration and populates the cache (a provider prepare()).
-        assert(build().isSuccess)
-        // A per-session rebuild preferring the cache must not repeat the costly getChannel call.
-        val rebuild = build {
-            (this as? ChatBuilderInternal)?.setPreferCachedConfiguration(true)
-            this
-        }
-        assert(rebuild.isSuccess)
-        verify(exactly = 1) { call.execute() }
-    }
-
-    @Test
-    fun build_fetchesConfigurationAgain_whenCacheNotPreferred() {
-        ChannelConfigurationCache.clear()
-        val call = mockk<Call<ChannelConfiguration?>> {
-            every { execute() } returns Response.success(config)
-        }
-        every { service.getChannel(any(), any()) } returns call
-
-        // Public build() semantics are unchanged: without the internal preference each build fetches.
-        assert(build().isSuccess)
-        assert(build().isSuccess)
-        verify(exactly = 2) { call.execute() }
     }
 
     private fun build(

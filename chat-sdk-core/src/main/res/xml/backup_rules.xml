@@ -28,5 +28,15 @@
         path="secure_store.preferences_pb" />
     <exclude
         domain="sharedpref"
-        path="cxonechat_tink_keyset.xml" />
+        path="cxonechat_master_key.xml" />
+    <!-- chat-sdk-ui's encrypted Satisfaction Survey stash (EncryptedPendingSurveyStorage) -->
+    <exclude
+        domain="file"
+        path="datastore/com.nice.cxonechat.ui.secure_settings.preferences_pb" />
+    <exclude
+        domain="file"
+        path="persistent_cookies.pb" />
+    <exclude
+        domain="sharedpref"
+        path="cookie_master_key.xml" />
 </full-backup-content>

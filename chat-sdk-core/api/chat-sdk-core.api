@@ -331,6 +331,11 @@ public abstract interface class com/nice/cxonechat/Popup$InactivityPopup$Countdo
 	public abstract fun getTimeoutSeconds ()J
 }
 
+public abstract interface class com/nice/cxonechat/Popup$SatisfactionSurvey : com/nice/cxonechat/Popup {
+	public abstract fun getSurveyUrl ()Ljava/lang/String;
+	public abstract fun getText ()Ljava/lang/String;
+}
+
 public abstract interface class com/nice/cxonechat/PopupEvent {
 	public abstract fun getMetadata ()Lcom/nice/cxonechat/analytics/ActionMetadata;
 	public abstract fun getVariables ()Ljava/util/Map;
@@ -456,6 +461,9 @@ public final class com/nice/cxonechat/exceptions/RuntimeChatException$FeatureUna
 }
 
 public final class com/nice/cxonechat/exceptions/RuntimeChatException$InvalidAccessTokenException : com/nice/cxonechat/exceptions/RuntimeChatException {
+}
+
+public final class com/nice/cxonechat/exceptions/RuntimeChatException$InvalidRefreshTokenException : com/nice/cxonechat/exceptions/RuntimeChatException {
 }
 
 public final class com/nice/cxonechat/exceptions/RuntimeChatException$ServerCommunicationError : com/nice/cxonechat/exceptions/RuntimeChatException {
@@ -822,6 +830,7 @@ public abstract class com/nice/cxonechat/thread/Agent {
 public abstract class com/nice/cxonechat/thread/ChatThread {
 	public fun <init> ()V
 	public abstract fun getCanAddMoreMessages ()Z
+	public fun getContactHandler ()Lcom/nice/cxonechat/thread/ContactHandler;
 	public abstract fun getContactId ()Ljava/lang/String;
 	public abstract fun getFields ()Ljava/util/List;
 	public final fun getHasMoreMessagesToLoad ()Z
@@ -844,6 +853,15 @@ public final class com/nice/cxonechat/thread/ChatThreadState : java/lang/Enum {
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/nice/cxonechat/thread/ChatThreadState;
 	public static fun values ()[Lcom/nice/cxonechat/thread/ChatThreadState;
+}
+
+public final class com/nice/cxonechat/thread/ContactHandler : java/lang/Enum {
+	public static final field CXone Lcom/nice/cxonechat/thread/ContactHandler;
+	public static final field Cognigy Lcom/nice/cxonechat/thread/ContactHandler;
+	public static final field Unknown Lcom/nice/cxonechat/thread/ContactHandler;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/nice/cxonechat/thread/ContactHandler;
+	public static fun values ()[Lcom/nice/cxonechat/thread/ContactHandler;
 }
 
 public abstract interface class com/nice/cxonechat/thread/CustomField {

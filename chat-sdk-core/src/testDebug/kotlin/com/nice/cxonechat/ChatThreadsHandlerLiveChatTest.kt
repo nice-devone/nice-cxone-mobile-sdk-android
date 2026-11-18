@@ -15,9 +15,15 @@
 
 package com.nice.cxonechat
 
+import com.nice.cxonechat.internal.ChatThreadHandlerLiveChat.Companion.BEGIN_CONVERSATION_MESSAGE
 import com.nice.cxonechat.internal.copy.ChatThreadCopyable.Companion.asCopyable
 import com.nice.cxonechat.internal.model.network.EventCaseStatusChanged.CaseStatus.Closed
+import com.nice.cxonechat.internal.model.network.EventCaseStatusChanged.CaseStatus.Open
+import com.nice.cxonechat.internal.model.network.MessagePolyContent
+import com.nice.cxonechat.internal.model.network.Parameters
+import com.nice.cxonechat.message.Message.Text
 import com.nice.cxonechat.model.makeChatThread
+import com.nice.cxonechat.model.makeMessageModel
 import com.nice.cxonechat.server.ServerRequest
 import com.nice.cxonechat.server.ServerResponse
 import com.nice.cxonechat.thread.ChatThread
@@ -80,6 +86,39 @@ internal class ChatThreadsHandlerLiveChatTest : AbstractLiveChatTest() {
     }
 
     @Test
+    fun `threadsFlow removes begin conversation message when livechat is recovered`() {
+        connect()
+        val thread = makeChatThread(threadState = Received)
+        val beginMessage = makeMessageModel(
+            threadIdOnExternalPlatform = thread.id,
+            messageContent = MessagePolyContent.Text(
+                payload = MessagePolyContent.Text.Payload(BEGIN_CONVERSATION_MESSAGE),
+                parameters = Parameters.Object(isInitialMessage = true),
+            ),
+        )
+        val expectedText = "Hello from agent"
+        val regularMessage = makeMessageModel(
+            threadIdOnExternalPlatform = thread.id,
+            messageContent = MessagePolyContent.Text(
+                payload = MessagePolyContent.Text.Payload(expectedText),
+            ),
+        )
+
+        val actual = testCallback(::threads) {
+            sendServerMessage(
+                ServerResponse.LivechatRecovered(
+                    thread = thread,
+                    messages = arrayOf(beginMessage, regularMessage),
+                )
+            )
+        }
+
+        val emitted = actual.single()
+        assertEquals(listOf(expectedText), emitted.messages.filterIsInstance<Text>().map(Text::text))
+        assertEquals(listOf(expectedText), emitted.messages.map { (it as Text).text })
+    }
+
+    @Test
     fun `threadsFlow late subscriber after livechat recovery receives authoritative thread from replay not emptyList`() {
         connect()
         val thread = makeChatThread(threadState = Received)
@@ -93,6 +132,20 @@ internal class ChatThreadsHandlerLiveChatTest : AbstractLiveChatTest() {
         assertEquals(1, lateResults[0].size, "Replay must hold the authoritative thread, not an empty list")
         assertEquals(thread.id, lateResults[0][0].id)
         lateJob.cancel()
+    }
+
+    @Test
+    fun `threadsFlow does not republish a stale thread copy on a handler-only case status change`() {
+        connect()
+        val created = threads.create().get()
+        val emissions = mutableListOf<List<ChatThread>>()
+        val job = testScope.launch { threads.threadsFlow.collect { emissions += it } }
+        val before = emissions.size
+
+        socketServer.sendServerMessage(ServerResponse.CaseStatusChanged(created, Open, handler = "cognigy"))
+        job.cancel()
+
+        assertEquals(emptyList(), emissions.drop(before))
     }
 
     // --

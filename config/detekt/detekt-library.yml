@@ -22,7 +22,7 @@ libraries:
     active: true
   LibraryCodeMustSpecifyReturnType:
     active: true
-    excludes: [ '**/test/**', '**/**Test**.kt', '**/androidTest/**', '**/*.Spec.kt' ]
+    excludes: [ '**/test*/**', '**/**Test**.kt', '**/androidTest/**', '**/*.Spec.kt' ]
     ignoreAnnotated:
       - "org.junit.Test"
   LibraryEntitiesShouldNotBePublic:

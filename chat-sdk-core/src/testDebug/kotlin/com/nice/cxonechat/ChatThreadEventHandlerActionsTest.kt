@@ -15,7 +15,6 @@
 
 package com.nice.cxonechat
 
-
 import com.nice.cxonechat.ChatThreadEventHandlerActions.selectTimeSlot
 import com.nice.cxonechat.ChatThreadEventHandlerActions.sendTranscript
 import com.nice.cxonechat.exceptions.CXoneException

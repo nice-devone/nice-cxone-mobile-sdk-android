@@ -50,7 +50,7 @@ internal data class ActionLoadMoreMessages(
             data = Data(
                 scrollToken = thread.scrollToken,
                 thread = Thread(thread),
-                oldestMessageDatetime = thread.messages.last().createdAt.truncateToSeconds(),
+                oldestMessageDatetime = thread.messages.first().createdAt.truncateToSeconds(),
             )
         )
     )

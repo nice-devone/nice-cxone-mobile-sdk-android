@@ -33,10 +33,13 @@ import com.nice.cxonechat.internal.model.CustomFieldInternal
 import com.nice.cxonechat.internal.model.MessageDirectionModel
 import com.nice.cxonechat.internal.model.MessageModel
 import com.nice.cxonechat.internal.model.WelcomeMessage
+import com.nice.cxonechat.internal.model.network.EventCaseStatusChanged.CaseStatus.Closed
+import com.nice.cxonechat.internal.model.network.EventCaseStatusChanged.CaseStatus.Open
 import com.nice.cxonechat.internal.model.network.Parameters
 import com.nice.cxonechat.internal.serializer.Default
 import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.message.MessageStatus
+import com.nice.cxonechat.model.MinimalChatThread
 import com.nice.cxonechat.model.makeAgent
 import com.nice.cxonechat.model.makeChatThread
 import com.nice.cxonechat.model.makeMessage
@@ -49,6 +52,7 @@ import com.nice.cxonechat.thread.ChatThreadState
 import com.nice.cxonechat.thread.ChatThreadState.Loaded
 import com.nice.cxonechat.thread.ChatThreadState.Pending
 import com.nice.cxonechat.thread.ChatThreadState.Received
+import com.nice.cxonechat.thread.ContactHandler
 import com.nice.cxonechat.thread.CustomField
 import com.nice.cxonechat.tool.nextString
 import com.nice.cxonechat.tool.serialize
@@ -176,6 +180,23 @@ internal class ChatThreadHandlerTest : AbstractMultiThreadChatTest() {
     }
 
     @Test
+    fun get_moreMessagesLoaded_preserves_isAiGenerated() {
+        val id = chatThread.id
+        val aiMessage = makeMessageModel(
+            threadIdOnExternalPlatform = id,
+            direction = MessageDirectionModel.ToClient,
+            isAiGenerated = true,
+        )
+        val scrollToken = nextString()
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.MoreMessagesLoaded(scrollToken, messages = arrayOf(aiMessage)))
+        }
+        val receivedMessage = actual.messages.singleOrNull { it.id == aiMessage.idOnExternalPlatform }
+        assertNotNull(receivedMessage)
+        assertTrue(receivedMessage.isAiGenerated)
+    }
+
+    @Test
     fun get_observes_threadMetadataLoaded() {
         updateChatThread(makeChatThread(threadState = Received))
         val id = chatThread.id
@@ -241,32 +262,6 @@ internal class ChatThreadHandlerTest : AbstractMultiThreadChatTest() {
     }
 
     @Test
-    fun `duplicate messageCreated applies the contact id and keeps the messages`() {
-        val messageModel = makeMessageModel(threadIdOnExternalPlatform = chatThread.id)
-        val message = messageModel.toMessage()
-        assertNotNull(message)
-        updateChatThread(chatThread.asCopyable().copy(messages = listOf(message), contactId = "previousContactId"))
-        val actual = testCallback(::get) {
-            sendServerMessage(ServerResponse.MessageCreated(chatThread, messageModel))
-        }
-        assertEquals(TestContactId, actual.contactId)
-        assertEquals(listOf(message), actual.messages)
-    }
-
-    @Test
-    fun `duplicate messageCreated for a closed contact closes the thread`() {
-        val messageModel = makeMessageModel(threadIdOnExternalPlatform = chatThread.id)
-        val message = messageModel.toMessage()
-        assertNotNull(message)
-        updateChatThread(chatThread.asCopyable().copy(messages = listOf(message), contactId = TestContactId))
-        val actual = testCallback(::get) {
-            sendServerMessage(ServerResponse.MessageCreated(chatThread, messageModel, status = "closed"))
-        }
-        assertEquals(ChatThreadState.Closed, actual.threadState)
-        assertEquals(listOf(message), actual.messages)
-    }
-
-    @Test
     fun get_observes_updated_messageCreated() {
         val id = chatThread.id
         val messageModel = makeMessageModel(
@@ -312,6 +307,22 @@ internal class ChatThreadHandlerTest : AbstractMultiThreadChatTest() {
     }
 
     @Test
+    fun get_messageCreated_preserves_isAiGenerated() {
+        val id = chatThread.id
+        val messageModel = makeMessageModel(
+            threadIdOnExternalPlatform = id,
+            direction = MessageDirectionModel.ToClient,
+            isAiGenerated = true,
+        )
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.MessageCreated(chatThread, messageModel))
+        }
+        val receivedMessage = actual.messages.singleOrNull { it.id == messageModel.idOnExternalPlatform }
+        assertNotNull(receivedMessage)
+        assertTrue(receivedMessage.isAiGenerated)
+    }
+
+    @Test
     fun get_observes_threadRecovered() {
         val id = chatThread.id
         val initialMessage = makeMessageModel(threadIdOnExternalPlatform = id)
@@ -345,6 +356,29 @@ internal class ChatThreadHandlerTest : AbstractMultiThreadChatTest() {
         }
         assertEquals<ChatThread>(expected, actual)
         assertEquals(customerCustomFields, chat.fields)
+    }
+
+    @Test
+    fun get_threadRecovered_preserves_isAiGenerated() {
+        val id = chatThread.id
+        val aiMessage = makeMessageModel(
+            threadIdOnExternalPlatform = id,
+            direction = MessageDirectionModel.ToClient,
+            isAiGenerated = true,
+        )
+        val scrollToken = nextString()
+        val actual = testCallback(::get) {
+            sendServerMessage(
+                ServerResponse.ThreadRecovered(
+                    scrollToken = scrollToken,
+                    thread = chatThread,
+                    messages = arrayOf(aiMessage),
+                )
+            )
+        }
+        val receivedMessage = actual.messages.singleOrNull { it.id == aiMessage.idOnExternalPlatform }
+        assertNotNull(receivedMessage)
+        assertTrue(receivedMessage.isAiGenerated)
     }
 
     @Test
@@ -510,6 +544,24 @@ internal class ChatThreadHandlerTest : AbstractMultiThreadChatTest() {
         result.isCompleted shouldBe true
         runBlocking { result.await() } shouldBe true
         chatThread.canAddMoreMessages shouldBe false
+    }
+
+    @Test
+    fun `a MessageCreated on an open case keeps an archived thread archived`() {
+        val uuid = UUID.randomUUID()
+        UUIDProvider.next = { uuid }
+        val result = CompletableDeferred<Boolean>()
+        launchAndAssertSendText(ServerRequest.ArchiveThread(connection, chatThread)) {
+            result.complete(thread.archive())
+        }
+        socketServer.sendServerMessage(ServerResponse.ThreadArchived(uuid.toString()))
+        runBlocking { result.await() } shouldBe true
+
+        socketServer.sendServerMessage(
+            ServerResponse.MessageCreated(chatThread, makeMessageModel(threadIdOnExternalPlatform = chatThread.id))
+        )
+
+        thread.get().canAddMoreMessages shouldBe false
     }
 
     @Test
@@ -788,6 +840,189 @@ internal class ChatThreadHandlerTest : AbstractMultiThreadChatTest() {
         socketServer.sendServerMessage("""{"postback":{"eventType":"ThreadUpdated","data":{"id":"${UUID.randomUUID()}"}}}""")
         job.cancel()
         assertNull(actual)
+    }
+
+    @Test
+    fun `threadRecovered sets the contact handler`() {
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.ThreadRecovered(thread = chatThread, handler = "cognigy"))
+        }
+        assertEquals(ContactHandler.Cognigy, actual.contactHandler)
+    }
+
+    @Test
+    fun `threadRecovered without a handler keeps the previous one`() {
+        updateChatThread(chatThread.asCopyable().copy(contactHandler = ContactHandler.Cognigy))
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.ThreadRecovered(thread = chatThread))
+        }
+        assertEquals(ContactHandler.Cognigy, actual.contactHandler)
+    }
+
+    @Test
+    fun `threadRecovered with an unrecognised handler reports Unknown`() {
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.ThreadRecovered(thread = chatThread, handler = "genesys"))
+        }
+        assertEquals(ContactHandler.Unknown, actual.contactHandler)
+    }
+
+    @Test
+    fun `messageCreated sets the contact handler`() {
+        val messageModel = makeMessageModel(threadIdOnExternalPlatform = chatThread.id)
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.MessageCreated(chatThread, messageModel, handler = "cognigy"))
+        }
+        assertEquals(ContactHandler.Cognigy, actual.contactHandler)
+    }
+
+    @Test
+    fun `messageCreated without a handler keeps the previous one`() {
+        updateChatThread(chatThread.asCopyable().copy(contactHandler = ContactHandler.Cognigy))
+        val messageModel = makeMessageModel(threadIdOnExternalPlatform = chatThread.id)
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.MessageCreated(chatThread, messageModel))
+        }
+        assertEquals(ContactHandler.Cognigy, actual.contactHandler)
+    }
+
+    @Test
+    fun `duplicate messageCreated applies the new contact handler and keeps the messages`() {
+        val messageModel = makeMessageModel(threadIdOnExternalPlatform = chatThread.id)
+        val message = messageModel.toMessage()
+        assertNotNull(message)
+        updateChatThread(chatThread.asCopyable().copy(messages = listOf(message), contactHandler = ContactHandler.CXone))
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.MessageCreated(chatThread, messageModel, handler = "cognigy"))
+        }
+        assertEquals(ContactHandler.Cognigy, actual.contactHandler)
+        assertEquals(listOf(message), actual.messages)
+    }
+
+    @Test
+    fun `duplicate messageCreated applies the contact id and keeps a handler the event does not carry`() {
+        val messageModel = makeMessageModel(threadIdOnExternalPlatform = chatThread.id)
+        val message = messageModel.toMessage()
+        assertNotNull(message)
+        updateChatThread(
+            chatThread.asCopyable().copy(
+                messages = listOf(message),
+                contactId = "previousContactId",
+                contactHandler = ContactHandler.Cognigy,
+            )
+        )
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.MessageCreated(chatThread, messageModel))
+        }
+        assertEquals(TestContactId, actual.contactId)
+        assertEquals(ContactHandler.Cognigy, actual.contactHandler)
+        assertEquals(listOf(message), actual.messages)
+    }
+
+    @Test
+    fun `duplicate messageCreated for a closed contact closes the thread`() {
+        val messageModel = makeMessageModel(threadIdOnExternalPlatform = chatThread.id)
+        val message = messageModel.toMessage()
+        assertNotNull(message)
+        updateChatThread(chatThread.asCopyable().copy(messages = listOf(message)))
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.MessageCreated(chatThread, messageModel, status = "closed"))
+        }
+        assertEquals(ChatThreadState.Closed, actual.threadState)
+        assertEquals(listOf(message), actual.messages)
+    }
+
+    @Test
+    fun `caseInboxAssigneeChanged sets the contact handler`() {
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.CaseInboxAssigneeChanged(chatThread, makeAgent(), connection, handler = "cxone"))
+        }
+        assertEquals(ContactHandler.CXone, actual.contactHandler)
+    }
+
+    @Test
+    fun `contactHandlerChanged updates the handler even with an uppercase thread id`() {
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.ContactHandlerChanged(chatThread.id.toString().uppercase(), "cognigy"))
+        }
+        assertEquals(ContactHandler.Cognigy, actual.contactHandler)
+    }
+
+    @Test
+    fun `contactHandlerChanged for another thread is ignored`() {
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.ContactHandlerChanged(UUID.randomUUID().toString(), "cognigy"))
+        }
+        assertNull(actual)
+    }
+
+    @Test
+    fun `contactHandlerChanged without a handler is ignored`() {
+        updateChatThread(chatThread.asCopyable().copy(contactHandler = ContactHandler.CXone))
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.ContactHandlerChanged(chatThread.id.toString(), null))
+        }
+        assertNull(actual)
+        assertEquals(ContactHandler.CXone, chatThread.contactHandler)
+    }
+
+    @Test
+    fun `contactHandlerChanged that fails to apply is skipped and threadFlow keeps emitting`() {
+        val id = chatThread.id
+        val failsOnce = object : MinimalChatThread(chatThread.snapshot()) {
+            var failNext = false
+            override val messages: List<Message>
+                get() = if (failNext) {
+                    failNext = false
+                    error("expected failure while copying the thread")
+                } else {
+                    super.messages
+                }
+        }
+        updateChatThread(failsOnce)
+        val actual = testCallback(::get) {
+            failsOnce.failNext = true // armed after subscribing: the initial emission must not consume it
+            sendServerMessage(ServerResponse.ContactHandlerChanged(id.toString(), "cxone"))
+            sendServerMessage(ServerResponse.ContactHandlerChanged(id.toString(), "cognigy"))
+        }
+        assertEquals(ContactHandler.Cognigy, actual.contactHandler)
+    }
+
+    @Test
+    fun `caseStatusChanged with only a new handler emits the handler on threadFlow`() {
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.CaseStatusChanged(chatThread, Open, handler = "cognigy"))
+        }
+        assertEquals(ContactHandler.Cognigy, actual.contactHandler)
+        assertEquals(ContactHandler.Cognigy, thread.get().contactHandler)
+    }
+
+    @Test
+    fun `caseStatusChanged without a handler keeps the previous handler`() {
+        updateChatThread(chatThread.asCopyable().copy(contactHandler = ContactHandler.Cognigy))
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.CaseStatusChanged(chatThread, Open))
+        }
+        assertNull(actual)
+        assertEquals(ContactHandler.Cognigy, thread.get().contactHandler)
+    }
+
+    @Test
+    fun `caseStatusChanged closing an archived thread emits the close on threadFlow`() {
+        val uuid = UUID.randomUUID()
+        UUIDProvider.next = { uuid }
+        val archived = CompletableDeferred<Boolean>()
+        launchAndAssertSendText(ServerRequest.ArchiveThread(connection, chatThread)) {
+            archived.complete(thread.archive())
+        }
+        socketServer.sendServerMessage(ServerResponse.ThreadArchived(uuid.toString()))
+        runBlocking { archived.await() } shouldBe true
+
+        val actual = testCallback(::get) {
+            sendServerMessage(ServerResponse.CaseStatusChanged(chatThread, Closed))
+        }
+        assertEquals(ChatThreadState.Closed, actual.threadState)
+        assertEquals(ChatThreadState.Closed, thread.get().threadState)
     }
 
     // ---

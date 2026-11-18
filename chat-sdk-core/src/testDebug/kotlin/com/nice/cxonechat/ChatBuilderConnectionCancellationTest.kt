@@ -53,9 +53,13 @@ internal class ChatBuilderConnectionCancellationTest : AbstractChatTestSubstrate
     override val config: ChannelConfiguration?
         get() {
             val base = super.config ?: return null
-            return if (singleThreadMode) base.copy(
-                settings = base.settings.copy(hasMultipleThreadsPerEndUser = false)
-            ) else base
+            return if (singleThreadMode) {
+                base.copy(
+                    settings = base.settings.copy(hasMultipleThreadsPerEndUser = false)
+                )
+            } else {
+                base
+            }
         }
 
     override fun prepare() = Unit

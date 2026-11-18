@@ -6,7 +6,7 @@ on:
       - "main"
     paths:
       - '**/src/main/**.kt'
-      - '**/README.md'
+      - '**README.md'
       - 'build.gradle.kts'
       - 'build-logic/**'
       - '**/*.gradle.kts'
@@ -24,13 +24,13 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Set up JDK
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: "17"
-          distribution: "temurin" # aka adopt
+          distribution: "temurin"
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
 
       - name: Run build
         run: ./gradlew dokkaGenerate -Pandroid.experimental.settings.executionProfile=ci
@@ -62,7 +62,7 @@ jobs:
           name: javadoc-html
 
       - name: Add & Commit
-        uses: EndBug/add-and-commit@290ea2c423ad77ca9c62ae0f5b224379612c0321 # v10.0.0
+        uses: EndBug/add-and-commit@cc9c08ba6c8df3b93a8f2db63e89b98368ae2ae8 # v11.1.1
         with:
           push: origin static-feature/pages --force
           message: 'Documentation'

@@ -54,11 +54,24 @@
             android:exported="true"
             android:intentMatchingFlags="enforceIntentFilter"
             android:label="@string/title_activity_store_front"
+            android:launchMode="singleTop"
             android:theme="@style/StoreFrontTheme"
             tools:targetApi="36">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- Entry point for automated test runs, which supply the channel configuration as
+                 intent extras. A separate filter is required because enforceIntentFilter rejects
+                 an intent whose action matches nothing, and it adds no launcher icon of its own.
+                 Deliberately no DEFAULT category: that is what makes an activity eligible for
+                 implicit resolution, which would let any app on the device point the sample at a
+                 channel of its choosing, or at an entirely attacker-described CUSTOM environment.
+                 The documented command names the component explicitly, which needs only the action
+                 and category to match. -->
+            <intent-filter>
+                <action android:name="android.intent.action.RUN" />
+                <category android:name="android.intent.category.TEST" />
             </intent-filter>
         </activity>
 

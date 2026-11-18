@@ -194,6 +194,17 @@ internal sealed class MessagePolyContent {
                 ) : SimpleElement
 
                 @Serializable
+                @SerialName("IFRAME_BUTTON")
+                data class IframeButtonElement(
+                    @SerialName("id")
+                    val id: String? = null,
+                    @SerialName("text")
+                    val text: String? = null,
+                    @SerialName("url")
+                    val url: String = "",
+                ) : SimpleElement
+
+                @Serializable
                 data class Unsupported(
                     @SerialName("type")
                     val type: String,
@@ -212,6 +223,17 @@ internal sealed class MessagePolyContent {
                 ) : StructuredElements {
                     companion object {
                         const val TYPE = "INACTIVITY_POPUP"
+                    }
+                }
+
+                @Serializable
+                @SerialName(SatisfactionSurveyPlugin.TYPE)
+                data class SatisfactionSurveyPlugin(
+                    @SerialName("elements")
+                    val elements: List<SimpleElement> = emptyList(),
+                ) : StructuredElements {
+                    companion object {
+                        const val TYPE = "SATISFACTION_SURVEY"
                     }
                 }
             }

@@ -38,7 +38,7 @@ internal class ImplicitJwtResolverTest {
     @Test
     fun `requestImplicitToken returns success with JWT from delegate`() {
         val jwt = "valid-jwt-token"
-        val chat = chatWith(TokenDelegateListener { OAuthToken(jwt) })
+        val chat = chatWith { OAuthToken(jwt) }
 
         val result = chat.requestImplicitToken()
 
@@ -49,10 +49,10 @@ internal class ImplicitJwtResolverTest {
     @Test
     fun `requestImplicitToken forwards TOKEN_INVALID reason to delegate`() {
         var capturedReason: TokenRequestReason? = null
-        val chat = chatWith(TokenDelegateListener { reason ->
+        val chat = chatWith { reason ->
             capturedReason = reason
             OAuthToken("jwt")
-        })
+        }
 
         chat.requestImplicitToken(reason = TokenRequestReason.TOKEN_INVALID)
 
@@ -62,10 +62,10 @@ internal class ImplicitJwtResolverTest {
     @Test
     fun `requestImplicitToken forwards TOKEN_EXPIRED reason to delegate`() {
         var capturedReason: TokenRequestReason? = null
-        val chat = chatWith(TokenDelegateListener { reason ->
+        val chat = chatWith { reason ->
             capturedReason = reason
             OAuthToken("jwt")
-        })
+        }
 
         chat.requestImplicitToken(reason = TokenRequestReason.TOKEN_EXPIRED)
 
@@ -75,10 +75,10 @@ internal class ImplicitJwtResolverTest {
     @Test
     fun `requestImplicitToken uses TOKEN_EXPIRED as default reason`() {
         var capturedReason: TokenRequestReason? = null
-        val chat = chatWith(TokenDelegateListener { reason ->
+        val chat = chatWith { reason ->
             capturedReason = reason
             OAuthToken("jwt")
-        })
+        }
 
         chat.requestImplicitToken() // no explicit reason argument
 
@@ -104,7 +104,7 @@ internal class ImplicitJwtResolverTest {
     @Test
     fun `requestImplicitToken returns failure when delegate throws TokenDelegationFailedException`() {
         val cause = TokenDelegationFailedException("user cancelled")
-        val chat = chatWith(TokenDelegateListener { throw cause })
+        val chat = chatWith { throw cause }
 
         val result = chat.requestImplicitToken()
 
@@ -119,7 +119,7 @@ internal class ImplicitJwtResolverTest {
     @Test
     fun `requestImplicitToken wraps generic exception into TokenDelegationFailedException`() {
         val originalCause = IllegalStateException("network timeout")
-        val chat = chatWith(TokenDelegateListener { throw originalCause })
+        val chat = chatWith { throw originalCause }
 
         val result = chat.requestImplicitToken()
 
@@ -131,7 +131,7 @@ internal class ImplicitJwtResolverTest {
 
     @Test
     fun `requestImplicitToken preserves message when wrapping generic exception`() {
-        val chat = chatWith(TokenDelegateListener { throw RuntimeException("token fetch failed") })
+        val chat = chatWith { throw RuntimeException("token fetch failed") }
 
         val result = chat.requestImplicitToken()
 

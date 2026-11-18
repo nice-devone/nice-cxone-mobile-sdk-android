@@ -19,8 +19,10 @@ import com.nice.cxonechat.AbstractChatTestSubstrate.Companion.TestContactId
 import com.nice.cxonechat.internal.model.ChatThreadInternal
 import com.nice.cxonechat.message.Message
 import com.nice.cxonechat.thread.Agent
+import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState
 import com.nice.cxonechat.thread.ChatThreadState.Ready
+import com.nice.cxonechat.thread.ContactHandler
 import com.nice.cxonechat.thread.CustomField
 import java.util.UUID
 
@@ -37,6 +39,7 @@ internal fun makeChatThread(
     positionInQueue: Int? = null,
     hasOnlineAgent: Boolean = true,
     contactId: String? = TestContactId,
+    contactHandler: ContactHandler? = null,
 ) = ChatThreadInternal(
     id = id,
     threadName = threadName,
@@ -49,4 +52,23 @@ internal fun makeChatThread(
     positionInQueue = positionInQueue,
     hasOnlineAgent = hasOnlineAgent,
     contactId = contactId,
+    contactHandler = contactHandler,
 )
+
+/**
+ * A [ChatThread] written the way an integrator would: it implements the abstract members and nothing else,
+ * so it inherits every default [ChatThread] declares.
+ */
+internal open class MinimalChatThread(private val origin: ChatThread = makeChatThread()) : ChatThread() {
+    override val id: UUID get() = origin.id
+    override val threadName: String? get() = origin.threadName
+    override val messages: List<Message> get() = origin.messages
+    override val threadAgent: Agent? get() = origin.threadAgent
+    override val canAddMoreMessages: Boolean get() = origin.canAddMoreMessages
+    override val scrollToken: String get() = origin.scrollToken
+    override val threadState: ChatThreadState get() = origin.threadState
+    override val fields: List<CustomField> get() = origin.fields
+    override val positionInQueue: Int? get() = origin.positionInQueue
+    override val hasOnlineAgent: Boolean get() = origin.hasOnlineAgent
+    override val contactId: String? get() = origin.contactId
+}

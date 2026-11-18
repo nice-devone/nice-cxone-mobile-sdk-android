@@ -38,8 +38,10 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.nice.cxonechat.ui.R
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
+import com.nice.cxonechat.ui.composable.theme.wideScreenHorizontalPadding
 import kotlinx.coroutines.flow.MutableStateFlow
 
+/** The sheet's title band: full width, content inset, so the divider below it reaches both edges. */
 @Composable
 internal fun SelectAttachmentsTopBar(
     selecting: Boolean,
@@ -48,12 +50,13 @@ internal fun SelectAttachmentsTopBar(
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = maxOf(ChatTheme.space.xl, wideScreenHorizontalPadding())),
     ) {
         Text(
             text = stringResource(R.string.attachments_title),
             style = ChatTheme.chatTypography.surveyTitle,
-            modifier = Modifier.padding(horizontal = ChatTheme.space.framePreviewWidth)
         )
         val resources = LocalResources.current
         TextButton(

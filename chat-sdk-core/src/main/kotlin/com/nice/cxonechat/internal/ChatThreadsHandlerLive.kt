@@ -17,6 +17,7 @@ package com.nice.cxonechat.internal
 
 import com.nice.cxonechat.ChatThreadHandler
 import com.nice.cxonechat.ChatThreadsHandler
+import com.nice.cxonechat.Popup
 import com.nice.cxonechat.enums.ContactStatus
 import com.nice.cxonechat.enums.ErrorType.RecoveringLivechatFailed
 import com.nice.cxonechat.enums.EventType
@@ -158,13 +159,23 @@ internal class ChatThreadsHandlerLive(
                 tmpThreadHandlerRef = null
             }
         }
-        return if (eventThread == null || !eventThread.canAddMoreMessages || event.lastContactStatus === ContactStatus.Closed) {
-            createThreadIfPossible()
-        } else {
+        val isClosed = eventThread == null || !eventThread.canAddMoreMessages || event.lastContactStatus === ContactStatus.Closed
+        // Keep a closed thread (instead of auto-creating a fresh one) when its survey is undelivered.
+        // Only parsed when actually closed - popupOrLogAndDrop also keeps a malformed popup from
+        // dropping the whole recovery result for an open thread.
+        val hasUndeliveredSurvey = isClosed && eventThread != null &&
+                chat.popupOrLogAndDrop { event.popup } is Popup.SatisfactionSurvey &&
+                !chat.storage.isSurveyDelivered(eventThread.id)
+        return if (eventThread != null && (!isClosed || hasUndeliveredSurvey)) {
             eventThread.asCopyable().copy(
                 messages = event.messages.removeConversationStarter(),
-                threadState = event.threadState
+                threadState = event.threadState,
+                // Explicit, not just carried over from eventThread: the kept-closed-thread branch
+                // must never publish a Closed thread that still looks writable.
+                canAddMoreMessages = !isClosed,
             )
+        } else {
+            createThreadIfPossible()
         }
     }
 

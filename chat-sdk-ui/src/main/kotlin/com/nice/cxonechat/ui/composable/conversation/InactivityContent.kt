@@ -15,6 +15,7 @@
 
 package com.nice.cxonechat.ui.composable.conversation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -34,7 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.NonRestartableComposable
 import androidx.compose.runtime.State
@@ -77,7 +78,10 @@ internal fun InactivityContent(
     closeChat: () -> Unit,
 ) {
     val isNotExpired = duration.value != Duration.ZERO
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true) {
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    ) {
         // Disable swipe to dismiss, user must choose an action
         it === SheetValue.Expanded
     }
@@ -85,6 +89,9 @@ internal fun InactivityContent(
         onDismissRequest = closeChat,
         sheetState = sheetState,
         content = {
+            // Material 3 arms its own back handler only once the sheet leaves Hidden, so an early press
+            // is lost. Must sit inside the sheet: it is a separate window and consumes the press first.
+            BackHandler(onBack = closeChat)
             AnimatedContent(isNotExpired) { notExpired ->
                 InactivityNonAnimatedContent(notExpired, duration, popup, onClickAction)
             }
@@ -103,7 +110,8 @@ private fun InactivityNonAnimatedContent(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
             .fillMaxWidth()
-            .padding(top = space.medium, bottom = space.xl)
+            // Stands in for the drag handle's spacing, which the sheet no longer has.
+            .padding(top = space.sheetContentTopPadding, bottom = space.xl)
             .semantics {
                 testTag = "inactivity_popup"
             },

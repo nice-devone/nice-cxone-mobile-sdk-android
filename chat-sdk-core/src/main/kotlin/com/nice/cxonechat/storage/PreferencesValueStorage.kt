@@ -21,6 +21,7 @@ import com.nice.cxonechat.internal.serializer.Default
 import com.nice.cxonechat.log.Logger
 import com.nice.cxonechat.log.LoggerNoop
 import com.nice.cxonechat.log.LoggerScope
+import com.nice.cxonechat.log.error
 import com.nice.cxonechat.log.warning
 import com.nice.cxonechat.storage.ValueStorage.VisitDetails
 import com.nice.cxonechat.util.UUIDProvider
@@ -31,6 +32,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerializationException
@@ -51,6 +53,7 @@ internal class PreferencesValueStorage private constructor(
     initialVisitDetails: VisitDetails?,
     initialWelcomeMessage: String,
     initialDeviceToken: String?,
+    initialDeliveredSurveyThreadIds: List<UUID>,
 ) : ValueStorage {
 
     private val _authToken = MutableStateFlow(initialAuthToken)
@@ -170,48 +173,67 @@ internal class PreferencesValueStorage private constructor(
             scope.launch(CoroutineName("write:deviceToken")) { store.putString(PREF_DEVICE_TOKEN, _deviceToken.value) }
         }
 
+    private val _deliveredSurveyThreadIds = MutableStateFlow(initialDeliveredSurveyThreadIds)
+
+    override fun markSurveyDeliveredIfAbsent(threadId: UUID): Boolean {
+        // getAndUpdate (not update): a flag set inside a retried update lambda stays true from a
+        // losing attempt even once a later attempt sees the id already present. Comparing against
+        // the pre-update snapshot avoids that.
+        val previous = _deliveredSurveyThreadIds.getAndUpdate { current ->
+            if (threadId in current) {
+                current
+            } else {
+                (current + threadId).takeLast(MAX_DELIVERED_SURVEY_IDS)
+            }
+        }
+        val inserted = threadId !in previous
+        if (inserted) {
+            scope.launch(CoroutineName("write:deliveredSurveyThreadIds")) {
+                val current = _deliveredSurveyThreadIds.value.map(UUID::toString)
+                store.putString(PREF_DELIVERED_SURVEY_IDS, Default.serializer.encodeToString(current))
+            }
+        }
+        return inserted
+    }
+
+    override fun isSurveyDelivered(threadId: UUID): Boolean = threadId in _deliveredSurveyThreadIds.value
+
+    /**
+     * Resets every value to its signed-out state and persists fresh visitor and customer IDs, so a `ChatBuilder` reused
+     * after `signOut()` still registers its Visitor.
+     *
+     * The IDs rotate before any credential is reset: `TokenRefreshHelper` reads `visitorId` as its session marker, so a
+     * refresh still in flight sees the change. Writes already launched by setters are drained before `store.clear()`,
+     * so none can land after it and restore a cleared value. A failure to persist is logged, so `signOut()` still
+     * completes.
+     *
+     * Not serialized against a concurrent [create] on the same store: `signOut()` awaits this before a rebuild starts.
+     */
     override suspend fun clearStorage() {
-        // Reset all backing fields directly (not via setters) to avoid enqueuing wasted per-key
-        // writes that would be immediately clobbered by store.clear(). Using setters would also
-        // produce redundant null-sentinel writes: each setter re-reads the already-reset state
-        // inside its launched block and writes null, which store.clear() then discards anyway.
+        // Backing fields, not setters: store.clear() below wipes the store anyway.
+        val freshVisitorId = UUIDProvider.next()
+        val freshCustomerId = UUIDProvider.next().toString()
+        _visitorId.value = freshVisitorId
+        _customerId.value = freshCustomerId
         _authToken.value = null
         _authTokenExpDate.value = null
         _transactionTokenModel.value = null
-        _customerId.value = null
         _visitDetails.value = null
         _welcomeMessage.value = ""
         _deviceToken.value = null
+        _deliveredSurveyThreadIds.value = emptyList()
 
-        // Drain any sibling-field write already launched by a property setter before this call --
-        // otherwise, if that write's own dataStore.edit() is still in flight when store.clear()
-        // runs below, DataStore's internal write-actor (not this code) decides whether the clear
-        // or the stale write lands last, and the stale write can resurrect data store.clear() just
-        // wiped (e.g. a token-refresh write racing signOut(), leaving an old auth token persisted
-        // after logout). Snapshotting here (before any new write from below can be launched) and
-        // excluding self (mirrors PersistentCookieJar.awaitPendingWrites()) guards against both an
-        // unrelated in-flight write and a self-join if this is ever invoked from within scope.
+        // Excludes this job, so a call from inside scope cannot join itself.
         val thisJob = currentCoroutineContext()[Job]
         scope.coroutineContext[Job]?.children
             ?.filter { it !== thisJob }
             ?.toList()
             ?.joinAll()
 
-        // This suspend fun does not itself serialize against a concurrent, unawaited create() --
-        // no such caller exists. Chat.signOut() awaits clearStorage() fully before returning, and
-        // ChatInstanceProvider.signOut() awaits that before advancing state, so a rebuild's
-        // create() on the same store can only start after this has already completed; ordering
-        // comes from that caller-side await chain, not from any dispatcher or lock in this class.
-        // (limitedParallelism(1) on the write dispatcher does NOT provide this on its own -- it
-        // only bounds concurrent execution, and does not hold across a suspension point such as
-        // DataStore's edit(), so it cannot be relied on for cross-call ordering.)
-        // Failures are logged rather than propagated, matching every other field's fire-and-forget
-        // write: signOut()'s cookie cleanup/close() must still run.
-        val freshVisitorId = UUIDProvider.next()
-        _visitorId.value = freshVisitorId
         try {
             store.clear()
             store.putString(PREF_VISITOR_ID, freshVisitorId.toString())
+            store.putString(PREF_CUSTOMER_ID, freshCustomerId)
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (expected: Exception) {
@@ -228,6 +250,14 @@ internal class PreferencesValueStorage private constructor(
         private const val PREF_VISIT_DETAILS: String = "share_visit_details"
         private const val PREF_WELCOME_MESSAGE: String = "share_welcome_message"
         private const val PREF_DEVICE_TOKEN: String = "device_token"
+        private const val PREF_DELIVERED_SURVEY_IDS: String = "share_delivered_satisfaction_survey_thread_ids"
+
+        /**
+         * Caps the number of remembered Satisfaction Survey thread ids. Generous enough for realistic
+         * device usage between sign-outs while keeping the persisted payload bounded; the oldest id is
+         * evicted first once the cap is reached.
+         */
+        private const val MAX_DELIVERED_SURVEY_IDS: Int = 50
 
         internal suspend fun create(
             store: EncryptedDataStoreContract,
@@ -236,6 +266,18 @@ internal class PreferencesValueStorage private constructor(
         ): PreferencesValueStorage {
             val loggerScope = LoggerScope("PreferencesValueStorage/create", logger)
             val visitorId = store.readOrGenerateVisitorId(loggerScope)
+            val transactionTokenModel = store.getString(PREF_TRANSACTION_TOKEN).firstOrNull()
+                ?.let { json ->
+                    try {
+                        Default.serializer.decodeFromString<TransactionTokenModel>(json)
+                    } catch (ignored: SerializationException) {
+                        loggerScope.warning(
+                            "Discarding malformed $PREF_TRANSACTION_TOKEN from store; SDK will require re-authentication",
+                        )
+                        store.tryRemoveCorruptKey(PREF_TRANSACTION_TOKEN, loggerScope)
+                        null
+                    }
+                }
             return PreferencesValueStorage(
                 store = store,
                 scope = scope,
@@ -244,19 +286,11 @@ internal class PreferencesValueStorage private constructor(
                 initialAuthTokenExpDate = store.getString(PREF_AUTH_TOKEN_EXP_DATE).firstOrNull()
                     ?.toLongOrNull()
                     ?.let(::fromEpochMilliseconds),
-                initialTransactionTokenModel = store.getString(PREF_TRANSACTION_TOKEN).firstOrNull()
-                    ?.let { json ->
-                        try {
-                            Default.serializer.decodeFromString<TransactionTokenModel>(json)
-                        } catch (ignored: SerializationException) {
-                            loggerScope.warning(
-                                "Discarding malformed $PREF_TRANSACTION_TOKEN from store; SDK will require re-authentication",
-                            )
-                            store.tryRemoveCorruptKey(PREF_TRANSACTION_TOKEN, loggerScope)
-                            null
-                        }
-                    },
-                initialCustomerId = store.readOrGenerateCustomerId(loggerScope),
+                initialTransactionTokenModel = transactionTokenModel,
+                initialCustomerId = store.readOrGenerateCustomerId(
+                    cachedTokenCustomerId = transactionTokenModel?.customerIdentity?.idOnExternalPlatform,
+                    logger = loggerScope,
+                ),
                 initialVisitorId = visitorId,
                 initialVisitDetails = store.getString(PREF_VISIT_DETAILS).firstOrNull()
                     ?.let { json ->
@@ -270,6 +304,22 @@ internal class PreferencesValueStorage private constructor(
                     },
                 initialWelcomeMessage = store.getString(PREF_WELCOME_MESSAGE).firstOrNull().orEmpty(),
                 initialDeviceToken = store.getString(PREF_DEVICE_TOKEN).firstOrNull(),
+                initialDeliveredSurveyThreadIds = store.getString(PREF_DELIVERED_SURVEY_IDS).firstOrNull()
+                    ?.let { json ->
+                        try {
+                            Default.serializer.decodeFromString<List<String>>(json).mapNotNull { stored ->
+                                runCatching { UUID.fromString(stored) }.getOrNull()
+                            }
+                        } catch (ignored: SerializationException) {
+                            loggerScope.error(
+                                "Discarding malformed $PREF_DELIVERED_SURVEY_IDS from store; " +
+                                        "previously delivered surveys may be re-emitted",
+                            )
+                            store.tryRemoveCorruptKey(PREF_DELIVERED_SURVEY_IDS, loggerScope)
+                            null
+                        }
+                    }
+                    .orEmpty(),
             )
         }
 
@@ -329,14 +379,24 @@ internal class PreferencesValueStorage private constructor(
          * replaced once the real identity is confirmed. Known issue: that replacement does not currently
          * re-run the Visitor registration call itself, so such a session's Visitor record keeps the
          * placeholder identity.
+         *
+         * If the `customerId` is absent but a cached transaction token is present (e.g. the
+         * `customerId` write was lost), the token's own customer identity, [cachedTokenCustomerId],
+         * is used and persisted instead: `connect()` reuses that token (or, for an expired anonymous one,
+         * requests a new token for this ID), so a fresh ID would register the Visitor under a different
+         * customer than the one the socket connects as.
          */
-        private suspend fun EncryptedDataStoreContract.readOrGenerateCustomerId(logger: Logger): String =
-            getString(PREF_CUSTOMER_ID).firstOrNull() ?: generateAndPersistCustomerId(logger)
+        private suspend fun EncryptedDataStoreContract.readOrGenerateCustomerId(
+            cachedTokenCustomerId: String?,
+            logger: Logger,
+        ): String =
+            getString(PREF_CUSTOMER_ID).firstOrNull()
+                ?: persistCustomerId(cachedTokenCustomerId ?: UUIDProvider.next().toString(), logger)
 
-        private suspend fun EncryptedDataStoreContract.generateAndPersistCustomerId(logger: Logger): String =
-            UUIDProvider.next().toString().also { fresh ->
+        private suspend fun EncryptedDataStoreContract.persistCustomerId(customerId: String, logger: Logger): String =
+            customerId.also { id ->
                 try {
-                    putString(PREF_CUSTOMER_ID, fresh)
+                    putString(PREF_CUSTOMER_ID, id)
                 } catch (cancellation: CancellationException) {
                     throw cancellation
                 } catch (expected: Exception) {

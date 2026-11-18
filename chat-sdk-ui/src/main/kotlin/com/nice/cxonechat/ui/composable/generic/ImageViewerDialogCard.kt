@@ -17,22 +17,16 @@ package com.nice.cxonechat.ui.composable.generic
 
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
-import com.nice.cxonechat.ui.composable.theme.BackButton
 import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
-import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
-import com.nice.cxonechat.ui.composable.theme.ShareButton
 
 /**
  * A FullscreenView which will display a [ZoomableImage] with option to share image via button.
@@ -60,15 +54,8 @@ internal fun ImageViewerDialogCard(
                 color = chatColors.token.background.default
             )
         ) {
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = space.medium)
-            ) {
-                BackButton(onDismiss)
-                ShareButton(title, onShare)
-            }
+            MediaViewerTopBar(title = title, onDismiss = onDismiss, onShare = onShare)
+            HorizontalDivider(color = chatColors.token.border.default)
             ZoomableImage(
                 image = image,
                 contentDescription = title,

@@ -15,109 +15,49 @@
 
 package com.nice.cxonechat.internal
 
-import com.nice.cxonechat.ChatStateListener
 import com.nice.cxonechat.OAuthToken
 import com.nice.cxonechat.TokenDelegateListener
-import com.nice.cxonechat.api.AuthService
-import com.nice.cxonechat.exceptions.RuntimeChatException
 import com.nice.cxonechat.internal.model.GrantType
 import com.nice.cxonechat.internal.model.ThirdParty
 import com.nice.cxonechat.internal.model.TransactionTokenModel
-import com.nice.cxonechat.internal.socket.ProxyWebSocketListener
-import com.nice.cxonechat.internal.socket.SocketState
-import com.nice.cxonechat.state.Connection
-import com.nice.cxonechat.storage.ValueStorage
 import com.nice.cxonechat.tool.nextString
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.test.runTest
-import org.junit.Before
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Test
 import retrofit2.Call
 import retrofit2.Response
-import java.io.IOException
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.coroutines.CoroutineContext
 import kotlin.test.assertEquals
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
-internal class TokenRefreshHelperTest {
-    private lateinit var chat: ChatWithParameters
-    private lateinit var storage: ValueStorage
-    private lateinit var entrails: ChatEntrails
-    private lateinit var authService: AuthService
-    private lateinit var chatStateListener: ChatStateListener
-    private lateinit var socketListener: ProxyWebSocketListener
-    private lateinit var connection: Connection
-
-    // AtomicReference so the mock getter reflects updates the setter writes,
-    // allowing the mutex re-check to observe a fresh token after the first caller refreshes.
-    private val currentExpDate = AtomicReference<Instant?>(null)
-
-    // Real Mutex so withLock actually serializes concurrent callers in the thundering-herd test.
-    private val realTokenRefreshMutex = Mutex()
-
-    private lateinit var existingTokenModel: TransactionTokenModel
-
-    @Before
-    fun setUp() {
-        currentExpDate.set(Instant.DISTANT_FUTURE) // fresh by default; each test overrides as needed
-        storage = mockk(relaxed = true)
-        entrails = mockk(relaxed = true)
-        authService = mockk(relaxed = true)
-        chatStateListener = mockk(relaxed = true)
-        socketListener = mockk(relaxed = true)
-        connection = mockk(relaxed = true)
-        chat = mockk(relaxed = true)
-        existingTokenModel = TransactionTokenModel(
-            transactionToken = "old-token",
-            expiresIn = 0L,
-            thirdParty = ThirdParty(
-                accessToken = "old-access",
-                refreshToken = "valid-refresh-token",
-                expiresIn = 0L
-            )
-        )
-        every { chat.storage } returns storage
-        every { chat.entrails } returns entrails
-        every { entrails.authService } returns authService
-        every { entrails.storage } returns storage
-        every { entrails.threading.ioDispatcher } returns Dispatchers.Unconfined
-        every { chat.chatStateListener } returns chatStateListener
-        every { chat.socketListener } returns socketListener
-        every { chat.connection } returns connection
-        every { connection.brandId } returns 1
-        every { connection.channelId } returns "channel-1"
-        every { storage.visitorId } returns UUID.randomUUID()
-        every { storage.authTokenExpDate } answers { currentExpDate.get() }
-        every { storage.authTokenExpDate = any() } answers { currentExpDate.set(firstArg()) }
-        every { storage.transactionTokenModel } returns existingTokenModel
-        every { storage.visitorId } returns UUID.fromString("00000000-0000-0000-0000-000000000001")
-        every { chat.guards } returns Threading.Guards(tokenRefreshMutex = realTokenRefreshMutex)
-    }
+/**
+ * Grant-type selection and successful-persistence behavior of [TokenRefreshHelper].
+ * Missing-credential and API-failure behavior lives in [TokenRefreshHelperErrorTest].
+ */
+internal class TokenRefreshHelperTest : AbstractTokenRefreshHelperTest() {
 
     @Test
     fun `refreshAccessToken uses refresh_token when available`() = runTest {
         val instanceToken = "refresh-token-xyz"
-        val existingModel = mockk<TransactionTokenModel> {
-            every { thirdParty } returns mockk { every { refreshToken } returns instanceToken }
-        }
+        val existingModel = TransactionTokenModel(
+            thirdParty = ThirdParty(refreshToken = instanceToken, expiresIn = 0L)
+        )
         every { storage.transactionTokenModel } returns existingModel
-        val newModel = mockk<TransactionTokenModel> {
-            every { thirdParty } returns mockk {
-                every { accessToken } returns "new-access"
-                every { expiresAt } returns mockk()
-            }
-        }
+        val newModel = TransactionTokenModel(
+            transactionToken = "new-transaction-token",
+            thirdParty = ThirdParty(accessToken = "new-access", refreshToken = "rotated-refresh-token", expiresIn = 3600L)
+        )
         val response = mockk<Response<TransactionTokenModel>> {
             every { isSuccessful } returns true
             every { body() } returns newModel
@@ -138,18 +78,16 @@ internal class TokenRefreshHelperTest {
     @Test
     fun `refreshAccessToken uses delegate when implicit flow and no refresh_token`() = runTest {
         val jwt = "integrator-jwt"
-        val expiryMillis = System.currentTimeMillis() + 3600_000L
+        val expiryMillis = System.currentTimeMillis() + 3_600_000L
         val oauthToken = OAuthToken(jwt, expiryMillis)
         val delegate = TokenDelegateListener { oauthToken }
         every { chat.isImplicitOAuthFlow } returns true
         every { chat.tokenDelegateListener } returns delegate
         every { storage.transactionTokenModel } returns null
-        val newModel = mockk<TransactionTokenModel> {
-            every { thirdParty } returns mockk {
-                every { accessToken } returns "new-access"
-                every { expiresAt } returns mockk()
-            }
-        }
+        val newModel = TransactionTokenModel(
+            transactionToken = "new-transaction-token",
+            thirdParty = ThirdParty(accessToken = "new-access", refreshToken = "rotated-refresh-token", expiresIn = 3600L)
+        )
         val response = mockk<Response<TransactionTokenModel>> {
             every { isSuccessful } returns true
             every { body() } returns newModel
@@ -165,50 +103,23 @@ internal class TokenRefreshHelperTest {
     }
 
     @Test
-    fun `refreshAccessToken reports TokenDelegationFailedException when delegate throws`() = runTest {
-        val delegate = TokenDelegateListener { throw RuntimeChatException.TokenDelegationFailedException("no token") }
-        every { chat.isImplicitOAuthFlow } returns true
-        every { chat.tokenDelegateListener } returns delegate
-        every { storage.transactionTokenModel } returns null
-        TokenRefreshHelper.refreshAccessToken(chat)
-        verify { chatStateListener.onChatRuntimeException(any<RuntimeChatException.TokenDelegationFailedException>()) }
-        verify { socketListener.reportState(any()) }
-    }
-
-    @Test
-    fun `refreshAccessToken reports AuthorizationError for explicit flow with no refresh_token`() = runTest {
-        every { chat.isImplicitOAuthFlow } returns false
-        every { storage.transactionTokenModel } returns null
-        TokenRefreshHelper.refreshAccessToken(chat)
-        verify { chatStateListener.onChatRuntimeException(any<RuntimeChatException.AuthorizationError>()) }
-        verify { socketListener.reportState(any()) }
-    }
-
-    @Test
-    fun `refreshAccessToken reports AuthorizationError when implicit flow but no delegate`() = runTest {
-        every { chat.isImplicitOAuthFlow } returns true
-        every { chat.tokenDelegateListener } returns null
-        every { storage.transactionTokenModel } returns null
-        TokenRefreshHelper.refreshAccessToken(chat)
-        verify { chatStateListener.onChatRuntimeException(any<RuntimeChatException.AuthorizationError>()) }
-        verify { socketListener.reportState(any()) }
-    }
-
-    @Test
     fun `refreshAccessToken stores request JWT and expiry from delegate for implicit flow`() = runTest {
         val requestJwt = "integrator-jwt-for-storage"
-        val expiryMillis = System.currentTimeMillis() + 3600_000L
+        val expiryMillis = System.currentTimeMillis() + 3_600_000L
         val oauthToken = OAuthToken(requestJwt, expiryMillis)
         val delegate = TokenDelegateListener { oauthToken }
         every { chat.isImplicitOAuthFlow } returns true
         every { chat.tokenDelegateListener } returns delegate
         every { storage.transactionTokenModel } returns null
-        val newModel = mockk<TransactionTokenModel> {
-            every { thirdParty } returns mockk {
-                every { accessToken } returns "response-access-token-should-not-be-stored"
-                every { expiresAt } returns Instant.fromEpochMilliseconds(0)
-            }
-        }
+        val newModel = TransactionTokenModel(
+            transactionToken = "new-transaction-token",
+            thirdParty = ThirdParty(
+                accessToken = "response-access-token-should-not-be-stored",
+                refreshToken = "rotated-refresh-token",
+                expiresIn = 0L,
+                createdAt = Instant.fromEpochMilliseconds(0),
+            )
+        )
         val response = mockk<Response<TransactionTokenModel>> {
             every { isSuccessful } returns true
             every { body() } returns newModel
@@ -227,18 +138,21 @@ internal class TokenRefreshHelperTest {
     fun `refreshAccessToken stores response accessToken as authToken for explicit flow`() = runTest {
         val testRefreshToken = "explicit-refresh-token"
         val responseAccessToken = "explicit-response-access-token"
-        val existingModel = mockk<TransactionTokenModel> {
-            every { thirdParty } returns mockk<ThirdParty> { every { refreshToken } returns testRefreshToken }
-        }
+        val existingModel = TransactionTokenModel(
+            thirdParty = ThirdParty(refreshToken = testRefreshToken, expiresIn = 0L)
+        )
         every { chat.isImplicitOAuthFlow } returns false
         every { storage.transactionTokenModel } returns existingModel
         val responseExpiry = Clock.System.now() + 3600.seconds
-        val newModel = mockk<TransactionTokenModel> {
-            every { thirdParty } returns mockk<ThirdParty> {
-                every { accessToken } returns responseAccessToken
-                every { expiresAt } returns responseExpiry
-            }
-        }
+        val newModel = TransactionTokenModel(
+            transactionToken = "new-transaction-token",
+            thirdParty = ThirdParty(
+                accessToken = responseAccessToken,
+                refreshToken = "rotated-refresh-token",
+                expiresIn = 0L,
+                createdAt = responseExpiry,
+            )
+        )
         val response = mockk<Response<TransactionTokenModel>> {
             every { isSuccessful } returns true
             every { body() } returns newModel
@@ -255,16 +169,45 @@ internal class TokenRefreshHelperTest {
     fun `refreshAccessToken updates authToken and authTokenExpDate on success`() = runTest {
         val testToken = "refresh-token-xyz"
         val newAccessToken = "new-access-token"
-        val expiresAt = Clock.System.now()
-        val existingModel = mockk<TransactionTokenModel> {
-            every { thirdParty } returns mockk { every { refreshToken } returns testToken }
-        }
+        val responseExpiry = Clock.System.now()
+        val existingModel = TransactionTokenModel(
+            thirdParty = ThirdParty(refreshToken = testToken, expiresIn = 0L)
+        )
         every { storage.transactionTokenModel } returns existingModel
+        val newModel = TransactionTokenModel(
+            transactionToken = "new-transaction-token",
+            thirdParty = ThirdParty(
+                accessToken = newAccessToken,
+                refreshToken = "rotated-refresh-token",
+                expiresIn = 0L,
+                createdAt = responseExpiry,
+            )
+        )
+        val response = mockk<Response<TransactionTokenModel>> {
+            every { isSuccessful } returns true
+            every { body() } returns newModel
+        }
+        every { authService.getTransactionToken(any(), any(), any(), any()) } returns mockk {
+            every { execute() } returns response
+        }
+        TokenRefreshHelper.refreshAccessToken(chat)
+        verify { storage.authToken = newAccessToken }
+        verify { storage.authTokenExpDate = responseExpiry }
+        verify { storage.transactionTokenModel = newModel }
+    }
+
+    @Test
+    fun `refreshAccessToken preserves cached transaction token when refresh_token response omits it`() = runTest {
+        // storage.transactionTokenModel defaults to existingTokenModel (transactionToken = "old-token")
         val newThirdParty = mockk<ThirdParty> {
-            every { accessToken } returns newAccessToken
-            every { this@mockk.expiresAt } returns expiresAt
+            every { accessToken } returns "fresh-access-token"
+            every { expiresAt } returns mockk()
+            // Rotating-refresh-token backend: a fresh refresh token is present, so the merge must not
+            // touch it — see the fallback scenario below for when it's absent instead.
+            every { refreshToken } returns "rotated-refresh-token"
         }
         val newModel = mockk<TransactionTokenModel> {
+            every { transactionToken } returns null
             every { thirdParty } returns newThirdParty
         }
         val response = mockk<Response<TransactionTokenModel>> {
@@ -275,31 +218,54 @@ internal class TokenRefreshHelperTest {
             every { execute() } returns response
         }
         TokenRefreshHelper.refreshAccessToken(chat)
-        verify { storage.authToken = newAccessToken }
-        verify { storage.authTokenExpDate = expiresAt }
-        verify { storage.transactionTokenModel = newModel }
+        val storedModelSlot = slot<TransactionTokenModel>()
+        verify { storage.transactionTokenModel = capture(storedModelSlot) }
+        assertEquals("old-token", storedModelSlot.captured.transactionToken)
+        assertEquals(newThirdParty, storedModelSlot.captured.thirdParty)
     }
 
     @Test
-    fun `refreshAccessToken reports AuthorizationError on API failure`() = runTest {
-        val testToken = "refresh-token"
-        val existingModel = mockk<TransactionTokenModel> {
-            every { thirdParty } returns mockk<ThirdParty> {
-                every { refreshToken } returns testToken
-            }
+    fun `refreshAccessToken preserves cached refresh token when refresh_token response omits it`() = runTest {
+        // storage.transactionTokenModel defaults to existingTokenModel (thirdParty.refreshToken = "valid-refresh-token")
+        val newThirdParty = ThirdParty(accessToken = "fresh-access-token", refreshToken = null, expiresIn = 3600L)
+        val newModel = mockk<TransactionTokenModel> {
+            every { transactionToken } returns null
+            every { thirdParty } returns newThirdParty
         }
-        every { storage.transactionTokenModel } returns existingModel
         val response = mockk<Response<TransactionTokenModel>> {
-            every { isSuccessful } returns false
-            every { errorBody() } returns null
-            every { code() } returns 401
-            every { message() } returns "Unauthorized"
+            every { isSuccessful } returns true
+            every { body() } returns newModel
         }
         every { authService.getTransactionToken(any(), any(), any(), any()) } returns mockk {
             every { execute() } returns response
         }
         TokenRefreshHelper.refreshAccessToken(chat)
-        verify { chatStateListener.onChatRuntimeException(any<RuntimeChatException.AuthorizationError>()) }
+        val storedModelSlot = slot<TransactionTokenModel>()
+        verify { storage.transactionTokenModel = capture(storedModelSlot) }
+        assertEquals("fresh-access-token", storedModelSlot.captured.thirdParty?.accessToken)
+        assertEquals("valid-refresh-token", storedModelSlot.captured.thirdParty?.refreshToken)
+    }
+
+    @Test
+    fun `refreshAccessToken preserves cached refresh token when response includes transaction token`() = runTest {
+        // storage.transactionTokenModel defaults to existingTokenModel (thirdParty.refreshToken = "valid-refresh-token").
+        // Unlike the sibling scenario above, this response also carries a transactionToken — the merge must
+        // still apply, not just for responses that omit transactionToken.
+        val newThirdParty = ThirdParty(accessToken = "fresh-access-token", refreshToken = null, expiresIn = 3600L)
+        val newModel = TransactionTokenModel(transactionToken = "new-transaction-token", thirdParty = newThirdParty)
+        val response = mockk<Response<TransactionTokenModel>> {
+            every { isSuccessful } returns true
+            every { body() } returns newModel
+        }
+        every { authService.getTransactionToken(any(), any(), any(), any()) } returns mockk {
+            every { execute() } returns response
+        }
+        TokenRefreshHelper.refreshAccessToken(chat)
+        val storedModelSlot = slot<TransactionTokenModel>()
+        verify { storage.transactionTokenModel = capture(storedModelSlot) }
+        assertEquals("new-transaction-token", storedModelSlot.captured.transactionToken)
+        assertEquals("fresh-access-token", storedModelSlot.captured.thirdParty?.accessToken)
+        assertEquals("valid-refresh-token", storedModelSlot.captured.thirdParty?.refreshToken)
     }
 
     @Test
@@ -317,79 +283,93 @@ internal class TokenRefreshHelperTest {
         verify { storage.transactionTokenModel = any() }
     }
 
+    /** signOut() clears storage, which rotates visitorId; simulate it happening while the request is in flight. */
+    private fun clearStorageDuringRequest(call: Call<TransactionTokenModel>) {
+        val visitorId = AtomicReference(UUID.fromString("00000000-0000-0000-0000-000000000001"))
+        every { storage.visitorId } answers { visitorId.get() }
+        every { authService.getTransactionToken(any(), any(), any(), any()) } answers {
+            visitorId.set(UUID.randomUUID())
+            call
+        }
+    }
+
     @Test
-    fun `does not call HTTP when refresh token is absent`() = runTest {
+    fun `refreshAccessToken discards a successful result when storage was cleared while it was in flight`() = runTest {
         currentExpDate.set(Clock.System.now() - 60.seconds)
-        every { storage.transactionTokenModel } returns existingTokenModel.copy(thirdParty = null)
+        clearStorageDuringRequest(successfulRefreshCall(freshAccessToken = nextString()))
+
+        TokenRefreshHelper.refreshAccessToken(chat)
+
+        verify(exactly = 0) { storage.authToken = any() }
+        verify(exactly = 0) { storage.authTokenExpDate = any() }
+        verify(exactly = 0) { storage.transactionTokenModel = any() }
+    }
+
+    @Test
+    fun `refreshAccessToken does not report a failure when storage was cleared while it was in flight`() = runTest {
+        currentExpDate.set(Clock.System.now() - 60.seconds)
+        clearStorageDuringRequest(
+            mockk { every { execute() } returns Response.error(401, "".toResponseBody()) }
+        )
+
+        TokenRefreshHelper.refreshAccessToken(chat)
+
+        verify(exactly = 0) { chatStateListener.onChatRuntimeException(any()) }
+        verify(exactly = 0) { socketListener.reportState(any()) }
+    }
+
+    @Test
+    fun `refreshAccessToken does not report a delegate failure when storage was cleared while the delegate ran`() = runTest {
+        val visitorId = AtomicReference(UUID.fromString("00000000-0000-0000-0000-000000000001"))
+        every { storage.visitorId } answers { visitorId.get() }
+        every { chat.isImplicitOAuthFlow } returns true
+        every { chat.tokenDelegateListener } returns TokenDelegateListener {
+            visitorId.set(UUID.randomUUID()) // the user signed out while the integrator was fetching a token
+            error("No signed-in user")
+        }
+
+        TokenRefreshHelper.refreshAccessToken(chat)
+
+        verify(exactly = 0) { chatStateListener.onChatRuntimeException(any()) }
+        verify(exactly = 0) { socketListener.reportState(any()) }
+        verify(exactly = 0) { authService.getTransactionToken(any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `refreshAccessToken does not send the token request when storage was cleared while a successful delegate ran`() =
+        runTest {
+            val visitorId = AtomicReference(UUID.fromString("00000000-0000-0000-0000-000000000001"))
+            every { storage.visitorId } answers { visitorId.get() }
+            every { chat.isImplicitOAuthFlow } returns true
+            every { chat.tokenDelegateListener } returns TokenDelegateListener {
+                visitorId.set(UUID.randomUUID()) // the user signed out while the integrator was fetching a token
+                OAuthToken("next-user-jwt", System.currentTimeMillis() + 3_600_000L)
+            }
+
+            TokenRefreshHelper.refreshAccessToken(chat)
+
+            verify(exactly = 0) { authService.getTransactionToken(any(), any(), any(), any()) }
+            verify(exactly = 0) { storage.authToken = any() }
+            verify(exactly = 0) { chatStateListener.onChatRuntimeException(any()) }
+            verify(exactly = 0) { socketListener.reportState(any()) }
+        }
+
+    @Test
+    fun `refreshAccessToken does not send the token request when storage was cleared during the hop to IO`() = runTest {
+        currentExpDate.set(Clock.System.now() - 60.seconds)
+        val visitorId = AtomicReference(UUID.fromString("00000000-0000-0000-0000-000000000001"))
+        every { storage.visitorId } answers { visitorId.get() }
+        every { entrails.threading.ioDispatcher } returns object : CoroutineDispatcher() {
+            override fun dispatch(context: CoroutineContext, block: Runnable) {
+                visitorId.set(UUID.randomUUID()) // signOut() landing before the IO dispatcher runs the request
+                block.run()
+            }
+        }
 
         TokenRefreshHelper.refreshAccessToken(chat)
 
         verify(exactly = 0) { authService.getTransactionToken(any(), any(), any(), any()) }
-        verify { chatStateListener.onChatRuntimeException(any<RuntimeChatException.AuthorizationError>()) }
-        verify { socketListener.reportState(SocketState.CLOSED) }
-    }
-
-    @Test
-    fun `does not update storage when HTTP call throws`() = runTest {
-        val expiredDate = Clock.System.now() - 60.seconds
-        currentExpDate.set(expiredDate)
-        val ioException = IOException("Network error")
-        every { authService.getTransactionToken(any(), any(), any(), any()) } returns
-                mockk { every { execute() } throws ioException }
-
-        TokenRefreshHelper.refreshAccessToken(chat)
-
-        currentExpDate.get() shouldBe expiredDate
-        verify { chatStateListener.onChatRuntimeException(any<RuntimeChatException.AuthorizationError>()) }
-        verify { socketListener.reportState(SocketState.CLOSED) }
-    }
-
-
-    @Test
-    fun `RuntimeException during execute reports auth error closes socket`() = runTest {
-        currentExpDate.set(Clock.System.now() - 60.seconds)
-        val cause = NullPointerException("unexpected null inside doRefresh")
-        every { authService.getTransactionToken(any(), any(), any(), any()) } returns
-                mockk { every { execute() } throws cause }
-
-        TokenRefreshHelper.refreshAccessToken(chat)
-
-        verify { chatStateListener.onChatRuntimeException(any<RuntimeChatException.AuthorizationError>()) }
-        verify { socketListener.reportState(SocketState.CLOSED) }
-    }
-
-    @Test
-    fun `CancellationException during execute propagates and is not swallowed as RuntimeException`() = runTest {
-        currentExpDate.set(Clock.System.now() - 60.seconds)
-        every { authService.getTransactionToken(any(), any(), any(), any()) } returns
-                mockk { every { execute() } throws CancellationException("scope cancelled") }
-
-        var caughtCancellation = false
-        try {
-            TokenRefreshHelper.refreshAccessToken(chat)
-        } catch (_: CancellationException) {
-            caughtCancellation = true
-        }
-
-        caughtCancellation shouldBe true
         verify(exactly = 0) { chatStateListener.onChatRuntimeException(any()) }
+        verify(exactly = 0) { socketListener.reportState(any()) }
     }
-
-    private fun successfulRefreshCall(freshAccessToken: String, expiresInSeconds: Long = 3600L): Call<TransactionTokenModel> {
-        val model = buildFreshTokenModel(freshAccessToken, expiresInSeconds)
-        return mockk { every { execute() } returns Response.success(model) }
-    }
-
-    private fun buildFreshTokenModel(
-        freshAccessToken: String = "fresh-access",
-        expiresInSeconds: Long,
-    ) = TransactionTokenModel(
-        transactionToken = "fresh-transaction-token",
-        expiresIn = expiresInSeconds,
-        thirdParty = ThirdParty(
-            accessToken = freshAccessToken,
-            refreshToken = "fresh-refresh-token",
-            expiresIn = expiresInSeconds
-        )
-    )
 }

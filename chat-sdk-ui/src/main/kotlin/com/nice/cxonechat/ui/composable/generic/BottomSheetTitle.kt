@@ -34,6 +34,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.Dp
 import com.nice.cxonechat.ui.composable.conversation.EndConversationIcon
 import com.nice.cxonechat.ui.composable.icons.ChatIcons
 import com.nice.cxonechat.ui.composable.icons.filled.Expired
@@ -46,6 +47,7 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme.space
 internal fun BottomSheetTitle(
     message: String,
     modifier: Modifier = Modifier,
+    horizontalPadding: Dp = space.xl,
     bottomContent: @Composable (ColumnScope.() -> Unit)? = null,
     trailingContent: @Composable (RowScope.() -> Unit)? = null,
 ) {
@@ -53,7 +55,7 @@ internal fun BottomSheetTitle(
         horizontalArrangement = Arrangement.spacedBy(space.medium, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .padding(horizontal = space.xl)
+            .padding(horizontal = horizontalPadding)
             .fillMaxWidth()
     ) {
         Column(

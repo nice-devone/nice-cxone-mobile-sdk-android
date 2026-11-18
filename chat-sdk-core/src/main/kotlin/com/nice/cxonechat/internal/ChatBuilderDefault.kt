@@ -33,9 +33,11 @@ import com.nice.cxonechat.internal.serializer.Default
 import com.nice.cxonechat.internal.socket.SocketFactory
 import com.nice.cxonechat.log.error
 import com.nice.cxonechat.state.Connection
+import kotlinx.coroutines.ensureActive
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import kotlin.coroutines.coroutineContext
 
 internal class ChatBuilderDefault(
     private val entrails: ChatEntrails,
@@ -103,6 +105,11 @@ internal class ChatBuilderDefault(
             factory = factory,
             state = state
         )
+        // ChannelConfigurationCache.put() never throws -- its generation check is process-wide, so a
+        // mismatch can come from an unrelated provider's signOut(). This is the actual, precise check
+        // for whether THIS build's own coroutine was cancelled, covering the cache-hit path too
+        // (prepareChatParameters() only checks around its own fetch/put, not a hit that skips both).
+        coroutineContext.ensureActive()
         return createChatInstance(chatParameters, entrails, state)
     }
 }
@@ -126,7 +133,7 @@ private data class ChatParameters(
     val storeVisitorCallback: Callback<Void>,
 )
 
-private fun prepareChatParameters(
+private suspend fun prepareChatParameters(
     entrails: ChatEntrails,
     factory: SocketFactory,
     state: BuilderState,
@@ -144,13 +151,26 @@ private fun prepareChatParameters(
         )
     }
     state.deviceToken?.let { entrails.storage.deviceToken = it }
-    val cachedConfiguration = if (state.preferCachedChannelConfiguration) {
-        ChannelConfigurationCache.get(connection.brandId, connection.channelId)
-    } else {
-        null
-    }
+    val generationBeforeFetch = ChannelConfigurationCache.currentGeneration()
+    val cachedConfiguration = ChannelConfigurationCache.get(
+        chatUrl = connection.environment.chatUrl,
+        brandId = connection.brandId,
+        channelId = connection.channelId,
+        ignoreTtl = state.preferCachedChannelConfiguration,
+    )
     val body = cachedConfiguration ?: fetchChannelConfiguration(entrails, connection).also {
-        ChannelConfigurationCache.put(connection.brandId, connection.channelId, it)
+        // Checked here, not only after prepareChatParameters() returns: signOut() cancelling this
+        // build's own coroutine at any point up to and including this blocking fetch must stop the
+        // write, or a job that resumes after signOut() already ran can still capture a "fresh"
+        // (post-clear) generation and repopulate the cache with a signed-out session's result.
+        coroutineContext.ensureActive()
+        ChannelConfigurationCache.put(
+            connection.environment.chatUrl,
+            connection.brandId,
+            connection.channelId,
+            it,
+            generationBeforeFetch,
+        )
     }
     val storeVisitorCallback = if (state.isDevelopment) StoreVisitorCallback(entrails.logger) else IgnoredCallback
     return ChatParameters(connection, factory, body, storeVisitorCallback)

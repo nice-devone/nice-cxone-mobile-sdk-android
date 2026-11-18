@@ -40,4 +40,7 @@ internal data class ContactFieldData(
     @SerialName("createdAt")
     @Contextual
     val createdAt: Instant,
+
+    @SerialName("handler")
+    val handler: String? = null,
 )

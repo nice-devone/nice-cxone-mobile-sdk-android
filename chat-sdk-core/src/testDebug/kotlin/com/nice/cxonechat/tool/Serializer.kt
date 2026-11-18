@@ -79,7 +79,6 @@ private class InstantTypeAdapter : TypeAdapter<Instant>() {
     }
 }
 
-
 private class Factory : TypeAdapterFactory {
     override fun <T> create(gson: Gson, type: TypeToken<T>): TypeAdapter<T> {
         val rawType: Class<in T> = type.rawType

@@ -23,6 +23,7 @@ import com.nice.cxonechat.internal.model.Thread
 import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
 import com.nice.cxonechat.thread.ChatThread
 import com.nice.cxonechat.thread.ChatThreadState
+import com.nice.cxonechat.thread.ContactHandler
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -35,6 +36,7 @@ internal data class EventMessageCreated(
 
     val contactId get() = data.case.id
     val contactStatus get() = data.case.status
+    val contactHandler get() = ContactHandler.from(data.case.handler)
 
     val threadId get() = data.thread.idOnExternalPlatform
     val threadName get() = data.thread.threadName

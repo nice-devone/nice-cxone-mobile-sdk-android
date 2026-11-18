@@ -13,9 +13,10 @@ Here's a selection of simplified, but fully functional, use cases to get you sta
 - [Live Chat](chat-sdk-core/cs-live-chat.md)
 - [Single Thread Chat](chat-sdk-core/cs-single-thread.md)
 - [Multi Thread Chat](chat-sdk-core/cs-multi-thread.md)
-- [OAuth Third-Party Authentication](chat-sdk-core/cs-oauth-third-party.md) *(warning: explicit flow currently not supported by the backend in latest SDK; use implicit flow or stay on previous version)*
+- [OAuth Third-Party Authentication](chat-sdk-core/cs-oauth-third-party.md)
 - [Push notifications](chat-sdk-core/cs-push-notifications.md)
 - [Rich Messages](chat-sdk-core/cs-rich-messages.md)
+- [Satisfaction Survey](chat-sdk-core/cs-satisfaction-survey.md)
 - [Analytics](chat-sdk-core/cs-analytics.md)
 - [Setting customer id](chat-sdk-core/cs-customer-id.md)
 - [Logging](chat-sdk-core/cs-logging.md)

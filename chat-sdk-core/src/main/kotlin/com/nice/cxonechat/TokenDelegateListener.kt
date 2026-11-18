@@ -30,7 +30,7 @@ enum class TokenRequestReason {
     /** No specific reason; used as a safe default for forward-compatible SDK versions. */
     UNSPECIFIED,
 
-    /** The backend rejected the stored JWT via HTTP 401; a fresh token is required. */
+    /** The backend rejected the stored JWT via HTTP 400; a fresh token is required. */
     TOKEN_INVALID,
 
     /** The current token expired during an active session before an outgoing event was sent. */

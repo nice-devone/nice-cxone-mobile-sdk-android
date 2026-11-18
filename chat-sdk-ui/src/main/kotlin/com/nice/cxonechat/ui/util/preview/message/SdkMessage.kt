@@ -96,6 +96,11 @@ internal data class ListPicker(
     override val isAiGenerated: Boolean = false,
 ) : SdkListPicker()
 
+/** A [ListPicker] with [count] options, for previews and tests exercising overflow scrolling. */
+internal fun manyOptionsListPicker(count: Int): ListPicker = ListPicker(
+    actions = List(count) { index -> ReplyButton("Option ${index + 1}") }
+)
+
 internal data class TimePicker(
     override val title: String = "Time Picker",
     override val popupTitle: String = "Select Time Slot",
@@ -147,6 +152,11 @@ internal data class QuickReply(
     override val fallbackText: String? = null,
     override val isAiGenerated: Boolean = false,
 ) : SdkQuickReply()
+
+/** A [QuickReply] with [count] options, for previews and tests exercising a wide options row. */
+internal fun manyOptionsQuickReply(count: Int): QuickReply = QuickReply(
+    actions = List(count) { index -> ReplyButton("Option ${index + 1}") }
+)
 
 internal typealias SdkQuickReply = com.nice.cxonechat.message.Message.QuickReplies
 internal typealias UiSdkQuickReply = QuickReply

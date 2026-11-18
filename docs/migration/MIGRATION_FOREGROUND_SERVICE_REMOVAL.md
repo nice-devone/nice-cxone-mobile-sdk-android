@@ -10,9 +10,11 @@ Starting with SDK version 3.1.2, Chat SDK UI no longer declares foreground servi
 
 Update to the new SDK version in your module's Gradle build file (`build.gradle` or `build.gradle.kts`):
 
-```groovy
-implementation("com.nice.cxone:chat-sdk-ui:3.1.2")
+```kotlin
+implementation("com.nice.cxone:chat-sdk-ui:<latest-version>")
 ```
+
+The permissions were dropped in 3.1.2, so any release from 3.1.2 onward is sufficient.
 
 ### 2. Remove Manifest Workarounds (if present)
 

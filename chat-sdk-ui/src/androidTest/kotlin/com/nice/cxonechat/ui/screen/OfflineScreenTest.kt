@@ -16,13 +16,12 @@
 package com.nice.cxonechat.ui.screen
 
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.platform.LocalWindowInfo
-import androidx.compose.ui.platform.WindowInfo
+import androidx.compose.ui.test.DeviceConfigurationOverride
+import androidx.compose.ui.test.WindowSize
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -90,23 +89,39 @@ class OfflineScreenTest : AbstractComponentActivityUiTest() {
     }
 
     /**
-     * Asserts that the offline image is hidden when window size is smaller than medium size class.
+     * Asserts that the offline image is hidden when the window container is shorter than the
+     * `offlineImageMinimumScreenHeight` threshold.
      */
     @Test
     fun offlineScreen_offlineImage_isHidden_onSmallWindow() {
         composeTestRule.setContent {
-            val size = (space.offlineImageMinimumScreenHeight - 0.1.dp).value.toInt()
-            CompositionLocalProvider(
-                // Simulate window smaller than required minimum
-                LocalWindowInfo provides object : WindowInfo {
-                    override val isWindowFocused: Boolean = false
-                    override val containerSize = IntSize(size, size)
-                },
+            val sizeDp = space.offlineImageMinimumScreenHeight - 1.dp
+            // Simulate window smaller than required minimum
+            DeviceConfigurationOverride(
+                DeviceConfigurationOverride.WindowSize(DpSize(sizeDp, sizeDp)),
             ) {
                 OfflineScreen(onBackPress = {}, snackbarHostState = SnackbarHostState())
             }
         }
         // Assert that offline_image is not displayed
         composeTestRule.onNodeWithTag("offline_image").assertDoesNotExist()
+    }
+
+    /**
+     * Asserts that the offline image is shown when the window container is taller than the
+     * `offlineImageMinimumScreenHeight` threshold, without relying on the device's own geometry.
+     */
+    @Test
+    fun offlineScreen_offlineImage_isShown_onLargeWindow() {
+        composeTestRule.setContent {
+            val sizeDp = space.offlineImageMinimumScreenHeight + 1.dp
+            // Simulate window taller than required minimum
+            DeviceConfigurationOverride(
+                DeviceConfigurationOverride.WindowSize(DpSize(sizeDp, sizeDp)),
+            ) {
+                OfflineScreen(onBackPress = {}, snackbarHostState = SnackbarHostState())
+            }
+        }
+        composeTestRule.onNodeWithTag("offline_image").assertIsDisplayed()
     }
 }

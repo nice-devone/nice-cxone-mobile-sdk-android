@@ -16,7 +16,6 @@
 package com.nice.cxonechat.ui.composable.conversation
 
 import android.content.Context
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -64,7 +63,6 @@ class ChatConversationUiTest {
                 showMessageProcessing = false,
                 onError = {},
                 modifier = Modifier,
-                snackBarHostState = SnackbarHostState()
             )
         }
         composeTestRule.onNodeWithTag("chat_conversation_column", useUnmergedTree = true).assertIsDisplayed()
@@ -81,7 +79,6 @@ class ChatConversationUiTest {
                 onError = {},
                 showMessageProcessing = false,
                 modifier = Modifier,
-                snackBarHostState = SnackbarHostState()
             )
         }
         composeTestRule.onNodeWithTag("archived_info_box", useUnmergedTree = true).assertIsDisplayed()
@@ -99,7 +96,6 @@ class ChatConversationUiTest {
                 showMessageProcessing = false,
                 onError = {},
                 modifier = Modifier,
-                snackBarHostState = SnackbarHostState()
             )
         }
         composeTestRule.onNodeWithTag("position_in_queue_content_view").assertIsDisplayed()
@@ -115,7 +111,6 @@ class ChatConversationUiTest {
                 showMessageProcessing = false,
                 onError = {},
                 modifier = Modifier,
-                snackBarHostState = SnackbarHostState()
             )
         }
         composeTestRule.onNodeWithTag("position_in_queue_content_view").assertDoesNotExist()
@@ -131,7 +126,6 @@ class ChatConversationUiTest {
                 showMessageProcessing = false,
                 onError = {},
                 modifier = Modifier,
-                snackBarHostState = SnackbarHostState()
             )
         }
         composeTestRule.onNodeWithTag("position_in_queue_content_view").assertDoesNotExist()

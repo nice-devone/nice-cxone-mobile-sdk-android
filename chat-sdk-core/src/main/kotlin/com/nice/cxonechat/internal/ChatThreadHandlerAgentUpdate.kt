@@ -44,7 +44,10 @@ internal class ChatThreadHandlerAgentUpdate(
             .mapNotNull { (_, event) ->
                 if (!event.inThread(thread)) return@mapNotNull null
                 try {
-                    thread += thread.asCopyable().copy(threadAgent = event.agent)
+                    thread += thread.asCopyable().copy(
+                        threadAgent = event.agent,
+                        contactHandler = event.contactHandler ?: thread.contactHandler,
+                    )
                     get()
                 } catch (expected: CancellationException) {
                     throw expected

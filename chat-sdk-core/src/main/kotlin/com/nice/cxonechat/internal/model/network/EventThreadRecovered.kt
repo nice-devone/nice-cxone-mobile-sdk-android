@@ -22,6 +22,7 @@ import com.nice.cxonechat.internal.model.CustomFieldModel
 import com.nice.cxonechat.internal.model.MessageModel
 import com.nice.cxonechat.internal.socket.EventCallback.ReceivedEvent
 import com.nice.cxonechat.thread.ChatThread
+import com.nice.cxonechat.thread.ContactHandler
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -38,16 +39,23 @@ internal data class EventThreadRecovered(
     val messages get() = data.messages.orEmpty().mapNotNull(MessageModel::toMessage)
 
     /**
-     * Popups are filtered out of regular messages, but if it is last message in the recovered thread,
-     * it can be recovered here.
+     * Popups are filtered out of regular messages, but if it is the newest one, it can be recovered
+     * here. Keyed on createdAt, not list order - nothing guarantees messages arrive oldest-first.
+     * The max is taken over popup candidates only: createdAt can tie, and taking it over every
+     * message first would let a tied plain message's null win instead.
      */
-    val popup: Popup? get() = data.messages.orEmpty().lastOrNull()?.toPopup()
+    val popup: Popup?
+        get() = data.messages.orEmpty()
+            .mapNotNull { message -> message.toPopup()?.let { message.createdAt to it } }
+            .maxByOrNull { (createdAt, _) -> createdAt }
+            ?.second
     val thread
         get() = data.thread
             .toChatThread()
             .copy(
                 fields = postback.data.contact?.customFields.orEmpty().map(CustomFieldModel::toCustomField),
                 contactId = data.contact?.id,
+                contactHandler = ContactHandler.from(data.contact?.handler),
             )
     val scrollToken get() = data.messagesScrollToken
     val customerCustomFields get() = data.customer?.customFields.orEmpty().map(CustomFieldModel::toCustomField)

@@ -31,7 +31,9 @@ import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 
-private val linearTime = generateSequence(Instant.fromEpochMilliseconds(Clock.System.now().toEpochMilliseconds())) { it + 1.milliseconds }.iterator()
+private val linearTime = generateSequence(
+    Instant.fromEpochMilliseconds(Clock.System.now().toEpochMilliseconds())
+) { it + 1.milliseconds }.iterator()
 
 internal fun makeMessageModel(
     idOnExternalPlatform: UUID = UUID.randomUUID(),

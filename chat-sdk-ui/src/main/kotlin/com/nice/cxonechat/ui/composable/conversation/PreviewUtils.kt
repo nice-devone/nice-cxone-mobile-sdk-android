@@ -21,18 +21,19 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nice.cxonechat.Popup
 import com.nice.cxonechat.Popup.InactivityPopup.Countdown
 import com.nice.cxonechat.message.Action
 import com.nice.cxonechat.message.Attachment
 import com.nice.cxonechat.message.Message
+import com.nice.cxonechat.message.MessageDirection
 import com.nice.cxonechat.message.MessageDirection.ToAgent
 import com.nice.cxonechat.ui.composable.conversation.MessageItemGroupState.SOLO
 import com.nice.cxonechat.ui.composable.conversation.MessageStatusState.SELECTABLE
@@ -41,7 +42,11 @@ import com.nice.cxonechat.ui.composable.theme.ChatTheme
 import com.nice.cxonechat.ui.composable.theme.ChatTheme.chatColors
 import com.nice.cxonechat.ui.data.RequestResult
 import com.nice.cxonechat.ui.domain.model.Person
+import com.nice.cxonechat.ui.util.preview.message.SdkText
 import com.nice.cxonechat.ui.util.preview.message.UiSdkReplyButton
+import com.nice.cxonechat.ui.util.preview.message.UiSdkText
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlin.time.Clock
@@ -115,6 +120,20 @@ internal object PreviewAttachments {
 
     val choices = listOf(image, image2, movie, sound, pdf, txt, evil)
 
+    /**
+     * A text message carrying nothing but [sound], which the conversation splits out into an audio cell.
+     *
+     * The instant is fixed because a golden rendering this cell shows its timestamp. Inspection mode keeps the
+     * cell from building a player, but not from having its attachment fetched: `ConversationUiState.messages()`
+     * hands every audio attachment to the download manager either way. Hence a URL that answers with no content.
+     */
+    fun audioSdkMessage(direction: MessageDirection): SdkText = UiSdkText(
+        text = "",
+        attachments = listOf(sound),
+        direction = direction,
+        createdAt = Instant.parse("2026-01-15T14:07:00Z"),
+    )
+
     fun getAttachments(count: Int = 1): Sequence<Attachment> {
         var index = count
         return generateSequence {
@@ -141,12 +160,19 @@ internal data class AttachmentProvider(
     override val values: Sequence<Attachment> = PreviewAttachments.choices.asSequence(),
 ) : PreviewParameterProvider<Attachment>
 
+/**
+ * Side inset [PreviewMessageItemBase] gives its content by default. It is a preview's own number, not the inset
+ * production gives the conversation column, so a caller that needs the cell where a device puts it passes its own.
+ */
+internal val PreviewContentInset: Dp = 17.dp
+
 @Composable
 internal fun PreviewMessageItemBase(
     message: UiMessage,
     itemGroupState: MessageItemGroupState = SOLO,
+    horizontalPadding: Dp = PreviewContentInset,
 ) {
-    PreviewMessageItemBase {
+    PreviewMessageItemBase(horizontalPadding = horizontalPadding) {
         PreviewMessageItem(
             message = message,
             itemGroupState = itemGroupState,
@@ -160,7 +186,6 @@ internal fun PreviewMessageItem(
     itemGroupState: MessageItemGroupState = SOLO,
     showStatus: DisplayStatus = if (message.direction === ToAgent) DisplayStatus.DISPLAY else DisplayStatus.HIDE,
     messageStatusState: MessageStatusState = SELECTABLE,
-    snackBarHostState: SnackbarHostState = SnackbarHostState(),
     onAttachmentClicked: (Attachment) -> Unit = {},
     onMoreClicked: (List<Attachment>) -> Unit = { _ -> },
     onShare: (Collection<Attachment>) -> Unit = {},
@@ -174,7 +199,6 @@ internal fun PreviewMessageItem(
         onShare = onShare,
         modifier = Modifier.fillMaxWidth(),
         messageStatusState = messageStatusState,
-        snackBarHostState = snackBarHostState,
         onQuickReplyOptionSelected = {},
         onListPickerSelected = {},
         onTimePickerSelected = { _, _ -> },
@@ -182,8 +206,15 @@ internal fun PreviewMessageItem(
     )
 }
 
+/**
+ * Frames [content] the way a message list frames its cells, giving it the theme, the surface and a side inset.
+ *
+ * @param horizontalPadding Side inset for the column, standing in for production's conversation-column inset.
+ * @param content Cells to frame, in the column's own scope.
+ */
 @Composable
 internal fun PreviewMessageItemBase(
+    horizontalPadding: Dp = PreviewContentInset,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     ChatTheme {
@@ -192,7 +223,7 @@ internal fun PreviewMessageItemBase(
             color = chatColors.token.background.default,
         ) {
             Column(
-                modifier = Modifier.padding(horizontal = 17.dp),
+                modifier = Modifier.padding(horizontal = horizontalPadding),
             ) {
                 content()
             }
@@ -200,6 +231,11 @@ internal fun PreviewMessageItemBase(
     }
 }
 
+/**
+ * Mapping the messages is unconfined by default, so that a preview or a test renders them on the frame that
+ * asks for them rather than whenever a shared background thread gets scheduled. A test that needs to drive the
+ * mapping itself passes its own dispatcher.
+ */
 @Stable
 @Suppress(
     "LongParameterList" // Preview function
@@ -210,14 +246,17 @@ internal fun previewUiState(
     positionInQueue: Int? = null,
     isLiveChat: Boolean = true,
     pendingAttachments: List<Attachment> = emptyList(),
+    isAgentTyping: Boolean = true,
+    canLoadMore: Boolean = true,
+    backgroundDispatcher: CoroutineDispatcher = Dispatchers.Unconfined,
 ) = ConversationUiState(
     sdkMessages = MutableStateFlow(messages),
     agentTyping = MutableStateFlow(Person(firstName = "Some", lastName = "User")),
     positionInQueue = flowOf(positionInQueue),
     sendMessage = {},
     loadMore = {},
-    canLoadMore = MutableStateFlow(true),
-    isAgentTyping = MutableStateFlow(true),
+    canLoadMore = MutableStateFlow(canLoadMore),
+    isAgentTyping = MutableStateFlow(isAgentTyping),
     onStartTyping = {},
     onStopTyping = {},
     onAttachmentClicked = {},
@@ -225,6 +264,7 @@ internal fun previewUiState(
     onShare = {},
     isArchived = MutableStateFlow(isArchived),
     isLiveChat = isLiveChat,
+    backgroundDispatcher = backgroundDispatcher,
     pendingAttachments = MutableStateFlow(pendingAttachments),
     onRemovePendingAttachment = {}
 )
@@ -240,4 +280,10 @@ internal fun createPreviewPopup(timeoutSeconds: Long = 20): Popup.InactivityPopu
     override val callToAction: String = "Please respond to continue."
     override val sessionExpire: Action = UiSdkReplyButton("Close Chat")
     override val sessionRefresh: Action = UiSdkReplyButton("Continue")
+}
+
+@Stable
+internal fun createPreviewSurveyPopup(): Popup.SatisfactionSurvey = object : Popup.SatisfactionSurvey {
+    override val text: String = "How satisfied are you with the service you received?"
+    override val surveyUrl: String = "https://survey.example.com/s/preview"
 }
